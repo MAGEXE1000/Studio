@@ -44,6 +44,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.runtime.*
 import androidx.compose.animation.core.*
 import androidx.compose.ui.draw.drawWithContent
@@ -77,12 +79,18 @@ class MainActivity : BridgeActivity() {
     private var navWidth by mutableFloatStateOf(0f)
     private var navHeight by mutableFloatStateOf(0f)
     private var navVisible by mutableStateOf(false)
-    private var navIsDark by mutableStateOf(false)
+    private var navTheme by mutableStateOf("dark")
     private var navCornerRadius by mutableFloatStateOf(0f)
 
     private var pillLeft by mutableFloatStateOf(0f)
     private var pillWidth by mutableFloatStateOf(0f)
     private var pillVisible by mutableStateOf(false)
+
+    private var floatLeft by mutableFloatStateOf(0f)
+    private var floatTop by mutableFloatStateOf(0f)
+    private var floatWidth by mutableFloatStateOf(0f)
+    private var floatHeight by mutableFloatStateOf(0f)
+    private var floatVisible by mutableStateOf(false)
 
     inner class ThemeTransitionBridge {
         @JavascriptInterface
@@ -176,18 +184,51 @@ class MainActivity : BridgeActivity() {
                 
                 composeView.setContent {
                     val backdrop = rememberLayerBackdrop {
-                        drawRect(if (navIsDark) Color(0xFF0E0E12) else Color(0xFFFFFFFF))
+                        drawRect(if (navTheme == "light") Color(0xFFFFFFFF) else Color(0xFF0E0E12))
                         drawContent()
                     }
                     
                     Box(modifier = Modifier.fillMaxSize()) {
+                        val density = LocalDensity.current
+                        val strokeWidthPx = with(density) { 1f.dp.toPx() }
+
+                        val (fillColor, strokeColor) = when (navTheme) {
+                            "light" -> Pair(
+                                Color.White.copy(alpha = 0.50f),
+                                Color.Black.copy(alpha = 0.08f)
+                            )
+                            "amoled" -> Pair(
+                                Color.Black.copy(alpha = 0.55f),
+                                Color.White.copy(alpha = 0.16f)
+                            )
+                            else -> Pair( // "dark"
+                                Color(0xFF0E0E12).copy(alpha = 0.50f),
+                                Color.White.copy(alpha = 0.10f)
+                            )
+                        }
+
+                        val (pillFillColor, pillStrokeColor) = when (navTheme) {
+                            "light" -> Pair(
+                                Color.White.copy(alpha = 0.45f),
+                                Color.Black.copy(alpha = 0.12f)
+                            )
+                            "amoled" -> Pair(
+                                Color.White.copy(alpha = 0.20f),
+                                Color.White.copy(alpha = 0.25f)
+                            )
+                            else -> Pair( // "dark"
+                                Color.White.copy(alpha = 0.15f),
+                                Color.White.copy(alpha = 0.20f)
+                            )
+                        }
+
                         if (navVisible) {
-                            val density = LocalDensity.current
                             val navLeftDp = with(density) { navLeft.toDp() }
                             val navTopDp = with(density) { navTop.toDp() }
                             val navWidthDp = with(density) { navWidth.toDp() }
                             val navHeightDp = with(density) { navHeight.toDp() }
                             val navCornerRadiusDp = with(density) { navCornerRadius.toDp() }
+                            val barShape = RoundedCornerShape(navCornerRadiusDp)
                             
                             Box(
                                 modifier = Modifier
@@ -195,16 +236,19 @@ class MainActivity : BridgeActivity() {
                                     .size(width = navWidthDp, height = navHeightDp)
                                     .drawBackdrop(
                                         backdrop = backdrop,
-                                        shape = { RoundedCornerShape(navCornerRadiusDp) },
+                                        shape = { barShape },
                                         effects = {
                                             vibrancy()
                                             blur(4f.dp.toPx())
-                                            lens(16f.dp.toPx(), 32f.dp.toPx())
+                                            lens(16f.dp.toPx(), 32f.dp.toPx(), depthEffect = true, chromaticAberration = true)
                                         },
                                         onDrawSurface = {
-                                            drawRect(
-                                                if (navIsDark) Color.Black.copy(alpha = 0.45f)
-                                                else Color.White.copy(alpha = 0.45f)
+                                            val outline = barShape.createOutline(size, layoutDirection, this)
+                                            drawOutline(outline = outline, color = fillColor)
+                                            drawOutline(
+                                                outline = outline,
+                                                color = strokeColor,
+                                                style = Stroke(width = strokeWidthPx)
                                             )
                                         }
                                     )
@@ -214,6 +258,7 @@ class MainActivity : BridgeActivity() {
                                 val pillLeftDp = with(density) { pillLeft.toDp() }
                                 val pillWidthDp = with(density) { pillWidth.toDp() }
                                 val pillHeightDp = navHeightDp - 8f.dp
+                                val pillShape = RoundedCornerShape(percent = 50)
                                 
                                 Box(
                                     modifier = Modifier
@@ -221,21 +266,56 @@ class MainActivity : BridgeActivity() {
                                         .size(width = pillWidthDp, height = pillHeightDp)
                                         .drawBackdrop(
                                             backdrop = backdrop,
-                                            shape = { CircleShape },
+                                            shape = { pillShape },
                                             effects = {
                                                 vibrancy()
                                                 blur(4f.dp.toPx())
-                                                lens(16f.dp.toPx(), 32f.dp.toPx())
+                                                lens(16f.dp.toPx(), 32f.dp.toPx(), depthEffect = true, chromaticAberration = true)
                                             },
                                             onDrawSurface = {
-                                                drawRect(
-                                                    if (navIsDark) Color.White.copy(alpha = 0.15f)
-                                                    else Color.Black.copy(alpha = 0.12f)
+                                                val outline = pillShape.createOutline(size, layoutDirection, this)
+                                                drawOutline(outline = outline, color = pillFillColor)
+                                                drawOutline(
+                                                    outline = outline,
+                                                    color = pillStrokeColor,
+                                                    style = Stroke(width = strokeWidthPx)
                                                 )
                                             }
                                         )
                                 )
                             }
+                        }
+
+                        if (floatVisible) {
+                            val floatLeftDp = with(density) { floatLeft.toDp() }
+                            val floatTopDp = with(density) { floatTop.toDp() }
+                            val floatWidthDp = with(density) { floatWidth.toDp() }
+                            val floatHeightDp = with(density) { floatHeight.toDp() }
+                            val floatShape = CircleShape
+                            
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = floatLeftDp, y = floatTopDp)
+                                    .size(width = floatWidthDp, height = floatHeightDp)
+                                    .drawBackdrop(
+                                        backdrop = backdrop,
+                                        shape = { floatShape },
+                                        effects = {
+                                            vibrancy()
+                                            blur(4f.dp.toPx())
+                                            lens(16f.dp.toPx(), 32f.dp.toPx(), depthEffect = true, chromaticAberration = true)
+                                        },
+                                        onDrawSurface = {
+                                            val outline = floatShape.createOutline(size, layoutDirection, this)
+                                            drawOutline(outline = outline, color = fillColor)
+                                            drawOutline(
+                                                outline = outline,
+                                                color = strokeColor,
+                                                style = Stroke(width = strokeWidthPx)
+                                            )
+                                        }
+                                    )
+                            )
                         }
                         
                         AndroidView(
@@ -538,14 +618,14 @@ class MainActivity : BridgeActivity() {
 
     inner class LiquidGlassBridge {
         @android.webkit.JavascriptInterface
-        fun updatePosition(left: Float, top: Float, width: Float, height: Float, visible: Boolean, isLight: Boolean, cornerRadius: Float) {
+        fun updatePosition(left: Float, top: Float, width: Float, height: Float, visible: Boolean, theme: String, cornerRadius: Float) {
             runOnUiThread {
                 navLeft = left
                 navTop = top
                 navWidth = width
                 navHeight = height
                 navVisible = visible
-                navIsDark = !isLight
+                navTheme = theme
                 navCornerRadius = cornerRadius
             }
         }
@@ -556,6 +636,17 @@ class MainActivity : BridgeActivity() {
                 pillLeft = left
                 pillWidth = width
                 pillVisible = visible
+            }
+        }
+
+        @android.webkit.JavascriptInterface
+        fun updateFloatingButtonPosition(left: Float, top: Float, width: Float, height: Float, visible: Boolean) {
+            runOnUiThread {
+                floatLeft = left
+                floatTop = top
+                floatWidth = width
+                floatHeight = height
+                floatVisible = visible
             }
         }
     }

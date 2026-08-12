@@ -237,6 +237,11 @@ export function SharedNavigationBar({
 }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const navBarRef = useRef<HTMLDivElement | null>(null);
+  const floatingButtonRef = useRef<HTMLButtonElement>(null);
+
+  const theme = useSettingsStore((s) => s.settings?.theme ?? 'dark');
+  const amoledMode = useSettingsStore((s) => s.settings?.amoledMode ?? false);
+  const currentThemeStr = theme === 'light' ? 'light' : amoledMode ? 'amoled' : 'dark';
 
   const isNative =
     typeof window !== 'undefined' &&
@@ -257,10 +262,36 @@ export function SharedNavigationBar({
       rect.width,
       rect.height,
       isVisible,
-      !isLight,
+      currentThemeStr,
       radius
     );
-  }, [visible, collapsed, isLight]);
+
+    const floatEl = floatingButtonRef.current;
+    let floatLeft = 0;
+    let floatTop = 0;
+    let floatWidth = 0;
+    let floatHeight = 0;
+    let floatVisible = false;
+
+    if (floatEl && !searchOpen) {
+      const floatRect = floatEl.getBoundingClientRect();
+      floatLeft = floatRect.left;
+      floatTop = floatRect.top;
+      floatWidth = floatRect.width;
+      floatHeight = floatRect.height;
+      floatVisible = visible && !collapsed && floatRect.width > 0 && floatRect.height > 0;
+    }
+
+    if ((window as any).LiquidGlassBridge.updateFloatingButtonPosition) {
+      (window as any).LiquidGlassBridge.updateFloatingButtonPosition(
+        floatLeft,
+        floatTop,
+        floatWidth,
+        floatHeight,
+        floatVisible
+      );
+    }
+  }, [visible, collapsed, currentThemeStr, searchOpen]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !(window as any).LiquidGlassBridge) return;
@@ -274,10 +305,13 @@ export function SharedNavigationBar({
     return () => {
       active = false;
       try {
-        (window as any).LiquidGlassBridge.updatePosition(0, 0, 0, 0, false, !isLight, 0);
+        (window as any).LiquidGlassBridge.updatePosition(0, 0, 0, 0, false, currentThemeStr, 0);
+        if ((window as any).LiquidGlassBridge.updateFloatingButtonPosition) {
+          (window as any).LiquidGlassBridge.updateFloatingButtonPosition(0, 0, 0, 0, false);
+        }
       } catch (e) {}
     };
-  }, [updateNativeGlass, isLight]);
+  }, [updateNativeGlass, currentThemeStr]);
 
   const scrollOffset = useNavScrollOffset();
   const startupComplete = useStartupComplete();
@@ -1895,6 +1929,7 @@ export function SharedNavigationBar({
             >
               {isHub && !searchOpen && (
                 <motion.button
+                  ref={floatingButtonRef}
                   onClick={() => {
                     if (onOpenSearch) onOpenSearch();
                     setSearchOpen(true);
@@ -1906,15 +1941,19 @@ export function SharedNavigationBar({
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: 'var(--surface-float-bg)',
-                    border: isLight
-                      ? '1px solid rgba(0, 0, 0, 0.05)'
-                      : '1px solid rgba(255, 255, 255, 0.06)',
-                    backdropFilter: 'var(--surface-float-blur)',
-                    WebkitBackdropFilter: 'var(--surface-float-blur)',
-                    boxShadow: isLight
-                      ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
-                      : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
+                    background: isNative ? 'transparent' : 'var(--surface-float-bg)',
+                    border: isNative
+                      ? 'none'
+                      : isLight
+                        ? '1px solid rgba(0, 0, 0, 0.05)'
+                        : '1px solid rgba(255, 255, 255, 0.06)',
+                    backdropFilter: isNative ? 'none' : 'var(--surface-float-blur)',
+                    WebkitBackdropFilter: isNative ? 'none' : 'var(--surface-float-blur)',
+                    boxShadow: isNative
+                      ? 'none'
+                      : isLight
+                        ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
+                        : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1934,6 +1973,7 @@ export function SharedNavigationBar({
 
               {showSwitcherButton && !searchOpen && (
                 <motion.button
+                  ref={floatingButtonRef}
                   onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
                   whileTap={{ scale: 0.92 }}
                   whileHover={{ scale: 1.04 }}
@@ -1942,15 +1982,19 @@ export function SharedNavigationBar({
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: 'var(--surface-float-bg)',
-                    border: isLight
-                      ? '1px solid rgba(0, 0, 0, 0.05)'
-                      : '1px solid rgba(255, 255, 255, 0.06)',
-                    backdropFilter: 'var(--surface-float-blur)',
-                    WebkitBackdropFilter: 'var(--surface-float-blur)',
-                    boxShadow: isLight
-                      ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
-                      : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
+                    background: isNative ? 'transparent' : 'var(--surface-float-bg)',
+                    border: isNative
+                      ? 'none'
+                      : isLight
+                        ? '1px solid rgba(0, 0, 0, 0.05)'
+                        : '1px solid rgba(255, 255, 255, 0.06)',
+                    backdropFilter: isNative ? 'none' : 'var(--surface-float-blur)',
+                    WebkitBackdropFilter: isNative ? 'none' : 'var(--surface-float-blur)',
+                    boxShadow: isNative
+                      ? 'none'
+                      : isLight
+                        ? 'inset 0 1px 0 0 rgba(255, 255, 255, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.25), 0 16px 40px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.03)'
+                        : 'inset 0 1px 0 0 rgba(255, 255, 255, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.04), 0 24px 48px rgba(0, 0, 0, 0.35), 0 4px 12px rgba(0, 0, 0, 0.15)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

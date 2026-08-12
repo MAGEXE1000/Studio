@@ -134,6 +134,7 @@ class MainActivity : BridgeActivity() {
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             
             webView.addJavascriptInterface(ThemeTransitionBridge(), "ThemeTransitionBridge")
+            webView.addJavascriptInterface(LiquidGlassBridge(), "LiquidGlassBridge")
 
             val webViewInitTime = android.os.SystemClock.elapsedRealtime()
             webView.post {
@@ -420,6 +421,75 @@ class MainActivity : BridgeActivity() {
             )
         } catch (e: Exception) {
             android.util.Log.w("MainActivity", "Update background work failed to schedule: " + e.message)
+        }
+    }
+
+    inner class LiquidGlassBridge {
+        @android.webkit.JavascriptInterface
+        fun updatePosition(left: Float, top: Float, width: Float, height: Float, visible: Boolean, isLight: Boolean, cornerRadius: Float) {
+            runOnUiThread {
+                updateNativeLiquidGlass(left, top, width, height, visible, isLight, cornerRadius)
+            }
+        }
+    }
+
+    private var nativeLiquidGlassView: android.view.View? = null
+
+    fun updateNativeLiquidGlass(
+        left: Float,
+        top: Float,
+        width: Float,
+        height: Float,
+        visible: Boolean,
+        isLight: Boolean,
+        cornerRadius: Float
+    ) {
+        val coordinatorLayout = findViewById<androidx.coordinatorlayout.widget.CoordinatorLayout>(com.chordex.app.R.id.coordinator_layout) ?: return
+        val density = resources.displayMetrics.density
+
+        val pLeft = (left * density).toInt()
+        val pTop = (top * density).toInt()
+        val pWidth = (width * density).toInt()
+        val pHeight = (height * density).toInt()
+        val pRadius = cornerRadius * density
+
+        if (!visible || pWidth <= 0 || pHeight <= 0) {
+            nativeLiquidGlassView?.visibility = android.view.View.GONE
+            return
+        }
+
+        if (nativeLiquidGlassView == null) {
+            val lg = com.qmdeve.liquidglass.widget.LiquidGlassView(this)
+            nativeLiquidGlassView = lg
+            // Add as first child so it is rendered behind the WebView
+            coordinatorLayout.addView(lg, 0)
+        }
+
+        val lg = nativeLiquidGlassView as com.qmdeve.liquidglass.widget.LiquidGlassView
+        lg.visibility = android.view.View.VISIBLE
+
+        // Configure layout params
+        val params = androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(pWidth, pHeight).apply {
+            gravity = android.view.Gravity.TOP or android.view.Gravity.LEFT
+            leftMargin = pLeft
+            topMargin = pTop
+        }
+        lg.layoutParams = params
+
+        // Configure LiquidGlassView properties
+        lg.setCornerRadius(pRadius)
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            lg.setBackground(null)
+        } else {
+            // Apply lightweight fallback (semi-transparent solid background with rounded corners and border)
+            val fallbackBg = android.graphics.drawable.GradientDrawable().apply {
+                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
+                setColor(if (isLight) 0xCCFFFFFF.toInt() else 0xE60E0E12.toInt())
+                setCornerRadius(pRadius)
+                setStroke((1 * density).toInt(), if (isLight) 0x1F000000.toInt() else 0x1AFFFFFF.toInt())
+            }
+            lg.setBackground(fallbackBg)
         }
     }
 

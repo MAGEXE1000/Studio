@@ -116,7 +116,7 @@ dependencies {
     
     // Jetpack Compose & InkFlow transition
     implementation "com.github.felixny:InkFlow:1.0.1"
-    implementation "com.qmdeve.liquidglass:core:1.0.5"
+    implementation "io.github.kyant0:backdrop:2.0.0"
     implementation "androidx.compose.ui:ui:1.6.1"
     implementation "androidx.compose.material3:material3:1.2.0"
     implementation "androidx.compose.ui:ui-tooling-preview:1.6.1"

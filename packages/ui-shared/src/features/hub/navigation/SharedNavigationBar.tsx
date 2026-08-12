@@ -919,8 +919,8 @@ export function SharedNavigationBar({
     return (width as number) - (offset as number) * ((width as number) - 130);
   });
 
-  const containerHeight = useTransform(scrollOffsetSpring, [0, 1], [42, 21]);
-  const containerBorderRadius = useTransform(scrollOffsetSpring, [0, 1], [21, 10.5]);
+  const containerHeight = useTransform(scrollOffsetSpring, [0, 1], [64, 32]);
+  const containerBorderRadius = useTransform(scrollOffsetSpring, [0, 1], [32, 16]);
   const containerTranslateY = useTransform(scrollOffsetSpring, [0, 1], [0, 40]);
 
   const pillOpacity = useTransform(scrollOffsetSpring, [0, 0.6], [1, 0]);
@@ -1043,6 +1043,44 @@ export function SharedNavigationBar({
   const profileCardY = useTransform(profileOpenSpring, [0, 1], [16, 0]);
   const profileCardScale = useTransform(profileOpenSpring, [0, 1], [0.94, 1]);
   const profileBackdropOpacity = useTransform(profileOpenSpring, [0, 1], [0, 1]);
+
+  const lastSentPillRef = useRef({ left: -1, width: -1, visible: false });
+
+  const sendPillUpdate = useCallback((left: number, width: number, visible: boolean) => {
+    if (
+      typeof window === 'undefined' ||
+      !(window as any).LiquidGlassBridge ||
+      !(window as any).LiquidGlassBridge.updatePillPosition
+    )
+      return;
+    const last = lastSentPillRef.current;
+    if (
+      Math.abs(last.left - left) < 0.2 &&
+      Math.abs(last.width - width) < 0.2 &&
+      last.visible === visible
+    ) {
+      return;
+    }
+    lastSentPillRef.current = { left, width, visible };
+    (window as any).LiquidGlassBridge.updatePillPosition(left, width, visible);
+  }, []);
+
+  useEffect(() => {
+    if (!isNative) return;
+    const update = () => {
+      const x = pillX.get();
+      const w = pillWidthVal.get();
+      const visible = !searchOpen;
+      sendPillUpdate(x, w, visible);
+    };
+    update();
+    const unsubX = pillX.on('change', () => update());
+    const unsubW = pillWidthVal.on('change', () => update());
+    return () => {
+      unsubX();
+      unsubW();
+    };
+  }, [isNative, pillX, pillWidthVal, searchOpen, sendPillUpdate]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -1730,7 +1768,7 @@ export function SharedNavigationBar({
                       skewX: dragSkewRaw,
                       scale: pillPressScale,
                       willChange: 'transform, width',
-                      opacity: pillOpacity,
+                      opacity: isNative ? 0 : pillOpacity,
                     }}
                   />
                 )}

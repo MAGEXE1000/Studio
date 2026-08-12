@@ -28,6 +28,13 @@ import java.util.concurrent.TimeUnit
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.CompositingStrategy
@@ -42,6 +49,13 @@ import androidx.compose.animation.core.*
 import androidx.compose.ui.draw.drawWithContent
 import com.felixny.inkflow.inkReveal
 import com.felixny.inkflow.InkFlowConfig
+import android.view.ViewGroup
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
 
 class MainActivity : BridgeActivity() {
 
@@ -57,6 +71,18 @@ class MainActivity : BridgeActivity() {
     }
 
     private var sharedFileUriToProcess: Uri? = null
+
+    private var navLeft by mutableFloatStateOf(0f)
+    private var navTop by mutableFloatStateOf(0f)
+    private var navWidth by mutableFloatStateOf(0f)
+    private var navHeight by mutableFloatStateOf(0f)
+    private var navVisible by mutableStateOf(false)
+    private var navIsDark by mutableStateOf(false)
+    private var navCornerRadius by mutableFloatStateOf(0f)
+
+    private var pillLeft by mutableFloatStateOf(0f)
+    private var pillWidth by mutableFloatStateOf(0f)
+    private var pillVisible by mutableStateOf(false)
 
     inner class ThemeTransitionBridge {
         @JavascriptInterface
@@ -135,6 +161,92 @@ class MainActivity : BridgeActivity() {
             
             webView.addJavascriptInterface(ThemeTransitionBridge(), "ThemeTransitionBridge")
             webView.addJavascriptInterface(LiquidGlassBridge(), "LiquidGlassBridge")
+
+            val coordinatorLayout = findViewById<androidx.coordinatorlayout.widget.CoordinatorLayout>(com.chordex.app.R.id.coordinator_layout)
+            if (coordinatorLayout != null) {
+                (webView.parent as? ViewGroup)?.removeView(webView)
+                
+                val composeView = ComposeView(this).apply {
+                    layoutParams = FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT
+                    )
+                }
+                coordinatorLayout.addView(composeView)
+                
+                composeView.setContent {
+                    val backdrop = rememberLayerBackdrop {
+                        drawRect(if (navIsDark) Color(0xFF0E0E12) else Color(0xFFFFFFFF))
+                        drawContent()
+                    }
+                    
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (navVisible) {
+                            val density = LocalDensity.current
+                            val navLeftDp = with(density) { navLeft.toDp() }
+                            val navTopDp = with(density) { navTop.toDp() }
+                            val navWidthDp = with(density) { navWidth.toDp() }
+                            val navHeightDp = with(density) { navHeight.toDp() }
+                            val navCornerRadiusDp = with(density) { navCornerRadius.toDp() }
+                            
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = navLeftDp, y = navTopDp)
+                                    .size(width = navWidthDp, height = navHeightDp)
+                                    .drawBackdrop(
+                                        backdrop = backdrop,
+                                        shape = { RoundedCornerShape(navCornerRadiusDp) },
+                                        effects = {
+                                            vibrancy()
+                                            blur(4f.dp.toPx())
+                                            lens(16f.dp.toPx(), 32f.dp.toPx())
+                                        },
+                                        onDrawSurface = {
+                                            drawRect(
+                                                if (navIsDark) Color.Black.copy(alpha = 0.45f)
+                                                else Color.White.copy(alpha = 0.45f)
+                                            )
+                                        }
+                                    )
+                            )
+                            
+                            if (pillVisible) {
+                                val pillLeftDp = with(density) { pillLeft.toDp() }
+                                val pillWidthDp = with(density) { pillWidth.toDp() }
+                                val pillHeightDp = navHeightDp - 8f.dp
+                                
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = navLeftDp + pillLeftDp, y = navTopDp + 4f.dp)
+                                        .size(width = pillWidthDp, height = pillHeightDp)
+                                        .drawBackdrop(
+                                            backdrop = backdrop,
+                                            shape = { CircleShape },
+                                            effects = {
+                                                vibrancy()
+                                                blur(4f.dp.toPx())
+                                                lens(16f.dp.toPx(), 32f.dp.toPx())
+                                            },
+                                            onDrawSurface = {
+                                                drawRect(
+                                                    if (navIsDark) Color.White.copy(alpha = 0.15f)
+                                                    else Color.Black.copy(alpha = 0.12f)
+                                                )
+                                            }
+                                        )
+                                )
+                            }
+                        }
+                        
+                        AndroidView(
+                            factory = { webView },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .layerBackdrop(backdrop)
+                        )
+                    }
+                }
+            }
 
             val webViewInitTime = android.os.SystemClock.elapsedRealtime()
             webView.post {
@@ -428,68 +540,23 @@ class MainActivity : BridgeActivity() {
         @android.webkit.JavascriptInterface
         fun updatePosition(left: Float, top: Float, width: Float, height: Float, visible: Boolean, isLight: Boolean, cornerRadius: Float) {
             runOnUiThread {
-                updateNativeLiquidGlass(left, top, width, height, visible, isLight, cornerRadius)
+                navLeft = left
+                navTop = top
+                navWidth = width
+                navHeight = height
+                navVisible = visible
+                navIsDark = !isLight
+                navCornerRadius = cornerRadius
             }
         }
-    }
 
-    private var nativeLiquidGlassView: android.view.View? = null
-
-    fun updateNativeLiquidGlass(
-        left: Float,
-        top: Float,
-        width: Float,
-        height: Float,
-        visible: Boolean,
-        isLight: Boolean,
-        cornerRadius: Float
-    ) {
-        val coordinatorLayout = findViewById<androidx.coordinatorlayout.widget.CoordinatorLayout>(com.chordex.app.R.id.coordinator_layout) ?: return
-        val density = resources.displayMetrics.density
-
-        val pLeft = (left * density).toInt()
-        val pTop = (top * density).toInt()
-        val pWidth = (width * density).toInt()
-        val pHeight = (height * density).toInt()
-        val pRadius = cornerRadius * density
-
-        if (!visible || pWidth <= 0 || pHeight <= 0) {
-            nativeLiquidGlassView?.visibility = android.view.View.GONE
-            return
-        }
-
-        if (nativeLiquidGlassView == null) {
-            val lg = com.qmdeve.liquidglass.widget.LiquidGlassView(this)
-            nativeLiquidGlassView = lg
-            // Add as first child so it is rendered behind the WebView
-            coordinatorLayout.addView(lg, 0)
-        }
-
-        val lg = nativeLiquidGlassView as com.qmdeve.liquidglass.widget.LiquidGlassView
-        lg.visibility = android.view.View.VISIBLE
-
-        // Configure layout params
-        val params = androidx.coordinatorlayout.widget.CoordinatorLayout.LayoutParams(pWidth, pHeight).apply {
-            gravity = android.view.Gravity.TOP or android.view.Gravity.LEFT
-            leftMargin = pLeft
-            topMargin = pTop
-        }
-        lg.layoutParams = params
-
-        // Configure LiquidGlassView properties
-        lg.setCornerRadius(pRadius)
-
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            lg.setBackground(null)
-        } else {
-            // Apply lightweight fallback (semi-transparent solid background with rounded corners and border)
-            val fallbackBg = android.graphics.drawable.GradientDrawable().apply {
-                shape = android.graphics.drawable.GradientDrawable.RECTANGLE
-                setColor(if (isLight) 0xCCFFFFFF.toInt() else 0xE60E0E12.toInt())
-                setCornerRadius(pRadius)
-                setStroke((1 * density).toInt(), if (isLight) 0x1F000000.toInt() else 0x1AFFFFFF.toInt())
+        @android.webkit.JavascriptInterface
+        fun updatePillPosition(left: Float, width: Float, visible: Boolean) {
+            runOnUiThread {
+                pillLeft = left
+                pillWidth = width
+                pillVisible = visible
             }
-            lg.setBackground(fallbackBg)
         }
     }
 

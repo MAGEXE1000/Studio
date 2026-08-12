@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.27';
-export const NATIVE_VERSION_CODE = 40527;
-export const WEB_VERSION = '4.5.27';
+export const NATIVE_VERSION = '4.5.28';
+export const NATIVE_VERSION_CODE = 40528;
+export const WEB_VERSION = '4.5.28';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/11/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '2737e8bd';
+export const APP_COMMIT_SHA = 'ef42b09a';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/11/2026, 8:16:04 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/11/2026, 10:06:30 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,9 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).',
-      'Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).',
-      'Implemented a backdrop-based selected-item highlight lens.',
-      'Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.',
+      'Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.',
+      'Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.',
+      'Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.',
     ],
   },
 ];

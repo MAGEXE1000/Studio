@@ -1,10 +1,9 @@
-# Version 4.5.27
+# Version 4.5.28
 
 Release Date: 2026-08-11
 
 ### Added
 
-- Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).
-- Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).
-- Implemented a backdrop-based selected-item highlight lens.
-- Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.
+- Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.
+- Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.
+- Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.

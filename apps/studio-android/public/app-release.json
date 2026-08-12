@@ -1,21 +1,20 @@
 {
   "platform": "android",
-  "version": "4.5.27",
-  "versionName": "4.5.27",
-  "versionCode": 40527,
-  "version_code": 40527,
-  "commit": "2737e8bd",
-  "releasedAt": "8/11/2026, 8:16:04 PM CST",
-  "buildTimestamp": "8/11/2026, 8:16:04 PM CST",
+  "version": "4.5.28",
+  "versionName": "4.5.28",
+  "versionCode": 40528,
+  "version_code": 40528,
+  "commit": "ef42b09a",
+  "releasedAt": "8/11/2026, 10:07:12 PM CST",
+  "buildTimestamp": "8/11/2026, 10:07:12 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).\n• Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).\n• Implemented a backdrop-based selected-item highlight lens.\n• Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.",
-  "whatsNew": "• Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).\n• Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).\n• Implemented a backdrop-based selected-item highlight lens.\n• Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.",
+  "changelog": "• Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.\n• Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.\n• Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.",
+  "whatsNew": "• Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.\n• Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.\n• Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.",
   "releaseNotes": {
     "added": [
-      "Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).",
-      "Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).",
-      "Implemented a backdrop-based selected-item highlight lens.",
-      "Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur."
+      "Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.",
+      "Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.",
+      "Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes."
     ]
   },
   "mandatory": false

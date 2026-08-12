@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.26';
-export const NATIVE_VERSION_CODE = 40526;
-export const WEB_VERSION = '4.5.26';
+export const NATIVE_VERSION = '4.5.27';
+export const NATIVE_VERSION_CODE = 40527;
+export const WEB_VERSION = '4.5.27';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -67,19 +67,19 @@ export const APP_VERSION_LABEL = APP_VERSION;
  * Local date this build was stamped (e.g. "July 24, 2026").
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_VERSION_DATE = '8/1/2026';
+export const APP_VERSION_DATE = '8/11/2026';
 
 /**
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '39fecf0d';
+export const APP_COMMIT_SHA = '2737e8bd';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/11/2026, 7:36:30 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/11/2026, 8:16:04 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Integrated the high-performance native Liquid Glass visual effect from `com.qmdeve:liquidglass:core:1.0.5` on the Studio Android bottom navigation bar.',
-      'Normalized the bottom navigation bar height to exactly 42 px (collapsing to 21 px when scrolling).',
-      'Implemented continuous layout rect tracking in React via RequestAnimationFrame to synchronize with the native positioning layer.',
-      'Added a lightweight, theme-appropriate native drawable fallback background for Android versions older than Android 13 (API < 33).',
+      'Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).',
+      'Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).',
+      'Implemented a backdrop-based selected-item highlight lens.',
+      'Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.',
     ],
   },
 ];

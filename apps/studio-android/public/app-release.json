@@ -1,21 +1,21 @@
 {
   "platform": "android",
-  "version": "4.5.26",
-  "versionName": "4.5.26",
-  "versionCode": 40526,
-  "version_code": 40526,
-  "commit": "39fecf0d",
-  "releasedAt": "8/11/2026, 7:36:30 PM CST",
-  "buildTimestamp": "8/11/2026, 7:36:30 PM CST",
+  "version": "4.5.27",
+  "versionName": "4.5.27",
+  "versionCode": 40527,
+  "version_code": 40527,
+  "commit": "2737e8bd",
+  "releasedAt": "8/11/2026, 8:16:04 PM CST",
+  "buildTimestamp": "8/11/2026, 8:16:04 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Integrated the high-performance native Liquid Glass visual effect from `com.qmdeve:liquidglass:core:1.0.5` on the Studio Android bottom navigation bar.\n• Normalized the bottom navigation bar height to exactly 42 px (collapsing to 21 px when scrolling).\n• Implemented continuous layout rect tracking in React via RequestAnimationFrame to synchronize with the native positioning layer.\n• Added a lightweight, theme-appropriate native drawable fallback background for Android versions older than Android 13 (API < 33).",
-  "whatsNew": "• Integrated the high-performance native Liquid Glass visual effect from `com.qmdeve:liquidglass:core:1.0.5` on the Studio Android bottom navigation bar.\n• Normalized the bottom navigation bar height to exactly 42 px (collapsing to 21 px when scrolling).\n• Implemented continuous layout rect tracking in React via RequestAnimationFrame to synchronize with the native positioning layer.\n• Added a lightweight, theme-appropriate native drawable fallback background for Android versions older than Android 13 (API < 33).",
+  "changelog": "• Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).\n• Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).\n• Implemented a backdrop-based selected-item highlight lens.\n• Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.",
+  "whatsNew": "• Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).\n• Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).\n• Implemented a backdrop-based selected-item highlight lens.\n• Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.",
   "releaseNotes": {
     "added": [
-      "Integrated the high-performance native Liquid Glass visual effect from `com.qmdeve:liquidglass:core:1.0.5` on the Studio Android bottom navigation bar.",
-      "Normalized the bottom navigation bar height to exactly 42 px (collapsing to 21 px when scrolling).",
-      "Implemented continuous layout rect tracking in React via RequestAnimationFrame to synchronize with the native positioning layer.",
-      "Added a lightweight, theme-appropriate native drawable fallback background for Android versions older than Android 13 (API < 33)."
+      "Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).",
+      "Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).",
+      "Implemented a backdrop-based selected-item highlight lens.",
+      "Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur."
     ]
   },
   "mandatory": false

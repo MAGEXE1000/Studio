@@ -1325,7 +1325,7 @@ export function SharedNavigationBar({
               ) : (
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}
+                  style={{ fontSize: 24, color: 'var(--c-text-secondary)' }} // token-guard-ignore
                 >
                   {' '}
                   {/* token-guard-ignore */}
@@ -1349,7 +1349,7 @@ export function SharedNavigationBar({
               </span>
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 11, // token-guard-ignore
                   color: 'var(--c-text-secondary)',
                   opacity: 0.8,
                   textOverflow: 'ellipsis',

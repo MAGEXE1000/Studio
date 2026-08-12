@@ -1,12 +1,10 @@
-# Version 4.5.25
+# Version 4.5.26
 
 Release Date: 2026-08-11
 
 ### Added
 
-- Hardened the Android production release pipeline to make it deterministic, safe, and fast.
-- Implemented an idempotent version synchronization mechanism with SHA-256 content verification.
-- Integrated a canonical version guard that validates release candidate versionCode against production.
-- Added versionCode collision safety checks that fail-fast if MIN or PAT versions would cause collisions.
-- Configured a Preflight-to-Build release state hash check to verify checkout equivalence.
-- Restored standard dirty-tree checking in Vite without generated-file allowlists.
+- Integrated the high-performance native Liquid Glass visual effect from `com.qmdeve:liquidglass:core:1.0.5` on the Studio Android bottom navigation bar.
+- Normalized the bottom navigation bar height to exactly 42 px (collapsing to 21 px when scrolling).
+- Implemented continuous layout rect tracking in React via RequestAnimationFrame to synchronize with the native positioning layer.
+- Added a lightweight, theme-appropriate native drawable fallback background for Android versions older than Android 13 (API < 33).

@@ -243,6 +243,11 @@ export function SharedNavigationBar({
   const amoledMode = useSettingsStore((s) => s.settings?.amoledMode ?? false);
   const currentThemeStr = theme === 'light' ? 'light' : amoledMode ? 'amoled' : 'dark';
 
+  const searchOpen = useBottomNavigationStore((s) => s.isSearchOpen);
+  const setSearchOpen = useBottomNavigationStore((s) => s.setSearchOpen);
+  const isProfileMenuOpen = useBottomNavigationStore((s) => s.isProfileMenuOpen);
+  const setProfileMenuOpen = useBottomNavigationStore((s) => s.setProfileMenuOpen);
+
   const isNative =
     typeof window !== 'undefined' &&
     !!(window as any).Capacitor?.isNativePlatform?.() &&
@@ -317,11 +322,6 @@ export function SharedNavigationBar({
   const startupComplete = useStartupComplete();
 
   const lang = useSettingsStore((s) => s.settings?.language ?? 'en');
-
-  const searchOpen = useBottomNavigationStore((s) => s.isSearchOpen);
-  const setSearchOpen = useBottomNavigationStore((s) => s.setSearchOpen);
-  const isProfileMenuOpen = useBottomNavigationStore((s) => s.isProfileMenuOpen);
-  const setProfileMenuOpen = useBottomNavigationStore((s) => s.setProfileMenuOpen);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<string>('all');

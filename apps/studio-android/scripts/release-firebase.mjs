@@ -120,8 +120,18 @@ try {
     }
   }
 } catch (e) {
-  console.warn(`release-firebase: ⚠  Could not resolve production version from GitHub Releases: ${e.message}`);
-  console.warn('release-firebase: ⚠  Proceeding without production baseline guard.');
+  // A failed gh call on CI is always an environment problem (missing GH_TOKEN scope,
+  // network failure, or repository misconfigured). Silently proceeding means the version
+  // guard is skipped entirely — the same class of failure the guard was designed to catch.
+  // In CI (GITHUB_ACTIONS=true), fail-fast. Locally, warn and proceed so developers
+  // can run the script without network access.
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    console.error(`\x1b[31mrelease-firebase: \u2717 FATAL: Could not resolve production version from GitHub Releases: ${e.message}\x1b[0m`);
+    console.error('  The version guard is required in CI. Check GH_TOKEN permissions and network access.');
+    process.exit(1);
+  }
+  console.warn(`release-firebase: \u26a0  Could not resolve production version from GitHub Releases: ${e.message}`);
+  console.warn('release-firebase: \u26a0  Running locally without network \u2014 version guard skipped.');
 }
 
 // Derive candidate versionCode from version (same formula as sync-versions)
@@ -234,12 +244,23 @@ console.log(
   `release-firebase: âœ“ Validated changelog for version ${version}. Found ${flatBullets.length} bullets.`
 );
 
-// Write to release-notes.md in repo root
+// Idempotent write: only update release-notes.md if content would actually change.
+// sectionContent is read from release-notes.md (line 191) which already ends with '\n'.
+// Appending '\n' directly always produces sectionContent + '\n\n', which never equals
+// the existing file content — making the comparison always fire and the file always dirty.
+// Fix: normalise with trimEnd() to strip any trailing whitespace before appending the
+// canonical single trailing newline. Invariant: release-notes.md has exactly one trailing '\n'.
 const releaseNotesMdPath = path.join(repoRoot, 'release-notes.md');
-writeFileSync(releaseNotesMdPath, sectionContent + '\n', 'utf8');
-console.log(`release-firebase: âœ“ Wrote ${path.relative(repoRoot, releaseNotesMdPath)}`);
+const releaseNotesMdContent = sectionContent.trimEnd() + '\n';
+const existingReleaseNotesMd = existsSync(releaseNotesMdPath) ? readFileSync(releaseNotesMdPath, 'utf8') : null;
+if (existingReleaseNotesMd !== releaseNotesMdContent) {
+  writeFileSync(releaseNotesMdPath, releaseNotesMdContent, 'utf8');
+  console.log(`release-firebase: \u2713 Wrote ${path.relative(repoRoot, releaseNotesMdPath)} (content changed)`);
+} else {
+  console.log(`release-firebase: \u2713 ${path.relative(repoRoot, releaseNotesMdPath)} already up to date (idempotent skip)`);
+}
 
-// Write temp notes file
+// Write temp notes file (gitignored, untracked — safe to write unconditionally)
 const tempNotesPath = path.join(pkgRoot, '.release-temp-notes.json');
 writeFileSync(
   tempNotesPath,

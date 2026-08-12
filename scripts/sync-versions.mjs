@@ -190,9 +190,20 @@ if (fs.existsSync(appVersionTsPath)) {
     } else {
       const sectionContent = sectionLines.join('\n').trim();
 
+      // Build the canonical release-notes.md format — must match validate-release-changelog.mjs
+      // exactly (line 132 of that script). The authoritative format is:
+      //   # Version X.Y.Z\n\nRelease Date: YYYY-MM-DD\n\n[body]\n
+      // Without the header, validate-release-changelog rewrites the file with it on every run,
+      // causing a format mismatch that makes the file dirty after every validate pass.
+      const releaseDateMatch = sectionContent.match(/Release Date:\s*(.+)/);
+      const releaseDate = releaseDateMatch ? releaseDateMatch[1].trim() : new Date().toISOString().slice(0, 10);
+      // Body = everything after the Release Date line
+      const bodyAfterDate = sectionContent.replace(/^Release Date:[^\n]*\n*/, '').trim();
+      const canonicalReleaseNotesMd = `# Version ${version}\n\nRelease Date: ${releaseDate}\n\n${bodyAfterDate}\n`;
+
       // Idempotent write of release-notes.md
       const releaseNotesMdPath = path.join(repoRoot, 'release-notes.md');
-      const wrote = writeIfChanged(releaseNotesMdPath, sectionContent + '\n', 'release-notes.md');
+      const wrote = writeIfChanged(releaseNotesMdPath, canonicalReleaseNotesMd, 'release-notes.md');
       if (wrote) console.log(`sync-versions: ✓ Wrote release-notes.md from CHANGELOG.md`);
 
       const categories = { added: [], improved: [], fixed: [], changed: [] };

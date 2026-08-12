@@ -242,8 +242,8 @@ if (fs.existsSync(appVersionTsPath)) {
       let tsSections = 'export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [\n';
       for (const [key, heading] of Object.entries({added: 'Added', improved: 'Improved', fixed: 'Fixed', changed: 'Changed'})) {
         if (categories[key].length > 0) {
-          tsSections += `  {\n    heading: '${heading}',\n    items: [\n` +
-            categories[key].map((i) => `      '${i.replace(/'/g, "\\'")}',`).join('\n') +
+          tsSections += `  {\n    heading: "${heading}",\n    items: [\n` +
+            categories[key].map((i) => `      "${i.replace(/"/g, '\\"')}",`).join('\n') +
             '\n    ],\n  },\n';
         }
       }
@@ -252,7 +252,8 @@ if (fs.existsSync(appVersionTsPath)) {
       const changelogSectionsPat = /export\s+const\s+APP_CHANGELOG_SECTIONS:\s*ChangelogSection\[\]\s*=\s*\[([\s\S]*?)\]\s*;/;
       if (changelogSectionsPat.test(src)) {
         const newSrc = src.replace(changelogSectionsPat, tsSections);
-        if (newSrc !== src) {
+        const clean = (s) => s.replace(/['"\\\s,;]/g, '');
+        if (clean(newSrc) !== clean(src)) {
           src = newSrc;
           updated = true;
         }
@@ -262,7 +263,14 @@ if (fs.existsSync(appVersionTsPath)) {
 
   if (updated) {
     const wrote = writeIfChanged(appVersionTsPath, src, 'appVersion.ts');
-    if (wrote) console.log(`sync-versions: ✓ Synchronized appVersion.ts`);
+    if (wrote) {
+      console.log(`sync-versions: ✓ Synchronized appVersion.ts`);
+      try {
+        execSync(`npx prettier --write "${appVersionTsPath}"`, { cwd: repoRoot, stdio: 'ignore' });
+      } catch (e) {
+        console.warn('sync-versions: ⚠ Prettier formatting failed for appVersion.ts:', e.message);
+      }
+    }
   } else {
     console.log(`sync-versions: • appVersion.ts is already perfectly synchronized`);
   }

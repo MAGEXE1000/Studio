@@ -1,16 +1,14 @@
-# Version 4.5.24
+# Version 4.5.25
+
+Release Date: 2026-08-11
 
 Release Date: 2026-08-11
 
 ### Added
-- Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.
-- Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.
-- Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.
-- Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.
-- Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.
-- Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.
-- Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.
-- Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.
-- Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.
-- Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.
-- Fixed tab scrubbing gestures via continuous fractional pointer indexing.
+
+- Hardened the Android production release pipeline to make it deterministic, safe, and fast.
+- Implemented an idempotent version synchronization mechanism with SHA-256 content verification.
+- Integrated a canonical version guard that validates release candidate versionCode against production.
+- Added versionCode collision safety checks that fail-fast if MIN or PAT versions would cause collisions.
+- Configured a Preflight-to-Build release state hash check to verify checkout equivalence.
+- Restored standard dirty-tree checking in Vite without generated-file allowlists.

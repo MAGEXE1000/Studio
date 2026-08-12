@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.24';
-export const NATIVE_VERSION_CODE = 40524;
-export const WEB_VERSION = '4.5.24';
+export const NATIVE_VERSION = '4.5.25';
+export const NATIVE_VERSION_CODE = 40525;
+export const WEB_VERSION = '4.5.25';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/1/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '95a60792';
+export const APP_COMMIT_SHA = 'd801183f';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/11/2026, 5:39:52 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/11/2026, 6:29:01 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,19 +96,14 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Added",
+    heading: 'Added',
     items: [
-      "Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.",
-      "Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.",
-      "Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.",
-      "Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.",
-      "Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.",
-      "Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.",
-      "Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.",
-      "Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.",
-      "Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.",
-      "Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.",
-      "Fixed tab scrubbing gestures via continuous fractional pointer indexing.",
+      'Hardened the Android production release pipeline to make it deterministic, safe, and fast.',
+      'Implemented an idempotent version synchronization mechanism with SHA-256 content verification.',
+      'Integrated a canonical version guard that validates release candidate versionCode against production.',
+      'Added versionCode collision safety checks that fail-fast if MIN or PAT versions would cause collisions.',
+      'Configured a Preflight-to-Build release state hash check to verify checkout equivalence.',
+      'Restored standard dirty-tree checking in Vite without generated-file allowlists.',
     ],
   },
 ];

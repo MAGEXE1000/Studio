@@ -335,33 +335,6 @@ class MainActivity : BridgeActivity() {
                                             )
                                     )
                                 }
-
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 8.dp),
-                                    horizontalArrangement = Arrangement.SpaceAround,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Person,
-                                        contentDescription = "Profile",
-                                        tint = iconColor,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.Home,
-                                        contentDescription = "Home",
-                                        tint = iconColor,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = "Settings",
-                                        tint = iconColor,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
                             }
                         }
 
@@ -402,16 +375,8 @@ class MainActivity : BridgeActivity() {
                                                 style = Stroke(width = strokeWidthPx)
                                             )
                                         }
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Search",
-                                    tint = iconColor,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
+                                    )
+                            )
                         }
                     }
                 }

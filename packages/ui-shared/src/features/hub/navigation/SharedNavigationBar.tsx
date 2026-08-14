@@ -934,9 +934,9 @@ export function SharedNavigationBar({
   const dragSkewRaw = useMotionValue(0);
   const pressPressureRaw = useMotionValue(0);
 
-  // Synchronized Apple-grade spring physics
-  const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
-  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 400, damping: 25, mass: 0.8 });
+  // Synchronized Apple-grade spring physics with snappy bouncy settling
+  const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 450, damping: 28, mass: 0.6 });
+  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 420, damping: 26, mass: 0.7 });
   const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
   const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
 
@@ -968,14 +968,10 @@ export function SharedNavigationBar({
     barWidthRaw.set(barWidth);
   }, [barWidth]);
 
-  // Collapsed container dimensions driven by scrollOffsetSpring
-  const containerWidth = useTransform([scrollOffsetSpring, barWidthRaw], ([offset, width]) => {
-    return (width as number) - (offset as number) * ((width as number) - 130);
-  });
-
-  const containerHeight = useTransform(scrollOffsetSpring, [0, 1], [64, 32]);
-  const containerBorderRadius = useTransform(scrollOffsetSpring, [0, 1], [32, 16]);
-  const containerTranslateY = useTransform(scrollOffsetSpring, [0, 1], [0, 40]);
+  // GPU-composited smooth collapse on scroll (zero layout reflows)
+  const containerTranslateY = useTransform(scrollOffsetSpring, [0, 1], [0, 80]);
+  const containerScale = useTransform(scrollOffsetSpring, [0, 1], [1, 0.92]);
+  const navBarOpacity = useTransform(scrollOffsetSpring, [0, 0.7], [1, 0]);
 
   const pillOpacity = useTransform(scrollOffsetSpring, [0, 0.6], [1, 0]);
   const switcherScale = useTransform(scrollOffsetSpring, [0, 0.4], [1, 0]);
@@ -1014,7 +1010,7 @@ export function SharedNavigationBar({
 
   // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
   // Derived continuous pill movement (direct 1:1 synchronization during drag, spring interpolation after drag)
-  const STRETCH_FACTOR = 30; // pixels of stretch per index distance
+  const STRETCH_FACTOR = 28; // pixels of stretch per index distance
 
   const pillX = useTransform(
     [activeIdxRaw, activeIdxSpring, dragXRaw],
@@ -1084,6 +1080,21 @@ export function SharedNavigationBar({
 
     return baseWidth;
   });
+
+  // Dynamic Motion Physics for Active Indicator (Reference GIF Matching)
+  const motionDelta = useTransform(
+    [activeIdxRaw, activeIdxSpring],
+    ([raw, spring]) => (raw as number) - (spring as number)
+  );
+  const motionSpeed = useTransform(motionDelta, (d: number) => Math.min(1, Math.abs(d) * 1.5));
+
+  const pillStretchX = useTransform(motionSpeed, [0, 1], [1, 1.18]);
+  const pillSquishY = useTransform(motionSpeed, [0, 1], [1, 0.93]);
+
+  // Subtle Chromatic Aberration fringe (RGB split lens effect during motion)
+  const chromaticOpacity = useTransform(motionSpeed, [0, 0.1, 0.8], [0, 0.35, 0.75]);
+  const chromaticOffsetCyan = useTransform(motionDelta, [-1, 0, 1], [-2.5, 0, 1.5]);
+  const chromaticOffsetMagenta = useTransform(motionDelta, [-1, 0, 1], [1.5, 0, -2.5]);
 
   const pillPressScale = useTransform(pressPressureRaw, [0, 5], [1, 0.96]);
 
@@ -1745,9 +1756,9 @@ export function SharedNavigationBar({
               style={{
                 pointerEvents: 'auto',
                 justifySelf: 'center',
-                width: containerWidth,
-                height: containerHeight,
-                borderRadius: containerBorderRadius,
+                width: barWidth,
+                height: 64,
+                borderRadius: 32,
                 border: isNative
                   ? 'none'
                   : isLight
@@ -1771,6 +1782,8 @@ export function SharedNavigationBar({
                 transformOrigin: 'center center',
                 x: navX,
                 y: containerTranslateY,
+                scale: containerScale,
+                opacity: navBarOpacity,
               }}
             >
               <div
@@ -1790,7 +1803,7 @@ export function SharedNavigationBar({
                   touchAction: 'none',
                 }}
               >
-                {/* Standard Navigation Items */}
+                {/* Gliding Active Highlight Capsule with Chromatic Aberration Fringe */}
                 {!searchOpen && (
                   <motion.div
                     style={{
@@ -1801,25 +1814,68 @@ export function SharedNavigationBar({
                       x: pillX,
                       width: pillWidthVal,
                       borderRadius: '9999px',
-                      background: isLight
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(245, 248, 255, 0.55) 50%, rgba(255, 255, 255, 0.45) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(200, 220, 255, 0.10) 50%, rgba(255, 255, 255, 0.05) 100%)',
-                      border: isLight
-                        ? '1px solid rgba(255, 255, 255, 0.9)'
-                        : '1.2px solid rgba(255, 255, 255, 0.28)',
-                      boxShadow: isLight
-                        ? 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03), 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04)'
-                        : 'inset 0 1px 2px rgba(255, 255, 255, 0.35), inset 0 -0.5px 1px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(255, 255, 255, 0.08)',
-                      backdropFilter: 'var(--surface-float-blur)',
-                      WebkitBackdropFilter: 'var(--surface-float-blur)',
                       pointerEvents: 'none',
                       zIndex: 0,
                       skewX: dragSkewRaw,
+                      scaleX: pillStretchX,
+                      scaleY: pillSquishY,
                       scale: pillPressScale,
                       willChange: 'transform, width',
-                      opacity: isNative ? 0 : pillOpacity,
+                      opacity: pillOpacity,
                     }}
-                  />
+                  >
+                    {/* Chromatic Fringe: Cyan Shift */}
+                    <motion.div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '9999px',
+                        border: isLight
+                          ? '1.5px solid rgba(0, 180, 255, 0.65)'
+                          : '1.5px solid rgba(0, 230, 255, 0.70)',
+                        x: chromaticOffsetCyan,
+                        opacity: chromaticOpacity,
+                        filter: 'blur(0.5px)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+
+                    {/* Chromatic Fringe: Magenta Shift */}
+                    <motion.div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '9999px',
+                        border: isLight
+                          ? '1.5px solid rgba(255, 40, 130, 0.60)'
+                          : '1.5px solid rgba(255, 30, 140, 0.65)',
+                        x: chromaticOffsetMagenta,
+                        opacity: chromaticOpacity,
+                        filter: 'blur(0.5px)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+
+                    {/* Liquid Glass Highlight Core Surface */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: '9999px',
+                        background: isLight
+                          ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 245, 255, 0.65) 50%, rgba(255, 255, 255, 0.50) 100%)'
+                          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(200, 225, 255, 0.12) 50%, rgba(255, 255, 255, 0.06) 100%)',
+                        border: isLight
+                          ? '1px solid rgba(255, 255, 255, 0.95)'
+                          : '1.2px solid rgba(255, 255, 255, 0.32)',
+                        boxShadow: isLight
+                          ? 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.04)'
+                          : 'inset 0 1px 2px rgba(255, 255, 255, 0.40), inset 0 -0.5px 1px rgba(0, 0, 0, 0.15), 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(255, 255, 255, 0.10)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                      }}
+                    />
+                  </motion.div>
                 )}
                 {!searchOpen ? (
                   <motion.div
@@ -1829,7 +1885,7 @@ export function SharedNavigationBar({
                       height: '100%',
                       alignItems: 'center',
                       justifyContent: 'space-around',
-                      opacity: isNative ? 0 : pillOpacity,
+                      opacity: pillOpacity,
                       pointerEvents: 'auto',
                     }}
                   >
@@ -1978,7 +2034,7 @@ export function SharedNavigationBar({
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
                     scale: switcherScale,
-                    opacity: isNative ? 0 : switcherOpacity,
+                    opacity: switcherOpacity,
                     x: switcherX,
                   }}
                 >
@@ -2025,7 +2081,7 @@ export function SharedNavigationBar({
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
                     scale: switcherScale,
-                    opacity: isNative ? 0 : switcherOpacity,
+                    opacity: switcherOpacity,
                     x: switcherX,
                   }}
                 >

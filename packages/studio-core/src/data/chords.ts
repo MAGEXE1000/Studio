@@ -1481,16 +1481,38 @@ export function normalizeChordName(name: string): string {
   let clean = name.trim();
 
   // 1. Remove brackets/parentheses and comments, e.g. (no5) or (omit5) or [Verse]
-  clean = clean
-    .replace(/\([^)]*\)/g, '')
-    .replace(/\[[^\]]*\]/g, '')
-    .trim();
+  let prev;
+  do {
+    prev = clean;
+    const startParen = clean.indexOf('(');
+    if (startParen !== -1) {
+      const endParen = clean.indexOf(')', startParen);
+      if (endParen !== -1) {
+        clean = clean.substring(0, startParen) + clean.substring(endParen + 1);
+      }
+    }
+    const startBracket = clean.indexOf('[');
+    if (startBracket !== -1) {
+      const endBracket = clean.indexOf(']', startBracket);
+      if (endBracket !== -1) {
+        clean = clean.substring(0, startBracket) + clean.substring(endBracket + 1);
+      }
+    }
+  } while (clean !== prev);
+  clean = clean.trim();
 
   // 2. Remove commas, trailing punctuation and HTML tags
-  clean = clean
-    .replace(/<[^>]*>/g, '')
-    .replace(/[.,!$%\^&;:{}=\-_`~()]/g, '')
-    .trim();
+  do {
+    prev = clean;
+    const startTag = clean.indexOf('<');
+    if (startTag !== -1) {
+      const endTag = clean.indexOf('>', startTag);
+      if (endTag !== -1) {
+        clean = clean.substring(0, startTag) + clean.substring(endTag + 1);
+      }
+    }
+  } while (clean !== prev);
+  clean = clean.replace(/[.,!$%\^&;:{}=\-_`~()]/g, '').trim();
 
   // 3. Normalize spaces
   clean = clean.replace(/\s+/g, '');

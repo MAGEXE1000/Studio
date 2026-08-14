@@ -348,13 +348,15 @@ export class CifraClubImporter implements ChartUrlImporter {
             importDiagnostics.push('Succeeded using Strategy: Cifra Club Apollo State JSON');
             break;
           } catch (_) {
-            preContent = escapedVal
-              .replace(/\\n/g, '\n')
-              .replace(/\\"/g, '"')
-              .replace(/\\\\/g, '\\')
-              .replace(/\\u003c/g, '<')
-              .replace(/\\u003e/g, '>')
-              .replace(/\\u003d/g, '=');
+            preContent = escapedVal.replace(/\\(?:n|"|\\|u003[cde])/gi, (match) => {
+              if (match === '\\n') return '\n';
+              if (match === '\\"') return '"';
+              if (match === '\\\\') return '\\';
+              if (match.toLowerCase() === '\\u003c') return '<';
+              if (match.toLowerCase() === '\\u003e') return '>';
+              if (match.toLowerCase() === '\\u003d') return '=';
+              return match;
+            });
             importDiagnostics.push(
               'Succeeded using Strategy: Cifra Club Apollo State JSON (Manual Decode)'
             );

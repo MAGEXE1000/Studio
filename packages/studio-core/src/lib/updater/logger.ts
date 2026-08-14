@@ -53,15 +53,19 @@ export function parseStackTrace(error = new Error()): CallerInfo {
   callerLine = targetLine.trim();
 
   try {
-    const match = targetLine.match(/at\s+(.+?)\s+\((.+?):(\d+):(\d+)\)/);
-    if (match) {
-      functionName = match[1];
-      const filePath = match[2];
-      file = filePath.substring(filePath.lastIndexOf('/') + 1);
-    } else {
-      const matchNoFunc = targetLine.match(/at\s+(.+?):(\d+):(\d+)/);
-      if (matchNoFunc) {
-        const filePath = matchNoFunc[1];
+    const atIndex = targetLine.indexOf('at ');
+    if (atIndex !== -1) {
+      const rest = targetLine.substring(atIndex + 3).trim();
+      const parenIndex = rest.indexOf('(');
+      if (parenIndex !== -1) {
+        functionName = rest.substring(0, parenIndex).trim();
+        const filePathWithLoc = rest.substring(parenIndex + 1, rest.indexOf(')', parenIndex));
+        const filePathParts = filePathWithLoc.split(':');
+        const filePath = filePathParts.slice(0, Math.max(1, filePathParts.length - 2)).join(':');
+        file = filePath.substring(filePath.lastIndexOf('/') + 1);
+      } else {
+        const filePathParts = rest.split(':');
+        const filePath = filePathParts.slice(0, Math.max(1, filePathParts.length - 2)).join(':');
         file = filePath.substring(filePath.lastIndexOf('/') + 1);
       }
     }

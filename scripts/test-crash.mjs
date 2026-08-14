@@ -27,8 +27,15 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let filePath = path.join(DIST_DIR, req.url === '/' ? 'index.html' : req.url.split('?')[0]);
+  let reqPath = req.url === '/' ? '/index.html' : req.url.split('?')[0];
+  let filePath = path.resolve(DIST_DIR, '.' + reqPath);
   
+  if (!filePath.startsWith(DIST_DIR)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
+
   if (!fs.existsSync(filePath) && fs.existsSync(filePath + '.html')) {
     filePath += '.html';
   } else if (!fs.existsSync(filePath)) {

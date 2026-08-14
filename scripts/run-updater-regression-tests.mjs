@@ -411,7 +411,14 @@ async function runRegressionTests() {
   // Scenario 7: GitHub fallback download
   await runTest('GitHub fallback download', async () => {
     mockFetchHandler = (url) => {
-      if (url.includes('github.com')) {
+      let isGithub = false;
+      try {
+        const parsed = new URL(url);
+        isGithub = parsed.hostname === 'github.com' || parsed.hostname.endsWith('.github.com');
+      } catch (e) {
+        isGithub = url.includes('github.com');
+      }
+      if (isGithub) {
         return { ok: true, json: async () => ({ version: nextVersion }) };
       }
       return { ok: false };

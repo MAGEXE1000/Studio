@@ -74,11 +74,16 @@ export function parseCifraStyleHtml(
   capo?: number
 ): NormalizedChordChart {
   let cleanContent = preContent;
-  let prevLength;
-  do {
-    prevLength = cleanContent.length;
-    cleanContent = cleanContent.replace(/<span class="tablatura">([\s\S]*?)<\/span>/gi, '');
-  } while (cleanContent.length !== prevLength);
+  while (true) {
+    const startIdx = cleanContent.toLowerCase().indexOf('<span class="tablatura">');
+    if (startIdx === -1) break;
+    const endIdx = cleanContent.toLowerCase().indexOf('</span>', startIdx);
+    if (endIdx === -1) {
+      cleanContent = cleanContent.substring(0, startIdx);
+      break;
+    }
+    cleanContent = cleanContent.substring(0, startIdx) + cleanContent.substring(endIdx + 7);
+  }
 
   const rawLines = cleanContent.split('\n');
   const sections: NormalizedSection[] = [];

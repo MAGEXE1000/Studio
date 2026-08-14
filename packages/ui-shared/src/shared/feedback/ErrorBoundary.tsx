@@ -137,7 +137,7 @@ interface StackFrame {
 }
 
 function parseStackLine(lineStr: string): StackFrame | null {
-  const matchWithParentheses = /at\s+([^\s(]+)\s+\(([^)]+):(\d+):(\d+)\)/.exec(lineStr);
+  const matchWithParentheses = /at\s+([^\s(]{1,200})\s+\(([^)]{1,200}):(\d+):(\d+)\)/.exec(lineStr);
   if (matchWithParentheses) {
     return {
       name: matchWithParentheses[1],
@@ -146,7 +146,7 @@ function parseStackLine(lineStr: string): StackFrame | null {
       col: parseInt(matchWithParentheses[4], 10),
     };
   }
-  const matchWithoutParentheses = /at\s+([^\s]+):(\d+):(\d+)/.exec(lineStr);
+  const matchWithoutParentheses = /at\s+([^\s]{1,200}):(\d+):(\d+)/.exec(lineStr);
   if (matchWithoutParentheses) {
     return {
       name: '',
@@ -252,7 +252,7 @@ function safeStringify(obj: any, maxDepth = 3): string {
 }
 
 function parseComponentFrame(frameStr: string) {
-  const match = /in\s+([^\s(]+)\s+\(at\s+([^)]+?):(\d+)(?::(\d+))?\)/.exec(frameStr);
+  const match = /in\s+([^\s(]{1,200})\s+\(at\s+([^)]{1,200}):(\d+)(?::(\d+))?\)/.exec(frameStr);
   if (match) {
     return {
       componentName: match[1],

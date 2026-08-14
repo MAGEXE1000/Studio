@@ -1988,7 +1988,7 @@ export function AccountSettingsPage({
   const effectivePhoto = customPhoto || (user.photoURL && !photoFailed ? user.photoURL : null);
   const providers = authRepository.getSignInProviders();
   const isEmailUser = providers.includes('password');
-  const isGoogleUser = providers.includes('google.com');
+  const isGoogleUser = providers.some(p => p === 'google.com');
   const emailVerified = authRepository.isEmailVerified();
   const emailToConfirm = (user.email ?? '').trim().toLowerCase();
 
@@ -3171,7 +3171,7 @@ export function AccountSettingsPage({
                   {lang === 'es' ? 'Proveedor de Autenticación' : 'Authentication Provider'}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {authRepository.getSignInProviders().includes('google.com') ? (
+                  {authRepository.getSignInProviders().some(p => p === 'google.com') ? (
                     <GoogleIconSVG />
                   ) : (
                     <span

@@ -905,7 +905,7 @@ export function exportSessionSubset(
         output += `| Timestamp | Offset | State | Module | Event | Reason |\n`;
         output += `|---|---|---|---|---|---|\n`;
         session.timeline.forEach((e) => {
-          output += `| ${e.timestamp} | ${e.offset} | ${e.state} | ${e.module} | ${e.event} | ${e.reason.replace(/\|/g, '\\|')} |\n`;
+          output += `| ${e.timestamp} | ${e.offset} | ${e.state} | ${e.module} | ${e.event} | ${e.reason.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')} |\n`;
         });
         output += `\n`;
       }
@@ -915,7 +915,7 @@ export function exportSessionSubset(
         output += `| Timestamp | Elapsed | Prev | Next | Function | File | Reason |\n`;
         output += `|---|---|---|---|---|---|---|\n`;
         session.transitions.forEach((t) => {
-          output += `| ${t.timestamp} | ${(t.elapsedTimeMs / 1000).toFixed(3)}s | ${t.previousState} | ${t.nextState} | ${t.functionName} | ${t.file} | ${t.reason.replace(/\|/g, '\\|')} |\n`;
+          output += `| ${t.timestamp} | ${(t.elapsedTimeMs / 1000).toFixed(3)}s | ${t.previousState} | ${t.nextState} | ${t.functionName} | ${t.file} | ${t.reason.replace(/\\/g, '\\\\').replace(/\|/g, '\\|')} |\n`;
         });
         output += `\n`;
       }

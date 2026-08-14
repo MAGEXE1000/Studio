@@ -239,15 +239,14 @@ if (fs.existsSync(appVersionTsPath)) {
         changed: categories.changed.length > 0 ? categories.changed : undefined,
       };
 
-      let tsSections = 'export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [\n';
+      const sectionBlocks = [];
       for (const [key, heading] of Object.entries({added: 'Added', improved: 'Improved', fixed: 'Fixed', changed: 'Changed'})) {
         if (categories[key].length > 0) {
-          tsSections += `  {\n    heading: "${heading}",\n    items: [\n` +
-            categories[key].map((i) => `      "${i.replace(/"/g, '\\"')}",`).join('\n') +
-            '\n    ],\n  },\n';
+          const itemsStr = categories[key].map((i) => `      "${i.replace(/"/g, '\\"')}",`).join('\n');
+          sectionBlocks.push(`  {\n    heading: "${heading}",\n    items: [\n${itemsStr}\n    ],\n  }`);
         }
       }
-      tsSections += '];';
+      const tsSections = `export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [\n${sectionBlocks.join(',\n')}\n];`;
 
       const changelogSectionsPat = /export\s+const\s+APP_CHANGELOG_SECTIONS:\s*ChangelogSection\[\]\s*=\s*\[([\s\S]*?)\]\s*;/;
       if (changelogSectionsPat.test(src)) {

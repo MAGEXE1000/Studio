@@ -1718,10 +1718,22 @@ function renderLayerPanel() {
     const row = document.createElement('div');
     row.className = 'layer-row' + (layer.visible ? ' on' : '');
     row.dataset.key = key;
-    row.innerHTML = DOMPurify.sanitize(`
-      <span class="layer-dot" style="background:${layer.color};color:${layer.color}"></span>
-      <span class="layer-name">${layer.label}</span>
-      <input type="checkbox" ${layer.visible ? 'checked' : ''} />`);
+    const dot = document.createElement('span');
+    dot.className = 'layer-dot';
+    dot.style.background = layer.color;
+    dot.style.color = layer.color;
+
+    const name = document.createElement('span');
+    name.className = 'layer-name';
+    name.textContent = layer.label;
+
+    const chk = document.createElement('input');
+    chk.type = 'checkbox';
+    chk.checked = !!layer.visible;
+
+    row.appendChild(dot);
+    row.appendChild(name);
+    row.appendChild(chk);
     row.addEventListener('click', (e) => {
       e.stopPropagation();
       setLayer(key, !LAYERS[key].visible);

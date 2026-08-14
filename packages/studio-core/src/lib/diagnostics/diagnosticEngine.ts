@@ -108,9 +108,9 @@ export function extractStackFiles(stack: string): { affected: string[]; unaffect
     }
 
     const match =
-      line.match(/([a-zA-Z0-9_-]+\.(?:tsx|ts|jsx|js)):(\d+):(\d+)/) ||
-      line.match(/at\s+([a-zA-Z0-9_-]+\.(?:tsx|ts|jsx|js))/) ||
-      line.match(/([a-zA-Z0-9_-]+\.(?:tsx|ts|jsx|js))/);
+      line.match(/([a-zA-Z0-9_-]{1,200}\.(?:tsx|ts|jsx|js)):(\d+):(\d+)/) ||
+      line.match(/at\s+([a-zA-Z0-9_-]{1,200}\.(?:tsx|ts|jsx|js))/) ||
+      line.match(/([a-zA-Z0-9_-]{1,200}\.(?:tsx|ts|jsx|js))/);
 
     if (match && match[1]) {
       const fileName = match[1];
@@ -141,10 +141,10 @@ export function extractComponentOrModule(
     return context.fiberDiagnostics.componentName;
   }
   if (context?.componentStack) {
-    const match = /in\s+([^\s(]+)/.exec(context.componentStack);
+    const match = /in\s+([^\s(]{1,200})/.exec(context.componentStack);
     if (match && match[1]) return match[1];
   }
-  const stackMatch = /at\s+([A-Z][a-zA-Z0-9]+)/.exec(stack);
+  const stackMatch = /at\s+([A-Z][a-zA-Z0-9]{1,200})/.exec(stack);
   if (stackMatch && stackMatch[1]) {
     return stackMatch[1];
   }
@@ -161,8 +161,8 @@ const PATTERN_LIBRARY: ErrorPattern[] = [
     matcher: (msg) =>
       /Cannot read propert(y|ies)|is undefined|is null|cannot read/i.test(msg),
     analyzer: (msg, stack, ctx) => {
-      const targetMatch = /Cannot read propert(?:y|ies) of (?:undefined|null) \(reading '([^']+)'\)/i.exec(msg) ||
-        /Cannot read property '([^']+)' of (undefined|null)/i.exec(msg);
+      const targetMatch = /Cannot read propert(?:y|ies) of (?:undefined|null) \(reading '([^']{1,200})'\)/i.exec(msg) ||
+        /Cannot read property '([^']{1,200})' of (undefined|null)/i.exec(msg);
       const targetProp = targetMatch ? targetMatch[1] : 'property';
       const comp = extractComponentOrModule(msg, stack, ctx);
       const { affected, unaffected } = extractStackFiles(stack);
@@ -413,7 +413,7 @@ const PATTERN_LIBRARY: ErrorPattern[] = [
     category: 'NATIVE_ANDROID',
     matcher: (msg) => /Cannot access '.*' before initialization|ReferenceError/i.test(msg),
     analyzer: (msg, stack, ctx) => {
-      const match = /Cannot access '([^']+)' before initialization/i.exec(msg);
+      const match = /Cannot access '([^']{1,200})' before initialization/i.exec(msg);
       const symbol = match ? match[1] : 'symbol';
       const comp = extractComponentOrModule(msg, stack, ctx);
       const { affected, unaffected } = extractStackFiles(stack);
@@ -514,7 +514,7 @@ export function analyzeRootAppError(
   let likelyFix = 'Ensure proper Provider nesting and wrap sub-app component in Suspense boundary.';
 
   if (msg.includes('returned undefined') || msg.includes('must be used within') || msg.includes('Context')) {
-    const match = /([a-zA-Z0-9]+Context)/.exec(msg);
+    const match = /([a-zA-Z0-9]{1,200}Context)/.exec(msg);
     const ctxName = match ? match[1] : 'Context';
     const providerName = ctxName.replace('Context', 'Provider');
 
@@ -907,7 +907,7 @@ export function generateCrashReport(
     const stackLines = stack.split('\n');
     const firstAtLine = stackLines.find(l => l.trim().startsWith('at '));
     if (firstAtLine) {
-      const fileMatch = /at\s+([^\s]+)\s+\(([^)]+)\)/.exec(firstAtLine) || /at\s+([^\s]+)/.exec(firstAtLine);
+      const fileMatch = /at\s+([^\s]{1,200})\s+\(([^)]{1,200})\)/.exec(firstAtLine) || /at\s+([^\s]{1,200})/.exec(firstAtLine);
       if (fileMatch) {
         const pathPart = fileMatch[2] || fileMatch[1];
         const lineParts = pathPart.split(':');
@@ -931,7 +931,7 @@ export function generateCrashReport(
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) continue;
-      const match = /in\s+([^\s(]+)(?:\s+\(at\s+([^)]+)\))?/.exec(trimmed);
+      const match = /in\s+([^\s(]{1,200})(?:\s+\(at\s+([^)]{1,200})\))?/.exec(trimmed);
       if (match) {
         componentTree.push({
           name: match[1],

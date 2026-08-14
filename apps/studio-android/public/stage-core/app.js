@@ -1708,7 +1708,7 @@ function switchView(view) {
       refreshExport();
     }
   } catch (err) {
-    console.error('Error refreshing view content for: ' + view, err);
+    console.error('Error refreshing view content for:', view, err);
   }
   // Notify the React wrapper of view changes (shows/hides its back button)
   try {
@@ -4927,14 +4927,20 @@ function refreshRider() {
       var chNum = 'CH-' + String(i + 1).padStart(2, '0');
       var tr = document.createElement('tr');
       var td1 = document.createElement('td');
-      td1.innerHTML = '<span class="rd-ch-num">' + (el.channelId || chNum) + '</span>';
+      var s1 = document.createElement('span');
+      s1.className = 'rd-ch-num';
+      s1.textContent = el.channelId || chNum;
+      td1.appendChild(s1);
       td1.setAttribute('data-label', 'CH#');
       var td2 = document.createElement('td');
       td2.style.fontWeight = '600';
       td2.textContent = el.label || el.name || '—';
       td2.setAttribute('data-label', 'Source Name');
       var td3 = document.createElement('td');
-      td3.innerHTML = '<span class="rd-type-badge">' + (el.type || el.name || '—') + '</span>';
+      var s3 = document.createElement('span');
+      s3.className = 'rd-type-badge';
+      s3.textContent = el.type || el.name || '—';
+      td3.appendChild(s3);
       td3.setAttribute('data-label', 'Type');
       var td4 = document.createElement('td');
       td4.style.color = '#acabaa';

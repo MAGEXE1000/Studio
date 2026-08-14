@@ -32,7 +32,6 @@ export function decodeHtmlEntities(str: string): string {
   if (!str) return '';
   let decoded = str
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#039;/g, "'")
     .replace(/&lt;/g, '<')
@@ -41,6 +40,8 @@ export function decodeHtmlEntities(str: string): string {
   decoded = decoded.replace(/&#x([0-9a-fA-F]+);/g, (match, hex) =>
     String.fromCharCode(parseInt(hex, 16))
   );
+  // Decode &amp; last to prevent double-escaping of entities
+  decoded = decoded.replace(/&amp;/g, '&');
   return decoded;
 }
 
@@ -53,9 +54,12 @@ export function cleanHtmlToPlainText(html: string): string {
     .replace(/<\/div>/gi, '\n')
     .replace(/<\/tr>/gi, '\n');
 
-  const preMatch = html.match(/<pre>([\s\S]+?)<\/pre>/i);
-  if (preMatch) {
-    text = preMatch[1];
+  const startIdx = text.toLowerCase().indexOf('<pre>');
+  if (startIdx !== -1) {
+    const endIdx = text.toLowerCase().indexOf('</pre>', startIdx);
+    if (endIdx !== -1) {
+      text = text.substring(startIdx + 5, endIdx);
+    }
   }
 
   text = text.replace(/<[^>]*>/g, '');

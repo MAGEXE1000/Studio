@@ -271,3 +271,43 @@ export function secureWriteLocal(key: string, value: string, userUid = 'guest_us
     } catch {}
   }
 }
+
+export const WORKSPACE_ALLOWLIST = new Set([
+  'stagecoreProject', 'stagecorePresets_v1', 'stagecoreSettings', 'sc_session', 'scCustomElements',
+  'elements', 'connections', 'scenes', 'setlist', 'gear', 'members', 'history',
+  'id', 'name', 'type', 'x', 'y', 'color', 'label', 'layer', 'locked', 'opacity', 'width', 'height', 'data'
+]);
+
+export function sanitizeWorkspacePayload(payload: any): any {
+  if (payload === null || payload === undefined) return payload;
+  
+  if (typeof payload === 'string') {
+    // Exclude strings that look like OS file paths or auth tokens
+    if (/^[a-zA-Z]:\\[^:*?"<>|\r\n]*$/.test(payload) || 
+        /^\/(Users|home|var|tmp|private)\//.test(payload) ||
+        /^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(payload)) {
+      return null;
+    }
+    return payload;
+  }
+  
+  if (Array.isArray(payload)) {
+    return payload.map(sanitizeWorkspacePayload).filter(val => val !== null);
+  }
+  
+  if (typeof payload === 'object') {
+    const safe: any = {};
+    for (const [key, value] of Object.entries(payload)) {
+      if (/token|auth|password|secret|path|os/i.test(key) && !WORKSPACE_ALLOWLIST.has(key)) {
+        continue; // Block unknown sensitive keys
+      }
+      const sanitized = sanitizeWorkspacePayload(value);
+      if (sanitized !== null) {
+        safe[key] = sanitized;
+      }
+    }
+    return safe;
+  }
+  
+  return payload;
+}

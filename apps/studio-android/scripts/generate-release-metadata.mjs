@@ -397,14 +397,19 @@ const jsonStr = JSON.stringify(androidMetadata);
 const matches = jsonStr.match(urlRegex) || [];
 for (const url of matches) {
   const cleanUrl = url.replace(/[",}]/g, '').trim();
-  if (cleanUrl.includes('github.io') || cleanUrl.includes('gh-pages')) {
+  let hostname = '';
+  try {
+    hostname = new URL(cleanUrl).hostname;
+  } catch (e) {}
+
+  if (hostname === 'github.io' || hostname.endsWith('.github.io') || cleanUrl.includes('gh-pages')) {
     console.error(
       `\x1b[31mgenerate-release-metadata: âœ— GitHub Pages URL detected in release metadata: ${cleanUrl}\x1b[0m`
     );
     process.exit(1);
   }
   if (
-    cleanUrl.includes('github.com') &&
+    (hostname === 'github.com' || hostname.endsWith('.github.com')) &&
     !cleanUrl.startsWith('https://github.com/MAGEXE1000/Studio/releases/download/')
   ) {
     console.error(

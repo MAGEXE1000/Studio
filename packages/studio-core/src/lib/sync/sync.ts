@@ -14,7 +14,7 @@ import { vocalexRepository } from '../../repositories/VocalexRepository';
 import type { TakeRecord } from '../../repositories/VocalexRepository';
 import type { LabSession, LabLayer } from '../../repositories/VocalexRepository';
 import { useChordStore } from '../../store/useChordStore';
-import { secureReadLocal, secureWriteLocal } from '../utilities/security';
+import { secureReadLocal, secureWriteLocal, sanitizeWorkspacePayload } from '../utilities/security';
 import { logActivity } from '../diagnostics/activityLogger';
 import { SyncOrchestrator } from './syncOrchestrator';
 
@@ -1049,7 +1049,7 @@ function snapshotStagex(): Promise<StagexSnapshot | null> {
     }, STAGE_SNAPSHOT_MS);
     stageSnapshotResolvers.push((snap) => {
       clearTimeout(timeout);
-      resolve(snap);
+      resolve(sanitizeWorkspacePayload(snap));
     });
     try {
       stageIframe!.contentWindow!.postMessage(

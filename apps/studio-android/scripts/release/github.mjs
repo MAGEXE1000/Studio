@@ -1,11 +1,11 @@
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 const REPO_SLUG = 'MAGEXE1000/Studio';
 const [OWNER, REPO] = REPO_SLUG.split('/');
 
 export async function fetchGitHubReleaseInfo(tag, options = {}) {
   const fetchFn = options.fetchFn || globalThis.fetch;
-  const execFn = options.execFn || execSync;
+  const execFn = options.execFn || execFileSync;
   const token = options.token || process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
   const isLatestQuery = tag === 'latest' || tag === 'latest-release';
   const targetTag = isLatestQuery ? 'latest' : (tag.startsWith('v') ? tag : `v${tag}`);
@@ -159,7 +159,7 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
     try {
       let targetCliTag = targetTag;
       if (isLatestQuery && excludeTag) {
-        const listRaw = execFn(`gh release list --repo ${REPO_SLUG} --limit 10 --json tagName,isDraft`, {
+        const listRaw = execFn('gh', ['release', 'list', '--repo', REPO_SLUG, '--limit', '10', '--json', 'tagName,isDraft'], {
           encoding: 'utf8',
           stdio: ['pipe', 'pipe', 'ignore'],
         });
@@ -172,11 +172,14 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
         }
       }
 
-      const cmd = (isLatestQuery && !excludeTag)
-        ? `gh release view --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`
-        : `gh release view ${targetCliTag} --repo ${REPO_SLUG} --json tagName,name,assets,isDraft,isPrerelease`;
+      let cmdArgs;
+      if (isLatestQuery && !excludeTag) {
+        cmdArgs = ['release', 'view', '--repo', REPO_SLUG, '--json', 'tagName,name,assets,isDraft,isPrerelease'];
+      } else {
+        cmdArgs = ['release', 'view', targetCliTag, '--repo', REPO_SLUG, '--json', 'tagName,name,assets,isDraft,isPrerelease'];
+      }
 
-      const rawJson = execFn(cmd, {
+      const rawJson = execFn('gh', cmdArgs, {
         encoding: 'utf8',
         stdio: ['pipe', 'pipe', 'ignore'],
       });

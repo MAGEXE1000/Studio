@@ -1,5 +1,12 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, animate, AnimatePresence } from 'motion/react';
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  animate,
+  AnimatePresence,
+} from 'motion/react';
 import {
   useNavScrollOffset,
   NavigationDispatcher,
@@ -122,7 +129,8 @@ const NavigationItem = React.memo(
     }, [index, item.label, item.icon, isSwitcherOpen, isActive, handleMeasure]);
 
     useEffect(() => {
-      if (!contentRef.current || !onMeasureGeometry || typeof ResizeObserver === 'undefined') return;
+      if (!contentRef.current || !onMeasureGeometry || typeof ResizeObserver === 'undefined')
+        return;
       const observer = new ResizeObserver(() => {
         handleMeasure();
       });
@@ -161,7 +169,6 @@ const NavigationItem = React.memo(
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-
         <motion.div
           ref={contentRef}
           data-nav-content="true"
@@ -250,6 +257,13 @@ export function SharedNavigationBar({
   const [searchCategory, setSearchCategory] = useState<string>('all');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [isScrubbing, setIsScrubbing] = useState(false);
+  const isScrubbingRef = useRef(false);
+  const scrubbingIndexRef = useRef(0);
+  const navigationEpochRef = useRef(0);
+  const [navigationEpoch, setNavigationEpoch] = useState(0);
+  const pointerUpHandledAtRef = useRef(0);
 
   // Close search / profile on hardware back press
   useBackHandler(
@@ -382,7 +396,15 @@ export function SharedNavigationBar({
           minWidth: 0,
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: 12 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            width: '100%',
+            gap: 12,
+          }}
+        >
           <div
             style={{
               fontSize: '14.5px',
@@ -507,7 +529,9 @@ export function SharedNavigationBar({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [measuredContentGeometry, setMeasuredContentGeometry] = useState<Record<number, { width: number; centerLeft: number }>>({});
+  const [measuredContentGeometry, setMeasuredContentGeometry] = useState<
+    Record<number, { width: number; centerLeft: number }>
+  >({});
   const [hasMeasuredInitial, setHasMeasuredInitial] = useState(false);
   const innerWrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -515,7 +539,11 @@ export function SharedNavigationBar({
     const centerLeft = leftOffset + width / 2;
     setMeasuredContentGeometry((prev) => {
       const existing = prev[index];
-      if (existing && existing.width === width && Math.abs(existing.centerLeft - centerLeft) < 0.5) {
+      if (
+        existing &&
+        existing.width === width &&
+        Math.abs(existing.centerLeft - centerLeft) < 0.5
+      ) {
         return prev;
       }
       return { ...prev, [index]: { width, centerLeft } };
@@ -539,7 +567,8 @@ export function SharedNavigationBar({
     const newGeom: Record<number, { width: number; centerLeft: number }> = {};
     itemEls.forEach((el) => {
       const idx = Number(el.getAttribute('data-nav-item-index'));
-      const contentEl = (el.querySelector('[data-nav-content]') as HTMLElement) || (el as HTMLElement);
+      const contentEl =
+        (el.querySelector('[data-nav-content]') as HTMLElement) || (el as HTMLElement);
       const rect = contentEl.getBoundingClientRect();
       const centerLeft = rect.left - parentRect.left + rect.width / 2;
       newGeom[idx] = { width: rect.width, centerLeft };
@@ -585,7 +614,7 @@ export function SharedNavigationBar({
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = isSwitcherOpen ? 44 : (itemPillWidths[index] || 72);
+      const pillW = isSwitcherOpen ? 44 : itemPillWidths[index] || 72;
       const geom = measuredContentGeometry[index];
       let rawX: number;
       if (geom && geom.centerLeft > 0) {
@@ -657,7 +686,7 @@ export function SharedNavigationBar({
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
       if ((search as number) > 0.1) return 1.0;
-      return 1.00 - (offset as number) * 0.15;
+      return 1.0 - (offset as number) * 0.15;
     }
   );
 
@@ -675,65 +704,59 @@ export function SharedNavigationBar({
   }, [hasRightBubble]);
 
   // Subtle inward horizontal translation towards screen center composition on scroll down
-  const navX = useTransform(
-    [scrollOffsetSpring, searchOpenSpring],
-    ([offset, search]) => {
-      if ((search as number) > 0.1) return 0;
-      return (offset as number) * targetDockShift;
-    }
-  );
+  const navX = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
+    if ((search as number) > 0.1) return 0;
+    return (offset as number) * targetDockShift;
+  });
 
-  const switcherX = useTransform(
-    [scrollOffsetSpring, searchOpenSpring],
-    ([offset, search]) => {
-      if ((search as number) > 0.1) return 0;
-      return (offset as number) * targetSwitcherShift;
-    }
-  );
+  const switcherX = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
+    if ((search as number) > 0.1) return 0;
+    return (offset as number) * targetSwitcherShift;
+  });
 
   // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
   // Derived continuous pill movement (direct 1:1 synchronization during drag, spring interpolation after drag)
-  const pillX = useTransform([activeIdxRaw, activeIdxSpring, dragXRaw], ([rawIdx, springIdx, dragVal]) => {
-    const isScrubbingActive = isScrubbingRef.current;
-    const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
-    const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
-    const lowerIdx = Math.floor(idx);
-    const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
-    const frac = idx - lowerIdx;
-
-    const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
-    const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
-
-    const lowerGeom = measuredContentGeometry[lowerIdx];
-    const upperGeom = measuredContentGeometry[upperIdx];
-
-    const lowerCenterX = lowerGeom?.centerLeft ?? (lowerIdx + 0.5) * itemWidth;
-    const upperCenterX = upperGeom?.centerLeft ?? (upperIdx + 0.5) * itemWidth;
-
-    const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
-    const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
-
-    const rawX = currentCenterX - currentPillW / 2 + (dragVal as number);
-    const minX = 4;
-    const maxX = Math.max(minX, usableWidth - currentPillW - 4);
-    return Math.max(minX, Math.min(maxX, rawX));
-  });
-
-  const pillWidthVal = useTransform(
-    [activeIdxRaw, activeIdxSpring],
-    ([rawIdx, springIdx]) => {
-      const idxVal = isScrubbingRef.current ? (rawIdx as number) : (springIdx as number);
+  const pillX = useTransform(
+    [activeIdxRaw, activeIdxSpring, dragXRaw],
+    ([rawIdx, springIdx, dragVal]) => {
+      const isScrubbingActive = isScrubbingRef.current;
+      const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
       const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
       const lowerIdx = Math.floor(idx);
       const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
       const frac = idx - lowerIdx;
 
-      const lowerPillW = isSwitcherOpen ? 44 : (itemPillWidths[lowerIdx] || 72);
-      const upperPillW = isSwitcherOpen ? 44 : (itemPillWidths[upperIdx] || 72);
+      const lowerPillW = isSwitcherOpen ? 44 : itemPillWidths[lowerIdx] || 72;
+      const upperPillW = isSwitcherOpen ? 44 : itemPillWidths[upperIdx] || 72;
 
-      return lowerPillW + frac * (upperPillW - lowerPillW);
+      const lowerGeom = measuredContentGeometry[lowerIdx];
+      const upperGeom = measuredContentGeometry[upperIdx];
+
+      const lowerCenterX = lowerGeom?.centerLeft ?? (lowerIdx + 0.5) * itemWidth;
+      const upperCenterX = upperGeom?.centerLeft ?? (upperIdx + 0.5) * itemWidth;
+
+      const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
+      const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
+
+      const rawX = currentCenterX - currentPillW / 2 + (dragVal as number);
+      const minX = 4;
+      const maxX = Math.max(minX, usableWidth - currentPillW - 4);
+      return Math.max(minX, Math.min(maxX, rawX));
     }
   );
+
+  const pillWidthVal = useTransform([activeIdxRaw, activeIdxSpring], ([rawIdx, springIdx]) => {
+    const idxVal = isScrubbingRef.current ? (rawIdx as number) : (springIdx as number);
+    const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
+    const lowerIdx = Math.floor(idx);
+    const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
+    const frac = idx - lowerIdx;
+
+    const lowerPillW = isSwitcherOpen ? 44 : itemPillWidths[lowerIdx] || 72;
+    const upperPillW = isSwitcherOpen ? 44 : itemPillWidths[upperIdx] || 72;
+
+    return lowerPillW + frac * (upperPillW - lowerPillW);
+  });
 
   const pillPressScale = useTransform(pressPressureRaw, [0, 5], [1, 0.96]);
 
@@ -747,10 +770,6 @@ export function SharedNavigationBar({
   const profileCardY = useTransform(profileOpenSpring, [0, 1], [16, 0]);
   const profileCardScale = useTransform(profileOpenSpring, [0, 1], [0.94, 1]);
   const profileBackdropOpacity = useTransform(profileOpenSpring, [0, 1], [0, 1]);
-
-  const [isScrubbing, setIsScrubbing] = useState(false);
-  const isScrubbingRef = useRef(false);
-  const scrubbingIndexRef = useRef(activeIndex);
 
   const startXRef = useRef(0);
   const lastXRef = useRef(0);
@@ -895,10 +914,6 @@ export function SharedNavigationBar({
     }
   }, [isProfileMenuOpen]);
 
-  const navigationEpochRef = useRef(0);
-  const [navigationEpoch, setNavigationEpoch] = useState(0);
-  const pointerUpHandledAtRef = useRef(0);
-
   const activeTabKey = useMemo(() => {
     const currentItems = isSwitcherOpen ? switcherApps : items;
     const activeItem = currentItems.find((item: any) =>
@@ -912,613 +927,728 @@ export function SharedNavigationBar({
   return (
     <NavigationAnimationProvider activeTab={activeTabKey}>
       <>
-      {/* Profile Click-Outside Backdrop */}
-      <motion.div
-        onPointerDown={(e) => {
-          e.stopPropagation();
-          if (Date.now() - lastProfileToggleTimeRef.current < 250) return;
-          setProfileMenuOpen(false);
-        }}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.4)',
-          zIndex: 2000,
-          backdropFilter: 'blur(2px)',
-          WebkitBackdropFilter: 'blur(2px)',
-          opacity: profileBackdropOpacity,
-          pointerEvents: isProfileMenuOpen ? 'auto' : 'none',
-        }}
-      />
-
-      {/* Profile Menu Card */}
-      <motion.div
-        style={{
-          position: 'fixed',
-          bottom: 84,
-          right: 16,
-          width: 280,
-          background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(28, 28, 30, 0.95)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderRadius: 16,
-          border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)',
-          zIndex: 2001,
-          padding: '16px 0',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          opacity: profileCardOpacity,
-          y: profileCardY,
-          scale: profileCardScale,
-          pointerEvents: isProfileMenuOpen ? 'auto' : 'none',
-        }}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '0 16px 12px', borderBottom: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', overflow: 'hidden', flexShrink: 0, border: '1px solid rgba(128,128,128,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(128,128,128,0.08)' }}>
-            {customPhoto || user?.photoURL ? (
-              <img
-                src={customPhoto || user?.photoURL || ''}
-                alt=""
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                referrerPolicy="no-referrer"
-              />
-            ) : profileIcon ? (
-              profileIcon
-            ) : (
-              <span className="material-symbols-outlined" style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}>
-                person
-              </span>
-            )}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--c-text-primary)', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-headline)' }}>
-              {user?.displayName || 'Guest User'}
-            </span>
-            <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-body)' }}>
-              {user?.email || 'guest@livex.studio'}
-            </span>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <button
-            onClick={() => {
-              NavigationDispatcher.push({ app: 'hub', tab: 'profile' });
-              setProfileMenuOpen(false);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '10px 16px',
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--c-text-primary)',
-              cursor: 'pointer',
-              textAlign: 'left',
-              fontSize: 13.5,
-              fontFamily: 'var(--font-body)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
-              person
-            </span>
-            View Profile
-          </button>
-
-          <button
-            onClick={() => {
-              NavigationDispatcher.push({ app: 'hub', tab: 'settings' });
-              setProfileMenuOpen(false);
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              padding: '10px 16px',
-              width: '100%',
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--c-text-primary)',
-              cursor: 'pointer',
-              textAlign: 'left',
-              fontSize: 13.5,
-              fontFamily: 'var(--font-body)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}>
-              settings
-            </span>
-            Settings
-          </button>
-        </div>
-      </motion.div>
-
-      {/* Main Unified Bottom Navigation Container */}
-      <motion.div
-        key="navigation-bar-wrapper"
-        ref={containerRef}
-        className="shared-bottom-navbar-wrapper"
-        style={{
-          position: 'fixed',
-          bottom: 'max(14px, env(safe-area-inset-bottom))',
-          left: '16px',
-          right: '16px',
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          pointerEvents: 'none',
-          transformOrigin: 'center center',
-        }}
-      >
-        {/* Search Click-outside Backdrop */}
-        <div
-          onClick={() => {
-            setSearchOpen(false);
-            setSearchQuery('');
+        {/* Profile Click-Outside Backdrop */}
+        <motion.div
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            if (Date.now() - lastProfileToggleTimeRef.current < 250) return;
+            setProfileMenuOpen(false);
           }}
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(5, 5, 8, 0.4)',
-            zIndex: -1,
-            pointerEvents: searchOpen ? 'auto' : 'none',
-            opacity: searchOpen ? 1 : 0,
-            transition: 'opacity 200ms ease',
+            background: 'rgba(0, 0, 0, 0.4)',
+            zIndex: 2000,
+            backdropFilter: 'blur(2px)',
+            WebkitBackdropFilter: 'blur(2px)',
+            opacity: profileBackdropOpacity,
+            pointerEvents: isProfileMenuOpen ? 'auto' : 'none',
           }}
         />
 
-        {/* Search Results Panel */}
+        {/* Profile Menu Card */}
         <motion.div
           style={{
-            width: '100%',
-            maxWidth: '480px',
-            background: 'rgba(20, 20, 24, 0.65)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: '24px',
-            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            overflow: 'hidden',
+            position: 'fixed',
+            bottom: 84,
+            right: 16,
+            width: 280,
+            background: isLight ? 'rgba(255, 255, 255, 0.95)' : 'rgba(28, 28, 30, 0.95)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
+            borderRadius: 16,
+            border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.25)',
+            zIndex: 2001,
+            padding: '16px 0',
             display: 'flex',
             flexDirection: 'column',
-            marginBottom: '8px',
-            pointerEvents: searchOpen ? 'auto' : 'none',
-            height: searchResultsHeight,
-            opacity: searchResultsOpacity,
-            y: searchResultsY,
-            willChange: 'transform, opacity, height',
+            gap: 8,
+            opacity: profileCardOpacity,
+            y: profileCardY,
+            scale: profileCardScale,
+            pointerEvents: isProfileMenuOpen ? 'auto' : 'none',
           }}
         >
-          {/* Category chips */}
+          {/* Header */}
           <div
             style={{
-              display: 'flex',
-              gap: '6px',
-              overflowX: 'auto',
-              padding: '16px 16px 8px',
-              flexShrink: 0,
-            }}
-          >
-            {['all', 'apps', 'settings', 'projects', 'songs', 'actions'].map((cat) => {
-              const isActive = searchCategory === cat;
-              const translatedCat =
-                lang === 'es'
-                  ? {
-                      all: 'todo',
-                      apps: 'aplicaciones',
-                      settings: 'ajustes',
-                      projects: 'proyectos',
-                      songs: 'canciones',
-                      actions: 'acciones',
-                    }[cat] || cat
-                  : cat;
-
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSearchCategory(cat)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: '12px',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
-                    background: isActive ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.04)',
-                    color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    textTransform: 'capitalize',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {translatedCat}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Results scroll list */}
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              padding: '0 16px 16px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            {searchQuery.trim() ? (
-              (() => {
-                const results = getSearchResults(searchQuery);
-                if (results.length === 0) {
-                  return (
-                    <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.4)', padding: '24px', fontSize: '13px' }}>
-                      {lang === 'es' ? `No hay resultados para "${searchQuery}"` : `No results found for "${searchQuery}"`}
-                    </div>
-                  );
-                }
-                return (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {results.map((item, idx) => renderSearchRow(item, idx))}
-                  </div>
-                );
-              })()
-            ) : (
-              <>
-                {/* Recent Searches */}
-                {recentSearches.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
-                      {lang === 'es' ? 'Búsquedas Recientes' : 'Recent Searches'}
-                    </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: '8px' }}>
-                      {recentSearches.map((term) => (
-                        <div
-                          key={term}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            padding: '4px 10px',
-                            borderRadius: '8px',
-                            background: 'rgba(255,255,255,0.04)',
-                            border: '1px solid rgba(255, 255, 255, 0.06)',
-                          }}
-                        >
-                          <span
-                            onClick={() => setSearchQuery(term)}
-                            style={{ fontSize: '12px', color: 'rgba(255,255,255,0.80)', cursor: 'pointer' }}
-                          >
-                            {term}
-                          </span>
-                          <span
-                            onClick={() => removeSearchHistory(term)}
-                            className="material-symbols-outlined"
-                            style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
-                          >
-                            close
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Quick Actions */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
-                    {lang === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '8px' }}>
-                    {searchIndex
-                      .getItems()
-                      .filter((item) => item.category === 'actions')
-                      .slice(0, 3)
-                      .map((item, idx) => renderSearchRow(item, idx))}
-                  </div>
-                </div>
-
-                {/* Suggested Apps */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
-                    {lang === 'es' ? 'Aplicaciones Sugeridas' : 'Suggested Apps'}
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {searchIndex
-                      .getItems()
-                      .filter((item) => item.category === 'apps')
-                      .slice(0, 4)
-                      .map((item, idx) => renderSearchRow(item, idx))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Bottom Navigation Dock Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', width: '100%', pointerEvents: 'none', gap: '8px' }}>
-          <div style={{ pointerEvents: 'none' }} />
-
-          <motion.div
-            className="shared-bottom-nav glass-nav"
-            style={{
-              pointerEvents: 'auto',
-              justifySelf: 'center',
-              width: `${barWidth}px`,
-              maxWidth: `${barWidth}px`,
-              height: '64px',
-              borderRadius: '9999px',
-              border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-              background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
-              boxShadow: isLight
-                ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-              backdropFilter: 'blur(25px)',
-              WebkitBackdropFilter: 'blur(25px)',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-around',
-              padding: '6px 8px',
-              position: 'relative',
-              touchAction: 'none',
-              userSelect: 'none',
-              transformOrigin: 'center center',
-              scale: containerScale,
-              x: navX,
-              transition: 'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+              gap: 12,
+              padding: '0 16px 12px',
+              borderBottom: isLight
+                ? '1px solid rgba(0,0,0,0.06)'
+                : '1px solid rgba(255,255,255,0.08)',
             }}
           >
             <div
-              ref={innerWrapperRef}
-              onPointerDown={handlePointerDown}
-              onPointerMove={handlePointerMove}
-              onPointerUp={handlePointerUp}
-              onPointerCancel={handlePointerCancel}
               style={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                flexShrink: 0,
+                border: '1px solid rgba(128,128,128,0.2)',
                 display: 'flex',
-                width: '100%',
-                height: '100%',
                 alignItems: 'center',
-                position: 'relative',
-                touchAction: 'none',
+                justifyContent: 'center',
+                background: 'rgba(128,128,128,0.08)',
               }}
             >
-              {/* Standard Navigation Items */}
-              {!searchOpen && (
-                <motion.div
-                  style={{
-                    position: 'absolute',
-                    top: 4,
-                    bottom: 4,
-                    left: 0,
-                    x: pillX,
-                    width: pillWidthVal,
-                    borderRadius: '9999px',
-                    background: isLight
-                      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(245, 248, 255, 0.55) 50%, rgba(255, 255, 255, 0.45) 100%)'
-                      : 'linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(200, 220, 255, 0.10) 50%, rgba(255, 255, 255, 0.05) 100%)',
-                    border: isLight
-                      ? '1px solid rgba(255, 255, 255, 0.9)'
-                      : '1.2px solid rgba(255, 255, 255, 0.28)',
-                    boxShadow: isLight
-                      ? 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03), 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04)'
-                      : 'inset 0 1px 2px rgba(255, 255, 255, 0.35), inset 0 -0.5px 1px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'blur(16px) saturate(1.8)',
-                    WebkitBackdropFilter: 'blur(16px) saturate(1.8)',
-                    pointerEvents: 'none',
-                    zIndex: 0,
-                    skewX: dragSkewRaw,
-                    scale: pillPressScale,
-                    willChange: 'transform, width',
-                  }}
+              {customPhoto || user?.photoURL ? (
+                <img
+                  src={customPhoto || user?.photoURL || ''}
+                  alt=""
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  referrerPolicy="no-referrer"
                 />
-              )}
-              {!searchOpen ? (
-                <div
-                  style={{
-                    display: 'flex',
-                    width: '100%',
-                    height: '100%',
-                    alignItems: 'center',
-                    justifyContent: 'space-around',
-                    opacity: 1,
-                    pointerEvents: 'auto',
-                  }}
-                >
-                  {currentItems.map((item, index) => {
-                    const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
-                    return (
-                      <NavigationItem
-                        key={item.key}
-                        item={item}
-                        index={index}
-                        onClick={() => {
-                          if (performance.now() - pointerUpHandledAtRef.current < 100) return;
-                          navigationEpochRef.current += 1;
-                          setNavigationEpoch(navigationEpochRef.current);
-                          item.onClick();
-                        }}
-                        isActive={isActive}
-                        isLight={isLight}
-                        isSwitcherOpen={isSwitcherOpen}
-                        activeIdxSpring={activeIdxSpring}
-                        onMeasureGeometry={handleMeasureGeometry}
-                        innerWrapperRef={innerWrapperRef}
-                        animationEpoch={navigationEpoch}
-                      />
-                    );
-                  })}
-                </div>
+              ) : profileIcon ? (
+                profileIcon
               ) : (
-                /* Embedded Search Input inside stretched bar */
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '0 16px',
-                    zIndex: 10,
-                    pointerEvents: 'auto',
-                  }}
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}
                 >
-                  <div
+                  person
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
+              <span
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: 'var(--c-text-primary)',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  fontFamily: 'var(--font-headline)',
+                }}
+              >
+                {user?.displayName || 'Guest User'}
+              </span>
+              <span
+                style={{
+                  fontSize: 11,
+                  color: 'var(--c-text-secondary)',
+                  opacity: 0.8,
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  fontFamily: 'var(--font-body)',
+                }}
+              >
+                {user?.email || 'guest@livex.studio'}
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <button
+              onClick={() => {
+                NavigationDispatcher.push({ app: 'hub', tab: 'profile' });
+                setProfileMenuOpen(false);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '10px 16px',
+                width: '100%',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--c-text-primary)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontSize: 13.5,
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}
+              >
+                person
+              </span>
+              View Profile
+            </button>
+
+            <button
+              onClick={() => {
+                NavigationDispatcher.push({ app: 'hub', tab: 'settings' });
+                setProfileMenuOpen(false);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                padding: '10px 16px',
+                width: '100%',
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--c-text-primary)',
+                cursor: 'pointer',
+                textAlign: 'left',
+                fontSize: 13.5,
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}
+              >
+                settings
+              </span>
+              Settings
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Main Unified Bottom Navigation Container */}
+        <motion.div
+          key="navigation-bar-wrapper"
+          ref={containerRef}
+          className="shared-bottom-navbar-wrapper"
+          style={{
+            position: 'fixed',
+            bottom: 'max(14px, env(safe-area-inset-bottom))',
+            left: '16px',
+            right: '16px',
+            zIndex: 9999,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            pointerEvents: 'none',
+            transformOrigin: 'center center',
+          }}
+        >
+          {/* Search Click-outside Backdrop */}
+          <div
+            onClick={() => {
+              setSearchOpen(false);
+              setSearchQuery('');
+            }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(5, 5, 8, 0.4)',
+              zIndex: -1,
+              pointerEvents: searchOpen ? 'auto' : 'none',
+              opacity: searchOpen ? 1 : 0,
+              transition: 'opacity 200ms ease',
+            }}
+          />
+
+          {/* Search Results Panel */}
+          <motion.div
+            style={{
+              width: '100%',
+              maxWidth: '480px',
+              background: 'rgba(20, 20, 24, 0.65)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '24px',
+              boxShadow:
+                '0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12)',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              marginBottom: '8px',
+              pointerEvents: searchOpen ? 'auto' : 'none',
+              height: searchResultsHeight,
+              opacity: searchResultsOpacity,
+              y: searchResultsY,
+              willChange: 'transform, opacity, height',
+            }}
+          >
+            {/* Category chips */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '6px',
+                overflowX: 'auto',
+                padding: '16px 16px 8px',
+                flexShrink: 0,
+              }}
+            >
+              {['all', 'apps', 'settings', 'projects', 'songs', 'actions'].map((cat) => {
+                const isActive = searchCategory === cat;
+                const translatedCat =
+                  lang === 'es'
+                    ? {
+                        all: 'todo',
+                        apps: 'aplicaciones',
+                        settings: 'ajustes',
+                        projects: 'proyectos',
+                        songs: 'canciones',
+                        actions: 'acciones',
+                      }[cat] || cat
+                    : cat;
+
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSearchCategory(cat)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      color: isLight ? '#0f172a' : '#ffffff',
-                      opacity: 0.6,
-                      marginRight: '8px',
+                      padding: '6px 12px',
+                      borderRadius: '12px',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      background: isActive
+                        ? 'rgba(255, 255, 255, 0.15)'
+                        : 'rgba(255, 255, 255, 0.04)',
+                      color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.60)',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      textTransform: 'capitalize',
+                      cursor: 'pointer',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      search
-                    </span>
-                  </div>
-                  <input
-                    id="global-search-input"
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder={lang === 'es' ? 'Buscar canciones, apps, ajustes...' : 'Search songs, apps, settings...'}
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      background: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      color: isLight ? '#0f172a' : '#ffffff',
-                      fontSize: '16px',
-                      fontFamily: 'Inter, sans-serif',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                    }}
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
+                    {translatedCat}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Results scroll list */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: 'auto',
+                padding: '0 16px 16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
+            >
+              {searchQuery.trim() ? (
+                (() => {
+                  const results = getSearchResults(searchQuery);
+                  if (results.length === 0) {
+                    return (
+                      <div
+                        style={{
+                          textAlign: 'center',
+                          color: 'rgba(255,255,255,0.4)',
+                          padding: '24px',
+                          fontSize: '13px',
+                        }}
+                      >
+                        {lang === 'es'
+                          ? `No hay resultados para "${searchQuery}"`
+                          : `No results found for "${searchQuery}"`}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {results.map((item, idx) => renderSearchRow(item, idx))}
+                    </div>
+                  );
+                })()
+              ) : (
+                <>
+                  {/* Recent Searches */}
+                  {recentSearches.length > 0 && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div
+                        style={{
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          color: 'rgba(255,255,255,0.4)',
+                          letterSpacing: '0.05em',
+                        }}
+                      >
+                        {lang === 'es' ? 'Búsquedas Recientes' : 'Recent Searches'}
+                      </div>
+                      <div
+                        style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: '8px' }}
+                      >
+                        {recentSearches.map((term) => (
+                          <div
+                            key={term}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '4px 10px',
+                              borderRadius: '8px',
+                              background: 'rgba(255,255,255,0.04)',
+                              border: '1px solid rgba(255, 255, 255, 0.06)',
+                            }}
+                          >
+                            <span
+                              onClick={() => setSearchQuery(term)}
+                              style={{
+                                fontSize: '12px',
+                                color: 'rgba(255,255,255,0.80)',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {term}
+                            </span>
+                            <span
+                              onClick={() => removeSearchHistory(term)}
+                              className="material-symbols-outlined"
+                              style={{
+                                fontSize: '14px',
+                                color: 'rgba(255,255,255,0.4)',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              close
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Quick Actions */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div
                       style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '4px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        color: 'rgba(255,255,255,0.4)',
+                        letterSpacing: '0.05em',
                       }}
                     >
-                      <span className="material-symbols-outlined text-[18px]">
-                        clear
-                      </span>
-                    </button>
-                  )}
-                </div>
+                      {lang === 'es' ? 'Acciones Rápidas' : 'Quick Actions'}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '8px' }}>
+                      {searchIndex
+                        .getItems()
+                        .filter((item) => item.category === 'actions')
+                        .slice(0, 3)
+                        .map((item, idx) => renderSearchRow(item, idx))}
+                    </div>
+                  </div>
+
+                  {/* Suggested Apps */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        color: 'rgba(255,255,255,0.4)',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      {lang === 'es' ? 'Aplicaciones Sugeridas' : 'Suggested Apps'}
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {searchIndex
+                        .getItems()
+                        .filter((item) => item.category === 'apps')
+                        .slice(0, 4)
+                        .map((item, idx) => renderSearchRow(item, idx))}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </motion.div>
 
+          {/* Bottom Navigation Dock Grid */}
           <div
             style={{
-              pointerEvents: 'auto',
-              justifySelf: 'start',
-              display: 'flex',
+              display: 'grid',
+              gridTemplateColumns: '1fr auto 1fr',
               alignItems: 'center',
-              paddingLeft: '8px',
+              width: '100%',
+              pointerEvents: 'none',
+              gap: '8px',
             }}
           >
-            {isHub && !searchOpen && (
-              <motion.button
-                onClick={() => {
-                  if (onOpenSearch) onOpenSearch();
-                  setSearchOpen(true);
-                }}
-                whileTap={{ scale: 0.92 }}
-                whileHover={{ scale: 1.04 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
-                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
-                  boxShadow: isLight
-                    ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                    : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: isLight ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.60)',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  transformOrigin: 'center center',
-                  scale: containerScale,
-                  x: switcherX,
-                }}
-              >
-                <span className="material-symbols-outlined text-[20px]">
-                  search
-                </span>
-              </motion.button>
-            )}
+            <div style={{ pointerEvents: 'none' }} />
 
-            {showSwitcherButton && !searchOpen && (
-              <motion.button
-                onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
-                whileTap={{ scale: 0.92 }}
-                whileHover={{ scale: 1.04 }}
-                transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
+            <motion.div
+              className="shared-bottom-nav glass-nav"
+              style={{
+                pointerEvents: 'auto',
+                justifySelf: 'center',
+                width: `${barWidth}px`,
+                maxWidth: `${barWidth}px`,
+                height: '64px',
+                borderRadius: '9999px',
+                border: isLight
+                  ? '1px solid rgba(0, 0, 0, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+                background: 'var(--surface-float-bg)',
+                boxShadow: isLight
+                  ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
+                  : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                backdropFilter: 'var(--surface-float-blur)',
+                WebkitBackdropFilter: 'var(--surface-float-blur)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                padding: '6px 8px',
+                position: 'relative',
+                touchAction: 'none',
+                userSelect: 'none',
+                transformOrigin: 'center center',
+                scale: containerScale,
+                x: navX,
+                transition:
+                  'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+              }}
+            >
+              <div
+                ref={innerWrapperRef}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
                 style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '50%',
-                  background: isLight ? 'rgba(255, 255, 255, 0.78)' : 'rgba(12, 12, 14, 0.45)',
-                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
-                  boxShadow: isLight
-                    ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                    : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
                   display: 'flex',
+                  width: '100%',
+                  height: '100%',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  color: isLight
-                    ? (isSwitcherOpen ? '#0f172a' : 'rgba(15, 23, 42, 0.75)')
-                    : (isSwitcherOpen ? '#ffffff' : 'rgba(255, 255, 255, 0.60)'),
-                  cursor: 'pointer',
-                  outline: 'none',
-                  WebkitTapHighlightColor: 'transparent',
-                  transformOrigin: 'center center',
-                  scale: containerScale,
-                  x: switcherX,
+                  position: 'relative',
+                  touchAction: 'none',
                 }}
               >
-                <motion.span
-                  className="material-symbols-outlined text-[20px]"
-                  animate={{ rotate: isSwitcherOpen ? 90 : 0 }}
-                  transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                {/* Standard Navigation Items */}
+                {!searchOpen && (
+                  <motion.div
+                    style={{
+                      position: 'absolute',
+                      top: 4,
+                      bottom: 4,
+                      left: 0,
+                      x: pillX,
+                      width: pillWidthVal,
+                      borderRadius: '9999px',
+                      background: isLight
+                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(245, 248, 255, 0.55) 50%, rgba(255, 255, 255, 0.45) 100%)'
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(200, 220, 255, 0.10) 50%, rgba(255, 255, 255, 0.05) 100%)',
+                      border: isLight
+                        ? '1px solid rgba(255, 255, 255, 0.9)'
+                        : '1.2px solid rgba(255, 255, 255, 0.28)',
+                      boxShadow: isLight
+                        ? 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03), 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04)'
+                        : 'inset 0 1px 2px rgba(255, 255, 255, 0.35), inset 0 -0.5px 1px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(255, 255, 255, 0.08)',
+                      backdropFilter: 'var(--surface-float-blur)',
+                      WebkitBackdropFilter: 'var(--surface-float-blur)',
+                      pointerEvents: 'none',
+                      zIndex: 0,
+                      skewX: dragSkewRaw,
+                      scale: pillPressScale,
+                      willChange: 'transform, width',
+                    }}
+                  />
+                )}
+                {!searchOpen ? (
+                  <div
+                    style={{
+                      display: 'flex',
+                      width: '100%',
+                      height: '100%',
+                      alignItems: 'center',
+                      justifyContent: 'space-around',
+                      opacity: 1,
+                      pointerEvents: 'auto',
+                    }}
+                  >
+                    {currentItems.map((item, index) => {
+                      const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
+                      return (
+                        <NavigationItem
+                          key={item.key}
+                          item={item}
+                          index={index}
+                          onClick={() => {
+                            if (performance.now() - pointerUpHandledAtRef.current < 100) return;
+                            navigationEpochRef.current += 1;
+                            setNavigationEpoch(navigationEpochRef.current);
+                            item.onClick();
+                          }}
+                          isActive={isActive}
+                          isLight={isLight}
+                          isSwitcherOpen={isSwitcherOpen}
+                          activeIdxSpring={activeIdxSpring}
+                          onMeasureGeometry={handleMeasureGeometry}
+                          innerWrapperRef={innerWrapperRef}
+                          animationEpoch={navigationEpoch}
+                        />
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* Embedded Search Input inside stretched bar */
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '0 16px',
+                      zIndex: 10,
+                      pointerEvents: 'auto',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: isLight ? '#0f172a' : '#ffffff',
+                        opacity: 0.6,
+                        marginRight: '8px',
+                      }}
+                    >
+                      <span className="material-symbols-outlined text-[20px]">search</span>
+                    </div>
+                    <input
+                      id="global-search-input"
+                      ref={searchInputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder={
+                        lang === 'es'
+                          ? 'Buscar canciones, apps, ajustes...'
+                          : 'Search songs, apps, settings...'
+                      }
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        background: 'transparent',
+                        border: 'none',
+                        outline: 'none',
+                        color: isLight ? '#0f172a' : '#ffffff',
+                        fontSize: '16px',
+                        fontFamily: 'Inter, sans-serif',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                      }}
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          color: isLight ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '4px',
+                        }}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">clear</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            <div
+              style={{
+                pointerEvents: 'auto',
+                justifySelf: 'start',
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: '8px',
+              }}
+            >
+              {isHub && !searchOpen && (
+                <motion.button
+                  onClick={() => {
+                    if (onOpenSearch) onOpenSearch();
+                    setSearchOpen(true);
+                  }}
+                  whileTap={{ scale: 0.92 }}
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: 'var(--surface-float-bg)',
+                    border: isLight
+                      ? '1px solid rgba(0, 0, 0, 0.08)'
+                      : '1px solid rgba(255, 255, 255, 0.08)',
+                    backdropFilter: 'var(--surface-float-blur)',
+                    WebkitBackdropFilter: 'var(--surface-float-blur)',
+                    boxShadow: isLight
+                      ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
+                      : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isLight ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.60)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    transformOrigin: 'center center',
+                    scale: containerScale,
+                    x: switcherX,
+                  }}
                 >
-                  {isSwitcherOpen ? 'close' : 'apps'}
-                </motion.span>
-              </motion.button>
-            )}
+                  <span className="material-symbols-outlined text-[20px]">search</span>
+                </motion.button>
+              )}
+
+              {showSwitcherButton && !searchOpen && (
+                <motion.button
+                  onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                  whileTap={{ scale: 0.92 }}
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: 'var(--surface-float-bg)',
+                    border: isLight
+                      ? '1px solid rgba(0, 0, 0, 0.08)'
+                      : '1px solid rgba(255, 255, 255, 0.08)',
+                    backdropFilter: 'var(--surface-float-blur)',
+                    WebkitBackdropFilter: 'var(--surface-float-blur)',
+                    boxShadow: isLight
+                      ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
+                      : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: isLight
+                      ? isSwitcherOpen
+                        ? '#0f172a'
+                        : 'rgba(15, 23, 42, 0.75)'
+                      : isSwitcherOpen
+                        ? '#ffffff'
+                        : 'rgba(255, 255, 255, 0.60)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    transformOrigin: 'center center',
+                    scale: containerScale,
+                    x: switcherX,
+                  }}
+                >
+                  <motion.span
+                    className="material-symbols-outlined text-[20px]"
+                    animate={{ rotate: isSwitcherOpen ? 90 : 0 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                  >
+                    {isSwitcherOpen ? 'close' : 'apps'}
+                  </motion.span>
+                </motion.button>
+              )}
+            </div>
           </div>
-        </div>
-      </motion.div>
-    </>
+        </motion.div>
+      </>
     </NavigationAnimationProvider>
   );
 }
-

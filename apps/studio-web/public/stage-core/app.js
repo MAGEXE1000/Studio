@@ -906,12 +906,15 @@ function T(key) {
 function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach((el) => {
     const key = el.getAttribute('data-i18n');
-    const val = T(key);
-    if (val.includes('\n')) {
-      el.innerHTML = val.replace(/\n/g, '<br>');
-    } else {
-      el.textContent = val;
-    }
+    const val = String(T(key));
+    el.textContent = '';
+    const parts = val.split('\n');
+    parts.forEach((part, index) => {
+      if (index > 0) {
+        el.appendChild(document.createElement('br'));
+      }
+      el.appendChild(document.createTextNode(part));
+    });
   });
 }
 
@@ -6317,12 +6320,15 @@ let _confirmCb = null;
 function showConfirm(message, onOk, options = {}) {
   _confirmCb = onOk;
   const title = options.title || (state.lang === 'es' ? 'Confirmar' : 'Confirm');
-  window.parent.postMessage({
-    type: 'stage-core:confirm',
-    message: message,
-    title: title,
-    isDestructive: options.isDestructive || false
-  }, '*');
+  window.parent.postMessage(
+    {
+      type: 'stage-core:confirm',
+      message: message,
+      title: title,
+      isDestructive: options.isDestructive || false,
+    },
+    '*'
+  );
 }
 
 function doConfirm(ok) {

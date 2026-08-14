@@ -9,7 +9,11 @@ import {
   classifyDeviceSession as engineClassifyDeviceSession,
   sanitizeForFirestore as engineSanitize,
 } from './syncEngine';
-import { getActiveSyncProvider, initSyncBackends, disposeSyncBackends } from '../syncBackends/index';
+import {
+  getActiveSyncProvider,
+  initSyncBackends,
+  disposeSyncBackends,
+} from '../syncBackends/index';
 import { vocalexRepository } from '../../repositories/VocalexRepository';
 import type { TakeRecord } from '../../repositories/VocalexRepository';
 import type { LabSession, LabLayer } from '../../repositories/VocalexRepository';
@@ -83,13 +87,13 @@ const DEVICE_ID_KEY = 'chordex_device_id';
  */
 const FIRST_PULL_DONE_KEY = 'chordex_sync_first_pull_done_v1';
 
-const TICK_MS = 60_000;          // periodic safety-net flush while signed in
-const RUN_TIMEOUT_MS = 20_000;   // OVERALL hard cap per run — generous enough for one slow Firestore handshake but tight enough that the user never waits 35 s for the indicator to clear
-const FIRESTORE_OP_MS = 12_000;  // per-getDoc / per-setDoc cap — Firestore's first-call handshake completes in well under 12 s on any working network; subsequent calls return in <1 s. Anything longer is almost certainly a wedged transport that won't recover by waiting
+const TICK_MS = 60_000; // periodic safety-net flush while signed in
+const RUN_TIMEOUT_MS = 20_000; // OVERALL hard cap per run — generous enough for one slow Firestore handshake but tight enough that the user never waits 35 s for the indicator to clear
+const FIRESTORE_OP_MS = 12_000; // per-getDoc / per-setDoc cap — Firestore's first-call handshake completes in well under 12 s on any working network; subsequent calls return in <1 s. Anything longer is almost certainly a wedged transport that won't recover by waiting
 const SUCCESS_LINGER_MS = 1_200; // how long `phase=success` stays visible
 const SYNCING_DEBOUNCE_MS = 600; // delay before showing spinner — quick runs stay invisible
 const STAGE_SNAPSHOT_MS = 1_500; // postMessage round-trip cap
-const RESTORE_OP_MS = 5_000;     // soft-cap on local IndexedDB restores so a wedged store can't pin `phase=syncing` forever
+const RESTORE_OP_MS = 5_000; // soft-cap on local IndexedDB restores so a wedged store can't pin `phase=syncing` forever
 /**
  * Hard upper bound on how long a freshly-signed-in user is allowed to
  * see "Waiting to sync…" before we force the indicator to "Synced".
@@ -104,8 +108,8 @@ const NEVER_STUCK_MS = 25_000;
 
 // localStorage keys owned by each app
 const CHORDEX_LS_KEY = 'chord-explorer-storage-v3';
-const DRUMEX_LS_KEY  = 'chordex-drums';
-const DRUMEX_UI_KEY  = 'chordex-drum-ui';
+const DRUMEX_LS_KEY = 'chordex-drums';
+const DRUMEX_UI_KEY = 'chordex-drum-ui';
 const GROOVEX_LS_KEY = 'groovex-storage-v1';
 
 const STAGEX_KEYS = [
@@ -346,53 +350,53 @@ let registeredDevicesCount = 0;
 let isCurrentDeviceRegistered = false;
 let appStateListenerHandle: any = null;
 
-let lastDeviceWriteSuccess: string | null = null;
-let lastDeviceWriteError: string | null = null;
+const lastDeviceWriteSuccess: string | null = null;
+const lastDeviceWriteError: string | null = null;
 let lastDevicesListenerError: string | null = null;
 let devicesSnapshotIds: string[] = [];
 let devicesSnapshotCount = 0;
-let lastDeviceWriteAttemptedAt: string | null = null;
-let lastDeviceWriteDurationMs: number | string | null = null;
+const lastDeviceWriteAttemptedAt: string | null = null;
+const lastDeviceWriteDurationMs: number | string | null = null;
 let lastDeviceSnapshotAt: string | null = null;
-let deviceRegistrationStatus: 'idle' | 'pending' | 'registered' | 'failed' = 'idle';
-let lastDeviceRegistrationReason: string | null = null;
-let inFlightWriteStatus = false;
-let devicesRenderedCount = 0;
-let currentDeviceMatchedInSnapshot = false;
-let otherDevicesCount = 0;
-let hiddenDevicesCount = 0;
-let hiddenDeviceReasons = 'None';
-let activeDevicesCount = 0;
-let staleDevicesCount = 0;
-let legacyDevicesCount = 0;
-let groupedDeviceIds = '';
-let duplicateCandidates = '';
-let replacementMap = '';
-let legacyDocumentsDetected = false;
-let deviceIdStorageKey = 'studioDeviceId';
-let storedDeviceId = 'N/A';
-let oldLegacyDeviceIdKeysFound = '';
-let lastLegacyCleanupAttempt = 'Never';
-let lastLegacyCleanupSuccess = 'Never';
-let lastLegacyCleanupError = 'None';
+const deviceRegistrationStatus: 'idle' | 'pending' | 'registered' | 'failed' = 'idle';
+const lastDeviceRegistrationReason: string | null = null;
+const inFlightWriteStatus = false;
+const devicesRenderedCount = 0;
+const currentDeviceMatchedInSnapshot = false;
+const otherDevicesCount = 0;
+const hiddenDevicesCount = 0;
+const hiddenDeviceReasons = 'None';
+const activeDevicesCount = 0;
+const staleDevicesCount = 0;
+const legacyDevicesCount = 0;
+const groupedDeviceIds = '';
+const duplicateCandidates = '';
+const replacementMap = '';
+const legacyDocumentsDetected = false;
+const deviceIdStorageKey = 'studioDeviceId';
+const storedDeviceId = 'N/A';
+const oldLegacyDeviceIdKeysFound = '';
+const lastLegacyCleanupAttempt = 'Never';
+const lastLegacyCleanupSuccess = 'Never';
+const lastLegacyCleanupError = 'None';
 
 let authReady = false;
 let authUid = 'Not Configured';
-let currentPlatform = Capacitor.isNativePlatform() ? 'android' : 'web';
-let currentDeviceDocExists = false;
-let listenerPath = 'N/A';
-let devicesLogicVersion = 'devices-v3.6.10-sync-probe';
+const currentPlatform = Capacitor.isNativePlatform() ? 'android' : 'web';
+const currentDeviceDocExists = false;
+const listenerPath = 'N/A';
+const devicesLogicVersion = 'devices-v3.6.10-sync-probe';
 let profileListenerStatus = 'inactive';
 let appearanceListenerStatus = 'inactive';
 let preferencesListenerStatus = 'inactive';
 
-let lastProfileWriteSuccess = 'Never';
-let lastProfileWriteError = 'None';
+const lastProfileWriteSuccess = 'Never';
+const lastProfileWriteError = 'None';
 let lastAppearanceWriteSuccess = 'Never';
 let lastAppearanceWriteError = 'None';
 let lastPreferencesWriteSuccess = 'Never';
 let lastPreferencesWriteError = 'None';
-let lastPhotoUploadError = 'None';
+const lastPhotoUploadError = 'None';
 
 let cloudTheme = 'N/A';
 let cloudDisplayName = 'N/A';
@@ -417,7 +421,7 @@ export function getSyncDiagnostics(): any {
 
 export async function pushLocalSettingsToCloud(): Promise<void> {
   if (!currentUser) return;
-  
+
   const provider = getActiveSyncProvider();
   pendingWritesCount++;
   notifyDiagnostics();
@@ -425,7 +429,7 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
     const store = useChordStore.getState();
     const settings = useSettingsStore.getState().settings;
     const now = Date.now();
-    
+
     // 1. Write appearance settings
     const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
     await provider.updateAppearanceSettings({
@@ -434,13 +438,13 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
       language: settings.language,
     });
     localStorage.setItem(`sync_last_local_update_appearance`, now.toString());
-    
+
     // 2. Write preference settings
     await provider.updatePreferences({
       syncEnabled: settings.syncAcrossDevices,
     });
     localStorage.setItem(`sync_last_local_update_preferences`, now.toString());
-    
+
     // 3. Write profile settings
     const { getUserAvatar } = await import('../utilities/userAvatar');
     const avatarIcon = getUserAvatar(currentUser.uid);
@@ -461,7 +465,7 @@ export async function pushLocalSettingsToCloud(): Promise<void> {
 export async function pullCloudSettingsFromCloud(): Promise<void> {
   if (!currentUser) return;
   const provider = getActiveSyncProvider();
-  
+
   try {
     // 1. Pull profile
     const profileData = await provider.getProfile();
@@ -469,10 +473,12 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
       remotePhotoURL = profileData.photoURL || null;
       remoteDisplayName = profileData.displayName || null;
       lastRemoteUpdateTimestamp = profileData.updatedAt || null;
-      
+
       // Update local profile
-      if (profileData.displayName !== currentUser.displayName || profileData.photoURL !== currentUser.photoURL) {
-        
+      if (
+        profileData.displayName !== currentUser.displayName ||
+        profileData.photoURL !== currentUser.photoURL
+      ) {
         authRepository.updateLocalAuthUser({
           displayName: profileData.displayName,
           photoURL: profileData.photoURL,
@@ -480,12 +486,12 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
         currentUser.displayName = profileData.displayName;
         currentUser.photoURL = profileData.photoURL;
       }
-      
+
       if (profileData.avatarIcon !== undefined) {
         const { setUserAvatar } = await import('../utilities/userAvatar');
         setUserAvatar(currentUser.uid, profileData.avatarIcon as any);
       }
-      
+
       if (profileData.photoURL) {
         localStorage.setItem(`chordex_cp_${currentUser.uid}`, profileData.photoURL);
         window.dispatchEvent(
@@ -501,19 +507,22 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
           })
         );
       }
-      localStorage.setItem(`sync_last_local_update_profile`, (profileData.updatedAt || 0).toString());
+      localStorage.setItem(
+        `sync_last_local_update_profile`,
+        (profileData.updatedAt || 0).toString()
+      );
       lastProfileSyncMs = Date.now();
     }
-    
+
     // 2. Pull appearance
     const appData = await provider.getAppearanceSettings();
     if (appData) {
       remoteTheme = appData.theme || null;
       lastRemoteUpdateTimestamp = appData.updatedAt || null;
-      
+
       isApplyingRemoteUpdate = true;
       try {
-        const nextTheme = appData.theme === 'AMOLED' ? 'dark' : (appData.theme || 'dark');
+        const nextTheme = appData.theme === 'AMOLED' ? 'dark' : appData.theme || 'dark';
         const nextAmoled = appData.theme === 'AMOLED';
         useSettingsStore.getState().updateSettings({
           theme: nextTheme as any,
@@ -523,10 +532,13 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
       } finally {
         isApplyingRemoteUpdate = false;
       }
-      localStorage.setItem(`sync_last_local_update_appearance`, (appData.updatedAt || 0).toString());
+      localStorage.setItem(
+        `sync_last_local_update_appearance`,
+        (appData.updatedAt || 0).toString()
+      );
       lastAppearanceSyncMs = Date.now();
     }
-    
+
     // 3. Pull preferences
     const prefData = await provider.getPreferences();
     if (prefData) {
@@ -539,14 +551,14 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
 
         useSettingsStore.getState().updateSettings({
           syncAcrossDevices: syncEnabled,
-          
-          
-          
         });
       } finally {
         isApplyingRemoteUpdate = false;
       }
-      localStorage.setItem(`sync_last_local_update_preferences`, (prefData.updatedAt || 0).toString());
+      localStorage.setItem(
+        `sync_last_local_update_preferences`,
+        (prefData.updatedAt || 0).toString()
+      );
       lastPreferencesSyncMs = Date.now();
     }
   } catch (err: any) {
@@ -561,7 +573,11 @@ export async function uploadProfilePhoto(uid: string, blob: Blob): Promise<strin
   return provider.uploadProfilePhoto(blob);
 }
 
-export async function syncWriteProfileMain(displayName: string | null, photoURL: string | null, avatarIcon: string | null): Promise<void> {
+export async function syncWriteProfileMain(
+  displayName: string | null,
+  photoURL: string | null,
+  avatarIcon: string | null
+): Promise<void> {
   const provider = getActiveSyncProvider();
   await provider.updateProfile({
     displayName,
@@ -792,7 +808,11 @@ function setStatus(patch: Partial<SyncStatus>): void {
       if (status.phase === 'syncing' && epoch === armedEpoch) {
         status = { ...status, phase: 'idle', syncing: false, error: null };
         for (const l of listeners) {
-          try { l(status); } catch { /* listener errors must not break the engine */ }
+          try {
+            l(status);
+          } catch {
+            /* listener errors must not break the engine */
+          }
         }
       }
     }, SYNCING_WATCHDOG_MS);
@@ -800,7 +820,11 @@ function setStatus(patch: Partial<SyncStatus>): void {
     clearSyncingWatchdog();
   }
   for (const l of listeners) {
-    try { l(status); } catch { /* listener errors must not break the engine */ }
+    try {
+      l(status);
+    } catch {
+      /* listener errors must not break the engine */
+    }
   }
 }
 
@@ -810,23 +834,27 @@ export function subscribeSyncStatus(l: Listener): () => void {
   return () => listeners.delete(l);
 }
 
-export function getSyncStatus(): SyncStatus { return status; }
+export function getSyncStatus(): SyncStatus {
+  return status;
+}
 
 // ── Logging helpers (single point so it's easy to silence in prod if needed) ─
 
 const LOG = '[sync]';
-function logStart(reason: RunReason, mode: RunMode) { }
-function logSuccess(durationMs: number, pushed: number, pulled: number) {
-}
+function logStart(reason: RunReason, mode: RunMode) {}
+function logSuccess(durationMs: number, pushed: number, pulled: number) {}
 function logFailure(durationMs: number, error: unknown) {
   const msg = (error as Error)?.message ?? String(error);
 }
-function logTimeout(op: string, ms: number) { }
+function logTimeout(op: string, ms: number) {}
 
 // ── Timeout helpers ──────────────────────────────────────────────────────────
 
 class SyncTimeoutError extends Error {
-  constructor(public op: string, public ms: number) {
+  constructor(
+    public op: string,
+    public ms: number
+  ) {
     super(`Sync timed out (op=${op}, after=${ms}ms)`);
     this.name = 'SyncTimeoutError';
   }
@@ -837,8 +865,14 @@ function withTimeout<T>(promise: Promise<T>, ms: number, op: string): Promise<T>
   return new Promise<T>((resolve, reject) => {
     const t = setTimeout(() => reject(new SyncTimeoutError(op, ms)), ms);
     promise.then(
-      (v) => { clearTimeout(t); resolve(v); },
-      (e) => { clearTimeout(t); reject(e); },
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      }
     );
   });
 }
@@ -850,8 +884,14 @@ function withAbort<T>(promise: Promise<T>, signal: AbortSignal, op: string): Pro
     const onAbort = () => reject(new SyncTimeoutError(op, RUN_TIMEOUT_MS));
     signal.addEventListener('abort', onAbort, { once: true });
     promise.then(
-      (v) => { signal.removeEventListener('abort', onAbort); resolve(v); },
-      (e) => { signal.removeEventListener('abort', onAbort); reject(e); },
+      (v) => {
+        signal.removeEventListener('abort', onAbort);
+        resolve(v);
+      },
+      (e) => {
+        signal.removeEventListener('abort', onAbort);
+        reject(e);
+      }
     );
   });
 }
@@ -862,40 +902,61 @@ function readMeta(): Meta {
   try {
     const raw = localStorage.getItem(SYNC_META_KEY);
     return raw ? (JSON.parse(raw) as Meta) : {};
-  } catch { return {}; }
+  } catch {
+    return {};
+  }
 }
 
 function writeMeta(m: Meta) {
-  try { localStorage.setItem(SYNC_META_KEY, JSON.stringify(m)); } catch { /* noop */ }
+  try {
+    localStorage.setItem(SYNC_META_KEY, JSON.stringify(m));
+  } catch {
+    /* noop */
+  }
+}
+
+function hashUserIdentifier(str: string): string {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return 'usr_' + Math.abs(hash).toString(36);
 }
 
 function readFirstPullDone(uid: string): boolean {
   try {
     const raw = localStorage.getItem(FIRST_PULL_DONE_KEY);
     if (!raw) return false;
+    const token = hashUserIdentifier(uid);
     const set = JSON.parse(raw) as string[];
-    return Array.isArray(set) && set.includes(uid);
-  } catch { return false; }
+    return Array.isArray(set) && (set.includes(token) || set.includes(uid));
+  } catch {
+    return false;
+  }
 }
 
 function writeFirstPullDone(uid: string): void {
   try {
+    const token = hashUserIdentifier(uid);
     const raw = localStorage.getItem(FIRST_PULL_DONE_KEY);
     const set: string[] = raw ? (JSON.parse(raw) as string[]) : [];
-    if (!set.includes(uid)) {
-      set.push(uid);
+    if (!set.includes(token)) {
+      set.push(token);
       localStorage.setItem(FIRST_PULL_DONE_KEY, JSON.stringify(set));
     }
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
 }
 
-let cachedDeviceId: string | null = null;
+const cachedDeviceId: string | null = null;
 
 function getOrMigrateDeviceId(): string | null {
   try {
-    let id = localStorage.getItem('studioDeviceId');
+    const id = localStorage.getItem('studioDeviceId');
     if (id) return id;
-    
+
     // Check legacy storage keys in order of precedence
     const legacyKeys = ['chordex_device_id', 'chordexDeviceId', 'appDeviceId'];
     for (const key of legacyKeys) {
@@ -944,7 +1005,10 @@ export function sanitizeForFirestore(val: any): any {
   return engineSanitize(val);
 }
 
-export async function registerCurrentDevice(uid: string | null | undefined, reason: string): Promise<void> {
+export async function registerCurrentDevice(
+  uid: string | null | undefined,
+  reason: string
+): Promise<void> {
   const provider = getActiveSyncProvider();
   await provider.registerCurrentDevice(reason);
 }
@@ -976,7 +1040,10 @@ export function getDeviceDetails() {
   return engineGetDeviceDetails();
 }
 
-export function classifyDeviceSession(data: any, currentDeviceId: string): { classification: string; reason: string } {
+export function classifyDeviceSession(
+  data: any,
+  currentDeviceId: string
+): { classification: string; reason: string } {
   return engineClassifyDeviceSession(data, currentDeviceId);
 }
 
@@ -1006,9 +1073,15 @@ function writeLocalRaw(key: string, value: string): void {
   secureWriteLocal(key, value, currentUser?.uid ?? 'guest_user');
 }
 
-function snapshotChordex(): string | null { return readLocalRaw(CHORDEX_LS_KEY); }
-function snapshotDrumex():  string | null { return readLocalRaw(DRUMEX_LS_KEY); }
-function snapshotDrumexUI(): string | null { return readLocalRaw(DRUMEX_UI_KEY); }
+function snapshotChordex(): string | null {
+  return readLocalRaw(CHORDEX_LS_KEY);
+}
+function snapshotDrumex(): string | null {
+  return readLocalRaw(DRUMEX_LS_KEY);
+}
+function snapshotDrumexUI(): string | null {
+  return readLocalRaw(DRUMEX_UI_KEY);
+}
 
 function snapshotProfile(): string | null {
   if (!currentUser) return null;
@@ -1052,10 +1125,7 @@ function snapshotStagex(): Promise<StagexSnapshot | null> {
       resolve(sanitizeWorkspacePayload(snap));
     });
     try {
-      stageIframe!.contentWindow!.postMessage(
-        { type: 'sc-sync-snapshot' },
-        window.location.origin,
-      );
+      stageIframe!.contentWindow!.postMessage({ type: 'sc-sync-snapshot' }, window.location.origin);
     } catch {
       clearTimeout(timeout);
       stageSnapshotResolvers = stageSnapshotResolvers.filter((r) => r !== resolve);
@@ -1106,8 +1176,14 @@ function softTimeout<T>(p: Promise<T>, ms: number): Promise<T | null> {
   return new Promise<T | null>((resolve) => {
     const t = setTimeout(() => resolve(null), ms);
     p.then(
-      (v) => { clearTimeout(t); resolve(v); },
-      () => { clearTimeout(t); resolve(null); },
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      () => {
+        clearTimeout(t);
+        resolve(null);
+      }
     );
   });
 }
@@ -1116,7 +1192,10 @@ const INDEXEDDB_SNAPSHOT_MS = 4_000;
 
 async function snapshotVocalexTakes(): Promise<TakeSyncRecord[] | null> {
   try {
-    const takes = (await softTimeout(vocalexRepository.getAllTakes(), INDEXEDDB_SNAPSHOT_MS)) as any[];
+    const takes = (await softTimeout(
+      vocalexRepository.getAllTakes(),
+      INDEXEDDB_SNAPSHOT_MS
+    )) as any[];
     if (!takes) return null;
     if (takes.length === 0) return null;
     const records: TakeSyncRecord[] = [];
@@ -1128,7 +1207,9 @@ async function snapshotVocalexTakes(): Promise<TakeSyncRecord[] | null> {
         totalSize += audioB64.length;
         const { audioBlob: _, ...rest } = take;
         records.push({ ...rest, audioB64 });
-      } catch { /* skip unreadable blob */ }
+      } catch {
+        /* skip unreadable blob */
+      }
     }
     return records.length > 0 ? records : null;
   } catch {
@@ -1142,13 +1223,18 @@ async function restoreVocalexTakes(records: TakeSyncRecord[]): Promise<void> {
       const audioBlob = base64ToBlob(record.audioB64);
       const { audioB64: _, ...rest } = record;
       await vocalexRepository.saveTake({ ...rest, audioBlob });
-    } catch { /* skip corrupt record */ }
+    } catch {
+      /* skip corrupt record */
+    }
   }
 }
 
 async function snapshotVocalexLab(): Promise<SessionSyncRecord[] | null> {
   try {
-    const sessions = (await softTimeout(vocalexRepository.getAllSessions(), INDEXEDDB_SNAPSHOT_MS)) as any[];
+    const sessions = (await softTimeout(
+      vocalexRepository.getAllSessions(),
+      INDEXEDDB_SNAPSHOT_MS
+    )) as any[];
     if (!sessions) return null;
     if (sessions.length === 0) return null;
     const records: SessionSyncRecord[] = [];
@@ -1164,14 +1250,18 @@ async function snapshotVocalexLab(): Promise<SessionSyncRecord[] | null> {
             sessionBlobSize += audioB64.length;
             const { audioBlob: _, ...rest } = layer;
             layers.push({ ...rest, audioB64 });
-          } catch { /* skip unreadable layer */ }
+          } catch {
+            /* skip unreadable layer */
+          }
         }
         if (layers.length > 0 || session.layers.length === 0) {
           totalSize += sessionBlobSize;
           const { layers: _, ...sessionRest } = session;
           records.push({ ...sessionRest, layers });
         }
-      } catch { /* skip corrupt session */ }
+      } catch {
+        /* skip corrupt session */
+      }
     }
     return records.length > 0 ? records : null;
   } catch {
@@ -1187,7 +1277,9 @@ async function restoreVocalexLab(records: SessionSyncRecord[]): Promise<void> {
         return { ...rest, audioBlob: base64ToBlob(audioB64) };
       });
       await vocalexRepository.saveSession({ ...record, layers });
-    } catch { /* skip corrupt record */ }
+    } catch {
+      /* skip corrupt record */
+    }
   }
 }
 
@@ -1203,7 +1295,14 @@ export function clearConflictLogs(): void {
   conflictLogs = [];
 }
 
-export function logConflict(app: string, itemId: string, itemName: string, localTime: number, cloudTime: number, resolution: string) {
+export function logConflict(
+  app: string,
+  itemId: string,
+  itemName: string,
+  localTime: number,
+  cloudTime: number,
+  resolution: string
+) {
   conflictLogs.push({
     timestamp: Date.now(),
     app,
@@ -1229,7 +1328,9 @@ function restoreGroovex(raw: string) {
     const local = readLocalRaw(GROOVEX_LS_KEY);
     const merged = mergeGroovexState(local, raw);
     writeLocalRaw(GROOVEX_LS_KEY, merged);
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
   triggerStorageEvent(GROOVEX_LS_KEY);
 }
 
@@ -1244,7 +1345,9 @@ export function mergeGroovexState(localRaw: string | null, cloudRaw: string): st
     const cloud = cloudObj.state;
 
     // 1. Recent Songs
-    const recentSongs = Array.from(new Set([...(cloud.recentSongs || []), ...(local.recentSongs || [])])).slice(0, 20);
+    const recentSongs = Array.from(
+      new Set([...(cloud.recentSongs || []), ...(local.recentSongs || [])])
+    ).slice(0, 20);
 
     // 2. Preferences
     const preferences = { ...(local.preferences || {}), ...(cloud.preferences || {}) };
@@ -1301,10 +1404,12 @@ export function hasLocalData(): boolean {
     try {
       const parsed = JSON.parse(chordex);
       const state = parsed.state || {};
-      if ((state.favorites && state.favorites.length > 0) ||
-          (state.progressions && state.progressions.length > 0) ||
-          (state.presets && state.presets.length > 0) ||
-          (state.customChords && state.customChords.length > 0)) {
+      if (
+        (state.favorites && state.favorites.length > 0) ||
+        (state.progressions && state.progressions.length > 0) ||
+        (state.presets && state.presets.length > 0) ||
+        (state.customChords && state.customChords.length > 0)
+      ) {
         return true;
       }
     } catch {}
@@ -1314,8 +1419,10 @@ export function hasLocalData(): boolean {
     try {
       const parsed = JSON.parse(drumex);
       const state = parsed.state || {};
-      if ((state.drumSongs && state.drumSongs.length > 0) ||
-          (state.grooves && state.grooves.length > 0)) {
+      if (
+        (state.drumSongs && state.drumSongs.length > 0) ||
+        (state.grooves && state.grooves.length > 0)
+      ) {
         return true;
       }
     } catch {}
@@ -1343,18 +1450,19 @@ export async function checkCloudDataExists(): Promise<boolean> {
 export async function createCloudBackup(label: string): Promise<void> {
   if (!currentUser) return;
   const provider = getActiveSyncProvider();
-  
-  const [chordex, drumex, drumexUI, stagex, vTakes, vLab, profile, profileCover, groovex] = await Promise.all([
-    Promise.resolve(snapshotChordex()),
-    Promise.resolve(snapshotDrumex()),
-    Promise.resolve(snapshotDrumexUI()),
-    snapshotStagex(),
-    snapshotVocalexTakes(),
-    snapshotVocalexLab(),
-    Promise.resolve(snapshotProfile()),
-    Promise.resolve(snapshotProfileCover()),
-    Promise.resolve(snapshotGroovex()),
-  ]);
+
+  const [chordex, drumex, drumexUI, stagex, vTakes, vLab, profile, profileCover, groovex] =
+    await Promise.all([
+      Promise.resolve(snapshotChordex()),
+      Promise.resolve(snapshotDrumex()),
+      Promise.resolve(snapshotDrumexUI()),
+      snapshotStagex(),
+      snapshotVocalexTakes(),
+      snapshotVocalexLab(),
+      Promise.resolve(snapshotProfile()),
+      Promise.resolve(snapshotProfileCover()),
+      Promise.resolve(snapshotGroovex()),
+    ]);
 
   const backupData = {
     chordex,
@@ -1422,7 +1530,9 @@ function mergeChordexState(localRaw: string | null, cloudRaw: string): string {
     const favorites = Array.from(new Set([...(local.favorites || []), ...(cloud.favorites || [])]));
 
     // 2. Recent Chords
-    const recentChords = Array.from(new Set([...(local.recentChords || []), ...(cloud.recentChords || [])])).slice(0, 10);
+    const recentChords = Array.from(
+      new Set([...(local.recentChords || []), ...(cloud.recentChords || [])])
+    ).slice(0, 10);
 
     // 3. Progressions (by id, latest wins)
     const progressionsMap = new Map();
@@ -1431,7 +1541,14 @@ function mergeChordexState(localRaw: string | null, cloudRaw: string): string {
       const existing = progressionsMap.get(p.id);
       if (existing) {
         if (JSON.stringify(p.chords) !== JSON.stringify(existing.chords)) {
-          logConflict('chordex', p.id, `Progression: ${p.name || 'Unnamed'}`, existing.createdAt || 0, p.createdAt || 0, 'Last-write-wins (LWW)');
+          logConflict(
+            'chordex',
+            p.id,
+            `Progression: ${p.name || 'Unnamed'}`,
+            existing.createdAt || 0,
+            p.createdAt || 0,
+            'Last-write-wins (LWW)'
+          );
         }
       }
       progressionsMap.set(p.id, p);
@@ -1447,7 +1564,14 @@ function mergeChordexState(localRaw: string | null, cloudRaw: string): string {
         const localTime = existing.updatedAt || existing.createdAt || 0;
         const cloudTime = p.updatedAt || p.createdAt || 0;
         if (localTime !== cloudTime && JSON.stringify(p) !== JSON.stringify(existing)) {
-          logConflict('chordex', p.id, `Preset: ${p.name || 'Unnamed'}`, localTime, cloudTime, cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)');
+          logConflict(
+            'chordex',
+            p.id,
+            `Preset: ${p.name || 'Unnamed'}`,
+            localTime,
+            cloudTime,
+            cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)'
+          );
           if (cloudTime >= localTime) {
             presetsMap.set(p.id, p);
           }
@@ -1467,7 +1591,14 @@ function mergeChordexState(localRaw: string | null, cloudRaw: string): string {
         const localTime = existing.createdAt || 0;
         const cloudTime = p.createdAt || 0;
         if (JSON.stringify(p) !== JSON.stringify(existing)) {
-          logConflict('chordex', p.id, `Custom Chord: ${p.name || 'Unnamed'}`, localTime, cloudTime, cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)');
+          logConflict(
+            'chordex',
+            p.id,
+            `Custom Chord: ${p.name || 'Unnamed'}`,
+            localTime,
+            cloudTime,
+            cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)'
+          );
           if (cloudTime >= localTime) {
             customMap.set(p.id, p);
           }
@@ -1488,7 +1619,8 @@ function mergeChordexState(localRaw: string | null, cloudRaw: string): string {
     const settings = { ...(local.settings || {}), ...(cloud.settings || {}) };
 
     // 8. Other properties
-    const currentProgressionChords = cloud.currentProgressionChords || local.currentProgressionChords || [];
+    const currentProgressionChords =
+      cloud.currentProgressionChords || local.currentProgressionChords || [];
     const transpositions = { ...(local.transpositions || {}), ...(cloud.transpositions || {}) };
     const lastSession = { ...(local.lastSession || {}), ...(cloud.lastSession || {}) };
 
@@ -1534,7 +1666,14 @@ function mergeDrumexState(localRaw: string | null, cloudRaw: string): string {
         const localTime = existing.updatedAt || 0;
         const cloudTime = s.updatedAt || 0;
         if (localTime !== cloudTime && JSON.stringify(s) !== JSON.stringify(existing)) {
-          logConflict('drumex', s.id, `Drum Song: ${s.name || 'Unnamed'}`, localTime, cloudTime, cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)');
+          logConflict(
+            'drumex',
+            s.id,
+            `Drum Song: ${s.name || 'Unnamed'}`,
+            localTime,
+            cloudTime,
+            cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)'
+          );
           if (cloudTime >= localTime) {
             songsMap.set(s.id, s);
           }
@@ -1554,7 +1693,14 @@ function mergeDrumexState(localRaw: string | null, cloudRaw: string): string {
         const localTime = existing.savedAt || existing.updatedAt || 0;
         const cloudTime = g.savedAt || g.updatedAt || 0;
         if (localTime !== cloudTime && JSON.stringify(g) !== JSON.stringify(existing)) {
-          logConflict('drumex', g.id, `Drum Groove: ${g.name || 'Unnamed'}`, localTime, cloudTime, cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)');
+          logConflict(
+            'drumex',
+            g.id,
+            `Drum Groove: ${g.name || 'Unnamed'}`,
+            localTime,
+            cloudTime,
+            cloudTime >= localTime ? 'Cloud wins (LWW)' : 'Local wins (LWW)'
+          );
           if (cloudTime >= localTime) {
             groovesMap.set(g.id, g);
           }
@@ -1571,7 +1717,10 @@ function mergeDrumexState(localRaw: string | null, cloudRaw: string): string {
     const instFX = { ...(local.instFX || {}), ...(cloud.instFX || {}) };
     const instPlugins = { ...(local.instPlugins || {}), ...(cloud.instPlugins || {}) };
     const drumPrefs = { ...(local.drumPrefs || {}), ...(cloud.drumPrefs || {}) };
-    const houseInstVelOverride = { ...(local.houseInstVelOverride || {}), ...(cloud.houseInstVelOverride || {}) };
+    const houseInstVelOverride = {
+      ...(local.houseInstVelOverride || {}),
+      ...(cloud.houseInstVelOverride || {}),
+    };
 
     const mergedState = {
       ...local,
@@ -1602,7 +1751,9 @@ function restoreChordex(raw: string) {
     const local = readLocalRaw(CHORDEX_LS_KEY);
     const merged = mergeChordexState(local, raw);
     writeLocalRaw(CHORDEX_LS_KEY, merged);
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
   triggerStorageEvent(CHORDEX_LS_KEY);
 }
 
@@ -1611,12 +1762,18 @@ function restoreDrumex(raw: string) {
     const local = readLocalRaw(DRUMEX_LS_KEY);
     const merged = mergeDrumexState(local, raw);
     writeLocalRaw(DRUMEX_LS_KEY, merged);
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
   triggerStorageEvent(DRUMEX_LS_KEY);
 }
 
 function restoreDrumexUI(raw: string) {
-  try { writeLocalRaw(DRUMEX_UI_KEY, raw); } catch { /* noop */ }
+  try {
+    writeLocalRaw(DRUMEX_UI_KEY, raw);
+  } catch {
+    /* noop */
+  }
   triggerStorageEvent(DRUMEX_UI_KEY);
 }
 
@@ -1634,12 +1791,11 @@ function restoreProfile(raw: string) {
         window.dispatchEvent(
           new CustomEvent('chordex:user-avatar-changed', {
             detail: { uid: currentUser.uid, icon: av },
-          }),
+          })
         );
       }
     }
-  } catch (err) {
-  }
+  } catch (err) {}
 }
 
 function restoreProfileCover(raw: string) {
@@ -1654,12 +1810,11 @@ function restoreProfileCover(raw: string) {
         window.dispatchEvent(
           new CustomEvent('chordex:user-cover-changed', {
             detail: { uid: currentUser.uid, cover },
-          }),
+          })
         );
       }
     }
-  } catch (err) {
-  }
+  } catch (err) {}
 }
 
 function restoreStagex(snap: StagexSnapshot) {
@@ -1668,22 +1823,28 @@ function restoreStagex(snap: StagexSnapshot) {
     try {
       if (v == null) localStorage.removeItem(k);
       else writeLocalRaw(k, v);
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
   if (stageIframe?.contentWindow) {
     try {
       stageIframe.contentWindow.postMessage(
         { type: 'sc-sync-restore', data: snap },
-        window.location.origin,
+        window.location.origin
       );
-    } catch { /* noop */ }
+    } catch {
+      /* noop */
+    }
   }
 }
 
 function triggerStorageEvent(key: string) {
   try {
     window.dispatchEvent(new CustomEvent('chordex:storage-rehydrate', { detail: { key } }));
-  } catch { /* noop */ }
+  } catch {
+    /* noop */
+  }
 }
 
 // ── Iframe registration (called by StageCorePanel) ──────────────────────────
@@ -1710,7 +1871,12 @@ function handleStageMessage(data: unknown) {
 
 // ── Push / pull a single app ────────────────────────────────────────────────
 
-async function applyCloudBody(app: SyncAppKey, body: unknown, meta: Meta, cloudUpdatedMs: number): Promise<boolean> {
+async function applyCloudBody(
+  app: SyncAppKey,
+  body: unknown,
+  meta: Meta,
+  cloudUpdatedMs: number
+): Promise<boolean> {
   if (app === 'stagex' && body && typeof body === 'object' && !Array.isArray(body)) {
     restoreStagex(body as StagexSnapshot);
     meta[app] = { lastHash: hashString(JSON.stringify(body)), cloudUpdatedMs };
@@ -1727,10 +1893,10 @@ async function applyCloudBody(app: SyncAppKey, body: unknown, meta: Meta, cloudU
     return true;
   }
   if (typeof body === 'string') {
-    if (app === 'chordex')            restoreChordex(body);
-    else if (app === 'drumex')        restoreDrumex(body);
-    else if (app === 'drumexUI')      restoreDrumexUI(body);
-    else if (app === 'profile')       restoreProfile(body);
+    if (app === 'chordex') restoreChordex(body);
+    else if (app === 'drumex') restoreDrumex(body);
+    else if (app === 'drumexUI') restoreDrumexUI(body);
+    else if (app === 'profile') restoreProfile(body);
     else if (app === 'profile-cover') restoreProfileCover(body);
     else return false;
     meta[app] = { lastHash: hashString(body), cloudUpdatedMs };
@@ -1743,14 +1909,18 @@ async function pushApp(
   app: SyncAppKey,
   raw: string | StagexSnapshot | unknown[],
   meta: Meta,
-  signal: AbortSignal,
+  signal: AbortSignal
 ): Promise<{ pushed: boolean; pulled: boolean }> {
   const provider = getActiveSyncProvider();
   if (!currentUser) return { pushed: false, pulled: false };
   const serialized = typeof raw === 'string' ? raw : JSON.stringify(raw);
   const localHash = hashString(serialized);
 
-  const v = await withAbort(withTimeout(provider.pullAppState(app), FIRESTORE_OP_MS, `pullAppState:${app}`), signal, 'run');
+  const v = await withAbort(
+    withTimeout(provider.pullAppState(app), FIRESTORE_OP_MS, `pullAppState:${app}`),
+    signal,
+    'run'
+  );
   const cloudTs = v ? v.updatedAt : 0;
   const knownCloudTs = meta[app]?.cloudUpdatedMs ?? 0;
 
@@ -1758,10 +1928,7 @@ async function pushApp(
   // Bound the local restore: IndexedDB writes can wedge on Android
   // WebView mid-upgrade and we never want them to pin the spinner.
   if (v && cloudTs > knownCloudTs) {
-    const applied = await softTimeout(
-      applyCloudBody(app, v.body, meta, cloudTs),
-      RESTORE_OP_MS,
-    );
+    const applied = await softTimeout(applyCloudBody(app, v.body, meta, cloudTs), RESTORE_OP_MS);
     if (applied) {
       writeMeta(meta);
       return { pushed: false, pulled: true };
@@ -1778,12 +1945,20 @@ async function pushApp(
   if (meta[app]?.lastHash === localHash) return { pushed: false, pulled: false };
 
   const kind = typeof raw === 'string' ? 'json' : Array.isArray(raw) ? 'array' : 'bundle';
-  const afterTs = await withAbort(withTimeout(provider.pushAppState(app, {
-    kind,
-    body: raw,
-    deviceId: deviceId(),
-    schemaVersion: 1,
-  }), FIRESTORE_OP_MS, `pushAppState:${app}`), signal, 'run');
+  const afterTs = await withAbort(
+    withTimeout(
+      provider.pushAppState(app, {
+        kind,
+        body: raw,
+        deviceId: deviceId(),
+        schemaVersion: 1,
+      }),
+      FIRESTORE_OP_MS,
+      `pushAppState:${app}`
+    ),
+    signal,
+    'run'
+  );
 
   meta[app] = { lastHash: localHash, cloudUpdatedMs: afterTs };
   writeMeta(meta);
@@ -1793,30 +1968,30 @@ async function pushApp(
 async function pullApp(
   app: SyncAppKey,
   meta: Meta,
-  signal: AbortSignal,
+  signal: AbortSignal
 ): Promise<{ pulled: boolean }> {
   const provider = getActiveSyncProvider();
   if (!currentUser) return { pulled: false };
-  const v = await withAbort(withTimeout(provider.pullAppState(app), FIRESTORE_OP_MS, `pullAppState:${app}`), signal, 'run');
+  const v = await withAbort(
+    withTimeout(provider.pullAppState(app), FIRESTORE_OP_MS, `pullAppState:${app}`),
+    signal,
+    'run'
+  );
   if (!v) return { pulled: false };
   const cloudTs = v.updatedAt;
   const knownCloudTs = meta[app]?.cloudUpdatedMs ?? 0;
 
   if (cloudTs > 0 && cloudTs <= knownCloudTs) return { pulled: false };
 
-  const cloudHash = v.body == null
-    ? ''
-    : hashString(typeof v.body === 'string' ? v.body : JSON.stringify(v.body));
+  const cloudHash =
+    v.body == null ? '' : hashString(typeof v.body === 'string' ? v.body : JSON.stringify(v.body));
   if (cloudHash && cloudHash === meta[app]?.lastHash) {
     meta[app] = { lastHash: cloudHash, cloudUpdatedMs: cloudTs };
     writeMeta(meta);
     return { pulled: false };
   }
 
-  const applied = await softTimeout(
-    applyCloudBody(app, v.body, meta, cloudTs),
-    RESTORE_OP_MS,
-  );
+  const applied = await softTimeout(applyCloudBody(app, v.body, meta, cloudTs), RESTORE_OP_MS);
   if (applied) {
     writeMeta(meta);
     return { pulled: true };
@@ -1831,34 +2006,56 @@ async function pullApp(
 
 // ── The single run path ──────────────────────────────────────────────────────
 
-const ALL_APPS: SyncAppKey[] = ['chordex', 'drumex', 'drumexUI', 'stagex', 'vocalex-takes', 'vocalex-lab', 'profile', 'profile-cover', 'groovex'];
+const ALL_APPS: SyncAppKey[] = [
+  'chordex',
+  'drumex',
+  'drumexUI',
+  'stagex',
+  'vocalex-takes',
+  'vocalex-lab',
+  'profile',
+  'profile-cover',
+  'groovex',
+];
 
 /**
  * Build the parallel work list for a push run. Skipping no-change
  * apps here keeps Firestore traffic minimal.
  */
-async function collectPushWork(meta: Meta): Promise<Array<{ app: SyncAppKey; raw: string | StagexSnapshot | unknown[] }>> {
-  const [chordex, drumex, drumexUI, stagex, vTakes, vLab, profile, profileCover, groovex] = await Promise.all([
-    Promise.resolve(snapshotChordex()),
-    Promise.resolve(snapshotDrumex()),
-    Promise.resolve(snapshotDrumexUI()),
-    snapshotStagex(),
-    snapshotVocalexTakes(),
-    snapshotVocalexLab(),
-    Promise.resolve(snapshotProfile()),
-    Promise.resolve(snapshotProfileCover()),
-    Promise.resolve(snapshotGroovex()),
-  ]);
+async function collectPushWork(
+  meta: Meta
+): Promise<Array<{ app: SyncAppKey; raw: string | StagexSnapshot | unknown[] }>> {
+  const [chordex, drumex, drumexUI, stagex, vTakes, vLab, profile, profileCover, groovex] =
+    await Promise.all([
+      Promise.resolve(snapshotChordex()),
+      Promise.resolve(snapshotDrumex()),
+      Promise.resolve(snapshotDrumexUI()),
+      snapshotStagex(),
+      snapshotVocalexTakes(),
+      snapshotVocalexLab(),
+      Promise.resolve(snapshotProfile()),
+      Promise.resolve(snapshotProfileCover()),
+      Promise.resolve(snapshotGroovex()),
+    ]);
   const work: Array<{ app: SyncAppKey; raw: string | StagexSnapshot | unknown[] }> = [];
-  if (chordex      && hashString(chordex)                      !== meta.chordex?.lastHash)          work.push({ app: 'chordex',       raw: chordex });
-  if (drumex       && hashString(drumex)                       !== meta.drumex?.lastHash)           work.push({ app: 'drumex',        raw: drumex });
-  if (drumexUI     && hashString(drumexUI)                     !== meta.drumexUI?.lastHash)         work.push({ app: 'drumexUI',      raw: drumexUI });
-  if (stagex       && hashString(JSON.stringify(stagex))       !== meta.stagex?.lastHash)           work.push({ app: 'stagex',        raw: stagex });
-  if (vTakes       && hashString(JSON.stringify(vTakes))       !== meta['vocalex-takes']?.lastHash) work.push({ app: 'vocalex-takes', raw: vTakes });
-  if (vLab         && hashString(JSON.stringify(vLab))         !== meta['vocalex-lab']?.lastHash)   work.push({ app: 'vocalex-lab',   raw: vLab });
-  if (profile      && hashString(profile)                      !== meta.profile?.lastHash)          work.push({ app: 'profile',       raw: profile });
-  if (profileCover && hashString(profileCover)                 !== meta['profile-cover']?.lastHash) work.push({ app: 'profile-cover', raw: profileCover });
-  if (groovex      && hashString(groovex)                      !== meta.groovex?.lastHash)          work.push({ app: 'groovex',        raw: groovex });
+  if (chordex && hashString(chordex) !== meta.chordex?.lastHash)
+    work.push({ app: 'chordex', raw: chordex });
+  if (drumex && hashString(drumex) !== meta.drumex?.lastHash)
+    work.push({ app: 'drumex', raw: drumex });
+  if (drumexUI && hashString(drumexUI) !== meta.drumexUI?.lastHash)
+    work.push({ app: 'drumexUI', raw: drumexUI });
+  if (stagex && hashString(JSON.stringify(stagex)) !== meta.stagex?.lastHash)
+    work.push({ app: 'stagex', raw: stagex });
+  if (vTakes && hashString(JSON.stringify(vTakes)) !== meta['vocalex-takes']?.lastHash)
+    work.push({ app: 'vocalex-takes', raw: vTakes });
+  if (vLab && hashString(JSON.stringify(vLab)) !== meta['vocalex-lab']?.lastHash)
+    work.push({ app: 'vocalex-lab', raw: vLab });
+  if (profile && hashString(profile) !== meta.profile?.lastHash)
+    work.push({ app: 'profile', raw: profile });
+  if (profileCover && hashString(profileCover) !== meta['profile-cover']?.lastHash)
+    work.push({ app: 'profile-cover', raw: profileCover });
+  if (groovex && hashString(groovex) !== meta.groovex?.lastHash)
+    work.push({ app: 'groovex', raw: groovex });
   return work;
 }
 
@@ -1985,7 +2182,7 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
       const hasCloud = await checkCloudDataExists();
       if (hasLocal && hasCloud) {
         setStatus({ showMigrationPrompt: true });
-        
+
         // Wait for the user to make a choice
         const choice = await new Promise<'merge' | 'upload' | 'download' | 'notNow'>((resolve) => {
           migrationResolver = resolve;
@@ -2002,8 +2199,7 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
         // Create a backup snapshot of local data first (safety first!)
         try {
           await createCloudBackup('pre_migration_backup');
-        } catch (backupErr) {
-        }
+        } catch (backupErr) {}
 
         if (choice === 'upload') {
           const localMeta: Meta = {};
@@ -2041,7 +2237,7 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
     const failedPullApps = new Set<SyncAppKey>();
     if (mode === 'pull-then-push') {
       const pullResults = await Promise.allSettled(
-        ALL_APPS.map((app) => pullApp(app, meta, ctrl.signal)),
+        ALL_APPS.map((app) => pullApp(app, meta, ctrl.signal))
       );
       pullResults.forEach((r, i) => {
         if (r.status === 'fulfilled') {
@@ -2064,7 +2260,7 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
 
     if (work.length > 0) {
       const pushResults = await Promise.allSettled(
-        work.map((w) => pushApp(w.app, w.raw, meta, ctrl.signal)),
+        work.map((w) => pushApp(w.app, w.raw, meta, ctrl.signal))
       );
       for (const r of pushResults) {
         if (r.status === 'fulfilled') {
@@ -2078,7 +2274,8 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
       }
       // If every op aborted, treat the whole run as failed.
       if (pushResults.length > 0 && pushResults.every((r) => r.status === 'rejected')) {
-        const first = pushResults.find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined;
+        const first = pushResults.find((r) => r.status === 'rejected') as
+          PromiseRejectedResult | undefined;
         failure = first?.reason ?? new Error('All push operations failed');
       }
     }
@@ -2118,8 +2315,14 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
     // We just succeeded — cancel any one-shot initial-retry timer
     // and the never-stuck fallback timer that might still be queued
     // from a prior failure / sign-in.
-    if (initialRetryHandle) { clearTimeout(initialRetryHandle); initialRetryHandle = null; }
-    if (neverStuckHandle) { clearTimeout(neverStuckHandle); neverStuckHandle = null; }
+    if (initialRetryHandle) {
+      clearTimeout(initialRetryHandle);
+      initialRetryHandle = null;
+    }
+    if (neverStuckHandle) {
+      clearTimeout(neverStuckHandle);
+      neverStuckHandle = null;
+    }
     if (currentUser) {
       void registerCurrentDevice(currentUser.uid, 'sync-run-success');
       void triggerAutoBackup();
@@ -2141,8 +2344,7 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
     // "Sync failed" error trains users to ignore the indicator.
     // Instead we silently return to idle and let the next tick retry.
     const isOffline =
-      errCode === 'unavailable' ||
-      /offline|unavailable|network|fetch failed/i.test(errMsg);
+      errCode === 'unavailable' || /offline|unavailable|network|fetch failed/i.test(errMsg);
     const durationMs = Date.now() - startedAt;
     if (isTimeout) logTimeout(e.op, e.ms || durationMs);
     else logFailure(durationMs, e);
@@ -2159,8 +2361,14 @@ async function executeRun(reason: RunReason, mode: RunMode): Promise<void> {
         if (mode === 'pull-then-push' && currentUser) {
           writeFirstPullDone(currentUser.uid);
         }
-        if (initialRetryHandle) { clearTimeout(initialRetryHandle); initialRetryHandle = null; }
-        if (neverStuckHandle) { clearTimeout(neverStuckHandle); neverStuckHandle = null; }
+        if (initialRetryHandle) {
+          clearTimeout(initialRetryHandle);
+          initialRetryHandle = null;
+        }
+        if (neverStuckHandle) {
+          clearTimeout(neverStuckHandle);
+          neverStuckHandle = null;
+        }
         setStatus({ phase: 'idle', lastSyncedMs: Date.now(), error: null });
         return;
       }
@@ -2293,7 +2501,10 @@ export function requestFlush(delayMs = 1500): void {
  * because every periodic tick was push-only.
  */
 export async function syncNow(): Promise<void> {
-  if (flushDebounce) { clearTimeout(flushDebounce); flushDebounce = null; }
+  if (flushDebounce) {
+    clearTimeout(flushDebounce);
+    flushDebounce = null;
+  }
   if (status.phase === 'error') setStatus({ phase: 'idle', error: null });
   await enqueueRun('manual', 'pull-then-push');
 }
@@ -2304,7 +2515,10 @@ export async function syncNow(): Promise<void> {
  * Also pull-then-push for the same reason as syncNow.
  */
 export async function retrySync(): Promise<void> {
-  if (flushDebounce) { clearTimeout(flushDebounce); flushDebounce = null; }
+  if (flushDebounce) {
+    clearTimeout(flushDebounce);
+    flushDebounce = null;
+  }
   setStatus({ phase: 'idle', error: null });
   await enqueueRun('retry', 'pull-then-push');
 }
@@ -2376,7 +2590,7 @@ export function attachSyncEngine(): void {
   unsubStoreSubscription = useChordStore.subscribe((state) => {
     if (isApplyingRemoteUpdate) return;
     const settings = useSettingsStore.getState().settings;
-    
+
     if (settings.syncBackendProvider !== lastSettings.syncBackendProvider) {
       if (setupDiagSubscription) setupDiagSubscription();
       window.dispatchEvent(new CustomEvent('sync:provider-changed'));
@@ -2386,7 +2600,7 @@ export function attachSyncEngine(): void {
       settings.theme !== lastSettings.theme ||
       settings.amoledMode !== lastSettings.amoledMode ||
       settings.language !== lastSettings.language;
-      
+
     const provider = getActiveSyncProvider();
 
     if (appearanceChanged) {
@@ -2396,50 +2610,54 @@ export function attachSyncEngine(): void {
         pendingWritesCount++;
         notifyDiagnostics();
         const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
-        provider.updateAppearanceSettings({
-          theme: themeValue,
-          palette: 'default',
-          language: settings.language,
-        }).then(() => {
-          lastAppearanceWriteSuccess = new Date().toLocaleString();
-          lastAppearanceWriteError = 'None';
-        }).catch((err) => {
-          lastSyncError = err.message || String(err);
-          lastAppearanceWriteError = err.message || String(err);
-        }).finally(() => {
-          pendingWritesCount = Math.max(0, pendingWritesCount - 1);
-          notifyDiagnostics();
-        });
+        provider
+          .updateAppearanceSettings({
+            theme: themeValue,
+            palette: 'default',
+            language: settings.language,
+          })
+          .then(() => {
+            lastAppearanceWriteSuccess = new Date().toLocaleString();
+            lastAppearanceWriteError = 'None';
+          })
+          .catch((err) => {
+            lastSyncError = err.message || String(err);
+            lastAppearanceWriteError = err.message || String(err);
+          })
+          .finally(() => {
+            pendingWritesCount = Math.max(0, pendingWritesCount - 1);
+            notifyDiagnostics();
+          });
       }
     }
-    
-    const preferencesChanged =
-      settings.syncAcrossDevices !== lastSettings.syncAcrossDevices;
-      
+
+    const preferencesChanged = settings.syncAcrossDevices !== lastSettings.syncAcrossDevices;
+
     if (preferencesChanged) {
       const now = Date.now();
       localStorage.setItem(`sync_last_local_update_preferences`, now.toString());
       if (currentUser && readFirstPullDone(currentUser.uid)) {
         pendingWritesCount++;
         notifyDiagnostics();
-        provider.updatePreferences({
-          syncAcrossDevices: settings.syncAcrossDevices,
-          
-          
-          
-        }).then(() => {
-          lastPreferencesWriteSuccess = new Date().toLocaleString();
-          lastPreferencesWriteError = 'None';
-        }).catch((err) => {
-          lastSyncError = err.message || String(err);
-          lastPreferencesWriteError = err.message || String(err);
-        }).finally(() => {
-          pendingWritesCount = Math.max(0, pendingWritesCount - 1);
-          notifyDiagnostics();
-        });
+        provider
+          .updatePreferences({
+            syncAcrossDevices: settings.syncAcrossDevices,
+          })
+          .then(() => {
+            lastPreferencesWriteSuccess = new Date().toLocaleString();
+            lastPreferencesWriteError = 'None';
+          })
+          .catch((err) => {
+            lastSyncError = err.message || String(err);
+            lastPreferencesWriteError = err.message || String(err);
+          })
+          .finally(() => {
+            pendingWritesCount = Math.max(0, pendingWritesCount - 1);
+            notifyDiagnostics();
+          });
       }
     }
-    
+
     lastSettings = settings;
   });
 
@@ -2450,10 +2668,22 @@ export function attachSyncEngine(): void {
     pendingFollowup = false;
     runPromise = null;
 
-    if (lingerTimer) { clearTimeout(lingerTimer); lingerTimer = null; }
-    if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
-    if (initialRetryHandle) { clearTimeout(initialRetryHandle); initialRetryHandle = null; }
-    if (neverStuckHandle) { clearTimeout(neverStuckHandle); neverStuckHandle = null; }
+    if (lingerTimer) {
+      clearTimeout(lingerTimer);
+      lingerTimer = null;
+    }
+    if (tickHandle) {
+      clearInterval(tickHandle);
+      tickHandle = null;
+    }
+    if (initialRetryHandle) {
+      clearTimeout(initialRetryHandle);
+      initialRetryHandle = null;
+    }
+    if (neverStuckHandle) {
+      clearTimeout(neverStuckHandle);
+      neverStuckHandle = null;
+    }
 
     if (unsubDeviceSession) {
       unsubDeviceSession();
@@ -2503,7 +2733,7 @@ export function attachSyncEngine(): void {
 
       void registerCurrentDevice(u.uid, 'auth-change');
       const provider = getActiveSyncProvider();
-      
+
       // 1. Subscribe to profile document
       unsubProfileListener = provider.subscribeProfile((data) => {
         if (data) {
@@ -2512,11 +2742,14 @@ export function attachSyncEngine(): void {
           lastRemoteUpdateTimestamp = data.updatedAt || 0;
           cloudDisplayName = data.displayName || 'N/A';
           cloudPhotoURL = data.photoURL || 'N/A';
-          
-          const localLast = parseInt(localStorage.getItem(`sync_last_local_update_profile`) ?? '0', 10);
+
+          const localLast = parseInt(
+            localStorage.getItem(`sync_last_local_update_profile`) ?? '0',
+            10
+          );
           const remoteLast = data.updatedAt || 0;
           const isRemoteChange = data.updatedByDevice !== deviceId();
-          
+
           if (isRemoteChange) {
             if (remoteLast > localLast) {
               if (data.displayName !== u.displayName || data.photoURL !== u.photoURL) {
@@ -2554,7 +2787,9 @@ export function attachSyncEngine(): void {
             } else if (localLast > remoteLast) {
               import('../utilities/userAvatar').then(({ getUserAvatar }) => {
                 const avatarIcon = getUserAvatar(u.uid);
-                provider.updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon }).catch(console.warn);
+                provider
+                  .updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon })
+                  .catch(console.warn);
               });
             }
           } else {
@@ -2565,7 +2800,9 @@ export function attachSyncEngine(): void {
         } else {
           import('../utilities/userAvatar').then(({ getUserAvatar }) => {
             const avatarIcon = getUserAvatar(u.uid);
-            provider.updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon }).catch(console.warn);
+            provider
+              .updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon })
+              .catch(console.warn);
           });
         }
       });
@@ -2576,16 +2813,19 @@ export function attachSyncEngine(): void {
           remoteTheme = data.theme || null;
           lastRemoteUpdateTimestamp = data.updatedAt || 0;
           cloudTheme = data.theme || 'N/A';
-          
-          const localLast = parseInt(localStorage.getItem(`sync_last_local_update_appearance`) ?? '0', 10);
+
+          const localLast = parseInt(
+            localStorage.getItem(`sync_last_local_update_appearance`) ?? '0',
+            10
+          );
           const remoteLast = data.updatedAt || 0;
           const isRemoteChange = data.updatedByDevice !== deviceId();
-          
+
           if (isRemoteChange) {
             if (remoteLast > localLast) {
               isApplyingRemoteUpdate = true;
               try {
-                const nextTheme = data.theme === 'AMOLED' ? 'dark' : (data.theme || 'dark');
+                const nextTheme = data.theme === 'AMOLED' ? 'dark' : data.theme || 'dark';
                 const nextAmoled = data.theme === 'AMOLED';
                 useSettingsStore.getState().updateSettings({
                   theme: nextTheme as any,
@@ -2600,11 +2840,13 @@ export function attachSyncEngine(): void {
             } else if (localLast > remoteLast) {
               const settings = useSettingsStore.getState().settings;
               const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
-              provider.updateAppearanceSettings({
-                theme: themeValue,
-                palette: 'default',
-                language: settings.language,
-              }).catch(console.warn);
+              provider
+                .updateAppearanceSettings({
+                  theme: themeValue,
+                  palette: 'default',
+                  language: settings.language,
+                })
+                .catch(console.warn);
             }
           } else {
             localStorage.setItem(`sync_last_local_update_appearance`, remoteLast.toString());
@@ -2614,11 +2856,13 @@ export function attachSyncEngine(): void {
         } else {
           const settings = useSettingsStore.getState().settings;
           const themeValue = settings.amoledMode ? 'AMOLED' : settings.theme;
-          provider.updateAppearanceSettings({
-            theme: themeValue,
-            palette: 'default',
-            language: settings.language,
-          }).catch(console.warn);
+          provider
+            .updateAppearanceSettings({
+              theme: themeValue,
+              palette: 'default',
+              language: settings.language,
+            })
+            .catch(console.warn);
         }
       });
 
@@ -2626,20 +2870,23 @@ export function attachSyncEngine(): void {
       unsubPreferencesListener = provider.subscribePreferences((data) => {
         if (data) {
           lastRemoteUpdateTimestamp = data.updatedAt || 0;
-          
-          const localLast = parseInt(localStorage.getItem(`sync_last_local_update_preferences`) ?? '0', 10);
+
+          const localLast = parseInt(
+            localStorage.getItem(`sync_last_local_update_preferences`) ?? '0',
+            10
+          );
           const remoteLast = data.updatedAt || 0;
           const isRemoteChange = data.updatedByDevice !== deviceId();
-          
+
           if (isRemoteChange) {
             if (remoteLast > localLast) {
               isApplyingRemoteUpdate = true;
               try {
                 useSettingsStore.getState().updateSettings({
-                  syncAcrossDevices: data.studioPreferences?.syncAcrossDevices ?? data.studioPreferences?.syncEnabled ?? true,
-                  
-                  
-                  
+                  syncAcrossDevices:
+                    data.studioPreferences?.syncAcrossDevices ??
+                    data.studioPreferences?.syncEnabled ??
+                    true,
                 });
               } finally {
                 isApplyingRemoteUpdate = false;
@@ -2648,9 +2895,11 @@ export function attachSyncEngine(): void {
               lastPreferencesSyncMs = Date.now();
             } else if (localLast > remoteLast) {
               const settings = useSettingsStore.getState().settings;
-              provider.updatePreferences({
-                syncAcrossDevices: settings.syncAcrossDevices,
-              }).catch(console.warn);
+              provider
+                .updatePreferences({
+                  syncAcrossDevices: settings.syncAcrossDevices,
+                })
+                .catch(console.warn);
             }
           } else {
             localStorage.setItem(`sync_last_local_update_preferences`, remoteLast.toString());
@@ -2659,9 +2908,11 @@ export function attachSyncEngine(): void {
           notifyDiagnostics();
         } else {
           const settings = useSettingsStore.getState().settings;
-          provider.updatePreferences({
-            syncAcrossDevices: settings.syncAcrossDevices,
-          }).catch(console.warn);
+          provider
+            .updatePreferences({
+              syncAcrossDevices: settings.syncAcrossDevices,
+            })
+            .catch(console.warn);
         }
       });
 
@@ -2706,14 +2957,17 @@ export function attachSyncEngine(): void {
         }, NEVER_STUCK_MS);
       }
       tickHandle = setInterval(() => {
-        const mode: RunMode = currentUser && !readFirstPullDone(currentUser.uid)
-          ? 'pull-then-push'
-          : 'push-only';
+        const mode: RunMode =
+          currentUser && !readFirstPullDone(currentUser.uid) ? 'pull-then-push' : 'push-only';
         void enqueueRun('tick', mode);
       }, TICK_MS);
       void enqueueRun('initial', 'pull-then-push');
     } else {
-      try { localStorage.removeItem(SYNC_META_KEY); } catch { /* noop */ }
+      try {
+        localStorage.removeItem(SYNC_META_KEY);
+      } catch {
+        /* noop */
+      }
       setStatus({ signedIn: false, phase: 'idle', error: null, lastSyncedMs: null });
     }
   });
@@ -2728,20 +2982,23 @@ export function attachSyncEngine(): void {
   };
   document.addEventListener('visibilitychange', onVisibility);
 
-  onBeforeUnload = () => { void enqueueRun('beforeunload', 'push-only'); };
+  onBeforeUnload = () => {
+    void enqueueRun('beforeunload', 'push-only');
+  };
   window.addEventListener('beforeunload', onBeforeUnload);
 
-  import('@capacitor/app').then(({ App }) => {
-    App.addListener('appStateChange', (state) => {
-      if (state.isActive && currentUser) {
-        void registerCurrentDevice(currentUser.uid, 'app-resume');
-        void enqueueRun('visibility', 'pull-then-push');
-      }
-    }).then((handle) => {
-      appStateListenerHandle = handle;
-    });
-  }).catch((err) => {
-  });
+  import('@capacitor/app')
+    .then(({ App }) => {
+      App.addListener('appStateChange', (state) => {
+        if (state.isActive && currentUser) {
+          void registerCurrentDevice(currentUser.uid, 'app-resume');
+          void enqueueRun('visibility', 'pull-then-push');
+        }
+      }).then((handle) => {
+        appStateListenerHandle = handle;
+      });
+    })
+    .catch((err) => {});
 }
 
 export function detachSyncEngine(): void {
@@ -2751,8 +3008,14 @@ export function detachSyncEngine(): void {
   disposeSyncBackends();
   unsubDiagSub?.();
   unsubDiagSub = null;
-  if (tickHandle) { clearInterval(tickHandle); tickHandle = null; }
-  if (unsubAuth) { unsubAuth(); unsubAuth = null; }
+  if (tickHandle) {
+    clearInterval(tickHandle);
+    tickHandle = null;
+  }
+  if (unsubAuth) {
+    unsubAuth();
+    unsubAuth = null;
+  }
   if (unsubStoreSubscription) {
     unsubStoreSubscription();
     unsubStoreSubscription = null;
@@ -2769,16 +3032,46 @@ export function detachSyncEngine(): void {
     appStateListenerHandle.remove();
     appStateListenerHandle = null;
   }
-  if (lingerTimer) { clearTimeout(lingerTimer); lingerTimer = null; }
-  if (flushDebounce) { clearTimeout(flushDebounce); flushDebounce = null; }
-  if (initialRetryHandle) { clearTimeout(initialRetryHandle); initialRetryHandle = null; }
-  if (neverStuckHandle) { clearTimeout(neverStuckHandle); neverStuckHandle = null; }
-  if (onMessage) { window.removeEventListener('message', onMessage); onMessage = null; }
-  if (onAvatarChanged) { window.removeEventListener('chordex:user-avatar-changed', onAvatarChanged); onAvatarChanged = null; }
-  if (onCoverChanged) { window.removeEventListener('chordex:user-cover-changed', onCoverChanged); onCoverChanged = null; }
-  if (onOnline) { window.removeEventListener('online', onOnline); onOnline = null; }
-  if (onVisibility) { document.removeEventListener('visibilitychange', onVisibility); onVisibility = null; }
-  if (onBeforeUnload) { window.removeEventListener('beforeunload', onBeforeUnload); onBeforeUnload = null; }
+  if (lingerTimer) {
+    clearTimeout(lingerTimer);
+    lingerTimer = null;
+  }
+  if (flushDebounce) {
+    clearTimeout(flushDebounce);
+    flushDebounce = null;
+  }
+  if (initialRetryHandle) {
+    clearTimeout(initialRetryHandle);
+    initialRetryHandle = null;
+  }
+  if (neverStuckHandle) {
+    clearTimeout(neverStuckHandle);
+    neverStuckHandle = null;
+  }
+  if (onMessage) {
+    window.removeEventListener('message', onMessage);
+    onMessage = null;
+  }
+  if (onAvatarChanged) {
+    window.removeEventListener('chordex:user-avatar-changed', onAvatarChanged);
+    onAvatarChanged = null;
+  }
+  if (onCoverChanged) {
+    window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
+    onCoverChanged = null;
+  }
+  if (onOnline) {
+    window.removeEventListener('online', onOnline);
+    onOnline = null;
+  }
+  if (onVisibility) {
+    document.removeEventListener('visibilitychange', onVisibility);
+    onVisibility = null;
+  }
+  if (onBeforeUnload) {
+    window.removeEventListener('beforeunload', onBeforeUnload);
+    onBeforeUnload = null;
+  }
   pendingFollowup = false;
   runPromise = null;
   listeners = new Set();
@@ -2790,4 +3083,3 @@ export const syncController = {
   getSyncStatus: () => getSyncStatus(),
   subscribeSyncStatus: (cb: (status: SyncStatus) => void) => subscribeSyncStatus(cb),
 };
-

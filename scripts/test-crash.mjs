@@ -27,25 +27,25 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let reqPath = req.url === '/' ? '/index.html' : req.url.split('?')[0];
-  let filePath = path.resolve(DIST_DIR, '.' + reqPath);
-  
-  if (!filePath.startsWith(DIST_DIR)) {
+  const cleanPath = path.normalize(req.url === '/' ? '/index.html' : req.url.split('?')[0]).replace(/^(\.\.[\/\\])+/, '');
+  const targetPath = path.resolve(DIST_DIR, '.' + cleanPath);
+  const rel = path.relative(DIST_DIR, targetPath);
+  if (rel.startsWith('..') || path.isAbsolute(rel)) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
   }
-
-  if (!fs.existsSync(filePath) && fs.existsSync(filePath + '.html')) {
-    filePath += '.html';
-  } else if (!fs.existsSync(filePath)) {
-    filePath = path.join(DIST_DIR, 'index.html');
+  let safePath = path.resolve(DIST_DIR, rel);
+  if (!fs.existsSync(safePath) && fs.existsSync(safePath + '.html')) {
+    safePath = safePath + '.html';
+  } else if (!fs.existsSync(safePath)) {
+    safePath = path.resolve(DIST_DIR, 'index.html');
   }
 
-  const extname = String(path.extname(filePath)).toLowerCase();
+  const extname = String(path.extname(safePath)).toLowerCase();
   const contentType = mimeTypes[extname] || 'application/octet-stream';
 
-  fs.readFile(filePath, (error, content) => {
+  fs.readFile(safePath, (error, content) => {
     if (error) {
       if(error.code == 'ENOENT'){
         res.writeHead(404);

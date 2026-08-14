@@ -4992,11 +4992,17 @@ function _showPwGate(storedHash, encodedPayload) {
         style="width:100%;background:#0a0a0c;border:1px solid rgba(72,72,71,0.4);color:#e0e0e0;padding:10px 12px;font-family:'Manrope',sans-serif;font-size:13px;outline:none;box-sizing:border-box;margin-bottom:10px;transition:border-color .15s;"
         placeholder="Enter password" />
       <div id="sc-pw-err" style="font-family:'Inter';font-size:11px;color:#ff716c;margin-bottom:10px;display:none;">Incorrect password. Please try again.</div>
-      <button onclick="_verifyPwShare('${storedHash}','${encodedPayload.replace(/'/g, "\\'")}')"
+      <button id="sc-pw-unlock-btn"
         style="width:100%;padding:11px;font-family:'Manrope',sans-serif;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;background:rgba(122,175,255,0.1);border:1px solid rgba(122,175,255,0.3);color:#7aafff;cursor:pointer;transition:background .15s;"
         onmouseover="this.style.background='rgba(122,175,255,0.18)'" onmouseout="this.style.background='rgba(122,175,255,0.1)'">Unlock →</button>
     </div>`);
   document.body.appendChild(overlay);
+  const unlockBtn = document.getElementById('sc-pw-unlock-btn');
+  if (unlockBtn) {
+    unlockBtn.addEventListener('click', () => {
+      _verifyPwShare(storedHash, encodedPayload);
+    });
+  }
   const _escHandler = (e) => {
     if (e.key === 'Escape') {
       overlay.remove();

@@ -1,6 +1,12 @@
 import { getChordByName, normalizeChordName } from '../../data/chords';
 import { type SongChart, type SongChartSection, type ChordMarker } from '../../data/songs';
-import { cleanHtmlToPlainText, cleanChordLookupName, validateChord, decodeHtmlEntities } from './chordFormatting';
+import {
+  cleanHtmlToPlainText,
+  cleanChordLookupName,
+  validateChord,
+  decodeHtmlEntities,
+  stripHtmlTags,
+} from './chordFormatting';
 import { LyricsResult } from './lyricsService';
 
 export interface NormalizedChordMarker {
@@ -37,7 +43,6 @@ export interface NormalizedChordChart {
   importDiagnostics?: string[];
 }
 
-
 // Helper to convert plain/synced lyrics from LRCLIB into normalized lyrics lines
 export function mapLyricsResultToSections(result: LyricsResult): NormalizedSection[] {
   let lineCounter = 0;
@@ -60,7 +65,6 @@ export function mapLyricsResultToSections(result: LyricsResult): NormalizedSecti
   }
   return [];
 }
-
 
 export function parseCifraStyleHtml(
   preContent: string,
@@ -127,7 +131,7 @@ export function parseCifraStyleHtml(
         });
       } else {
         const chords = parseCifraClubChordsFromLine(lineText);
-        const cleanLyrics = decodeHtmlEntities(nextLineText.replace(/<[^>]*>/g, '').trimEnd());
+        const cleanLyrics = decodeHtmlEntities(stripHtmlTags(nextLineText).trimEnd());
         currentSection.lines.push({
           lyrics: cleanLyrics || ' ',
           chords,
@@ -136,7 +140,7 @@ export function parseCifraStyleHtml(
         i++;
       }
     } else {
-      const cleanLyrics = decodeHtmlEntities(lineText.replace(/<[^>]*>/g, '').trim());
+      const cleanLyrics = decodeHtmlEntities(stripHtmlTags(lineText).trim());
       if (
         cleanLyrics &&
         !cleanLyrics.startsWith('E|') &&
@@ -172,7 +176,6 @@ export function parseCifraStyleHtml(
     importDiagnostics,
   };
 }
-
 
 export function parseCifraClubChordsFromLine(lineText: string): NormalizedChordMarker[] {
   const chords: NormalizedChordMarker[] = [];
@@ -220,14 +223,15 @@ export function parseCifraClubChordsFromLine(lineText: string): NormalizedChordM
   return chords;
 }
 
-
 export function isChordProFormat(text: string): boolean {
   const matches = text.match(/\[[A-G][b#]?(?:maj|min|m|dim|aug|sus)?\d*(?:\/[A-G][b#]?)?\]/g);
   return matches !== null && matches.length > 5;
 }
 
-
-export function parseChordProLine(lineText: string): { lyrics: string; chords: NormalizedChordMarker[] } {
+export function parseChordProLine(lineText: string): {
+  lyrics: string;
+  chords: NormalizedChordMarker[];
+} {
   let lyrics = '';
   const chords: NormalizedChordMarker[] = [];
   let i = 0;
@@ -255,7 +259,6 @@ export function parseChordProLine(lineText: string): { lyrics: string; chords: N
   return { lyrics, chords };
 }
 
-
 export function isChordsLine(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return false;
@@ -282,7 +285,6 @@ export function isChordsLine(line: string): boolean {
   return validChords / tokens.length >= 0.7;
 }
 
-
 export function parseChordsFromLine(lineText: string): NormalizedChordMarker[] {
   const chords: NormalizedChordMarker[] = [];
   const regex = /\S+/g;
@@ -299,7 +301,6 @@ export function parseChordsFromLine(lineText: string): NormalizedChordMarker[] {
   }
   return chords;
 }
-
 
 export function parsePlainChart(text: string, song: SongChart): NormalizedChordChart {
   const cleanText = cleanHtmlToPlainText(text);
@@ -422,7 +423,6 @@ export function parsePlainChart(text: string, song: SongChart): NormalizedChordC
     chartStatus: 'user',
   };
 }
-
 
 // Helper to sanitize and validate chord names in a chart
 export function validateChartChords(chart: NormalizedChordChart): void {

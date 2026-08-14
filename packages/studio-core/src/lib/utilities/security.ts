@@ -46,9 +46,9 @@ function bytesToString(bytes: Uint8Array): string {
 
 // ── 2. Migration Logger ──────────────────────────────────────────────────────
 
-export function reportMigration(key: string, fromVersion: string, toVersion: string): void {
+export function reportMigration(storageName: string, fromVersion: string, toVersion: string): void {
   try {
-    const entry = { key, fromVersion, toVersion, timestamp: Date.now() };
+    const entry = { storageName, fromVersion, toVersion, timestamp: Date.now() };
     const logsStr = localStorage.getItem(SECURITY_MIGRATION_LOG_KEY) || '[]';
     const logs = JSON.parse(logsStr);
     logs.push(entry);
@@ -109,11 +109,7 @@ export async function encryptAESGCM(plaintext: string, keySeed: string): Promise
   const key = await getWebCryptoKey(keySeed, salt);
 
   const plainBytes = stringToBytes(plaintext);
-  const cipherBuffer = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    plainBytes
-  );
+  const cipherBuffer = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plainBytes);
 
   const cipherBytes = new Uint8Array(cipherBuffer);
   return `v3:${bytesToHex(salt)}:${bytesToHex(iv)}:${bytesToHex(cipherBytes)}`;
@@ -135,11 +131,7 @@ export async function decryptAESGCM(ciphertext: string, keySeed: string): Promis
     const cipherBytes = hexToBytes(cipherHex);
 
     const key = await getWebCryptoKey(keySeed, salt);
-    const plainBuffer = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      cipherBytes
-    );
+    const plainBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, cipherBytes);
 
     return bytesToString(new Uint8Array(plainBuffer));
   } catch (err) {
@@ -157,7 +149,7 @@ function sha256Bytes(input: Uint8Array): Uint8Array {
   for (let i = 0; i < input.length; i++) {
     h ^= input[i];
     h = Math.imul(h, 0x01000193);
-    out[i % 32] ^= (h >>> (i % 4 * 8)) & 0xff;
+    out[i % 32] ^= (h >>> ((i % 4) * 8)) & 0xff;
   }
   return out;
 }
@@ -220,7 +212,11 @@ export function secureReadLocal(key: string, userUid = 'guest_user'): string | n
     const cryptoKey = deriveUserKey(userUid);
 
     // Decrypt v3, v2 or legacy encrypted payloads
-    if (raw.startsWith('v3:') || raw.startsWith('v2:') || (raw.length > 9 && raw.charAt(8) === ':')) {
+    if (
+      raw.startsWith('v3:') ||
+      raw.startsWith('v2:') ||
+      (raw.length > 9 && raw.charAt(8) === ':')
+    ) {
       const decrypted = decryptSync(raw, cryptoKey);
       if (decrypted && decrypted.trim().length > 0) {
         if (raw.startsWith('v2:')) {
@@ -273,28 +269,52 @@ export function secureWriteLocal(key: string, value: string, userUid = 'guest_us
 }
 
 export const WORKSPACE_ALLOWLIST = new Set([
-  'stagecoreProject', 'stagecorePresets_v1', 'stagecoreSettings', 'sc_session', 'scCustomElements',
-  'elements', 'connections', 'scenes', 'setlist', 'gear', 'members', 'history',
-  'id', 'name', 'type', 'x', 'y', 'color', 'label', 'layer', 'locked', 'opacity', 'width', 'height', 'data'
+  'stagecoreProject',
+  'stagecorePresets_v1',
+  'stagecoreSettings',
+  'sc_session',
+  'scCustomElements',
+  'elements',
+  'connections',
+  'scenes',
+  'setlist',
+  'gear',
+  'members',
+  'history',
+  'id',
+  'name',
+  'type',
+  'x',
+  'y',
+  'color',
+  'label',
+  'layer',
+  'locked',
+  'opacity',
+  'width',
+  'height',
+  'data',
 ]);
 
 export function sanitizeWorkspacePayload(payload: any): any {
   if (payload === null || payload === undefined) return payload;
-  
+
   if (typeof payload === 'string') {
     // Exclude strings that look like OS file paths or auth tokens
-    if (/^[a-zA-Z]:\\[^:*?"<>|\r\n]*$/.test(payload) || 
-        /^\/(Users|home|var|tmp|private)\//.test(payload) ||
-        /^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(payload)) {
+    if (
+      /^[a-zA-Z]:\\[^:*?"<>|\r\n]*$/.test(payload) ||
+      /^\/(Users|home|var|tmp|private)\//.test(payload) ||
+      /^eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+$/.test(payload)
+    ) {
       return null;
     }
     return payload;
   }
-  
+
   if (Array.isArray(payload)) {
-    return payload.map(sanitizeWorkspacePayload).filter(val => val !== null);
+    return payload.map(sanitizeWorkspacePayload).filter((val) => val !== null);
   }
-  
+
   if (typeof payload === 'object') {
     const safe: any = {};
     for (const [key, value] of Object.entries(payload)) {
@@ -308,6 +328,6 @@ export function sanitizeWorkspacePayload(payload: any): any {
     }
     return safe;
   }
-  
+
   return payload;
 }

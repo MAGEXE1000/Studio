@@ -1,11 +1,9 @@
 import { getChordByName, normalizeChordName } from '../../data/chords';
 
-
 // Clean a chord name to look up in the library
 export function cleanChordLookupName(name: string): string {
   return normalizeChordName(name);
 }
-
 
 // Clean a chord name to look up in the library
 // Validate that a chord name exists in the Chordex chord database
@@ -27,7 +25,6 @@ export function validateChord(chordName: string): boolean {
   return false;
 }
 
-
 export function decodeHtmlEntities(str: string): string {
   if (!str) return '';
   let decoded = str
@@ -45,6 +42,22 @@ export function decodeHtmlEntities(str: string): string {
   return decoded;
 }
 
+export function stripHtmlTags(str: string): string {
+  if (!str) return '';
+  let result = '';
+  let insideTag = false;
+  for (let i = 0; i < str.length; i++) {
+    const char = str[i];
+    if (char === '<') {
+      insideTag = true;
+    } else if (char === '>') {
+      insideTag = false;
+    } else if (!insideTag) {
+      result += char;
+    }
+  }
+  return result;
+}
 
 export function cleanHtmlToPlainText(html: string): string {
   if (!html) return '';
@@ -62,6 +75,6 @@ export function cleanHtmlToPlainText(html: string): string {
     }
   }
 
-  text = text.replace(/<[^>]*>/g, '');
+  text = stripHtmlTags(text);
   return decodeHtmlEntities(text);
 }

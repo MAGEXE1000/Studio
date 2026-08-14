@@ -242,7 +242,7 @@ if (fs.existsSync(appVersionTsPath)) {
       const sectionBlocks = [];
       for (const [key, heading] of Object.entries({added: 'Added', improved: 'Improved', fixed: 'Fixed', changed: 'Changed'})) {
         if (categories[key].length > 0) {
-          const itemsStr = categories[key].map((i) => `      "${i.replace(/"/g, '\\"')}",`).join('\n');
+          const itemsStr = categories[key].map((i) => `      ${JSON.stringify(i)},`).join('\n');
           sectionBlocks.push(`  {\n    heading: "${heading}",\n    items: [\n${itemsStr}\n    ],\n  }`);
         }
       }

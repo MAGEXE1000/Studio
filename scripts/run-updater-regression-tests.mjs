@@ -416,7 +416,7 @@ async function runRegressionTests() {
         const parsed = new URL(url);
         isGithub = parsed.hostname === 'github.com' || parsed.hostname.endsWith('.github.com');
       } catch (e) {
-        isGithub = url.includes('github.com');
+        isGithub = false;
       }
       if (isGithub) {
         return { ok: true, json: async () => ({ version: nextVersion }) };

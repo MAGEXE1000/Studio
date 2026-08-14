@@ -310,62 +310,7 @@ export function SharedAppShell({
   const isSubAppActive = appMode !== 'hub' || launchingApp !== null;
   const stableKey = launchingApp || appMode;
 
-  // Forensics watchdogs (kept globally so Web benefits from resilient recovering)
-  useEffect(() => {
-    (window as any).__runRootWatchdogCheck = (name: string) => {
-      const currentMode = NavigationDispatcher.currentApp() || 'hub';
-      const rootNode = document.getElementById('root');
-      const appContainer = document.querySelector('.app-container');
-      if (currentMode === 'hub' && rootNode && !appContainer) {
-        if (typeof (window as any).__forceRerenderApp === 'function') {
-          (window as any).__forceRerenderApp();
-        }
-        // @ts-ignore - injected global watchdog variable
-        window.studioTransitionActive = false;
-        NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
-      }
-    };
-    return () => {
-      delete (window as any).__runRootWatchdogCheck;
-    };
-  }, []);
 
-  // Theme transitions
-  useEffect(() => {
-    (window as any).__triggerThemeTransition = (
-      nextTheme: string,
-      amoled: boolean,
-      x: number,
-      y: number,
-      updateFn: () => void
-    ) => {
-      ThemeTransitionEngine.startTransition({
-        nextTheme,
-        amoled,
-        startX: x,
-        startY: y,
-        updateFn,
-      });
-    };
-    return () => {
-      delete (window as any).__triggerThemeTransition;
-    };
-  }, []);
-
-  // Transition active syncing
-  useEffect(() => {
-    try {
-      Object.defineProperty(window, 'studioTransitionActive', {
-        get() {
-          return useNavigationStore.getState().isTransitioning;
-        },
-        set(val) {
-          useNavigationStore.getState().setTransition(null, !!val);
-        },
-        configurable: true,
-      });
-    } catch (e) {}
-  }, []);
 
   // Watchdog
   useEffect(() => {

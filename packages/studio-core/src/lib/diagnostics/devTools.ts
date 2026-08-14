@@ -1,6 +1,8 @@
 import { NavigationDispatcher } from '../navigation/NavigationDispatcher';
 import { useChordStore } from '../../store/useChordStore';
 import { useSettingsStore } from '../../store/useSettingsStore';
+import { useNavigationStore } from '../../store/useNavigationStore';
+import { ThemeTransitionEngine } from '../themeTransitionEngine';
 export { compressReportText } from './reportCompressor';
 
 export interface LogEntry {
@@ -794,4 +796,49 @@ export function initDevToolsFramework() {
   capturedEvents.forEach((evt) => {
     window.addEventListener(evt, handleGlobalTouch, { capture: true, passive: true });
   });
+
+  // Forensics watchdogs (kept globally so Web benefits from resilient recovering)
+  (window as any).__runRootWatchdogCheck = (name: string) => {
+    const currentMode = NavigationDispatcher.currentApp() || 'hub';
+    const rootNode = document.getElementById('root');
+    const appContainer = document.querySelector('.app-container');
+    if (currentMode === 'hub' && rootNode && !appContainer) {
+      if (typeof (window as any).__forceRerenderApp === 'function') {
+        (window as any).__forceRerenderApp();
+      }
+      // @ts-ignore - injected global watchdog variable
+      window.studioTransitionActive = false;
+      NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
+    }
+  };
+
+  // Theme transitions
+  (window as any).__triggerThemeTransition = (
+    nextTheme: string,
+    amoled: boolean,
+    x: number,
+    y: number,
+    updateFn: () => void
+  ) => {
+    ThemeTransitionEngine.startTransition({
+      nextTheme,
+      amoled,
+      startX: x,
+      startY: y,
+      updateFn,
+    });
+  };
+
+  // Transition active syncing
+  try {
+    Object.defineProperty(window, 'studioTransitionActive', {
+      get() {
+        return useNavigationStore.getState().isTransitioning;
+      },
+      set(val) {
+        useNavigationStore.getState().setTransition(null, !!val);
+      },
+      configurable: true,
+    });
+  } catch (e) {}
 }

@@ -1008,7 +1008,7 @@ export function SharedNavigationBar({
               ) : (
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 24, color: 'var(--c-text-secondary)' }}
+                  style={{ fontSize: 'var(--font-display-sm)', color: 'var(--c-text-secondary)' }}
                 >
                   person
                 </span>
@@ -1030,7 +1030,7 @@ export function SharedNavigationBar({
               </span>
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 'var(--font-section-label)',
                   color: 'var(--c-text-secondary)',
                   opacity: 0.8,
                   textOverflow: 'ellipsis',

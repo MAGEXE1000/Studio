@@ -10,6 +10,7 @@ import {
 } from '@workspace/studio-core';
 import { useEffect } from 'react';
 import ChordDiagram from '../diagrams/ChordDiagram';
+import { Button } from '../../../shared/design-system/buttons';
 
 type Instrument = 'guitar' | 'piano' | 'bass';
 
@@ -953,7 +954,7 @@ export default function CustomChordBuilder({
   useScrollHide(scrollRef);
   const settings = useSettingsStore((s) => s.settings);
   const t = useT();
-  const resolvedAccent = ACCENT_COLORS[settings.accentColor];
+  const resolvedAccent = ACCENT_COLORS.blue;
   const instLabels: Record<Instrument, string> = {
     guitar: t.customBuilder.guitar,
     piano: t.customBuilder.piano,
@@ -1186,15 +1187,13 @@ export default function CustomChordBuilder({
                   : t.customBuilder.subtitleNew}
             </p>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={handleClose}
-            className="btn-smooth"
-            style={{ color: 'var(--c-text-secondary)' }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>
-              close
-            </span>
-          </button>
+            style={{ color: 'var(--c-text-secondary)', minWidth: 32 }}
+            icon="close"
+          />
         </div>
 
         {/* Scrollable content */}
@@ -1686,7 +1685,8 @@ export default function CustomChordBuilder({
         >
           {mode === 'find' ? (
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => {
                   if (instrument === 'piano') setPianoKeys([]);
                   else {
@@ -1696,72 +1696,51 @@ export default function CustomChordBuilder({
                   }
                 }}
                 disabled={!hasAnyNote}
-                className="btn-smooth"
                 style={{
                   flex: 1,
-                  padding: '16px',
+                  height: 52,
                   borderRadius: '9999px',
                   background: hasAnyNote ? 'var(--app-surface-high)' : 'var(--app-surface)',
                   color: hasAnyNote ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
-                  fontFamily: 'Manrope',
-                  fontWeight: 800,
-                  fontSize: '15px',
-                  opacity: hasAnyNote ? 1 : 0.4,
-                  transition: 'all 200ms ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
                 }}
+                icon="restart_alt"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-                  restart_alt
-                </span>
                 Clear
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
                 onClick={handleClose}
-                className="btn-smooth"
                 style={{
                   flex: 1,
-                  padding: '16px',
+                  height: 52,
                   borderRadius: '9999px',
                   background: `linear-gradient(135deg, ${resolvedAccent.from}, ${resolvedAccent.to})`,
-                  color: '#fff',
-                  fontFamily: 'Manrope',
-                  fontWeight: 800,
-                  fontSize: '15px',
                   boxShadow: `0 4px 24px ${resolvedAccent.to}50`,
                 }}
               >
                 Done
-              </button>
+              </Button>
             </div>
           ) : (
             <>
-              <button
+              <Button
+                variant="primary"
                 onClick={handleSave}
                 disabled={!hasAnyNote}
-                className="btn-smooth"
                 data-testid="custom-chord-save-btn"
                 style={{
                   width: '100%',
-                  padding: '16px',
+                  height: 52,
                   borderRadius: '9999px',
                   background: hasAnyNote
                     ? `linear-gradient(135deg, ${resolvedAccent.from}, ${resolvedAccent.to})`
                     : 'var(--app-surface)',
                   color: hasAnyNote ? '#fff' : 'var(--c-text-muted)',
-                  fontFamily: 'Manrope',
-                  fontWeight: 800,
-                  fontSize: '15px',
                   boxShadow: hasAnyNote ? `0 4px 24px ${resolvedAccent.to}50` : 'none',
-                  transition: 'all 250ms cubic-bezier(0.34, 1.56, 0.64, 1)',
-                  transform: hasAnyNote ? 'scale(1)' : 'scale(0.98)',
                 }}
               >
                 {isEditing ? t.customBuilder.updateChord : t.customBuilder.saveChord}
-              </button>
+              </Button>
               {!hasAnyNote && (
                 <p
                   style={{

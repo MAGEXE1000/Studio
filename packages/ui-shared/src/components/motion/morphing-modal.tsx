@@ -47,22 +47,25 @@ export function MorphingModal({
       aria-hidden={!open}
       inert={!open}
       className={cn(
-        "fixed inset-0 z-[80]",
+        "fixed inset-0 z-[80] overscroll-contain",
         open ? "pointer-events-auto" : "pointer-events-none",
       )}
+      style={{ touchAction: "none" }}
     >
-      <motion.button
-        type="button"
-        aria-label="Close modal"
-        initial={false}
-        animate={{ opacity: open ? 1 : 0 }}
-        transition={{ duration: 0.2, ease: EASE_OUT }}
-        onClick={onClose}
-        className={cn(
-          "absolute inset-0 bg-background/5 [backdrop-filter:blur(14px)_saturate(140%)] [-webkit-backdrop-filter:blur(14px)_saturate(140%)]",
-          open ? "pointer-events-auto" : "pointer-events-none",
+      <AnimatePresence>
+        {open && (
+          <motion.button
+            type="button"
+            aria-label="Close modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: EASE_OUT }}
+            onClick={onClose}
+            className="absolute inset-0 bg-background/5 [backdrop-filter:blur(14px)_saturate(140%)] [-webkit-backdrop-filter:blur(14px)_saturate(140%)] pointer-events-auto"
+          />
         )}
-      />
+      </AnimatePresence>
 
       <div
         className={cn(
@@ -85,9 +88,10 @@ export function MorphingModal({
               }}
               transition={SPRING_PANEL}
               className={cn(
-                "pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl border border-border bg-background shadow-2xl will-change-transform",
+                "pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl border border-border bg-background shadow-2xl will-change-transform overscroll-contain",
                 className,
               )}
+              style={{ touchAction: "pan-y" }}
             >
               <motion.div layout="position" className="p-5">
                 <AnimatePresence mode="popLayout" initial={false}>

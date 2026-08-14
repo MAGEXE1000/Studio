@@ -60,7 +60,7 @@ import { compressReportText,
   useSettingsStore, useSessionStore } from '@workspace/studio-core';
 
 import { decodeReactError } from '../../../shared/feedback/ErrorBoundary';
-import { SettingsScaffold } from '../../../shared/layout/StudioLayoutSystem';
+import { SettingsScaffold, SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
 import UpdaterDiagnosticsPage from '../../updater/diagnostics/UpdaterDiagnosticsPage';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import MotionPlaygroundView from './MotionPlaygroundView';
@@ -1040,10 +1040,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
   const renderStagexView = () => {
     return (
-      <div
+      <SettingsContentContainer
         style={{
-          display: 'flex',
-          flexDirection: 'column',
           gap: 4,
           paddingBottom: 'max(20px, env(safe-area-inset-bottom))'}}
       >
@@ -1393,7 +1391,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           />
           <DiagnosticField label="Last Exception Trace" value={stagex.lastError} />
         </CollapsibleSection>
-      </div>
+      </SettingsContentContainer>
     );
   };
 
@@ -1493,8 +1491,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         dump.settings = {
           activeModule: currentApp,
           activeTheme: settings.theme,
-          accentColor: settings.accentColor,
-          customAccentHue: settings.customAccentHue,
           language: settings.language,
           syncAcrossDevices: settings.syncAcrossDevices};
         // LocalStorage (masked)
@@ -1677,7 +1673,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     text += `Screen: ${window.screen.width}x${window.screen.height} (${window.devicePixelRatio}x DPR)\n`;
     text += `Viewport: ${window.innerWidth}x${window.innerHeight}\n`;
     text += `Active Module: ${currentApp}\n`;
-    text += `Theme: ${settings.theme} (${settings.accentColor})\n`;
+    text += `Theme: ${settings.theme}\n`;
     return compressReportText(text);
   };
 
@@ -1769,29 +1765,7 @@ const renderSubViewHeader = (title: string) => {
           zIndex: 100}}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: isWebDesktop ? 16 : 10 }}>
-          <button
-            onClick={() => {
-              addJsLog('BUTTON PRESSED:\nBack to Developer Panel');
-              handleGoBack();
-            }}
-            className="btn-smooth"
-            style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: 'none',
-              borderRadius: '999px',
-              width: 36,
-              height: 36,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: 'var(--studio-accent-from, #679cff)',
-              transition: 'all 0.15s ease'}}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-              arrow_back
-            </span>
-          </button>
+
           <div>
             <h1
               style={{
@@ -2349,7 +2323,7 @@ const renderSubViewHeader = (title: string) => {
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <SettingsContentContainer style={{ gap: 24 }}>
         <style>{`
           .perf-metrics-grid {
             display: grid !important;
@@ -3317,7 +3291,7 @@ const renderSubViewHeader = (title: string) => {
             )}
           </div>
         </div>
-      </div>
+      </SettingsContentContainer>
     );
   };
 
@@ -3325,11 +3299,6 @@ const renderSubViewHeader = (title: string) => {
     const states = [
       { key: 'Active Module', value: currentApp, icon: 'apps' },
       { key: 'Theme Mode', value: settings.theme, icon: 'palette' },
-      { key: 'Accent Color', value: settings.accentColor, icon: 'colorize' },
-      {
-        key: 'Custom Accent Hue',
-        value: settings.customAccentHue != null ? `${settings.customAccentHue}°` : 'Default',
-        icon: 'settings_brightness'},
       { key: 'Language', value: settings.language || 'en', icon: 'language' },
       {
         key: 'Sync Across Devices',
@@ -3826,7 +3795,7 @@ const renderSubViewHeader = (title: string) => {
     );
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <SettingsContentContainer style={{ gap: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
             HTTP Requests Sniffer
@@ -4077,7 +4046,7 @@ const renderSubViewHeader = (title: string) => {
               })
           )}
         </div>
-      </div>
+      </SettingsContentContainer>
     );
   };
 
@@ -4364,7 +4333,7 @@ const renderSubViewHeader = (title: string) => {
     const hasAnyWarnings = appsList.some((app) => app.warnings > 0);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <SettingsContentContainer style={{ gap: 20 }}>
         <style>{`
           .bento-grid {
             display: grid !important;
@@ -4633,7 +4602,7 @@ const renderSubViewHeader = (title: string) => {
             );
           })}
         </div>
-      </div>
+      </SettingsContentContainer>
     );
   };
 
@@ -4692,15 +4661,13 @@ const renderSubViewHeader = (title: string) => {
     border: '1px solid rgba(128, 128, 128, 0.12)'};
 
   const renderDashboardBody = () => (
-    <div
+    <SettingsContentContainer
       style={{
         flex: 1,
         overflowY: isWebDesktop ? 'auto' : 'visible',
-        display: 'flex',
-        flexDirection: 'column',
         gap: 20}}
     >
-      <div style={{ padding: '0 20px', marginTop: 16 }}>
+      <div style={{ padding: isWebDesktop ? '0 20px' : '0', marginTop: 16 }}>
         <div
           style={{
             display: 'flex',
@@ -4907,7 +4874,7 @@ const renderSubViewHeader = (title: string) => {
       {/* ENGINEERING TOOLS */}
       <div
         style={{
-          padding: '0 20px',
+          padding: isWebDesktop ? '0 20px' : '0',
           marginTop: 8,
           paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
       >
@@ -5558,7 +5525,7 @@ const renderSubViewHeader = (title: string) => {
           </div>
         )}
       </div>
-    </div>
+    </SettingsContentContainer>
   );
 
   const renderLogsBody = (isMobile: boolean) => (
@@ -5763,7 +5730,7 @@ const renderSubViewHeader = (title: string) => {
               {viewId === 'dashboard' && (
                 <>
                   {/* HEADER */}
-                  {isWebDesktop && (
+                  {false && isWebDesktop && (
                     <div
                       style={{
                         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
@@ -5780,25 +5747,7 @@ const renderSubViewHeader = (title: string) => {
                         zIndex: 100}}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <button
-                          onClick={onBack}
-                          className="btn-smooth"
-                          style={{
-                            background: 'var(--app-surface-high)',
-                            border: 'none',
-                            borderRadius: '999px',
-                            width: 36,
-                            height: 36,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'pointer',
-                            color: 'var(--c-text-primary)'}}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                            arrow_back
-                          </span>
-                        </button>
+
                         <div>
                           <h2
                             style={{
@@ -5852,7 +5801,7 @@ const renderSubViewHeader = (title: string) => {
                   )}
 
                   {/* SYSTEM HEALTH GRID */}
-                  {!isWebDesktop ? (
+                  {true ? (
                     <SettingsScaffold
                       title="Developer Options"
                       onBack={onBack}
@@ -5906,25 +5855,7 @@ const renderSubViewHeader = (title: string) => {
                             zIndex: 100}}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                            <button
-                              onClick={onBack}
-                              className="btn-smooth"
-                              style={{
-                                background: 'var(--app-surface-high)',
-                                border: 'none',
-                                borderRadius: '999px',
-                                width: 36,
-                                height: 36,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                cursor: 'pointer',
-                                color: 'var(--c-text-primary)'}}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                                arrow_back
-                              </span>
-                            </button>
+
                             <div>
                               <h2
                                 style={{
@@ -5989,7 +5920,7 @@ const renderSubViewHeader = (title: string) => {
               )}
 
               {viewId === 'apps' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Apps Diagnostics"
                     onBack={handleSubViewBack}
@@ -6021,7 +5952,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'stagex' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Stagex Diagnostics"
                     onBack={handleSubViewBack}
@@ -6053,24 +5984,22 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'updater_diagnostics' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Updater Diagnostics"
                     onBack={handleSubViewBack}
                     toolbarActions={renderCopyButton('Updater')}
                   >
-                    <div
+                    <SettingsContentContainer
                       style={{
                         flex: 1,
                         overflowY: 'auto',
                         paddingTop: 16,
-                        paddingLeft: 20,
-                        paddingRight: 20,
                         paddingBottom:
                           'calc(env(safe-area-inset-bottom, 0px) + var(--content-bottom-pad, 96px) + 20px)'}}
                     >
-                      <UpdaterDiagnosticsPage />
-                    </div>
+                      <UpdaterDiagnosticsPage hideHeader={true} />
+                    </SettingsContentContainer>
                   </SettingsScaffold>
                 ) : (
                   <div
@@ -6090,13 +6019,13 @@ const renderSubViewHeader = (title: string) => {
                         paddingRight: 20,
                         paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
                     >
-                      <UpdaterDiagnosticsPage />
+                      <UpdaterDiagnosticsPage hideHeader={true} />
                     </div>
                   </div>
                 ))}
 
               {viewId === 'system' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="System Diagnostics"
                     onBack={handleSubViewBack}
@@ -6196,7 +6125,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'logs' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Logs"
                     onBack={handleSubViewBack}
@@ -6218,7 +6147,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'performance' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Performance Diagnostics"
                     onBack={handleSubViewBack}
@@ -6260,7 +6189,7 @@ const renderSubViewHeader = (title: string) => {
                 ))}
 
               {viewId === 'network' &&
-                (!isWebDesktop ? (
+                (true ? (
                   <SettingsScaffold
                     title="Network Sniffer"
                     onBack={handleSubViewBack}
@@ -6310,17 +6239,15 @@ const renderSubViewHeader = (title: string) => {
                   title="Developer Inspector"
                   onBack={handleSubViewBack}
                 >
-                  <div
+                  <SettingsContentContainer
                     style={{
                       flex: 1,
                       overflowY: 'auto',
                       paddingTop: 16,
-                      paddingLeft: 20,
-                      paddingRight: 20,
                       paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
                   >
                     <DeveloperInspectorPanel />
-                  </div>
+                  </SettingsContentContainer>
                 </SettingsScaffold>
               )}
             </div>
@@ -6333,13 +6260,18 @@ const renderSubViewHeader = (title: string) => {
   return (
     <div
       style={{
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
-        background: 'var(--app-bg)',
+        background: 'var(--c-background)',
         color: 'var(--c-text-primary)',
         fontFamily: 'Manrope, sans-serif',
-        overflowX: 'hidden'}}
+        overflowX: 'hidden',
+        zIndex: 99990,
+      }}
     >
       {renderDashboardContent()}
 

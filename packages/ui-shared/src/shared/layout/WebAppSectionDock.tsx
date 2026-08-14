@@ -186,13 +186,13 @@ export default function WebAppSectionDock({
   // If dock is disabled in preferences, don't render it
   if (!preferences.showWebAppDock) return null;
 
-  const appKey = app === 'stage' ? 'stage' : app;
-  const activeVis = settings.perApp?.[appKey as AppKey] ?? {
+  const appKey = (app === 'stage' ? 'stagex' : app) as AppKey;
+  const activeVis = settings.perApp?.[appKey] ?? {
     theme: settings.theme ?? 'dark',
-    accentColor: settings.accentColor ?? 'blue',
     amoledMode: settings.amoledMode ?? false,
   };
-  const accent = ACCENT_COLORS[activeVis.accentColor] ?? ACCENT_COLORS.blue;
+  // Accent color is static default blue
+  const accent = ACCENT_COLORS.blue;
 
   const getSectionLabel = (labelKey: string) => {
     switch (labelKey) {

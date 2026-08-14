@@ -6,8 +6,8 @@ import PracticePanel from './PracticePanel';
 export default function CoachPanel({ active = true }: { active?: boolean }) {
   const t = useT();
   const settings = useSettingsStore((s) => s.settings);
-  const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', accentColor: 'blue' };
-  const acc = ACCENT_COLORS[activeVis.accentColor] ?? ACCENT_COLORS.blue;
+  const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', amoledMode: false };
+  const acc = ACCENT_COLORS.blue;
   const isLight =
     activeVis.theme === 'light' ||
     (activeVis.theme === 'system' &&

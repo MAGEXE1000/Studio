@@ -115,6 +115,7 @@ export default defineConfig(async ({ command, mode }) => {
               if (id.includes('/lottie-web/')) return 'lottie';
               if (id.includes('/@supabase/')) return 'supabase';
               if (id.includes('/firebase/') || id.includes('/@firebase/')) return 'firebase';
+              if (id.includes('/motion/') || id.includes('/framer-motion/')) return 'motion-vendor';
             }
           },
         },

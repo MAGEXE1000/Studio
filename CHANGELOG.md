@@ -1,5 +1,308 @@
 # Studio Changelog
 
+## 4.5.31
+
+Release Date: 2026-08-13
+
+### Added
+
+- Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).
+- Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.
+- Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.
+- Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.
+- Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation.
+
+## 4.5.30
+
+Release Date: 2026-08-13
+
+### Added
+
+- Integrated Android Liquid Glass navigation dock via CMP Backdrop (`io.github.kyant0:backdrop`) with live blur, lens refraction, vibrancy, specular highlight contour, and theme-adaptive styling.
+- Mounted native Compose Liquid Glass overlay onto host ViewGroup to render seamless backdrop shaders behind navigation elements.
+- Embedded crisp native vector icons on top of the Liquid Glass surface while maintaining transparent DOM hitboxes for touch routing.
+- Fixed critical RootApp runtime TDZ ReferenceErrors in SharedNavigationBar and SharedAppShell.
+- Introduced automated TDZ hook order & variable scope regression guard (`scripts/check-hook-order.mjs`) into the lint/build CI pipeline.
+
+## 4.5.29
+
+Release Date: 2026-08-12
+
+### Added
+
+- Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.
+
+## 4.5.28
+
+Release Date: 2026-08-11
+
+### Added
+
+- Refined Bottom Navigation visual glass surface with stronger visibility borders, outline-border stroke rendering, and a capsule shape selected indicator.
+- Integrated the Search floating button and the App Changer floating button into the same native CMP Backdrop system.
+- Configured theme-aware fill opacities and edge stroke tints for Light, Dark, and AMOLED themes.
+
+## 4.5.27
+
+Release Date: 2026-08-11
+
+### Added
+
+- Replaced the previous bottom navigation Liquid Glass with Kyant0 Backdrop (CMP Backdrop).
+- Normalized the visual glass bottom navigation bar height to exactly 64 dp (collapsing to 32 dp when scrolling).
+- Implemented a backdrop-based selected-item highlight lens.
+- Hosted the native WebView inside a Compose AndroidView to capture background drawing commands for real-time backdrop blur.
+
+## 4.5.26
+
+Release Date: 2026-08-11
+
+### Added
+
+- Integrated the high-performance native Liquid Glass visual effect from `com.qmdeve:liquidglass:core:1.0.5` on the Studio Android bottom navigation bar.
+- Normalized the bottom navigation bar height to exactly 42 px (collapsing to 21 px when scrolling).
+- Implemented continuous layout rect tracking in React via RequestAnimationFrame to synchronize with the native positioning layer.
+- Added a lightweight, theme-appropriate native drawable fallback background for Android versions older than Android 13 (API < 33).
+
+## 4.5.25
+
+Release Date: 2026-08-11
+
+### Added
+
+- Hardened the Android production release pipeline to make it deterministic, safe, and fast.
+- Implemented an idempotent version synchronization mechanism with SHA-256 content verification.
+- Integrated a canonical version guard that validates release candidate versionCode against production.
+- Added versionCode collision safety checks that fail-fast if MIN or PAT versions would cause collisions.
+- Configured a Preflight-to-Build release state hash check to verify checkout equivalence.
+- Restored standard dirty-tree checking in Vite without generated-file allowlists.
+
+## 4.5.24
+
+Release Date: 2026-08-11
+
+### Added
+
+- Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.
+- Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.
+- Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.
+- Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.
+- Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.
+- Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.
+- Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.
+- Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.
+- Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.
+- Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.
+- Fixed tab scrubbing gestures via continuous fractional pointer indexing.
+
+## 4.5.23
+
+Release Date: 2026-08-11
+
+### Added
+
+- Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.
+- Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.
+- Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.
+- Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.
+- Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.
+- Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.
+- Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.
+- Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.
+- Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.
+- Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.
+- Fixed tab scrubbing gestures via continuous fractional pointer indexing.
+
+## 4.5.22
+
+Release Date: 2026-08-11
+
+### Added
+
+- Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.
+- Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.
+- Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.
+- Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.
+- Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.
+- Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.
+- Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.
+- Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.
+- Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.
+- Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.
+- Fixed tab scrubbing gestures via continuous fractional pointer indexing.
+
+## 4.5.21
+
+Release Date: 2026-08-11
+
+### Added
+
+- Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.
+- Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.
+- Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.
+- Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.
+- Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.
+- Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.
+- Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.
+- Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.
+- Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.
+- Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.
+- Fixed tab scrubbing gestures via continuous fractional pointer indexing.
+
+## 4.5.20
+
+Release Date: 2026-08-09
+
+### Added
+
+- Replaced the About page illustration with the visual-only, click-sound-free, neutral SpotlightLogo.
+- Refactored global page titles to a prominent 32px typography size, left-aligned, standard weight, and vertically aligned env(safe-area-inset-top) + 72px page geometry.
+- Constrained Settings sub-pages content max-width to 640px centered, with padding-left/right of 24px, and centered main settings dashboard list.
+- Moved the shared floating top bar 15% higher and increased transparency slightly.
+- Refactored the central button component library to use BeUI button physics (0.93 scale on tap, 1.02 on hover on fine-pointer devices, spring dynamics, and touch ripple).
+
+## 4.5.19
+
+Release Date: 2026-08-09
+
+### Added
+
+- Integrated the @ncdai/share-menu dropdown component into StageX collaborative session room invites.
+- Mounted the Sonner <Toaster /> globally in SharedAppShell.tsx to handle toast feedback.
+
+### Fixed
+
+- Resolved version comparison regression test suite failures by aligning downgrade validation assertions.
+
+## 4.5.18
+
+Release Date: 2026-08-09
+
+### Fixed
+
+- Normalized global title typography to 18px and vertical placement (pt-12 pb-4 px-6) across all modules and settings pages.
+- Moved the shared Top Bar 15% higher and increased background transparency.
+
+## 4.5.17
+
+Release Date: 2026-08-09
+
+### Fixed
+
+- Normalized the shared Top Bar across Studio/Livex so it is positioned higher and is more transparent.
+- Scaled up the Top Bar title font size slightly and centered it.
+- Removed all custom and shared back buttons associated with page headers and top bars from the entire application.
+
+## 4.5.16
+
+Release Date: 2026-08-09
+
+### Fixed
+
+- Fixed icon reverse animations on tab exit by preserving tab icon mounting state during navigation.
+- Centered the section header title independently against the floating capsule bounds and aligned its font size to the standard type-scale.
+- Refined floating header translucency, position elevation, and scroll-reveal threshold state machine clamping.
+- Verified tab highlight alignment geometry, collapse container transforms, and stationary back button layout.
+
+## 4.5.15
+
+Release Date: 2026-08-08
+
+### Fixed
+
+- Replaced hand-rolled icon animations with native lucide-animated SVG components across all apps.
+- Resolved navigation child item drift on scroll collapse by applying fixed width and absolute centering.
+- Adjusted top bar SharedFloatingHeader proportions, translucent warm tinted glass styling, and unified Developer Options pill header layout.
+- Converted Developer Options to a full-screen settings page layout, eliminating drawer width limits and stray left border lines.
+
+## 4.5.14
+
+Release Date: 2026-08-08
+
+### Fixed
+
+- Replaced whole-bar CSS scale transitions with dynamic container center-collapse using Framer Motion.
+- Programmed individual tab items to translate horizontally inwards to the center and fade out on scroll down.
+- Resolved scroll-hide and watchdog race by implementing interaction priority tracking with lockout retries.
+- Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.
+
+## 4.5.13
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Enforced single canonical responsive content-width architecture across all settings, preferences, updater, developer options, and profile screens.
+- Refined floating top bar capsule geometry to match beUI Pro proportions and removed Livex logo for visual balance.
+- Fixed Updater What's New section to render release notes automatically upon update detection.
+- Stacked Developer Inspector floating control button directly above Route Tracer control button.
+- Verified circular updater loader, bottom navigation center-collapse, and StageX seamless background rendering.
+
+## 4.5.12
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Completely separated Chordex preferences from Hub/Studio Settings and removed App Theme control from Chordex Preferences.
+- Redesigned floating top header (shorter 44px height, wider horizontal width, higher position) aligned with card boundaries below.
+- Positioned Livex logo on the right side of the floating header with theme-dependent color (black in Light, white in Dark/AMOLED, never accent color).
+- Accelerated app intro animations by 30% across all 6 applications (Hub, Chordex, StageX, Groovex, Drumex, Vocalex) with theme-stable initial frames.
+- Made Developer Inspector compact (floating drawer panel) and repaired debug controls.
+
+## 4.5.11
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.
+- Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.
+- Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.
+- Integrated official Fluid Functionalism ColorPicker component for StageX element styling.
+
+## 4.5.10
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Fixed StageX top seam and top area background blending across Light, Dark, and AMOLED themes.
+- Kept StageX bottom navigation mounted and visible when tapping + to open element menu overlay.
+- Corrected stage direction label to DOWNSTAGE and updated font family to Space Grotesk.
+- Integrated official Fluid Functionalism ColorPicker component for StageX element styling.
+
+## 4.5.9
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Restored spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).
+- Repaired theme cycle state-machine to correctly cycle White → Dark → AMOLED → White.
+- Restored canonical circular rotating loader component (variant="spinner") in foreground update checking state.
+- Fixed About Page orbit animation orbiter collapse bug by using inline coordinates fallback.
+- Corrected alignment of about content button rows by standardizing horizontal paddings.
+- Repaired StageX outer panel theme contrast mismatch in standard Dark Mode.
+- Resolved Developer Options/Updater Diagnostics horizontally squashed mobile layout and log viewer word-wrapping.
+- Polished MorphingModal fade/scale animation and eliminated persistent backdrop-filter blur when modals are closed.
+
+## 4.5.8
+
+Release Date: 2026-08-07
+
+### Added
+
+- Automated regression test for version 4.5.8 release pipeline.
+
+## 4.5.7
+
+Release Date: 2026-08-07
+
+### Added
+
+- Automated regression test for version 4.5.7 release pipeline.
+
 Each release on the OTA channel is described in its own section below.
 The release script (`scripts/release-firebase.mjs`) reads this file and
 copies the bullet list under the section that matches the current
@@ -7,11 +310,78 @@ copies the bullet list under the section that matches the current
 "Update available" modal always shows the actual changes that ship in
 that bundle.
 
+## 4.5.6
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Fixed critical RootApp TDZ crash caused by synchronous useTransform evaluation in SharedNavigationBar.
+
+## 4.5.5
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Fixed critical RootApp runtime TDZ crash (`ReferenceError: Cannot access 'xe' before initialization`) by removing unused `rawProgress` and `downloadPct` variables from `UpdateIndicator.tsx`.
+- Restored the exact 3-stage GitHub Release Pipeline (Preflight, Build, Package & Sign, Publish) as Run #703.
+
+## 4.5.4
+
+Release Date: 2026-08-07
+
+### Added
+
+- Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.
+- Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.
+- Restored Release Pipeline to match #703 parity.
+
+## 4.5.3
+
+Release Date: 2026-08-07
+
+### Added
+
+- Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.
+- Restored release pipeline behavior to parity with Run #703 including certificate verification.
+
+## 4.5.2
+
+Release Date: 2026-08-07
+
+### Added
+
+- Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.
+- Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification.
+
+## 4.5.1
+
+Release Date: 2026-08-07
+
+### Added
+
+- Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.
+- Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.
+
+## 4.5.0
+
+Release Date: 2026-08-07
+
+### Fixed
+
+- Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.
+
+### Added
+
+- Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.
+
 ## 4.3.91
 
 Release Date: 2026-08-06
 
 ### Improved
+
 - Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).
 - Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.
 
@@ -20,6 +390,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Improved
+
 - Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).
 - Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.
 
@@ -28,6 +399,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Improved
+
 - Validated complete application runtime performance, theme engine stability, and gesture navigation responsiveness.
 - Executed production Android release pipeline v4.3.88 (versionCode 40419) with signed APK and metadata synchronization.
 
@@ -36,6 +408,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Fixed
+
 - Fixed application load latency across all apps by pre-compiling sub-app entry points synchronously without dynamic promise fallbacks.
 - Resolved SubAppWrapper mounting sequence ensuring navigation routes render immediately without empty screens.
 - Eliminated artificial transition timeouts in ApplicationTransitionEngine to achieve 60 FPS smooth launch.
@@ -48,6 +421,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Improved
+
 - Refactored Release Pipeline into 3 clean, consolidated stages in GitHub Actions.
 - Consolidated preflight code quality and version consistency checks into release-firebase.mjs.
 - Accelerated pipeline execution speed by eliminating redundant workflow steps.
@@ -57,6 +431,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Improved
+
 - Optimized Color Picker performance to 60 FPS continuous dragging by decoupling Zustand store commits from pointermove events and applying instant CSS variables.
 - Clamped Color Picker saturation selector thumb strictly within container boundaries and fixed hue 360-degree reset jump.
 - Polished Light theme transition and synchronized application-wide repaints in a single atomic pass.
@@ -68,6 +443,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Improved
+
 - Modernized keytool printcert metadata parser to be version-independent and added verbose diagnostics logging.
 - Natively integrated Jetpack Compose InkFlow transition animation overlay, fixed updater version comparison state machine to check both SemVer and versionCode, resolved isUpdateDismissed timeout bugs, eliminated Color Picker saturation grid boundary overflow and hue slider jumps, and decoupled bottom navigation icons from pointer action overrides.
 
@@ -76,6 +452,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Improved
+
 - Integrated Jetpack Compose natively and replaced theme transition with official InkFlow library reveal animation.
 - Fixed updater decision pipeline state machine to correctly compare both SemVer and Android versionCode and handle inconsistent metadata.
 - Resolved isUpdateDismissed timeout evaluation bug returning true by default.
@@ -88,6 +465,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Improved
+
 - Polished the accent Color Picker to be horizontally centered and clip saturation selector thumb correctly at boundaries.
 - Replaced Framer Motion thumb positioning with standard CSS styles to eliminate 1-frame layout jitter.
 - Enlarged global Switch track dimensions (48x28) and thumb size (22) to support a comfortable 48px Android touch target.
@@ -100,18 +478,21 @@ Release Date: 2026-08-06
 Release Date: 2026-08-06
 
 ### Added
+
 - Installed fluidfunctionalism Color Picker component with HEX, RGB, HSL, OKLCH format support, eyedropper, and preset swatches.
 - Installed fluidfunctionalism Switch component with spring physics and draggable interaction.
 - Built Updater Engineering Diagnostics page with comprehensive system state inspection.
 - Added Copy Diagnostics button for the Updater module with full engineering report generation.
 
 ### Improved
+
 - Refactored navigation icon animations to be purely state-driven, decoupled from pointer events.
 - Integrated the Color Picker globally into the accent color selector with alpha controls removed.
 - Migrated all Toggle/Switch components across Hub, Chordex, and Drumex to the new Switch.
 - Restored Language selector in Appearance settings.
 
 ### Fixed
+
 - Fixed updater version comparison logic to only offer strictly newer versions as updates.
 - Removed the changelog/What's New section from the updater dialog.
 
@@ -120,6 +501,7 @@ Release Date: 2026-08-06
 Release Date: 2026-08-05
 
 ### Improved
+
 - Implemented production-quality collaboration engineering diagnostics system to expose raw Firebase exception details.
 - Added comprehensive connection, authentication, network, and IndexedDB persistence state tracking.
 - Captured automated operation queue retry metrics including backoff delays and drop reasons.
@@ -130,6 +512,7 @@ Release Date: 2026-08-05
 Release Date: 2026-08-05
 
 ### Fixed
+
 - Fixed StageX collaboration connection by forcing Firestore to use long polling (`experimentalForceLongPolling`) on Android/Capacitor WebView.
 - Added comprehensive stage-by-stage connection diagnostics, auth transition tracking, and Firestore exception stack trace logging.
 
@@ -138,6 +521,7 @@ Release Date: 2026-08-05
 Release Date: 2026-08-05
 
 ### Fixed
+
 - Fixed bottom navbar icon animations to use smooth spring transitions on tab switch and epoch-aware replay on re-tap.
 - Implemented state-backed navigation collapse inside StageX and Drumex.
 - Replaced ViewTransition clip-path styles with a premium, minimal, native-feeling CSS transition theme engine.
@@ -148,6 +532,7 @@ Release Date: 2026-08-05
 Release Date: 2026-08-05
 
 ### Fixed
+
 - Fixed empty icons in Chordex bottom navigation bar.
 - Normalized Start On preferences across Drumex, StageX, Vocalex, and removed Start On setting from Groovex.
 - Redesigned bottom navigation bar icon animations with zero cooldown and full tab button hit target.
@@ -160,6 +545,7 @@ Release Date: 2026-08-05
 Release Date: 2026-08-05
 
 ### Fixed
+
 - Canonicalized all app routing identifiers across the workspace (`chordex`, `drumex`, `stagex`).
 - Validated StageX collaboration runtime and Firestore initialization fallback for unprovisioned environments.
 - Normalized Hub sub-routes to prevent duplicate path segments in RouteTracer.
@@ -169,6 +555,7 @@ Release Date: 2026-08-05
 Release Date: 2026-08-05
 
 ### Fixed
+
 - Resolved Light Mode visual consistency across Chordex, Vocalex, Drumex, and Hub.
 - Fixed update pipeline startup race condition and version comparison checks.
 - Improved bottom navbar spring tap/press animations.
@@ -180,6 +567,7 @@ Release Date: 2026-08-05
 Release Date: 2026-08-04
 
 ### Fixed
+
 - Fixed ReferenceError for \`vParts\` in \`sync-version.mjs\` during versionCode generation.
 - Fixed scoping issue for \`expectedVersionName\` in \`validate-app-installer.mjs\` causing ReferenceErrors during validation.
 
@@ -188,6 +576,7 @@ Release Date: 2026-08-04
 Release Date: 2026-08-04
 
 ### Fixed
+
 - Fixed ReferenceError in generate-release-metadata.mjs by reading appVersion.ts into appVersionSrc.
 - Passed --allow-missing-apk to validate-app-installer.mjs during release metadata generation.
 
@@ -196,6 +585,7 @@ Release Date: 2026-08-04
 Release Date: 2026-08-04
 
 ### Fixed
+
 - Refactored release-firebase.mjs pipeline into a strict two-phase atomic transaction to prevent partial remote publication when downstream validations fail.
 - Fixed baseline previous-release resolution in releaseState.mjs and discoverApkAsset to strictly exclude the current building version and prevent self-comparison errors.
 - Enforced complete local manifest and contract validation before GitHub release creation and Firebase deployment.
@@ -205,6 +595,7 @@ Release Date: 2026-08-04
 Release Date: 2026-08-04
 
 ### Added
+
 - Production release version bump to 4.3.71 for automated end-to-end Release Pipeline execution.
 
 ## 4.3.70
@@ -212,6 +603,7 @@ Release Date: 2026-08-04
 Release Date: 2026-08-04
 
 ### Fixed
+
 - Fixed StageX collaboration connection reliability by enabling Firestore offline persistence.
 - Resolved memory leaks and background heartbeat persistence by calling leaveRoom on component unmount and page unload.
 - Added max retry limit and exponential backoff to OperationQueue to prevent infinite blocking on permanent errors.
@@ -225,6 +617,7 @@ Release Date: 2026-08-04
 Release Date: 2026-08-04
 
 ### Added
+
 - Refactored release infrastructure to use parse-version single source of truth.
 - Consolidated duplicate validation checks and optimized pipeline to reduce execution latency.
 - Replaced version-locked verifier scripts with a single parameterized post-release checker.
@@ -243,6 +636,7 @@ Release Date: 2026-08-04
 Release Date: 2026-08-02
 
 ### Added
+
 - End-to-end validation release verifying Release Doctor, Governance Layer, and automated previous APK installer contracts.
 
 ## 4.3.54
@@ -250,6 +644,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Modernized Release Pipeline actions to Node 24 and fixed Firestore rules deployment using releaseFirestoreRulesetFromSource.
 
 ## 4.3.52
@@ -257,6 +652,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Refactored rules deployer script using modern v14 modular app and security-rules APIs.
 
 ## 4.3.51
@@ -264,6 +660,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Refactored dynamic imports in deploy-rules-admin to handle both default and module namespace exports.
 
 ## 4.3.50
@@ -271,6 +668,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Restored the premium, spec-compliant custom Accent Color picker (Visual Canvas Saturation/Lightness picker + Hue slider + custom preset manager).
 - Permanently cleaned up and deleted the obsolete Language options, language sheet, and `renderLanguageContent` routing.
 - Configured explicit pnpm setup in Job 4 of the GitHub Actions Release Pipeline.
@@ -280,6 +678,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Updated Firestore security rules deployer to support pnpm workspace constraints.
 
 ## 4.3.48
@@ -287,6 +686,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Configured automated Firestore rules deployment using the Firebase Admin SDK.
 - Restored Settings and Updater layout configurations to match v4.3.43.
 
@@ -295,6 +695,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Deployed automated Firestore security rules deployment to the release pipeline.
 - Restored missing settings layout, updated Updater section, and language removal features.
 - Surfaced raw exception messages and diagnostic stack traces on collaboration connection errors.
@@ -304,6 +705,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Configured Firestore to use HTTPS long-polling instead of gRPC/WebSockets to guarantee reliable connectivity inside Capacitor WebViews.
 - Implemented deep forensic instrumentation logs throughout the room hosting flow.
 - Removed client-side TTL database pruning from the room creation sequence.
@@ -313,6 +715,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Rebuilt StageX real-time collaboration with the premium Stitch dark glassmorphism design.
 - Implemented accessible custom Segmented OTP Input component (Moumen design) supporting keyboard, clipboard paste, and deletion.
 - Added live collaborator participant lists, connection quality indicator signals, and operational sync status feedback.
@@ -325,6 +728,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-02
 
 ### Added
+
 - Implemented production-quality real-time collaboration system for StageX utilizing Firestore.
 - Added live presence tracking and participant cursor color indicators.
 - Created operation-based synchronization engine with conflict resolution and offline queuing.
@@ -335,6 +739,7 @@ Release Date: 2026-08-02
 Release Date: 2026-08-01
 
 ### Added
+
 - Integrated automated Capacitor asset freshness and content verification checks into the release pipeline to prevent shipping stale builds.
 - Refined global collapsing headers top style spacing globally to match Material 3 specifications.
 - Removed settings navigation gear icon in the upper-right corner of the Profile tab view.
@@ -344,6 +749,7 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Added
+
 - Modernized shared design system buttons, diagnostics panels, and audio/cache/sync/security troubleshooters to use the unified, GPU-accelerated Lucide Animated icon system.
 
 ## 4.3.41
@@ -351,6 +757,7 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Added
+
 - Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.
 
 ## 4.3.40
@@ -358,9 +765,11 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Added
+
 - Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex.
 
 ### Fixed
+
 - Normalized preferences routing mapping from `/chords/settings/settings` to `/chords/preferences` to eliminate nested duplicate layout regressions.
 - Simplified the Updater screen by removing release channel options and embedded changelog timeline to prevent interface duplication.
 - Moved the Developer Inspector Route Tracer overlay behind a persisted configuration toggle, disabling it by default.
@@ -372,6 +781,7 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Added
+
 - Overhauled spacing defaults and layout parameters for the Global Density system to apply proportional, well-bounded scaling across all modules (Hub, Settings, Chordex, Groovex, Stagex, Drumex, Vocalex).
 - Implemented a reusable floating rounded card header with theme-adaptive backdrop filter blur and GPU-accelerated scroll interpolation.
 - Restored the Settings Updater entries on both desktop and mobile dashboards, enabling users to dismiss the update overlay while keeping the update availability badge active.
@@ -384,6 +794,7 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Added
+
 - Implemented responsive spacing, margins, button sizes, icons, card radii, and list padding matching active display density (compact, comfortable, spacious).
 - Redesigned SettingsScaffold with dynamic scroll-driven sticky header (progressive opacity and translation) and seamless single continuous canvas scrolling.
 - Added role="dialog" and studio-modal CSS tags to Sheet modals to automatically trigger bottom navigation collapse.
@@ -394,6 +805,7 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Added
+
 - Overhauled the Settings & Appearance layout with unified Material 3 aesthetics.
 - Relocated Language preferences directly within the Appearance settings panel.
 - Implemented an animated, rounded Bottom Sheet dialog for immediate language selection.
@@ -406,6 +818,7 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Added
+
 - This is a temporary release created exclusively to validate the Studio updater pipeline.
 - Updater validation build.
 - Release pipeline verification.
@@ -419,6 +832,7 @@ Release Date: 2026-08-01
 Release Date: 2026-08-01
 
 ### Fixed
+
 - Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.
 - Restored Phase 4 Updater startup recovery check and listener registrations.
 
@@ -427,6 +841,7 @@ Release Date: 2026-08-01
 Release Date: 2026-07-31
 
 ### Added
+
 - Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.
 
 ## 4.3.33
@@ -434,6 +849,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Added
+
 - Cleaned up the Accent Color settings card by removing the redundant Accent Opacity control.
 - Optimized the theme switch transition to achieve fluid and immediate 120 FPS animations.
 - Configured cold boots to always land on Studio Hub -> Home to prevent launching inside stale navigation states.
@@ -444,6 +860,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Added
+
 - Fixed the Android Gradle task graph to prevent stale asset packaging during native release builds.
 - Registered capacitorSync and buildWebAssets as proper inputs/outputs Gradle tasks wired via AGP Artifacts API.
 
@@ -452,6 +869,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Added
+
 - Integrated the PWA asset compilation and Capacitor synchronization tasks directly into Gradle.
 - Automated the version propagation chain to guarantee identical version metadata across all build outputs.
 - Synchronized version manifests across the repository.
@@ -461,6 +879,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Added
+
 - Introduced a premium segmented theme selector (Light, Dark, AMOLED) using Lucide React icons.
 - Implemented seamless theme switching animations using the motion/react Framer Motion package.
 - Restored correct active highlight indicator and smooth transitions for the App Changer switcher.
@@ -472,6 +891,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Added
+
 - Architecturally separated Chordex Preferences and Hub Appearance pages to resolve visual state leakage.
 - Resolved updater background loop stagnation by allowing auto-checks from terminal non-active states.
 - Polished Appearance screen header to keep only back button, large title, and horizontally aligned theme changer.
@@ -484,6 +904,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Added
+
 - Rebuilt Livex Appearance screen from scratch matching the HTML visual source of truth specification.
 - Integrated 2D color canvas picker with Hue & Opacity sliders, HEX/RGB badges, and color presets.
 - Implemented Display Density, Text Size, High Contrast, Haptics, ProMotion, and Performance Boost controls.
@@ -493,6 +914,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Fixed
+
 - Completely purged legacy inline Appearance implementation from StudioHub component tree.
 - Removed unused legacy SingleThemeToggleRow component and exports.
 - Pinned Release Pipeline workflow checkout ref to github.sha across all stages for guaranteed commit parity.
@@ -502,6 +924,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Fixed
+
 - Fixed StudioHub Settings route to mount StudioHubSettingsPanel for the Appearance page instead of legacy inline render.
 - Resolved UpdateIndicator auto-open suppression to ensure update prompt dialog appears automatically on new releases.
 - Added comprehensive runtime logging for Appearance component mounting and Updater execution state.
@@ -511,6 +934,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Improved
+
 - Re-architected Appearance settings with single animated Lucide Theme Morpher on the far right of the section header.
 - Integrated Inspira UI Color Picker supporting HEX, RGB, RGBA, HSL, HSLA, swatches, and WCAG AA contrast ratio indicators.
 - Added Display Density and Text Scale segmented controls.
@@ -521,6 +945,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ### Improved
+
 - Restored verified canonical v4.3.15 baseline with zero UI regressions.
 - Optimized 4-stage release pipeline with shallow fetch-depth: 1 and blobless filter.
 - Pinned Node 24 compatible GitHub Action versions across release workflows.
@@ -530,10 +955,12 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ## Fixed
+
 - Resolved OTA updater detection failure by comparing Firebase and GitHub Releases, adding strict HTTP cache control headers, and enforcing semver fallback comparison.
 - Replaced updater download progress presentation with official COSS Progress component featuring right-aligned exact percentage and zero duplicated sub-labels.
 
 ## Added
+
 - Completely rebuilt Appearance screen as the new reference implementation for Settings with cleaner hierarchy, glassmorphism cards, and premium spacing.
 - Integrated Inspira UI Color Picker supporting Hex, RGB, RGBA, HSL, HSLA, custom swatches, and WCAG AA contrast ratio indicators.
 
@@ -542,10 +969,12 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ## Fixed
+
 - Restored hardware back button, browser popstate, and GPU-friendly touch edge-swipe back navigation gestures across Hub, Settings, Chordex, Drumex, StageX, Groovex, and Vocalex.
 - Purged legacy 4-card theme mode section and completed architectural separation between Studio Hub Settings and Chordex Preferences.
 
 ## Added
+
 - Implemented single Appearance row with official `lucide-animated` state morphing icons (`SunIcon`, `MoonIcon`, `SunMoonIcon`) cycling White -> Dark -> AMOLED -> White.
 - Integrated 60 FPS liquid reveal theme transition engine with exact touch coordinate clipping.
 
@@ -554,10 +983,12 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ## Fixed
+
 - Fixed application startup mixed-theme regression by implementing synchronous `<head>` theme restoration in `index.html` and immediate module-level token binding in `useSettingsStore.ts`.
 - Restored frame-0 theme consistency across root application container, dialogs, and Bottom Navigation bar before initial layout paint.
 
 ## Improved
+
 - Hardened Version Consistency Pipeline (`verify-versions-consistency.mjs`, `sync-version.mjs`) to automatically synchronize `root package.json`, `apps/studio-web/package.json`, `apps/studio-android/package.json`, `appVersion.ts`, `build.gradle`, and version manifests in lockstep across the monorepo.
 
 # Version 4.3.12
@@ -565,6 +996,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ## Improved
+
 - Completed Studio Theme System stabilization pass with full White (`light`), Dark (`dark`), and AMOLED (`amoled`) theme support across Updater dialogs and indicators (`StudioUpdateScreen.tsx`, `UpdateIndicator.tsx`).
 - Simplified OTA download progress UI with single `Downloading update` status label above the progress bar and exact 1:1 progress precision (percentage on far right only).
 - Sanitized UTF-8 encoding pipeline across release notes parsing and changelog sheets to eliminate corrupted Mojibake sequences (`â€¢`, `â€‹`, `â€¦`).
@@ -576,6 +1008,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-31
 
 ## Added
+
 - Complete Studio Theme System redesign establishing White Theme (`light`) as the primary default application theme across all 6 Studio sub-apps (Hub, Chordex, Drumex, StageX, Groovex, Vocalex).
 - Replaced legacy 4-card Theme Mode selector with a single animated Appearance toggle row aligned to the far right, featuring official `lucide-animated` state morphing (`SunIcon`, `MoonIcon`, `SunMoonIcon`).
 - Implemented Ink Toggle liquid reveal animation (`ThemeTransitionEngine.ts`) with organic expanding reveal, soft metaball easing, and zero white flash visual synchronization.
@@ -587,6 +1020,7 @@ Release Date: 2026-07-31
 Release Date: 2026-07-29
 
 ## Added
+
 - Integrated `StudioPageTransition` unified motion architecture directly into real runtime view containers (`SharedNavigationContainer.tsx`, `StudioHubSettingsPanel.tsx`, `AppAnimationSystem.tsx`).
 - Resolved Bottom Navigation highlight centering at the root cause in `SharedNavigationBar.tsx` by projecting active pill layout bounds directly inside `<NavigationItem>` buttons with zero offset lag.
 - Fixed bottom navigation bar width calculations in `SharedNavigationBar.tsx` to eliminate size snapping when switching between 4-slot Hub, 3-slot Chordex, and 2-slot Groovex views.
@@ -597,6 +1031,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-29
 
 ## Added
+
 - Unified navigation transition architecture across all sub-apps and screens using Framer Motion projection (`StudioPageTransition`).
 - Solved bottom navigation active highlight alignment at the root cause by embedding `layoutId="liquidActiveNavPill"` directly inside active item buttons.
 - Eliminated abrupt navigation bar geometry jumps during tab switching across apps with different item counts.
@@ -607,6 +1042,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-29
 
 ## Added
+
 - Enhanced desktop sidebar and dock navigation buttons with tactile press scale scaling (`whileTap={{ scale: 0.96 }}`) and explicit ARIA tab semantics (`role="tab"`, `aria-selected`).
 - Enforced minimum 44px touch target bounds across desktop and mobile navigation components.
 - Refined tooltip enter/exit animations with subtle 6px offset transitions and tabular numeric label formatting (`tabular-nums`).
@@ -617,6 +1053,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-29
 
 ## Added
+
 - Migrated remaining application icons (Hub, Chordex, StageX, Drumex, Groovex, Vocalex) to official Lucide Animated components.
 - Installed 11 additional official Lucide Animated icon packages via official shadcn CLI integration.
 - Renamed Drumex Songs to Beats (using official Drum component) and Groovex Library to Rhythms (using official Layers component).
@@ -627,6 +1064,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-29
 
 ## Added
+
 - Migrated the complete navigation system across all applications (Hub, Livex, Chordex, StageX, Drumex, Groovex, Vocalex, Discover, Practice, Settings, Profile, Search, Developer Tools) to use official Lucide Animated components.
 - Installed 32 official Lucide Animated icon packages via official shadcn CLI integration into UI Shared components.
 - Enforced strict navigation state-transition animation triggers (animations play once upon entering active state; re-taps and touch events ignored).
@@ -637,6 +1075,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-29
 
 ## Added
+
 - Upgraded the complete navigation system across all applications (Hub, Chordex, StageX, Drumex, Groovex, Vocalex, Settings, Profile, Search) to use a unified, state-driven animated navigation icon system.
 - Replaced touch/press-based icon triggers with clean navigation-state triggers (animations play once upon entering active state; re-taps ignored).
 - Created reusable NavigationAnimationProvider, AnimatedNavigationIcon, and NavigationMotionVariants infrastructure with 60 FPS GPU-bound spring physics.
@@ -647,6 +1086,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-29
 
 ## Added
+
 - Production release v4.3.04 with complete preferences persistence, 60 FPS bottom navigation touch micro-animations, and full icon library coverage across all sub-applications.
 - Web Crypto API AES-GCM 256 state persistence hardening and synchronous v2 payload fallback restoration across restart and cold-start boundaries.
 - Context-aware AnimatedIcon micro-animations for mobile touch gestures and active tab state transitions.
@@ -656,6 +1096,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-29
 
 ## Added
+
 - Resolved Preferences lifecycle persistence root cause, eliminating ciphertext hydration failures and ensuring 100% restoration across process kills, restarts, and web refreshes.
 - Complete icon implementation audit across all Studio applications (Hub, Chordex, StageX, Drumex, Groovex, Vocalex, Settings, Profile, Search, Navigation).
 - Enhanced AnimatedIcon with complete 60 FPS spring physics and context-aware micro-interactions matching functional motion guidelines.
@@ -665,6 +1106,7 @@ Release Date: 2026-07-29
 Release Date: 2026-07-28
 
 ## Added
+
 - Resolved Android OTA downloader file resume corruption root cause to guarantee 100% accurate SHA-256 validation across releases.
 - Hardened native AppInstaller and UpdateDownloadService cache purging and stream truncation.
 
@@ -673,6 +1115,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Resolved Appearance settings persistence root cause for v3 encrypted state hydration across restarts, cold starts, and web refreshes.
 - Complete icon coverage and context-aware 60 FPS micro-interactions across all Studio applications and screens.
 
@@ -681,6 +1124,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Comprehensive production release bump to v4.3.00 with multi-manifest version synchronization across Android, Web, and OTA metadata channels.
 - Hardened deployment integrity, zero-regression performance safeguards, and Web Crypto API AES-GCM 256 state persistence.
 
@@ -689,6 +1133,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Global UX polish, micro-interaction feedback enhancements, and touch target accessibility compliance across Web and Android targets.
 - Verified zero performance regressions across RenderScheduler, DOM event observation, and Web Crypto API AES-GCM 256 engine.
 - Ensured 100% multi-manifest version synchronization and OTA update readiness.
@@ -698,6 +1143,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Upgraded security engine to Web Crypto API (AES-GCM 256) with PBKDF2 key derivation and automatic legacy payload migration.
 - Integrated lifecycle-aware RenderScheduler and event-driven DOM observation to eliminate 100% of idle polling loops.
 - Completed architectural integration of giant sub-components, Zustand store domain slices, sync orchestrators, and typed window declarations.
@@ -708,6 +1154,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Rebuilt icon interaction system with physical mechanical feedback, touch compression down to 0.86 scale, anticipation, and spring overshoot.
 - Implemented velocity-stretching active pill animation in Liquid Bottom Navigation that stretches horizontally during slide movements.
 - Synchronized tab icon and label spring motion with continuous Liquid Surface backdrop filter adaptation.
@@ -717,6 +1164,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Completed 100% application-wide icon system audit, replacing all remaining legacy material icon elements with Bakai AnimatedIcon components.
 - Added specialized domain stroke icons for Recorder (mic, record, waveform), Coach (learning, exercise, progress, score, target, achievement), and Settings.
 - Standardized state-driven microinteraction physics and spring transitions across all navigation, settings, and developer tool components.
@@ -726,6 +1174,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Expanded Bakai Animated Icon dictionary with download, upload, favorite, tune, apps, history, bug report, speed, memory, code, and terminal icons.
 - Integrated exact SaxKeyId union mappings into interactive Alto Saxophone vector renderer.
 - Enhanced recorded VCSL CC0 audio engine with Round-Robin detuning, key-click transients, and acoustic release tails.
@@ -735,6 +1184,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Completed 100% legacy-free Bakai Animated Icon migration across all application modules, pages, dialogs, inspector docks, and settings panels.
 - Re-architected Alto Saxophone vector renderer with anatomically accurate mouthpiece, neck, upper/lower stack, palm keys, side keys, pinky tables, bell, and mechanical rod linkages.
 - Enhanced recorded VCSL CC0 audio engine with Round-Robin sample detuning, velocity layer crossfading, mechanical key click attack transients, and acoustic release tails.
@@ -744,6 +1194,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Architected the Bakai Animated Icon & Motion System with unified stroke dictionary, spring microinteractions, and morphing state feedback.
 - Architected high-performance Liquid Surface Engine using mathematical SDF smooth unions, Gaussian alpha threshold filtering, and dirty-checked path memoization.
 - Redesigned Bottom Navigation Bar with Liquid Surface background and morphing active pill background.
@@ -754,6 +1205,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Architected a modular Multi-Instrument Platform with decoupled InstrumentRegistry, NavigationProvider, AudioProvider, PracticeEngine, and LibraryProvider.
 - Integrated real recorded saxophone multisamples derived from Versilian Community Sample Library (VCSL CC0) with natural pitch interpolation, velocity scaling, and decay release tails.
 - Expanded Saxophone Practice Mode with 6 interactive learning modes: Free Play, Learn Notes, Quiz (score & streak tracking), Playback (animated scale player), Scales, and Exercises.
@@ -764,6 +1216,7 @@ Release Date: 2026-07-28
 Release Date: 2026-07-28
 
 ## Added
+
 - Transformed Chordex into a multi-instrument platform supporting Guitar, Saxophone, and future slots for Piano and Bass.
 - Implemented Global Instrument Selector in Preferences with instant app adaptation and session persistence.
 - Implemented Saxophone Practice Mode with interactive vector-based saxophone, pad key animations, touch targets, and low-latency acoustic WebAudio synthesis.
@@ -776,12 +1229,14 @@ Release Date: 2026-07-28
 Release Date: 2026-07-26
 
 ## Fixed
+
 - Fixed Developer Inspector Rules of Hooks violation by guaranteeing unconditional hook execution order across toggle enable/disable cycles, eliminating React Error #300 and #310 crashes.
 - Fixed freeze persistence issue by excluding `isFrozen` state from store hydration on page reload.
 - Fixed Stagex Setup screen black rendering by mapping `Setup` to `SetupHub` and `Preferences` to `Assistant` in the view switching pipeline so iframe receives valid view targets.
 - Fixed error duplication in DevTools by implementing smart error fingerprinting deduplication and tracking occurrence count, first seen, and last seen timestamps.
 
 ## Improved
+
 - Redesigned Developer Inspector dock into a sleek 320px floating Edge card with translucent backdrop blur and smooth spring physics.
 - Standardized all error boundary recovery actions and warning inspect actions to use the canonical `CopyButton` component.
 - Connected `ErrorBoundary.componentDidCatch` exceptions directly into the devTools error buffer pipeline.
@@ -791,10 +1246,12 @@ Release Date: 2026-07-26
 Release Date: 2026-07-25
 
 ## Fixed
+
 - Fixed StudioToggle double-firing and flickering by eliminating `<label>` wrapping `<button>` structure and implementing smooth 60 FPS CSS spring transitions.
 - Fixed Freeze UI interaction leaking: injected airtight global CSS rules and capturing event listeners to block 100% of application touches, clicks, scrolls, gestures, navigation, and keyboard inputs while leaving Developer Inspector controls fully active.
 
 ## Improved
+
 - Redesigned Debug Panel to a sleek Samsung Edge Panel style collapsible right-side drawer with translucent handle, 60 FPS spring slide transition, and blurred backdrop filter.
 - Standardized all Copy buttons across the Developer Inspector with a shared `CopyButton` component featuring spring scale animations, crossfade icons (`content_copy` -> `check`), label swaps, 1.4s auto-revert, and fallback clipboard handling.
 - Global Report Compression: introduced `compressReportText(...)` utility to ensure all copied diagnostic reports remain concise (< 10 pages / < 250 lines).
@@ -804,10 +1261,12 @@ Release Date: 2026-07-25
 Release Date: 2026-07-25
 
 ## Fixed
+
 - Fixed repository-wide React Hook determinism: completed AST static analysis scanning 490 source files (3,586 components and 29 custom hooks) to guarantee zero hook execution order violations.
 - Fixed Empty Error Objects (`console.error {}`) by introducing `normalizeErrorInput(...)` to extract non-enumerable `Error` properties (`message`, `stack`, `name`), Promise rejections, and custom diagnostic objects cleanly.
 
 ## Improved
+
 - Smart Error Grouping Engine: grouped runtime errors by a stable signature (`module|cleanMessage|firstStackLine`).
 - Deduplication Metadata: maintained `Occurred: x12` count badges, `First seen` timestamp, `Last seen` timestamp, and preserved initial complete stack trace without duplicate listings.
 
@@ -816,10 +1275,12 @@ Release Date: 2026-07-25
 Release Date: 2026-07-25
 
 ## Fixed
+
 - Fixed React Error #300 & #310 hook ordering issues by ensuring all DevTools hooks run unconditionally at top-level.
 - Fixed Event Diagnostics pipeline bug by recording touch and click gestures into the ring buffer continuously from app boot.
 
 ## Improved
+
 - Unified Copy UX: introduced reusable dark pill `CopyButton` component with microinteractions, inline status transformation (`Copy` -> `Copied!`), and automatic 1.2s revert timer.
 - Enhanced Top Copy Menu: `Copy Everything` exports all logs, warnings, errors, events, system & performance data formatted with clear section headers (`======================== Logs ========================`).
 - Simplified Diagnostics Views: Performance, Network, System Diagnostics, and Storage tabs now feature clean 1-button copy exports with grouped categories.
@@ -830,6 +1291,7 @@ Release Date: 2026-07-25
 Release Date: 2026-07-25
 
 ## Improved
+
 - Global Live Inspector Dock: persistent developer inspection panel available everywhere across Studio (Hub, Settings, Chordex, Groovex, Stagex, Vocalex, sheets, overlays).
 - Full Freeze UI Subsystem: pauses all CSS animations, transitions, MotionValues, and video/audio media for pixel-perfect static frame inspection.
 - DevTools Box Model Shading: Chrome DevTools color-coded overlays (Margin: Amber, Border: Yellow, Padding: Emerald, Content: Blue) with live scroll/resize event synchronization.
@@ -840,6 +1302,7 @@ Release Date: 2026-07-25
 Release Date: 2026-07-25
 
 ## Improved
+
 - Material 3 Developer Options: redesigned Developer Options with a native Android Material 3 visual hierarchy, clean card elevation, and Material Symbols icons.
 - Fixed currentApp ReferenceError: resolved the root cause of ReferenceError: currentApp is not defined by cleanly deriving currentApp at top-level component scope in DevToolsDashboard.
 - Standardized Spring Toggle: replaced all custom switches in Developer Options with the canonical CSS spring StudioToggle component.
@@ -849,6 +1312,7 @@ Release Date: 2026-07-25
 Release Date: 2026-07-25
 
 ## Improved
+
 - Livex Developer Inspector: added a complete Chrome DevTools / Layout Inspector suite for native Android with zero runtime overhead when disabled.
 - Dual inspection modes: support for 500ms Long Press gesture and real-time Live Selector canvas dragging.
 - Android Preview Workflow: implemented pnpm preview:android to build and test Preview APKs on connected phone before production release.
@@ -858,6 +1322,7 @@ Release Date: 2026-07-25
 Release Date: 2026-07-25
 
 ## Improved
+
 - Transitions.dev CSS Spring Toggle: replaced all switches across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex with exact spring overshoot double-bounce animation.
 - Bottom Navigation hover stabilization: strictly clamped highlight pill position within navbar bounds at all times.
 - Stable highlight width interpolation: eliminated velocity-based size oscillation and press pressure swelling for smooth 60 FPS finger tracking across tabs.
@@ -867,6 +1332,7 @@ Release Date: 2026-07-25
 Release Date: 2026-07-24
 
 ## Improved
+
 - Consolidated Bottom Navigation: unified scroll-hide, inward convergence, and spacing across Hub, Chordex, Drumex, Stagex, Groovex, and Vocalex.
 - Hub scroll-hide alignment: Hub Search bubble uses identical spring transforms (targetDockShift, targetSwitcherShift) as Chordex.
 - Groovex centering: fixed layout positioning to guarantee 100% centered bottom navigation and App Changer.
@@ -878,6 +1344,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Deterministic initial highlight position: synchronous DOM measurement on initial mount places highlight pill directly at target coordinates.
 - Navbar width safeguard: corrected maxBarWidth to reserve space for Search bubble on Hub, preventing search button from being pushed off-screen.
 - Bounded highlight pill clamping: mathematically clamped pillX within dock bounds so highlight never exits navbar container.
@@ -889,6 +1356,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Hub Layout polish: moved floating circular Search bubble to the right side of the Hub for perfect visual balance (`[ Bottom Navigation ] [ Search Bubble ]`).
 - Highlight Pill sizing: increased internal padding (+24px horizontal, 4px vertical) for generous breathing room without clipping or overflowing.
 - Updater Progress simplification: removed duplicate secondary blue progress section, maintaining a single primary progress bar.
@@ -899,6 +1367,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Hub Settings active Changelog: integrated scrollable release notes directly above About in all Hub Settings modal interactions.
 - Redesigned Hub Bottom Navigation: dock contains Profile, Home, and Settings.
 - Symmetrical Floating Search Bubble: created separate floating circular search button opposite App Changer on Hub.
@@ -913,6 +1382,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Bottom Navigation auto-reset on screen exit: navigation scale and position reset back to default (100% scale) on every route/screen transition.
 - Reduced Bottom Navigation scroll shrink amount to a refined 15% reduction (1.00 -> 0.85) with smooth center spring movement.
 - Unified Hub UI architecture into a single active Hub Settings panel featuring the scrollable Changelog section immediately above About.
@@ -923,6 +1393,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Permanent architectural separation of Studio Hub and Chordex applications with isolated feature ownership (`StudioHubSettingsPanel` vs `ChordexSettingsPanel`).
 - Added dedicated Changelog & Release Notes section to Hub Settings immediately above About section.
 
@@ -931,6 +1402,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Sub-app bottom navigation shrink alignment fix: corrected navbar shrink direction on sub-apps so glass-nav scales 25% and translates rightward toward screen center while the App Switcher translates leftward, eliminating leftward shrink bias.
 
 # Version 4.2.75
@@ -938,6 +1410,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Highlight alignment DOM geometry: calculated highlight center points directly from browser-rendered DOM element coordinates for 0.000px centered highlight placement over rendered content.
 - Dynamic 25% shrink centering math: derived horizontal composition translations dynamically from window and dock element widths for symmetrical side-by-side centering on scroll down.
 - Hub / Chordex context isolation: gated global Changelog section to Hub context, preventing release notes from leaking into Chordex Preferences.
@@ -947,6 +1420,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Highlight alignment root-cause fix: resolved padding double-counting origin error in getPillX calculation for 0.00px centered highlight placement over rendered content.
 - 25% shrink & mutual center translation: refined scroll shrink scale to 25% (1.00 -> 0.75) while introducing converging navX and switcherX horizontal translations for a compact, unified side-by-side composition on scroll down.
 
@@ -955,6 +1429,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Real DOM highlight sizing: attached ResizeObserver layout measurements directly to active item content wrappers (getBoundingClientRect + 16px horizontal padding) for perfect content-hugging highlights across all font scales and localizations.
 - Bouncy 40% center scale animation: re-enabled scroll offset tracking to scale the Bottom Navigation and App Switcher button by 40% (1.00 -> 0.60) toward their center-center point on scroll down, with bouncy spring recovery on scroll up and zero vertical translation or hiding.
 
@@ -963,6 +1438,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Highlight geometry refinement: un-clamped and recalculated active highlight pill sizing (20px icon + 6px gap + 6.4px/char + 16px padding) for exact content wrapping without oversized pills or clipping.
 - Complete scroll animation removal: purged scroll collapse listeners, scroll offset MotionValues, and scale interpolations so Bottom Navigation remains 100% static across all scroll interactions.
 
@@ -971,6 +1447,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Native updater cleanup: completely removed legacy `[Simulation Guard]` throw checks, simulation mode overrides, and developer simulation toasts.
 - Native installation path: updater pipeline now executes real native PackageInstaller installation flow directly.
 - Highlight geometry refinement: dynamic highlight algorithm un-clamped to perfectly wrap active tab icon and label comfortably on every tab, localization, and font scale.
@@ -981,6 +1458,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Truly universal highlight sizing: dynamic active item content measurement (icon + gap + label + 24px padding) guarantees perfect active highlight wrapping without text clipping or undersized pills across all screens, including Preferences.
 - Simplified scale-only collapse animation: completely replaced over-engineered collapse motion with clean center scaling (1.0 -> 0.70) with 0 translation (`y = 0`) and preserved 100% blur and opacity.
 - Apple-grade spring restore: smooth 100% scale restoration on scroll up with natural overshoot and soft settle.
@@ -990,6 +1468,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Consistent spacing gap: added a subtle 8px gap between the Bottom Navigation dock and the floating App Changer button across all apps and screens.
 - Apple-grade press animation: added tactile press-in scaling (`scale: 0.92`) and spring release with overshoot to the App Changer trigger button.
 - Icons-only App Changer mode: removed text labels in App Changer popup mode for a clean, uncluttered icons-only display.
@@ -1001,6 +1480,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Single dynamic highlight sizing algorithm: active highlight pill automatically measures label length and layout across all screens (Preferences, App Switcher, Songs, etc.) with generous padding and zero clipping.
 - In-place search bar morphing: global search bar reuses the exact floating pill dimensions of the Bottom Navigation container for a smooth, continuous morphing experience.
 - Visible scale collapse: scroll collapse maintains complete screen visibility (`containerY = 0`) while scaling down 35% with full opacity, blur, shadow, and touch feedback preserved.
@@ -1011,6 +1491,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Refined scroll collapse behavior: Bottom Navigation remains fixed on screen and scales down uniformly toward its center by 35% without sliding off-screen.
 - Enhanced active highlight pill geometry: expanded slot width and optimized inset padding to wrap active icon and text label with generous padding and zero clipping.
 - Expanded global search bar layout: max-width expanded to 720px with flex min-width zero and graceful text ellipsis truncation to prevent layout clipping.
@@ -1021,6 +1502,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Refined scroll collapse behavior: Bottom Navigation now stays fixed on screen and shrinks uniformly toward its center by 35% on scroll.
 - Enhanced active highlight pill geometry: increased dimensions and optimized top/bottom padding to encompass active icons and labels with equal padding and zero clipping.
 - Fixed backdrop blur synchronization: eliminated opacity fading on scroll collapse to ensure GPU backdrop filter composition layer remains continuously active during scale expansion.
@@ -1030,6 +1512,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-24
 
 ## Improved
+
 - Completely rewritten Bottom Navigation animation architecture using a single unified MotionValue root graph.
 - Continuous interpolation across navigation pill, icons, labels, scroll collapse, search expansion, and profile menu without discrete layout snapping.
 - Integrated profile menu card and backdrop directly into the unified motion engine for 60 FPS Apple-grade interaction quality.
@@ -1039,6 +1522,7 @@ Release Date: 2026-07-24
 Release Date: 2026-07-23
 
 ## Improved
+
 - Hardened build pipeline with strict TypeScript typechecking, reference audit, circular dependency detection, and import boundary enforcement.
 - Fixed orphan references and un-declared symbol usages across all workspaces.
 - Decoupled theme engine and update state machine circular dependencies using event listeners.
@@ -1048,6 +1532,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Redesigned Studio Updater UI matching official HTML spec with continuous glass surface.
 - Upgraded Bottom Navigation motion engine with continuous pillX and pillWidth MotionValues.
 - Verified zero runtime ReferenceErrors across repository via static analysis auditors.
@@ -1057,6 +1542,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Eliminated getCenterX orphan ReferenceError in SharedNavigationBar pointer drag handlers.
 - Added Repository-Wide Reference & Audit Validator to build pipeline.
 - Hardened Framer Motion event callbacks and component scope symbol safety.
@@ -1066,6 +1552,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Enforced single-owner navigation store invariants for Profile, Search, and App Switcher overlays.
 - Added Static Analysis Navigation Integrity Auditor script to build pipeline.
 - Hardened Error Boundary diagnostics with active navigation overlay telemetry snapshot.
@@ -1075,6 +1562,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Restored continuous MotionValue gliding active pill highlight across tabs.
 - Removed layout projection from navigation buttons to eliminate icon settling displacement.
 - Consolidated Bottom Navigation and App Switcher under unified spring scale architecture.
@@ -1084,6 +1572,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Unified Bottom Navigation scroll animation system with shared 30% shrink physics.
 - Fixed Profile menu tap unreliability by deferring pointer capture to drag mode.
 - Added independent 2000ms watchdog recovery system for guaranteed navigation restoration.
@@ -1093,6 +1582,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Polished Bottom Navigation with dynamic highlight resizing and 0 double highlight.
 - Synchronized icon and label rendering for instant appearance without delay.
 - Stabilized Profile menu stability and enforced mutual exclusion between Search and Profile.
@@ -1102,6 +1592,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Conducted comprehensive AST runtime stabilization pass across all core modules and shared components.
 - Eliminated dangling useNotificationService and unreadCount ReferenceErrors.
 - Verified 0 Cannot find name diagnostics across the entire monorepo.
@@ -1111,6 +1602,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Resolved startup freeze on logo screen by removing restrictive showHubEnabled render gate.
 - Hardened StartupCoordinator Phase 5 with DOM hub presence checks and persistent mount state.
 - Enhanced LaunchAnimationEngine with startup complete event catch-up and fail-safe watchdog fallback.
@@ -1120,6 +1612,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Redesigned Bottom Navigation to shrink by 22% on scroll while remaining fully visible on-screen.
 - Enhanced active tab indicator with horizontal pill expansion, custom icons, and section label text.
 - Added native spring physics for tab switching and automatic nav state restoration on route changes.
@@ -1132,6 +1625,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Restored original per-container Bottom Navigation auto-hide scroll engine without timers or polling hacks.
 - Permanently fixed Stagex Center Panel iframe rendering by removing obsolete conditional app checks.
 - Retired Updater Diagnostics and replaced it with a premium glassmorphic Coming Soon placeholder.
@@ -1142,6 +1636,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Resolved Profile popup immediate closure caused by ghost clicks and AnimatePresence fragment keying.
 - Restored continuous touchmove scroll hide and watchdog recovery for Bottom Navigation bar.
 - Fixed Stagex Center Panel blackout by connecting active app check to useNavigationStore.
@@ -1152,6 +1647,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Resolved updater diagnostics simulation leak causing false installation failures.
 - Enabled global scroll auto-hide navigation across all feature tabs.
 - Polish Profile popup tab toggle, backdrop, and Android Back button closure.
@@ -1162,6 +1658,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Fixed Bottom Navigation scrolling auto-hide trigger on Android devices.
 - Completed integration of the premium Profile Account Menu on the navigation bar.
 - Collapsed duplicate lifecycle updates in the Notification Center.
@@ -1171,6 +1668,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Redesigned Notification Center cards with status colors and cleaner typography.
 - Eliminated low-level download logs and collapsed duplicate notifications.
 - Fixed Bottom Navigation highlighting regression for settings sub-pages.
@@ -1181,6 +1679,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Cleaned up text animations, making all titles and headers static.
 - Resolved Stagex application switching navigation loop.
 - Restored Bottom Navigation auto-hide on scroll with page transition guards.
@@ -1190,6 +1689,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-23
 
 ## Improved
+
 - Resolved Bottom Navigation auto-hide regressions on settings and Hub sub-pages.
 - Expanded the Quick Actions catalog with 10 new diagnostic, appearance, and sub-app utility actions.
 - Implemented boundary dragging constraints for Quick Actions reordering.
@@ -1199,6 +1699,7 @@ Release Date: 2026-07-23
 Release Date: 2026-07-22
 
 ## Improved
+
 - Rolled back HeroUI integrations (ColorPicker, AlertDialog, Toast, and Alert-based Notification Center) to restore stable native UI and navigation behavior.
 - Fully resolved Bottom Navigation unexpected collapse regressions, stabilizing routing and tab transitions across all sub-apps.
 
@@ -1207,6 +1708,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Resolved Bottom Navigation unexpected collapse regression by using targeted modal backdrop triggers.
 - Redesigned Custom Accent Color picker popover with custom 2D free dragging and Pointer Capture.
 
@@ -1215,6 +1717,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Fixed Bottom Navigation to remain visible on tab changes.
 - Fixed Display Density layout scaling to prevent gray margins.
 - Refined Text Scale behavior to scale only typography.
@@ -1225,6 +1728,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Overhauled confirmation dialogs to use official HeroUI AlertDialog.
 - Replaced custom toast system with unified HeroUI Toast notifications.
 - Redesigned Notification Center items using HeroUI Alert components.
@@ -1234,6 +1738,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Redesigned Pinned Actions to a compact, launcher-style grid layout.
 - Added circular dashed "Add" action slot for grid layouts with fewer than 5 shortcuts.
 - Added official Livex logo in the upper-right corner of the Hub tab.
@@ -1246,6 +1751,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Refined Pinned Actions to a compact, high-density layout.
 - Removed Suggested Actions section from the UI.
 - Fixed Bottom Navigation scroll-restoration minimization bug on page-entry.
@@ -1259,6 +1765,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Implemented vertical drag-to-reorder layout for Pinned Actions with touch-hold activation and FLIP dragging.
 - Added usage-based Suggested Actions engine de-duplicated against pinned items.
 - Built native Android Foreground Service for resilient background update downloads with progress notifications.
@@ -1270,6 +1777,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Redesigned search bar into a single-surface morph of the bottom navigation dock with a horizontal Liquid Glass stretching animation.
 - Restructured search results to slide upward above the navigation dock, remaining visible when focusing input and opening the keyboard.
 - Streamlined search result cards by removing unnecessary icons and adding high-contrast category tags.
@@ -1281,6 +1789,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Optimized search transitions by morphing with a compact upward growth (55vh) and removing heavy fullscreen backdrop blurs to avoid layout thrashing.
 - Cached and deferred local-storage search index loading on mount to prevent CPU spikes during search open animations.
 - Prevented Bottom Navigation bar disappearances by adding a deterministic reset call on scroll observer element unmount.
@@ -1291,10 +1800,12 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Fixed
+
 - Stabilized global search by removing duplicate index registrations and unmounted stale closures from the Hub, preventing runtime crashes.
 - Resolved React Hook Ordering violation (#300) in the Shared Navigation Bar by raising `useTransform` to the component top level.
 
 ## Improved
+
 - Completely purged legacy header app switcher pill (`AppModeMenuLogo`) across Chordex, Drumex, Stagex, Groovex, Vocalex, and Settings for clean page headers.
 
 # Version 4.2.35
@@ -1302,6 +1813,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Refined Search Dock layout to sit naturally to the left and unified the Bottom Navigation and Search Button into a single morphing dock.
 - Restored centered sub-app Bottom Navigation layouts without empty placeholders or search button layouts.
 
@@ -1310,6 +1822,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Rebuilt global search as a floating morphing dock overlay with category chips and action command palettes.
 - Re-architected bottom navigation dock to mathematically center active tabs and utilize liquid-glass refraction blurs.
 
@@ -1318,6 +1831,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Overhauled settings layout and transitioned Profile into a primary bottom navigation tab.
 - Rebuilt the Profile tab with a modern Bento grid, interactive sync status card, and integrated activity timeline.
 - Resolved Stagex view synchronization and exit logo freezes on app switches.
@@ -1328,6 +1842,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Improved
+
 - Overhauled global design system to increase corner radii softness consistently.
 - Refined Bottom Navigation bar dimensions and height for comfort and native feel.
 - Enhanced layered progressive blurs, premium elevation, and translucency.
@@ -1337,6 +1852,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Fixed
+
 - Removed obsolete chords section from Chordex app completely.
 - Optimized Bottom Navigation to mount immediately as part of app shell.
 - Restored dedicated Updater settings page alongside Notification Center.
@@ -1346,6 +1862,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-22
 
 ## Fixed
+
 - Refactored Bottom Navigation to compute items synchronously and reactively from route history, resolving race conditions.
 - Fixed Stagex setup tab bug by mapping Setup view ID correctly to SetupHub.
 - Resolved Stagex switching/unmounting transition logo freeze.
@@ -1356,6 +1873,7 @@ Release Date: 2026-07-22
 Release Date: 2026-07-21
 
 ## Fixed
+
 - Removed duplicate local SharedNavigationBar from StageCorePanel in packages/ui-android, enforcing 100% single global bottom navigation.
 
 # Version 4.2.28
@@ -1363,6 +1881,7 @@ Release Date: 2026-07-21
 Release Date: 2026-07-21
 
 ## Fixed
+
 - Architected a single self-healing Bottom Navigation Controller system with permanent recovery watchdog and event-driven restoration. All sub-apps inherit identical navigation lifecycle.
 
 # Version 4.2.27
@@ -1370,6 +1889,7 @@ Release Date: 2026-07-21
 Release Date: 2026-07-21
 
 ## Fixed
+
 - Restored and unified single global Bottom Navigation Controller across all 7 studio apps.
 - Fixed session restoration auth listener to eliminate repeated login notifications on boot.
 
@@ -1378,6 +1898,7 @@ Release Date: 2026-07-21
 Release Date: 2026-07-21
 
 ## Fixed
+
 - Unified Bottom Navigation system into a single global controller across all 7 applications.
 - Fixed transition completion state restoration for Bottom Navigation pill.
 - Harmonized dark theme surface design tokens across all workspace packages and settings panels.

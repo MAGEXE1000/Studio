@@ -13,6 +13,7 @@ import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.widget.FrameLayout
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowCompat
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -27,20 +28,47 @@ import java.util.concurrent.TimeUnit
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.runtime.*
 import androidx.compose.animation.core.*
 import androidx.compose.ui.draw.drawWithContent
 import com.felixny.inkflow.inkReveal
 import com.felixny.inkflow.InkFlowConfig
+import android.view.ViewGroup
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.lens
+import com.kyant.backdrop.effects.vibrancy
 
 class MainActivity : BridgeActivity() {
 
@@ -56,6 +84,24 @@ class MainActivity : BridgeActivity() {
     }
 
     private var sharedFileUriToProcess: Uri? = null
+
+    private var navLeft by mutableFloatStateOf(0f)
+    private var navTop by mutableFloatStateOf(0f)
+    private var navWidth by mutableFloatStateOf(0f)
+    private var navHeight by mutableFloatStateOf(0f)
+    private var navVisible by mutableStateOf(false)
+    private var navTheme by mutableStateOf("dark")
+    private var navCornerRadius by mutableFloatStateOf(0f)
+
+    private var pillLeft by mutableFloatStateOf(0f)
+    private var pillWidth by mutableFloatStateOf(0f)
+    private var pillVisible by mutableStateOf(false)
+
+    private var floatLeft by mutableFloatStateOf(0f)
+    private var floatTop by mutableFloatStateOf(0f)
+    private var floatWidth by mutableFloatStateOf(0f)
+    private var floatHeight by mutableFloatStateOf(0f)
+    private var floatVisible by mutableStateOf(false)
 
     inner class ThemeTransitionBridge {
         @JavascriptInterface
@@ -89,6 +135,7 @@ class MainActivity : BridgeActivity() {
 
         registerPlugin(AppInstallerPlugin::class.java)
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
@@ -132,6 +179,208 @@ class MainActivity : BridgeActivity() {
             webView.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             
             webView.addJavascriptInterface(ThemeTransitionBridge(), "ThemeTransitionBridge")
+            webView.addJavascriptInterface(LiquidGlassBridge(), "LiquidGlassBridge")
+
+            val parentGroup = (webView.parent as? ViewGroup) ?: findViewById<ViewGroup>(android.R.id.content)
+            android.util.Log.i("LiquidGlass", "onCreate: parentGroup=$parentGroup, webViewParent=${webView.parent}")
+            if (parentGroup != null) {
+                parentGroup.removeView(webView)
+                
+                val composeView = ComposeView(this).apply {
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
+                }
+                parentGroup.addView(composeView)
+                android.util.Log.i("LiquidGlass", "onCreate: composeView added to parentGroup $parentGroup")
+                
+                composeView.setContent {
+                    val backdrop = rememberLayerBackdrop {
+                        drawRect(if (navTheme == "light") Color(0xFFF8FAFC) else Color(0xFF0E0E12))
+                        drawContent()
+                    }
+                    
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        val density = LocalDensity.current
+                        val strokeWidthPx = with(density) { 1.2f.dp.toPx() }
+
+                        val (fillColor, strokeColor, topHighlightColor) = when (navTheme) {
+                            "light" -> Triple(
+                                Color.White.copy(alpha = 0.55f),
+                                Color.Black.copy(alpha = 0.08f),
+                                Color.White.copy(alpha = 0.90f)
+                            )
+                            "amoled" -> Triple(
+                                Color.Black.copy(alpha = 0.58f),
+                                Color.White.copy(alpha = 0.22f),
+                                Color.White.copy(alpha = 0.45f)
+                            )
+                            else -> Triple( // "dark"
+                                Color(0xFF14151B).copy(alpha = 0.50f),
+                                Color.White.copy(alpha = 0.15f),
+                                Color.White.copy(alpha = 0.35f)
+                            )
+                        }
+
+                        val (pillFillColor, pillStrokeColor, pillHighlightColor) = when (navTheme) {
+                            "light" -> Triple(
+                                Color.White.copy(alpha = 0.50f),
+                                Color.Black.copy(alpha = 0.10f),
+                                Color.White.copy(alpha = 0.95f)
+                            )
+                            "amoled" -> Triple(
+                                Color.White.copy(alpha = 0.22f),
+                                Color.White.copy(alpha = 0.35f),
+                                Color.White.copy(alpha = 0.50f)
+                            )
+                            else -> Triple( // "dark"
+                                Color.White.copy(alpha = 0.16f),
+                                Color.White.copy(alpha = 0.26f),
+                                Color.White.copy(alpha = 0.40f)
+                            )
+                        }
+
+                        val (iconColor, _) = when (navTheme) {
+                            "light" -> Pair(Color(0xFF0F172A).copy(alpha = 0.70f), Color(0xFF0F172A))
+                            "amoled" -> Pair(Color.White.copy(alpha = 0.90f), Color.White)
+                            else -> Pair(Color.White.copy(alpha = 0.75f), Color.White)
+                        }
+
+                        // 1. AndroidView (WebView content layer) captured by backdrop
+                        AndroidView(
+                            factory = { webView },
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .layerBackdrop(backdrop)
+                        )
+
+                        // 2. Liquid Glass Surfaces & Icons rendered ON TOP of the live WebView content
+                        if (navVisible) {
+                            val navLeftDp = navLeft.dp
+                            val navTopDp = navTop.dp
+                            val navWidthDp = navWidth.dp
+                            val navHeightDp = navHeight.dp
+                            val navCornerRadiusDp = navCornerRadius.dp
+                            val barShape = RoundedCornerShape(navCornerRadiusDp)
+                            
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = navLeftDp, y = navTopDp)
+                                    .size(width = navWidthDp, height = navHeightDp)
+                                    .drawBackdrop(
+                                        backdrop = backdrop,
+                                        shape = { barShape },
+                                        effects = {
+                                            vibrancy()
+                                            blur(18f.dp.toPx())
+                                            lens(16f.dp.toPx(), 32f.dp.toPx(), depthEffect = true, chromaticAberration = true)
+                                        },
+                                        onDrawSurface = {
+                                            val outline = barShape.createOutline(size, layoutDirection, this)
+                                            drawOutline(outline = outline, color = fillColor)
+                                            drawOutline(
+                                                outline = outline,
+                                                color = strokeColor,
+                                                style = Stroke(width = strokeWidthPx)
+                                            )
+                                            drawOutline(
+                                                outline = outline,
+                                                brush = Brush.verticalGradient(
+                                                    listOf(topHighlightColor, Color.Transparent),
+                                                    startY = 0f,
+                                                    endY = size.height * 0.45f
+                                                ),
+                                                style = Stroke(width = strokeWidthPx)
+                                            )
+                                        }
+                                    )
+                            ) {
+                                if (pillVisible) {
+                                    val pillLeftDp = pillLeft.dp
+                                    val pillWidthDp = pillWidth.dp
+                                    val pillHeightDp = navHeightDp - 8f.dp
+                                    val pillShape = RoundedCornerShape(percent = 50)
+                                    
+                                    Box(
+                                        modifier = Modifier
+                                            .offset(x = pillLeftDp, y = 4f.dp)
+                                            .size(width = pillWidthDp, height = pillHeightDp)
+                                            .drawBackdrop(
+                                                backdrop = backdrop,
+                                                shape = { pillShape },
+                                                effects = {
+                                                    vibrancy()
+                                                    blur(18f.dp.toPx())
+                                                    lens(16f.dp.toPx(), 32f.dp.toPx(), depthEffect = true, chromaticAberration = true)
+                                                },
+                                                onDrawSurface = {
+                                                    val outline = pillShape.createOutline(size, layoutDirection, this)
+                                                    drawOutline(outline = outline, color = pillFillColor)
+                                                    drawOutline(
+                                                        outline = outline,
+                                                        color = pillStrokeColor,
+                                                        style = Stroke(width = strokeWidthPx)
+                                                    )
+                                                    drawOutline(
+                                                        outline = outline,
+                                                        brush = Brush.verticalGradient(
+                                                            listOf(pillHighlightColor, Color.Transparent),
+                                                            startY = 0f,
+                                                            endY = size.height * 0.5f
+                                                        ),
+                                                        style = Stroke(width = strokeWidthPx)
+                                                    )
+                                                }
+                                            )
+                                    )
+                                }
+                            }
+                        }
+
+                        if (floatVisible) {
+                            val floatLeftDp = floatLeft.dp
+                            val floatTopDp = floatTop.dp
+                            val floatWidthDp = floatWidth.dp
+                            val floatHeightDp = floatHeight.dp
+                            val floatShape = CircleShape
+                            
+                            Box(
+                                modifier = Modifier
+                                    .offset(x = floatLeftDp, y = floatTopDp)
+                                    .size(width = floatWidthDp, height = floatHeightDp)
+                                    .drawBackdrop(
+                                        backdrop = backdrop,
+                                        shape = { floatShape },
+                                        effects = {
+                                            vibrancy()
+                                            blur(18f.dp.toPx())
+                                            lens(16f.dp.toPx(), 32f.dp.toPx(), depthEffect = true, chromaticAberration = true)
+                                        },
+                                        onDrawSurface = {
+                                            val outline = floatShape.createOutline(size, layoutDirection, this)
+                                            drawOutline(outline = outline, color = fillColor)
+                                            drawOutline(
+                                                outline = outline,
+                                                color = strokeColor,
+                                                style = Stroke(width = strokeWidthPx)
+                                            )
+                                            drawOutline(
+                                                outline = outline,
+                                                brush = Brush.verticalGradient(
+                                                    listOf(topHighlightColor, Color.Transparent),
+                                                    startY = 0f,
+                                                    endY = size.height * 0.45f
+                                                ),
+                                                style = Stroke(width = strokeWidthPx)
+                                            )
+                                        }
+                                    )
+                            )
+                        }
+                    }
+                }
+            }
 
             val webViewInitTime = android.os.SystemClock.elapsedRealtime()
             webView.post {
@@ -272,6 +521,18 @@ class MainActivity : BridgeActivity() {
             processIncomingFile(targetUri)
         }
         handlePackageInstallerIntent(intent)
+        handleThemeIntent(intent)
+    }
+
+    private fun handleThemeIntent(intent: Intent?) {
+        val themeArg = intent?.getStringExtra("theme")
+        if (!themeArg.isNullOrEmpty()) {
+            runOnUiThread {
+                navTheme = themeArg
+                val js = "window.dispatchEvent(new CustomEvent('studio-set-theme', { detail: { theme: '$themeArg' } }));"
+                this.bridge?.webView?.evaluateJavascript(js, null)
+            }
+        }
     }
 
     private fun handlePackageInstallerIntent(intent: Intent?) {
@@ -418,6 +679,44 @@ class MainActivity : BridgeActivity() {
             )
         } catch (e: Exception) {
             android.util.Log.w("MainActivity", "Update background work failed to schedule: " + e.message)
+        }
+    }
+
+    inner class LiquidGlassBridge {
+        @android.webkit.JavascriptInterface
+        fun updatePosition(left: Float, top: Float, width: Float, height: Float, visible: Boolean, theme: String, cornerRadius: Float) {
+            android.util.Log.i("LiquidGlass", "updatePosition: left=$left, top=$top, w=$width, h=$height, vis=$visible, theme=$theme, rad=$cornerRadius")
+            runOnUiThread {
+                navLeft = left
+                navTop = top
+                navWidth = width
+                navHeight = height
+                navVisible = visible
+                navTheme = theme
+                navCornerRadius = cornerRadius
+            }
+        }
+
+        @android.webkit.JavascriptInterface
+        fun updatePillPosition(left: Float, width: Float, visible: Boolean) {
+            android.util.Log.i("LiquidGlass", "updatePillPosition: left=$left, width=$width, vis=$visible")
+            runOnUiThread {
+                pillLeft = left
+                pillWidth = width
+                pillVisible = visible
+            }
+        }
+
+        @android.webkit.JavascriptInterface
+        fun updateFloatingButtonPosition(left: Float, top: Float, width: Float, height: Float, visible: Boolean) {
+            android.util.Log.i("LiquidGlass", "updateFloatingButtonPosition: left=$left, top=$top, w=$width, h=$height, vis=$visible")
+            runOnUiThread {
+                floatLeft = left
+                floatTop = top
+                floatWidth = width
+                floatHeight = height
+                floatVisible = visible
+            }
         }
     }
 

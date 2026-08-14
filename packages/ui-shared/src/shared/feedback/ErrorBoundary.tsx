@@ -1,8 +1,9 @@
-import { NavigationDispatcher, addError } from '@workspace/studio-core';
+import { NavigationDispatcher, addError, processDiagnosticReport } from '@workspace/studio-core';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { useChordStore, globalUpdateState, useSettingsStore, useBottomNavigationStore } from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
 import CopyButton from '../../features/devtools/components/CopyButton';
+import RootAppCrashReportUI from './RootAppCrashReportUI';
 
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 const CHAR_MAP: Record<string, number> = {};
@@ -424,7 +425,25 @@ Recommended Fix: ${decoded.fix}
     }
   }
 
-  return `=== SYMBOLICATED REACT ERROR REPORT ===
+  const diagReport = processDiagnosticReport(logEntry.message, symbolicatedStack || logEntry.stack, {
+    module: logEntry.activeSubApp || logEntry.appMode || 'RootApp',
+    source: `ErrorBoundary:${exactComponent}`,
+    componentStack: symbolicatedComponentStack || logEntry.componentStack,
+    activeSubApp: logEntry.activeSubApp,
+    appMode: logEntry.appMode,
+    lastNavigationAction: logEntry.lastNavigationAction,
+    navSnapshot: logEntry.navSnapshot,
+    currentUpdaterState: logEntry.currentUpdaterState,
+    fiberDiagnostics: logEntry.fiberDiagnostics,
+    symbolicatedStack,
+  });
+
+  return `${diagReport.formattedSummary}
+
+========================================
+Technical Details (Expandable)
+
+=== RUNTIME METRICS ===
 Timestamp: ${new Date(logEntry.timestamp).toISOString()}
 App Mode: ${logEntry.appMode}
 Active Sub-App: ${logEntry.activeSubApp}
@@ -734,62 +753,12 @@ export class ErrorBoundary extends Component<Props, State> {
       const isRootApp = this.props.moduleName === 'RootApp';
 
       return (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            width: '100%',
-            background: '#121214',
-            color: '#eaeaea',
-            padding: 24,
-            textAlign: 'center',
-            fontFamily: 'Manrope, sans-serif',
-            boxSizing: 'border-box',
-          }}
-        >
-          <ErrorCard
-            message={`An unexpected error occurred in the ${mod} module. Try restarting the module or return to the Studio Hub.`}
-            onRetry={() => this.setState({ hasError: false, error: null, suppressed: false })}
-          />
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 12,
-              alignItems: 'center',
-              marginTop: 16,
-            }}
-          >
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <Button variant="secondary" size="sm" onClick={this.handleReturnToHub}>
-                Return to Hub
-              </Button>
-            </div>
-
-            {isRootApp && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8, alignItems: 'center' }}>
-                <CopyButton
-                  getTextToCopy={() => localStorage.getItem('studio_rootapp_error_boundary_log') || '[]'}
-                  label="Copy RootApp Error Log"
-                  copiedLabel="Copied Log!"
-                  size="sm"
-                />
-                <CopyButton
-                  getTextToCopy={() =>
-                    localStorage.getItem('studio_rootapp_last_symbolicated_report') || 'No symbolicated report found'
-                  }
-                  label="Copy Symbolicated React Error Report"
-                  copiedLabel="Copied Report!"
-                  size="sm"
-                  style={{ background: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.4)', color: '#ef4444' }}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+        <RootAppCrashReportUI
+          error={this.state.error}
+          moduleName={this.props.moduleName}
+          onRetry={() => this.setState({ hasError: false, error: null, suppressed: false })}
+          onReturnToHub={this.handleReturnToHub}
+        />
       );
     }
 

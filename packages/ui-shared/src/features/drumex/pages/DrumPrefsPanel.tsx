@@ -152,10 +152,7 @@ export default function DrumPrefsPanel() {
     resetNav();
   }, []);
 
-  const acc =
-    ACCENT_COLORS[
-      (settings.perApp?.drumex?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
-    ] ?? ACCENT_COLORS.blue;
+  const acc = ACCENT_COLORS.blue;
   const cardStyle: React.CSSProperties = {
     background: 'var(--app-surface)',
     borderRadius: '1.5rem',
@@ -240,10 +237,7 @@ export default function DrumPrefsPanel() {
         </PrefsRow>
       );
     }
-    const acc =
-      ACCENT_COLORS[
-        (settings.perApp?.drumex?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
-      ] ?? ACCENT_COLORS.blue;
+    const acc = ACCENT_COLORS.blue;
     return (
       <SettingRow label={label} desc={desc}>
         <Toggle
@@ -406,32 +400,14 @@ export default function DrumPrefsPanel() {
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '0 20px',
+          padding: '0 24px',
           paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom)) + 90px)',
         }}
       >
-        <div style={{ marginTop: 12, marginBottom: 24 }}>
-          <StudioHeader
-            title={dp.title}
-            subtitle={dp.subtitle}
-            titleStyle={{
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 900,
-              fontSize: '2.6rem',
-              color: 'var(--c-text-primary)',
-              letterSpacing: '-0.04em',
-              lineHeight: 1,
-              margin: 0,
-            }}
-            subtitleStyle={{
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-body)',
-              fontSize: 13,
-              marginTop: 4,
-              margin: 0,
-            }}
-          />
-        </div>
+        <StudioHeader
+          title={dp.title}
+          subtitle={dp.subtitle}
+        />
 
         <SectionHeader icon="edit_note" title={dp.editorBehavior} />
         <Card style={{ padding: 0, overflow: 'hidden' }}>

@@ -48,9 +48,7 @@ export function useLibraryState() {
   const [showGenerator, setShowGenerator] = useState(false);
 
   const allChords = useMemo(() => getAllChords(), []);
-  const accent =
-    ACCENT_COLORS[settings.perApp?.chordex?.accentColor ?? settings.accentColor] ??
-    ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
     
   const isLight =
     settings.theme === 'light' ||

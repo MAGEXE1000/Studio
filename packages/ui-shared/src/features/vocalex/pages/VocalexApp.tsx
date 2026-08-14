@@ -22,6 +22,7 @@ import { SharedNavigationContainer } from '../../../navigation/SharedNavigationC
 
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { AnimatedNavigationIcon } from '../../hub/navigation/AnimatedNavigationIcon';
 
 import { IconSettings } from '../../hub/icons/NavIcons';
@@ -92,10 +93,9 @@ export default function VocalexApp() {
   const appKey = 'vocalex' as AppKey;
   const activeVis = settings.perApp?.[appKey] ?? {
     theme: 'dark' as const,
-    accentColor: 'blue' as const,
     amoledMode: false,
   };
-  const accent = ACCENT_COLORS[activeVis.accentColor] ?? ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const isLight = (() => {
     if (activeVis.theme === 'light') return true;
     if (activeVis.theme === 'system') {
@@ -114,8 +114,6 @@ export default function VocalexApp() {
 
   const activeTabRef = useRef(activeTab);
   activeTabRef.current = activeTab;
-  const activeVisAccentRef = useRef(activeVis.accentColor);
-  activeVisAccentRef.current = activeVis.accentColor;
   const isLightRef = useRef(isLight);
   isLightRef.current = isLight;
 
@@ -125,7 +123,6 @@ export default function VocalexApp() {
       name: 'Vocalex App',
       getDebugState: () => ({
         activeTab: activeTabRef.current,
-        accentColor: activeVisAccentRef.current,
         isLight: isLightRef.current,
       }),
     });
@@ -267,8 +264,8 @@ function VocalexPreferences() {
 
   const t = useT();
   const vt = t.vocalex as any;
-  const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', accentColor: 'blue' };
-  const acc = ACCENT_COLORS[activeVis.accentColor] ?? ACCENT_COLORS.blue;
+  const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', amoledMode: false };
+  const acc = ACCENT_COLORS.blue;
   const isLight =
     activeVis.theme === 'light' ||
     (activeVis.theme === 'system' &&
@@ -284,33 +281,11 @@ function VocalexPreferences() {
   ];
 
   return (
-    <div style={{ padding: '24px 20px', minHeight: '100%' }}>
-      <div style={{ marginBottom: 28 }}>
-        <h2
-          style={{
-            fontFamily: 'var(--font-headline)',
-            fontWeight: 800,
-            fontSize: 34,
-            letterSpacing: '-0.03em',
-            color: 'var(--c-text-primary)',
-            margin: '0 0 8px',
-            lineHeight: 1,
-          }}
-        >
-          {vt.settingsTitle || 'Preferences'}
-        </h2>
-        <p
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 13,
-            color: 'var(--c-text-secondary)',
-            margin: 0,
-            lineHeight: 1.5,
-          }}
-        >
-          Configure default behaviors for Vocalex.
-        </p>
-      </div>
+    <div style={{ padding: '0 24px', minHeight: '100%' }}>
+      <StudioHeader
+        title={vt.settingsTitle || 'Preferences'}
+        subtitle="Configure default behaviors for Vocalex."
+      />
 
       <Card
         style={{

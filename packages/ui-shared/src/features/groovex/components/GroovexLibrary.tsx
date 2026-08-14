@@ -112,34 +112,19 @@ export default function GroovexLibrary() {
     >
       <div
         style={{
-          padding: isWebDesktop ? '0 32px' : '0 20px',
+          padding: '0 24px',
           paddingBottom: 'var(--content-bottom-pad)',
         }}
       >
-        <section
-          style={{ paddingTop: isWebDesktop ? 24 : 32, marginBottom: isWebDesktop ? 24 : 32 }}
-        >
-          <StudioHeader
-            title={t.groovex.libraryTitle}
-            subtitle={t.groovex.sessionsAvailable(SONG_CATALOG.length)}
-            titleStyle={{
-              fontSize: isWebDesktop ? 26 : 32,
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              margin: '0 0 4px',
-              color: 'var(--c-text-primary)',
-            }}
-            subtitleStyle={{
-              fontSize: 10,
-              color: 'var(--c-text-muted)',
-              fontFamily: 'var(--font-body)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              margin: 0,
-              fontWeight: 700,
-            }}
-          />
-        </section>
+        <StudioHeader
+          title={t.groovex.libraryTitle}
+          subtitle={t.groovex.sessionsAvailable(SONG_CATALOG.length)}
+          subtitleStyle={{
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            fontWeight: 700,
+          }}
+        />
 
         <section style={{ marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <SearchBar

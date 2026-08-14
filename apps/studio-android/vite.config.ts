@@ -41,6 +41,8 @@ export default defineConfig(async ({ command, mode }) => {
   } catch (e: any) {
     console.warn('Vite Config: ⚠ Could not get git commit SHA:', e.message);
   }
+
+
   const buildTimestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
 
   envDefines['import.meta.env.VITE_GIT_COMMIT_SHA'] = JSON.stringify(gitCommitSha);
@@ -113,6 +115,7 @@ export default defineConfig(async ({ command, mode }) => {
               if (id.includes('/@capacitor/')) return 'capacitor';
               if (id.includes('/@fontsource/')) return 'fonts';
               if (id.includes('/firebase/') || id.includes('/@firebase/')) return 'firebase';
+              if (id.includes('/motion/') || id.includes('/framer-motion/')) return 'motion-vendor';
             }
           },
         },

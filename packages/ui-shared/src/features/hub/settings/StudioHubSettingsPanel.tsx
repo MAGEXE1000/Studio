@@ -3,7 +3,6 @@ import React from 'react';
 import {
   useSettingsStore,
   settingsController,
-  ACCENT_COLORS,
   useT,
 } from '@workspace/studio-core';
 import { motion } from 'motion/react';
@@ -14,8 +13,10 @@ import {
   SegmentedControl,
   Toggle,
 } from '../../../shared/settings/SettingControls';
-import InspiraColorPicker from '../../../components/ui/InspiraColorPicker';
+import { SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
+
 import { LanguagePickerSheet, SUPPORTED_LANGUAGES } from '../../../shared/settings/LanguagePickerSheet';
+import { Button } from '../../../shared/design-system/buttons';
 
 /**
  * StudioHubSettingsPanel — Completely Rebuilt Settings & Appearance Reference Implementation
@@ -32,41 +33,15 @@ export default function StudioHubSettingsPanel() {
 
 
 
-  const acc = React.useMemo(() => {
-    const hubAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'purple';
-    return hubAccentKey === 'custom'
-      ? {
-          from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
-          mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
-          to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
-        }
-      : ((ACCENT_COLORS as any)[hubAccentKey] ?? ACCENT_COLORS.purple);
-  }, [settings.perApp?.hub?.accentColor, settings.accentColor, settings.customAccentHue]);
-
   return (
     <StudioPageTransition pageKey="hub-settings-panel">
-      <div
+      <SettingsContentContainer
         style={{
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          boxSizing: 'border-box',
-          background: 'transparent',
+          paddingTop: 'var(--space-4)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
           color: 'var(--c-text-primary)',
         }}
       >
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--density-section-gap, 24px)',
-            paddingLeft: 'var(--density-pad, 16px)',
-            paddingRight: 'var(--density-pad, 16px)',
-            paddingTop: 'var(--spacing-md, 16px)',
-            paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
-            boxSizing: 'border-box',
-          }}
-        >
           {/* Theme Section */}
           <SettingSection title="Appearance Theme">
             <SettingRow label="Theme Mode" desc="Switch between Light and Dark themes">
@@ -74,12 +49,7 @@ export default function StudioHubSettingsPanel() {
             </SettingRow>
           </SettingSection>
 
-          {/* Accent Color Section */}
-          <SettingSection title="Accent Color">
-            <div className="p-3">
-              <InspiraColorPicker />
-            </div>
-          </SettingSection>
+
 
           {/* Interface Scaling Section */}
           <SettingSection title="Interface Scaling">
@@ -92,8 +62,6 @@ export default function StudioHubSettingsPanel() {
                   { value: 'spacious', label: 'Spacious' },
                 ]}
                 onChange={(v) => settingsController.updateSettings({ displayDensity: v })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
                 layoutId="density-control"
               />
             </SettingRow>
@@ -106,8 +74,6 @@ export default function StudioHubSettingsPanel() {
                   { value: 'large', label: 'Large' },
                 ]}
                 onChange={(v) => settingsController.updateSettings({ fontSize: v })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
                 layoutId="font-size-control"
               />
             </SettingRow>
@@ -116,22 +82,15 @@ export default function StudioHubSettingsPanel() {
           {/* Language Section */}
           <SettingSection title="Language">
             <SettingRow label="App Language" desc="Change the display language for Studio">
-              <button
-                type="button"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => setIsLanguageOpen(true)}
                 style={{
-                  padding: '8px 14px',
-                  borderRadius: 10,
                   border: '1.5px solid var(--c-outline-variant, rgba(128,128,128,0.18))',
                   background: 'var(--c-surface-container, rgba(255,255,255,0.04))',
                   color: 'var(--c-text-primary, #ffffff)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'border-color 200ms ease, background 200ms ease',
+                  borderRadius: 10,
                 }}
               >
                 <span>
@@ -140,7 +99,7 @@ export default function StudioHubSettingsPanel() {
                 <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}>
                   expand_more
                 </span>
-              </button>
+              </Button>
             </SettingRow>
           </SettingSection>
 
@@ -175,8 +134,7 @@ export default function StudioHubSettingsPanel() {
               />
             </SettingRow>
           </SettingSection>
-        </div>
-      </div>
+      </SettingsContentContainer>
 
       <LanguagePickerSheet open={isLanguageOpen} onClose={() => setIsLanguageOpen(false)} />
     </StudioPageTransition>

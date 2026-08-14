@@ -8,7 +8,7 @@
     .container { max-width: 960px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     h1 { margin-top: 0; color: #38bdf8; font-size: 28px; border-bottom: 2px solid #334155; padding-bottom: 15px; }
     .score-box { display: flex; align-items: center; justify-content: space-between; background: #334155; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
-    .score { font-size: 36px; font-weight: bold; color: #4ade80; }
+    .score { font-size: 36px; font-weight: bold; color: #f87171; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid #334155; }
     th { background: #0f172a; color: #94a3b8; font-size: 13px; text-transform: uppercase; }
@@ -28,11 +28,11 @@
     <div class="score-box">
       <div>
         <div style="font-size: 14px; color: #94a3b8;">Overall Release Ecosystem Health</div>
-        <div class="score">100%</div>
+        <div class="score">50%</div>
       </div>
       <div>
-        <span class="badge bg-pass" style="font-size: 16px; padding: 8px 16px;">
-          READY FOR PRODUCTION RELEASE
+        <span class="badge bg-fail" style="font-size: 16px; padding: 8px 16px;">
+          DEGRADED / ACTION REQUIRED
         </span>
       </div>
     </div>
@@ -49,27 +49,27 @@
       </thead>
       <tbody>
         
-      <tr class="pass">
+      <tr class="fail">
         <td><strong>GitHub Release</strong></td>
-        <td><span class="badge bg-pass">PASS</span></td>
-        <td>REST API</td>
-        <td>Tag: v4.3.77, Title: 4.3.77, Assets: 17</td>
+        <td><span class="badge bg-fail">FAILED</span></td>
+        <td>None</td>
+        <td>GitHub Release tag 'v4.5.22' not found.</td>
       </tr>
     
 
-      <tr class="pass">
+      <tr class="fail">
         <td><strong>Git Tag</strong></td>
-        <td><span class="badge bg-pass">PASS</span></td>
+        <td><span class="badge bg-fail">FAILED</span></td>
         <td>N/A</td>
-        <td>Tag v4.3.77 verified on remote origin</td>
+        <td>Git tag 'v4.5.22' not found locally or on origin repository.</td>
       </tr>
     
 
-      <tr class="pass">
+      <tr class="fail">
         <td><strong>APK</strong></td>
-        <td><span class="badge bg-pass">PASS</span></td>
+        <td><span class="badge bg-fail">FAILED</span></td>
         <td>N/A</td>
-        <td>APK size: 50.17 MB</td>
+        <td>Compiled APK not found at C:\Users\ayuda\Documents\Studio\chordex-app\apps\studio-android\android\app\build\outputs\apk\release\app-release.apk.</td>
       </tr>
     
 
@@ -77,7 +77,7 @@
         <td><strong>Firebase</strong></td>
         <td><span class="badge bg-pass">PASS</span></td>
         <td>N/A</td>
-        <td>Deployed Version: 4.3.77 (versionCode: 40398)</td>
+        <td>Deployed Version: 4.5.21 (versionCode: 40521)</td>
       </tr>
     
 
@@ -85,7 +85,7 @@
         <td><strong>OTA</strong></td>
         <td><span class="badge bg-pass">PASS</span></td>
         <td>N/A</td>
-        <td>NATIVE_VERSION: 4.3.77</td>
+        <td>NATIVE_VERSION: 4.5.22</td>
       </tr>
     
 
@@ -93,15 +93,41 @@
         <td><strong>Signature</strong></td>
         <td><span class="badge bg-pass">PASS</span></td>
         <td>N/A</td>
-        <td>SHA256 Fingerprint verified: 900cf259185c8110...</td>
+        <td>APK not built locally; skipping signature verification.</td>
       </tr>
     
       </tbody>
     </table>
 
+    <h2>Actionable Failure Diagnostics</h2>
+      <div class="card card-fail">
+        <h3>[Failure 1] Component: GitHub Release</h3>
+        <p><strong>Priority:</strong> CRITICAL</p>
+        <p><strong>Root Cause:</strong> GitHub Release tag 'v4.5.22' not found.</p>
+        <p><strong>Suggested Fix:</strong> <code>Publish GitHub Release 'v4.5.22' with title '4.5.22' and release APK asset.</code></p>
+        <p><strong>Expected Resolution:</strong> GitHub Release exists and is visible on GitHub.</p>
+      </div>
     
 
-    <div class="timestamp">Generated: 2026-08-05T13:45:18.309Z</div>
+      <div class="card card-fail">
+        <h3>[Failure 2] Component: Git Tag</h3>
+        <p><strong>Priority:</strong> MEDIUM</p>
+        <p><strong>Root Cause:</strong> Git tag 'v4.5.22' not found locally or on origin repository.</p>
+        <p><strong>Suggested Fix:</strong> <code>Create and push tag 'v4.5.22' during application release publication stage.</code></p>
+        <p><strong>Expected Resolution:</strong> Git tag 'v4.5.22' exists on origin repository.</p>
+      </div>
+    
+
+      <div class="card card-fail">
+        <h3>[Failure 3] Component: APK</h3>
+        <p><strong>Priority:</strong> HIGH</p>
+        <p><strong>Root Cause:</strong> Compiled APK not found at C:\Users\ayuda\Documents\Studio\chordex-app\apps\studio-android\android\app\build\outputs\apk\release\app-release.apk.</p>
+        <p><strong>Suggested Fix:</strong> <code>Run pnpm build:android before running release checks or building release bundle.</code></p>
+        <p><strong>Expected Resolution:</strong> APK binary present at C:\Users\ayuda\Documents\Studio\chordex-app\apps\studio-android\android\app\build\outputs\apk\release\app-release.apk.</p>
+      </div>
+    
+
+    <div class="timestamp">Generated: 2026-08-11T23:21:30.632Z</div>
   </div>
 </body>
 </html>

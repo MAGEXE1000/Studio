@@ -32,8 +32,7 @@ export default function App() {
   const settings = useSettingsStore((s) => s.settings);
   const [showLaunchOverlay, setShowLaunchOverlay] = useState(true);
   const initialPresetRef = useRef<any>(
-    typeof window !== 'undefined' &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches
+    typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'default'
       : 'default'
   );
@@ -63,21 +62,25 @@ export default function App() {
           {children}
         </TolgeeProvider>
       )}
-      renderLaunchOverlay={showLaunchOverlay ? () => (
-        <LaunchAnimationEngine
-          preset={initialPresetRef.current}
-          skipIntro={false}
-          onComplete={() => setShowLaunchOverlay(false)}
-          isLight={
-            settings.theme === 'light' ||
-            (settings.theme === 'system' &&
-              typeof window !== 'undefined' &&
-              window.matchMedia('(prefers-color-scheme: light)').matches)
-          }
-          isAmoled={settings.perApp?.hub?.amoledMode}
-        />
-      ) : undefined}
-      renderBottomNav={() => <BottomNavigationController />}
+      renderLaunchOverlay={
+        showLaunchOverlay
+          ? () => (
+              <LaunchAnimationEngine
+                preset={initialPresetRef.current}
+                skipIntro={false}
+                onComplete={() => setShowLaunchOverlay(false)}
+                isLight={
+                  settings.theme === 'light' ||
+                  (settings.theme === 'system' &&
+                    typeof window !== 'undefined' &&
+                    window.matchMedia('(prefers-color-scheme: light)').matches)
+                }
+                isAmoled={settings.perApp?.hub?.amoledMode}
+              />
+            )
+          : undefined
+      }
+      renderBottomNav={!showLaunchOverlay ? () => <BottomNavigationController /> : undefined}
       hubElement={<StudioHub />}
       subApps={{
         devtools: <DevToolsApp />,
@@ -91,7 +94,7 @@ export default function App() {
           practice: <SaxophonePracticePanel />,
           library: <LibraryPanel />,
           preferences: <SettingsPanel />,
-        }
+        },
       }}
     />
   );

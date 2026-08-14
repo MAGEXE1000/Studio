@@ -1,5 +1,6 @@
 import React from 'react';
 import { LiveDiagram, MiniLiveDiagram } from './LiveDiagrams';
+import { Button } from '../../../shared/design-system/buttons';
 import ElasticSlider from '../../../shared/progress/ElasticSlider';
 import { type LiveModeState } from './useLiveModeState';
 import { useSettingsStore } from '@workspace/studio-core';
@@ -18,32 +19,24 @@ export function LiveModeHeader({ state }: { state: LiveModeState }) {
         pointerEvents: 'none',
       }}
     >
-      <button
+      <Button
+        variant="secondary"
+        size="icon"
         onClick={(e) => {
           e.stopPropagation();
           handleClose();
         }}
-        className="btn-smooth"
         data-testid="live-close"
         style={{
           width: '40px',
           height: '40px',
           borderRadius: '50%',
           background: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(255,255,255,0.12)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          borderColor: 'rgba(255,255,255,0.12)',
           pointerEvents: 'all',
         }}
-      >
-        <span
-          className="material-symbols-outlined"
-          style={{ color: 'var(--c-text-secondary)', fontSize: '20px' }}
-        >
-          close
-        </span>
-      </button>
+        icon="close"
+      />
 
       <div style={{ textAlign: 'center' }}>
         <p
@@ -64,21 +57,19 @@ export function LiveModeHeader({ state }: { state: LiveModeState }) {
       </div>
 
       <div style={{ display: 'flex', gap: '8px', pointerEvents: 'all' }}>
-        <button
+        <Button
+          variant="secondary"
+          size="icon"
           onClick={(e) => {
             e.stopPropagation();
             setShowSettings((s) => !s);
           }}
-          className="btn-smooth"
           style={{
             width: '40px',
             height: '40px',
             borderRadius: '50%',
             background: showSettings ? `${accent.from}33` : 'rgba(255,255,255,0.08)',
-            border: `1px solid ${showSettings ? accent.from + '55' : 'rgba(255,255,255,0.12)'}`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            borderColor: showSettings ? accent.from + '55' : 'rgba(255,255,255,0.12)',
           }}
         >
           <span
@@ -91,13 +82,13 @@ export function LiveModeHeader({ state }: { state: LiveModeState }) {
           >
             tune
           </span>
-        </button>
-        <button
+        </Button>
+        <Button
+          variant={autoPlay ? 'primary' : 'secondary'}
           onClick={(e) => {
             e.stopPropagation();
             setAutoPlay((a) => !a);
           }}
-          className="btn-smooth"
           data-testid="live-autoplay"
           style={{
             padding: '6px 14px',
@@ -105,14 +96,8 @@ export function LiveModeHeader({ state }: { state: LiveModeState }) {
             background: autoPlay
               ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
               : 'rgba(255,255,255,0.08)',
-            border: `1px solid ${autoPlay ? 'transparent' : 'rgba(255,255,255,0.12)'}`,
+            borderColor: autoPlay ? 'transparent' : 'rgba(255,255,255,0.12)',
             color: autoPlay ? '#fff' : '#acabaa',
-            fontFamily: 'Manrope',
-            fontWeight: 700,
-            fontSize: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
           }}
         >
           <span
@@ -125,7 +110,7 @@ export function LiveModeHeader({ state }: { state: LiveModeState }) {
             {autoPlay ? 'pause' : 'play_arrow'}
           </span>
           Auto
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -416,12 +401,13 @@ export function LiveModeControls({ state }: { state: LiveModeState }) {
         pointerEvents: 'none',
       }}
     >
-      <button
+      <Button
+        variant="secondary"
+        size="icon"
         onClick={(e) => {
           e.stopPropagation();
           goPrev();
         }}
-        className="btn-smooth"
         data-testid="live-prev"
         disabled={currentIdx === 0}
         style={{
@@ -429,29 +415,20 @@ export function LiveModeControls({ state }: { state: LiveModeState }) {
           height: '48px',
           borderRadius: '50%',
           background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+          borderColor: 'rgba(255,255,255,0.1)',
           opacity: currentIdx === 0 ? 0.25 : 1,
           pointerEvents: 'all',
-          transition: 'opacity 200ms ease',
         }}
-      >
-        <span
-          className="material-symbols-outlined"
-          style={{ color: 'var(--c-text-primary)', fontSize: '20px' }}
-        >
-          arrow_back
-        </span>
-      </button>
+        icon="arrow_back"
+      />
       <div style={{ width: '48px' }} />
-      <button
+      <Button
+        variant="primary"
+        size="icon"
         onClick={(e) => {
           e.stopPropagation();
           goNext();
         }}
-        className="btn-smooth"
         data-testid="live-next"
         style={{
           width: '48px',
@@ -459,16 +436,10 @@ export function LiveModeControls({ state }: { state: LiveModeState }) {
           borderRadius: '50%',
           background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
           boxShadow: `0 4px 20px ${accent.to}55`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
           pointerEvents: 'all',
         }}
-      >
-        <span className="material-symbols-outlined" style={{ color: '#fff', fontSize: '20px' }}>
-          arrow_forward
-        </span>
-      </button>
+        icon="arrow_forward"
+      />
     </div>
   );
 }
@@ -534,14 +505,13 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
           >
             Live Options
           </p>
-          <button onClick={() => setShowSettings(false)} className="btn-smooth">
-            <span
-              className="material-symbols-outlined"
-              style={{ color: 'var(--c-text-secondary)', fontSize: '20px' }}
-            >
-              close
-            </span>
-          </button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowSettings(false)}
+            style={{ color: 'var(--c-text-secondary)' }}
+            icon="close"
+          />
         </div>
 
         <div

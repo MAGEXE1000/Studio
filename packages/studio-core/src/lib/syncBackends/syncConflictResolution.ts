@@ -85,8 +85,6 @@ export async function updateAppearanceSettings(provider: any, patch: Partial<App
     };
 
     if (patch.theme !== undefined) payload.theme = patch.theme;
-    if (patch.accentColor !== undefined) payload.accent_color = patch.accentColor;
-    if (patch.customAccentHue !== undefined) payload.custom_accent_hue = patch.customAccentHue;
     if (patch.palette !== undefined) payload.palette = patch.palette;
     if (patch.language !== undefined) payload.language = patch.language;
 

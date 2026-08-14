@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import AppSpinner from '../../../shared/loading/AppSpinner';
 import { Loader } from '../../../components/motion/loader';
-import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import { motion } from 'motion/react';
 import { Input } from '../../../shared/design-system/StudioDesignSystem';
+import { Button, StatefulButton } from '../../../shared/design-system/buttons';
 
 interface StudioAuthCardProps {
   accent: { from: string; to: string; mid: string };
@@ -91,13 +91,14 @@ export default function StudioAuthCard({
         {mode === 'idle' && (
           <div className="flex flex-col gap-3.5">
             {/* Continue with Google (Aceternity premium button) */}
-            <motion.button
+            <Button
+              variant="secondary"
               onClick={doGoogle}
               disabled={busy}
-              type="button"
-              whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
+                width: '100%',
+                height: '48px',
+                borderRadius: '12px',
                 background: 'rgba(128,128,128,0.06)',
                 border: '1px solid rgba(128,128,128,0.15)',
                 color: 'var(--c-text-primary)',
@@ -128,7 +129,7 @@ export default function StudioAuthCard({
                 />
               </svg>
               {t.continueGoogle}
-            </motion.button>
+            </Button>
 
             {/* Divider with "or" */}
             <div className="flex items-center gap-3 my-1">
@@ -143,17 +144,18 @@ export default function StudioAuthCard({
             </div>
 
             {/* Continue with Email */}
-            <motion.button
+            <Button
+              variant="primary"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 handleModeChange('email-signin');
               }}
               disabled={busy}
-              type="button"
-              whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border"
               style={{
+                width: '100%',
+                height: '48px',
+                borderRadius: '12px',
                 background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                 border: 'none',
                 color: '#fff',
@@ -173,18 +175,22 @@ export default function StudioAuthCard({
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
               {t.continueEmail}
-            </motion.button>
+            </Button>
 
             {/* Create One Toggle Link */}
-            <button
+            <Button
+              variant="ghost"
               onClick={() => handleModeChange('email-register')}
               disabled={busy}
-              type="button"
-              className="text-xs font-semibold py-2 bg-transparent border-none transition-all duration-200 cursor-pointer outline-none hover:underline"
-              style={{ color: 'var(--c-text-secondary)', textAlign: 'center' }}
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--c-text-secondary)',
+                alignSelf: 'center',
+              }}
             >
               {t.createAccount}
-            </button>
+            </Button>
 
             <p
               style={{
@@ -276,60 +282,57 @@ export default function StudioAuthCard({
               />
             </div>
 
-            {/* Buttons Row */}
-            <div className="flex gap-3 mt-1.5">
-              <motion.button
+             {/* Buttons Row */}
+            <div className="flex gap-3 mt-1.5 w-full">
+              <Button
                 onClick={() => handleModeChange('idle')}
                 disabled={busy}
-                type="button"
-                whileTap={{ scale: 0.98 }}
-                className="flex-1 py-3 px-4 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer outline-none border"
+                variant="secondary"
                 style={{
+                  flex: 1,
+                  height: '48px',
+                  borderRadius: '12px',
                   background: 'rgba(128,128,128,0.08)',
                   border: '1px solid rgba(128,128,128,0.18)',
                   color: 'var(--c-text-primary)',
                 }}
               >
                 {t.cancel}
-              </motion.button>
+              </Button>
 
-              <AnimatedActionButton
+              <StatefulButton
+                state={busy ? 'loading' : 'idle'}
                 type="submit"
-                disabled={busy}
-                wrapStyle={{ flex: 1.3 }}
+                variant="primary"
                 style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  borderRadius: 12,
-                  fontSize: 13,
-                  fontWeight: 700,
+                  flex: 1.3,
+                  height: '48px',
+                  borderRadius: '12px',
                   background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                   border: 'none',
                   color: '#fff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                  cursor: 'pointer',
                 }}
               >
-                {busy && <Loader variant="dots" size={14} />}
                 {mode === 'email-signin' ? t.signIn : t.register}
-              </AnimatedActionButton>
+              </StatefulButton>
             </div>
 
             {/* Switch Mode link at footer */}
-            <button
+            <Button
+              variant="ghost"
               onClick={() =>
                 handleModeChange(mode === 'email-signin' ? 'email-register' : 'email-signin')
               }
               disabled={busy}
-              type="button"
-              className="text-xs font-semibold py-2 bg-transparent border-none transition-all duration-200 cursor-pointer outline-none hover:underline"
-              style={{ color: 'var(--c-text-secondary)', textAlign: 'center' }}
+              style={{
+                fontSize: '12px',
+                fontWeight: 600,
+                color: 'var(--c-text-secondary)',
+                alignSelf: 'center',
+              }}
             >
               {mode === 'email-signin' ? t.switchToRegister : t.switchToSignIn}
-            </button>
+            </Button>
           </form>
         )}
 

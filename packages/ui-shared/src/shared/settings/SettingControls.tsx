@@ -1,4 +1,4 @@
-import { type AccentColor, SpringPresets } from '@workspace/studio-core';
+import { SpringPresets } from '@workspace/studio-core';
 import React, { memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 export { Toggle, type ToggleProps } from '../design-system/StudioToggle';
@@ -96,15 +96,15 @@ export function SegmentedControl<T extends string>({
   value,
   options,
   onChange,
-  accentFrom,
-  accentTo,
+  accentFrom = 'var(--studio-accent-from, #679cff)',
+  accentTo = 'var(--studio-accent-to, #007aff)',
   layoutId = 'segmented-control-active',
 }: {
   value: T;
   options: { value: T; label: string }[];
   onChange: (v: T) => void;
-  accentFrom: string;
-  accentTo: string;
+  accentFrom?: string;
+  accentTo?: string;
   layoutId?: string;
 }) {
   return (
@@ -167,14 +167,7 @@ export function SegmentedControl<T extends string>({
   );
 }
 
-export const COLOR_OPTIONS: { id: AccentColor; from: string; to: string }[] = [
-  { id: 'blue', from: '#679cff', to: '#007aff' },
-  { id: 'purple', from: '#b57bee', to: '#7c3aed' },
-  { id: 'green', from: '#34d399', to: '#059669' },
-  { id: 'orange', from: '#fb923c', to: '#ea580c' },
-  { id: 'pink', from: '#f472b6', to: '#db2777' },
-  { id: 'teal', from: '#2dd4bf', to: '#0891b2' },
-];
+
 
 export function BentoSettingCard({
   icon,

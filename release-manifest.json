@@ -1,21 +1,21 @@
 {
   "$schema": "https://livex.app/schemas/release-manifest.v1.json",
   "manifestVersion": "1.0.0",
-  "version": "4.3.90",
-  "versionCode": 40422,
-  "releaseTag": "v4.3.90",
-  "buildTimestampUtc": "2026-08-07T04:46:14.601Z",
+  "version": "4.5.23",
+  "versionCode": 40531,
+  "releaseTag": "v4.5.23",
+  "buildTimestampUtc": "2026-08-11T23:34:23.633Z",
   "git": {
-    "commitSha": "e33fdfe1802efb95fece18fd19dc786af9896339",
-    "shortSha": "e33fdfe1",
+    "commitSha": "2d872e0736ed10bf40f5c66009c06294ae1e1de6",
+    "shortSha": "2d872e07",
     "branch": "main",
-    "previousTag": "v4.3.85"
+    "previousTag": "v4.5.21"
   },
   "artifact": {
-    "filename": "studio-4.3.90.apk",
-    "sizeBytes": 53423912,
-    "sizeFormatted": "50.95 MB",
-    "sha256": "a9c838cb330c0a59766a6f58a907b4cff90f38993d4e6139662d7bc1c46b6553",
+    "filename": "studio-4.5.23.apk",
+    "sizeBytes": 53259932,
+    "sizeFormatted": "50.79 MB",
+    "sha256": "439c83238ad815c0b10faae8b5895e55894d9e920e5e4b64db0282b74fc91b97",
     "signingCertFingerprint": "58b9bf2de5064c62ac3ca181b5608fe135c6894a8359ff6588e19218cd384764"
   },
   "timingMetrics": {
@@ -39,6 +39,6 @@
     "otaMetadataVersion": "4.0.0",
     "firebaseHostingChannel": "live"
   },
-  "releaseVersion": "4.3.91",
-  "versionName": "4.3.91"
+  "releaseVersion": "4.5.31",
+  "versionName": "4.5.31"
 }

@@ -8,6 +8,7 @@ export interface StudioHeaderProps {
   subtitleClassName?: string;
   titleStyle?: React.CSSProperties;
   subtitleStyle?: React.CSSProperties;
+  containerStyle?: React.CSSProperties;
   staggerInterval?: number;
   delayOffset?: number;
 }
@@ -15,10 +16,11 @@ export interface StudioHeaderProps {
 export function StudioHeader({
   title,
   subtitle,
-  titleClassName = 'font-extrabold tracking-tighter leading-none mb-3',
+  titleClassName = '',
   subtitleClassName = '',
   titleStyle = {},
   subtitleStyle = {},
+  containerStyle = {},
   staggerInterval = 20,
   delayOffset = 0.06,
 }: StudioHeaderProps) {
@@ -27,28 +29,43 @@ export function StudioHeader({
 
   const mergedTitleStyle: React.CSSProperties = {
     fontFamily: 'Manrope, sans-serif',
-    fontWeight: 900,
-    fontSize: '2.6rem',
     color: 'var(--c-text-primary)',
-    letterSpacing: '-0.04em',
-    lineHeight: 1,
-    marginTop: '12px',
-    marginBottom: '8px',
+    lineHeight: 1.15,
+    fontSize: '32px',
+    fontWeight: 800,
+    letterSpacing: '-0.03em',
+    textAlign: 'left',
+    marginTop: 0,
+    marginBottom: 0,
     ...titleStyle,
   };
 
   const mergedSubtitleStyle: React.CSSProperties = {
     fontFamily: 'Inter, sans-serif',
-    fontSize: '13px',
     color: 'var(--c-text-secondary)',
-    marginTop: '4px',
-    marginBottom: '24px',
     lineHeight: 1.4,
+    fontSize: '13px',
+    fontWeight: 500,
+    marginTop: '6px',
+    marginBottom: 0,
     ...subtitleStyle,
   };
 
   return (
-    <>
+    <div
+      style={{
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 40px)',
+        paddingBottom: '16px',
+        paddingLeft: 'var(--page-inset-h)',
+        paddingRight: 'var(--page-inset-h)',
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+        width: '100%',
+        ...containerStyle,
+      }}
+      className="studio-header-container"
+    >
       <h2 className={titleClassName} style={mergedTitleStyle}>
         {title}
       </h2>
@@ -57,6 +74,6 @@ export function StudioHeader({
           {subtitle}
         </p>
       )}
-    </>
+    </div>
   );
 }

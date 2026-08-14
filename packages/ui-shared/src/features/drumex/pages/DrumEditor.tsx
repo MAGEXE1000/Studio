@@ -3079,10 +3079,7 @@ export default function DrumEditor() {
     () => patterns.find((p) => p.id === activePatternId) ?? patterns[0],
     [patterns, activePatternId]
   );
-  const accent =
-    ACCENT_COLORS[
-      (settings.perApp?.drumex?.accentColor ?? settings.accentColor) as keyof typeof ACCENT_COLORS
-    ] ?? ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const spm = stepsPerMeasure(pattern);
   const stepsPerBeat = pattern.subdivision / pattern.timeSignature[1];
   const kit = kitType ?? 'house';
@@ -6618,13 +6615,11 @@ export default function DrumEditor() {
                     return (
                       <div
                         onScroll={drumScrollHide}
-                        style={{ overflowY: 'auto', paddingBottom: 100 }}
+                        style={{ overflowY: 'auto', paddingBottom: 100, paddingLeft: 24, paddingRight: 24 }}
                         className="no-scrollbar flex flex-col w-full h-full"
                       >
                         {!isWebDesktop && (
-                          <div style={{ padding: '0 20px', marginTop: 12, marginBottom: 24 }}>
-                            <StudioHeader title="Beats" subtitle="Your drum songs" />
-                          </div>
+                          <StudioHeader title="Beats" subtitle="Your drum songs" />
                         )}
 
                         {/* Desktop Secondary Toolbar */}

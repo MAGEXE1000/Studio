@@ -13,6 +13,8 @@ import GuitarDiagram from '../diagrams/GuitarDiagram';
 import PianoDiagram from '../diagrams/PianoDiagram';
 import FourStringDiagram from '../diagrams/FourStringDiagram';
 import { CATEGORIES } from './LibraryCategories';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
+import { Button, ActionButton } from '../../../shared/design-system/buttons';
 
 export function RelatedPlayBtn({
   guitar,
@@ -164,9 +166,10 @@ export function LibraryChordDetail({ state }: { state: any }) {
             </p>
           </div>
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="secondary"
               onClick={handlePlayChord}
-              className="w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all border border-zinc-800 bg-zinc-950/40 text-zinc-300 hover:border-zinc-700"
+              style={{ borderRadius: '50%', width: 40, height: 40, padding: 0 }}
             >
               <span
                 className="material-symbols-outlined"
@@ -177,29 +180,22 @@ export function LibraryChordDetail({ state }: { state: any }) {
               >
                 {chordPlaying ? 'stop' : 'play_arrow'}
               </span>
-            </button>
-            <button
+            </Button>
+            <ActionButton
+              variant="favorite"
+              isFavorite={favorite}
               onClick={() => toggleFavorite(chord.id)}
-              className={`w-10 h-10 rounded-full flex items-center justify-center cursor-pointer transition-all border border-zinc-800 bg-zinc-950/40 hover:border-zinc-700 ${favorite ? 'text-rose-500' : 'text-zinc-400'}`}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: '20px',
-                  fontVariationSettings: favorite ? "'FILL' 1" : "'FILL' 0",
-                }}
-              >
-                favorite
-              </span>
-            </button>
-            <button
+              iconSize={20}
+              style={{ borderRadius: '50%', width: 40, height: 40, padding: 0 }}
+            />
+            <Button
+              variant="secondary"
               onClick={() => addToProgression(chord.id)}
-              className="h-10 px-4 rounded-full flex items-center justify-center gap-1.5 cursor-pointer transition-all border border-zinc-800 bg-zinc-950/40 text-zinc-300 text-xs font-bold uppercase tracking-wider"
-              style={{ fontFamily: 'var(--font-headline)' }}
+              icon="add"
+              style={{ height: 40, borderRadius: '20px' }}
             >
-              <span className="material-symbols-outlined text-sm">add</span>
               Add
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -279,52 +275,28 @@ export function LibraryMainView({ state }: { state: any }) {
 
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef}>
-      <header className="relative z-10 px-6 pt-12 pb-4 flex justify-between items-start">
-        <div>
-          <h1
-            style={{
-              fontSize: '24px',
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              color: 'var(--c-text-primary)',
-              fontFamily: 'var(--font-headline)',
-              marginBottom: '2px',
-            }}
-          >
-            Library
-          </h1>
-          <p
-            style={{
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-body)',
-              fontSize: '11px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              opacity: 0.6,
-            }}
-          >
-            Explore {allChords.length} Chords
-          </p>
-        </div>
-      </header>
+      <StudioHeader
+        title="Library"
+        subtitle={`Explore ${allChords.length} Chords`}
+      />
 
       <div className="px-6 mb-4 flex gap-2">
-        <button
+        <Button
+          variant="outline"
           onClick={() => setShowFinder(true)}
-          className="flex-1 py-3 px-4 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center gap-2 text-zinc-100 text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
-          style={{ fontFamily: 'var(--font-headline)' }}
+          icon="add_circle"
+          style={{ flex: 1, height: 44, borderRadius: '12px' }}
         >
-          <span className="material-symbols-outlined text-primary text-base">add_circle</span>
           Chord Finder
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
           onClick={() => setShowGenerator(true)}
-          className="flex-1 py-3 px-4 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center gap-2 text-zinc-100 text-xs font-bold uppercase tracking-wider hover:bg-zinc-800 transition-colors"
-          style={{ fontFamily: 'var(--font-headline)' }}
+          icon="auto_awesome"
+          style={{ flex: 1, height: 44, borderRadius: '12px' }}
         >
-          <span className="material-symbols-outlined text-primary text-base">auto_awesome</span>
           Generator
-        </button>
+        </Button>
       </div>
 
       <div className="sticky top-0 z-30 px-6 mb-8 pt-4 pb-2 bg-black/85 backdrop-blur-xl">
@@ -338,12 +310,13 @@ export function LibraryMainView({ state }: { state: any }) {
             onChange={(e) => setQuery(e.target.value)}
           />
           <div className="h-6 w-[1px] bg-white/10 mx-1"></div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setShowTuningMenu((p: boolean) => !p)}
-            className="w-10 h-10 flex items-center justify-center text-primary active:scale-90 transition-transform"
-          >
-            <span className="material-symbols-outlined">tune</span>
-          </button>
+            style={{ width: 40, height: 40, color: 'var(--c-accent-from)' }}
+            icon="tune"
+          />
 
           {showTuningMenu && (
             <div className="absolute right-4 top-[calc(100%+8px)] w-60 rounded-2xl border border-zinc-850 bg-zinc-900 p-2 shadow-2xl z-50">
@@ -353,19 +326,26 @@ export function LibraryMainView({ state }: { state: any }) {
               {tunings.map((tu) => {
                 const isCurrent = settings.tuning === tu.value;
                 return (
-                  <button
+                  <Button
                     key={tu.value}
+                    variant="ghost"
                     onClick={() => {
                       useSettingsStore.getState().updateSettings({ tuning: tu.value });
                       setShowTuningMenu(false);
                     }}
-                    className={`w-full text-left px-3 py-2.5 rounded-lg text-xs font-semibold flex justify-between items-center transition-all ${isCurrent ? 'bg-zinc-800 text-white font-bold' : 'text-zinc-400 hover:bg-zinc-800/40 hover:text-white'}`}
+                    style={{
+                      width: '100%',
+                      justifyContent: 'space-between',
+                      background: isCurrent ? 'var(--c-surface-high, #27272a)' : 'transparent',
+                      color: isCurrent ? 'var(--c-text-primary, #ffffff)' : 'var(--c-text-secondary, #a1a1aa)',
+                      borderRadius: '8px',
+                    }}
                   >
                     <span>{tu.label}</span>
                     {isCurrent && (
                       <span className="material-symbols-outlined text-primary text-sm">check</span>
                     )}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -418,12 +398,13 @@ export function LibraryMainView({ state }: { state: any }) {
       ) : activeType ? (
         <div className="px-6 mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <button
+            <Button
+              variant="secondary"
+              size="icon"
               onClick={() => setActiveType(null)}
-              className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white"
-            >
-              <span className="material-symbols-outlined text-base">arrow_back</span>
-            </button>
+              style={{ borderRadius: '50%', width: 32, height: 32 }}
+              icon="arrow_back"
+            />
             <h2 className="font-title-md text-sm text-on-surface uppercase tracking-wider">
               {activeCategoryObject?.label || 'Chords'}
             </h2>
@@ -484,11 +465,13 @@ export function LibraryMainView({ state }: { state: any }) {
                       </span>
                     </h2>
                   </div>
-                  <button
+                  <Button
+                    variant="secondary"
+                    size="icon"
                     onClick={() => {
                       playChord(chordOfTheDay.guitar);
                     }}
-                    className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center border border-white/10 hover:bg-white/10 transition-colors"
+                    style={{ borderRadius: '50%', width: 48, height: 48 }}
                   >
                     <span
                       className="material-symbols-outlined text-primary text-2xl"
@@ -496,19 +479,19 @@ export function LibraryMainView({ state }: { state: any }) {
                     >
                       play_arrow
                     </span>
-                  </button>
+                  </Button>
                 </div>
                 <div className="flex gap-4 items-center">
                   <div className="flex-1 max-w-[200px]">
                     <ChordDiagram data={chordOfTheDay.guitar} accentFrom={accent.from} />
                   </div>
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={() => handleChordClick(chordOfTheDay.id)}
-                    className="px-5 py-2.5 rounded-full bg-on-surface text-background font-label-md text-xs uppercase tracking-wider font-extrabold ml-auto"
-                    style={{ fontFamily: 'var(--font-headline)' }}
+                    style={{ marginLeft: 'auto' }}
                   >
                     Practice
-                  </button>
+                  </Button>
                 </div>
               </div>
             </section>

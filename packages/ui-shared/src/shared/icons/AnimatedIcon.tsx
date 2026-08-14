@@ -1,7 +1,41 @@
-import React, { forwardRef, useImperativeHandle, useEffect, useRef } from 'react';
+import React, { forwardRef, useImperativeHandle, useEffect, useRef, useCallback } from 'react';
 import { motion, useAnimation } from 'motion/react';
 import * as LucideAnimated from 'lucide-animated';
 import * as LucideReact from 'lucide-react';
+
+import { ActivityIcon } from '../../components/ui/activity';
+import { AudioLinesIcon } from '../../components/ui/audio-lines';
+import { BlocksIcon } from '../../components/ui/blocks';
+import { CogIcon } from '../../components/ui/cog';
+import { DrumIcon } from '../../components/ui/drum';
+import { GalleryVerticalEndIcon } from '../../components/ui/gallery-vertical-end';
+import { GraduationCapIcon } from '../../components/ui/graduation-cap';
+import { HomeIcon } from '../../components/ui/home';
+import { LayersIcon } from '../../components/ui/layers';
+import { LayoutPanelTopIcon } from '../../components/ui/layout-panel-top';
+import { MicIcon } from '../../components/ui/mic';
+import { SearchIcon } from '../../components/ui/search';
+import { SettingsIcon } from '../../components/ui/settings';
+import { SlidersHorizontalIcon } from '../../components/ui/sliders-horizontal';
+import { UserIcon } from '../../components/ui/user';
+
+const localAnimatedIcons: Record<string, any> = {
+  'activity': ActivityIcon,
+  'audio-lines': AudioLinesIcon,
+  'blocks': BlocksIcon,
+  'cog': CogIcon,
+  'drum': DrumIcon,
+  'gallery-vertical-end': GalleryVerticalEndIcon,
+  'graduation-cap': GraduationCapIcon,
+  'home': HomeIcon,
+  'layers': LayersIcon,
+  'layout-panel-top': LayoutPanelTopIcon,
+  'mic': MicIcon,
+  'search': SearchIcon,
+  'settings': SettingsIcon,
+  'sliders-horizontal': SlidersHorizontalIcon,
+  'user': UserIcon,
+};
 
 export type IconState =
   | 'active'
@@ -49,7 +83,7 @@ function getAnimatedIconComponent(name: string) {
   } else if (normName === 'close') {
     normName = 'x';
   } else if (normName === 'account_circle') {
-    normName = 'user-round';
+    normName = 'user';
   } else if (normName === 'notifications') {
     normName = 'bell';
   } else if (normName === 'language') {
@@ -104,30 +138,35 @@ function getAnimatedIconComponent(name: string) {
     normName = 'cloud-upload';
   }
 
+  // 1. Try local custom animated icons first
+  if (localAnimatedIcons[normName]) {
+    return localAnimatedIcons[normName];
+  }
+
   // Convert to PascalCase (e.g. "refresh-cw" -> "RefreshCw")
   const pascalName = normName
     .split(/[-_]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
 
-  // 1. Try LucideAnimated with Icon suffix (e.g. RefreshCwIcon)
+  // 2. Try LucideAnimated with Icon suffix (e.g. RefreshCwIcon)
   const animatedKey = `${pascalName}Icon`;
   if ((LucideAnimated as any)[animatedKey]) {
     return (LucideAnimated as any)[animatedKey];
   }
 
-  // 2. Try LucideAnimated without Icon suffix (e.g. RefreshCw)
+  // 3. Try LucideAnimated without Icon suffix (e.g. RefreshCw)
   if ((LucideAnimated as any)[pascalName]) {
     return (LucideAnimated as any)[pascalName];
   }
 
-  // 3. Try LucideReact with Icon suffix (e.g. RefreshCwIcon)
+  // 4. Try LucideReact with Icon suffix (e.g. RefreshCwIcon)
   const staticKey = `${pascalName}Icon`;
   if ((LucideReact as any)[staticKey]) {
     return (LucideReact as any)[staticKey];
   }
 
-  // 4. Try LucideReact without Icon suffix (e.g. RefreshCw)
+  // 5. Try LucideReact without Icon suffix (e.g. RefreshCw)
   if ((LucideReact as any)[pascalName]) {
     return (LucideReact as any)[pascalName];
   }
@@ -154,56 +193,60 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
     const controls = useAnimation();
     const isSpinning = state === 'loading' || name === 'loader-circle' || name === 'loader';
 
-    // Map imperative commands for backwards compatibility
+    const innerIconRef = useRef<any>(null);
+    const isAnimatingRef = useRef(false);
+    const prevEpochRef = useRef(animationEpoch);
+
+    const normName = name.toLowerCase() === 'account_circle' ? 'user' : name.toLowerCase();
+    const isMatched = !!localAnimatedIcons[normName];
+
+    // Map imperative commands for backwards compatibility and parent controls
     useImperativeHandle(ref, () => ({
       startAnimation: () => {
-        controls.start('active');
+        if (innerIconRef.current && !isAnimatingRef.current) {
+          isAnimatingRef.current = true;
+          innerIconRef.current.startAnimation?.();
+          setTimeout(() => {
+            isAnimatingRef.current = false;
+          }, name === 'settings' || name === 'cog' ? 1000 : 600);
+        }
       },
       stopAnimation: () => {
-        controls.start('inactive');
+        if (innerIconRef.current) {
+          innerIconRef.current.stopAnimation?.();
+          isAnimatingRef.current = false;
+        }
       },
     }));
 
-    const prevEpochRef = useRef(animationEpoch);
-    const prevStateRef = useRef(state);
-
+    // Trigger local animated icons' micro-animations imperatively based on tab state
     useEffect(() => {
-      let rafId: number | null = null;
-      if (!isSpinning) {
-        const justBecameActive =
-          (state === 'active' || state === 'selected') &&
-          prevStateRef.current !== 'active' &&
-          prevStateRef.current !== 'selected';
-        const epochChanged = animationEpoch !== prevEpochRef.current;
-        const wasAlreadyActive =
-          prevStateRef.current === 'active' || prevStateRef.current === 'selected';
+      if (isSpinning) return;
+      const isActiveState = state === 'active' || state === 'selected';
+      const epochChanged = animationEpoch !== prevEpochRef.current;
+      prevEpochRef.current = animationEpoch;
 
-        prevEpochRef.current = animationEpoch;
-        prevStateRef.current = state;
-
-        if (
-          justBecameActive ||
-          (epochChanged && wasAlreadyActive && (state === 'active' || state === 'selected'))
-        ) {
-          // Re-entering active state or re-tapping active tab: force replay bounce animation
-          controls.set('inactive');
-          rafId = requestAnimationFrame(() => {
-            controls.start(state);
-          });
-        } else {
-          // Normal state transition (e.g. active -> inactive)
-          controls.start(state);
+      if (isActiveState) {
+        if (innerIconRef.current && (!isAnimatingRef.current || epochChanged)) {
+          isAnimatingRef.current = true;
+          console.log(`[AnimatedIcon] START ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`);
+          innerIconRef.current.stopAnimation?.();
+          innerIconRef.current.startAnimation?.();
+          setTimeout(() => {
+            isAnimatingRef.current = false;
+          }, name === 'settings' || name === 'cog' ? 1000 : 600);
+        }
+      } else {
+        if (innerIconRef.current) {
+          console.log(`[AnimatedIcon] STOP (REVERSE) ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`);
+          innerIconRef.current.stopAnimation?.();
+          isAnimatingRef.current = false;
         }
       }
-      return () => {
-        if (rafId !== null) {
-          cancelAnimationFrame(rafId);
-        }
-      };
-    }, [state, controls, isSpinning, animationEpoch]);
+    }, [state, name, animationEpoch, isSpinning]);
 
 
-    // Hover configuration based on icon type
+    // Hover configuration based on icon type (for static/unmatched icons only)
     const getIconSpecificHover = () => {
       const lower = name.toLowerCase();
       if (lower.includes('setting') || lower.includes('gear')) {
@@ -298,14 +341,6 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       return { scale: 1.08, y: -1 };
     };
 
-    const getIconSpecificTap = () => {
-      const hoverAnim = getIconSpecificHover();
-      return {
-        ...hoverAnim,
-        scale: 0.88,
-      };
-    };
-
     const getActiveStateVariants = () => {
       const iconHover = getIconSpecificHover();
       const iconRotate = typeof iconHover.rotate === 'number' ? iconHover.rotate * 0.5 : undefined;
@@ -317,25 +352,20 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       };
     };
 
-    const getStateVariants = () => {
-      switch (state) {
-        case 'active':
-        case 'selected':
-          return getActiveStateVariants();
-        case 'pressed':
-          return { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 };
-        case 'loading':
-          return { scale: 1, rotate: 360, opacity: 0.85 };
-        case 'disabled':
-          return { scale: 0.94, rotate: 0, y: 0, opacity: 0.38 };
-        case 'success':
-          return { scale: [1, 1.28, 1], rotate: [0, -10, 0], opacity: 1 };
-        case 'warning':
-        case 'error':
-          return { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 };
-        default:
-          return { scale: 1, rotate: 0, y: 0, opacity: 0.85 };
-      }
+    const outerVariants: any = isMatched ? {
+      active: { opacity: 1 },
+      inactive: { opacity: 0.85 },
+      pressed: { scale: 0.95 },
+    } : {
+      active: getActiveStateVariants(),
+      inactive: { scale: 1, rotate: 0, y: 0, opacity: 0.85 },
+      loading: { scale: 1, rotate: 360, opacity: 0.85 },
+      success: { scale: [1, 1.28, 1], rotate: [0, -10, 0], opacity: 1 },
+      warning: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
+      error: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
+      disabled: { scale: 0.94, rotate: 0, y: 0, opacity: 0.38 },
+      pressed: { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 },
+      selected: getActiveStateVariants(),
     };
 
     const IconComponent = getAnimatedIconComponent(name);
@@ -355,30 +385,28 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
         }}
         animate={isSpinning ? { rotate: [0, 360] } : controls}
         initial="inactive"
-        whileHover={isSpinning ? undefined : getIconSpecificHover()}
-        variants={{
-          active: getActiveStateVariants(),
-          inactive: { scale: 1, rotate: 0, y: 0, opacity: 0.85 },
-          loading: { scale: 1, rotate: 360, opacity: 0.85 },
-          success: { scale: [1, 1.28, 1], rotate: [0, -10, 0], opacity: 1 },
-          warning: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
-          error: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
-          disabled: { scale: 0.94, rotate: 0, y: 0, opacity: 0.38 },
-          pressed: { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 },
-          selected: getActiveStateVariants(),
-        }}
+        whileHover={isSpinning ? undefined : (isMatched ? undefined : getIconSpecificHover())}
+        variants={outerVariants}
         transition={
           isSpinning
             ? { repeat: Infinity, duration: 1.1, ease: 'linear' }
-            : { type: 'spring', stiffness: 480, damping: 26, mass: 0.75 }
+            : (isMatched ? { duration: 0.25 } : { type: 'spring', stiffness: 480, damping: 26, mass: 0.75 })
         }
         onClick={onClick}
       >
         <IconComponent
+          ref={innerIconRef}
           size={size}
           color={color}
           strokeWidth={strokeWidth}
-          style={{ overflow: 'visible' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: size,
+            height: size,
+            overflow: 'visible',
+          }}
         />
       </motion.div>
     );

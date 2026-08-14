@@ -4,9 +4,7 @@ import { SectionHeader } from '../../../shared/settings/SettingControls';
 
 export default function HubChangelogSection() {
   const settings = useSettingsStore((s) => s.settings);
-  const acc =
-    ACCENT_COLORS[settings.perApp?.hub?.accentColor ?? settings.accentColor] ??
-    ACCENT_COLORS.purple;
+  const acc = ACCENT_COLORS.blue;
 
   const cardStyle: React.CSSProperties = {
     background: 'var(--app-surface, rgba(255, 255, 255, 0.03))',

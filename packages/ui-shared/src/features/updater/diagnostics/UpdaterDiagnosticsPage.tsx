@@ -25,7 +25,7 @@ function useForceUpdate() {
   return update;
 }
 
-export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void }> = ({ onBack }) => {
+export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void; hideHeader?: boolean }> = ({ onBack, hideHeader }) => {
   const forceUpdate = useForceUpdate();
   const [toast, setToast] = useState<string | null>(null);
   const [logSearch, setLogSearch] = useState('');
@@ -251,93 +251,77 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
       }}
     >
       {/* Top App Bar */}
-      <header
-        style={{
-          width: '100%',
-          position: 'sticky',
-          top: 0,
-          zIndex: 50,
-          backgroundColor: '#0e0e0e',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 24px',
-          boxSizing: 'border-box',
-          borderBottom: '1px solid rgba(128,128,128,0.1)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {onBack && (
+      {!hideHeader && (
+        <header
+          style={{
+            width: '100%',
+            position: 'sticky',
+            top: 0,
+            zIndex: 50,
+            backgroundColor: '#0e0e0e',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '16px 24px',
+            boxSizing: 'border-box',
+            borderBottom: '1px solid rgba(128,128,128,0.1)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+
+            <div>
+              <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+                Updater Diagnostics
+              </h1>
+              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0', fontWeight: 500 }}>
+                OTA Diagnostics & Debug Tools
+              </p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Copy Report Button */}
             <button
-              onClick={onBack}
+              onClick={handleCopy}
               style={{
-                width: '44px',
-                height: '44px',
+                width: '40px',
+                height: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                borderRadius: '50%',
-                background: 'rgba(255,255,255,0.03)',
-                border: 'none',
+                borderRadius: '10px',
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(128,128,128,0.15)',
                 color: '#e7e5e4',
                 cursor: 'pointer',
+                transition: 'background-color 200ms ease',
+              }}
+              title="Copy Full Report"
+            >
+              <CopyIcon size={18} />
+            </button>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 800,
+                background: 'rgba(79, 70, 229, 0.15)',
+                color: '#818cf8',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
               }}
             >
-              <span className="material-symbols-outlined">arrow_back</span>
-            </button>
-          )}
-          <div>
-            <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-              Updater Diagnostics
-            </h1>
-            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0', fontWeight: 500 }}>
-              OTA Diagnostics & Debug Tools
-            </p>
+              Dev Mode
+            </span>
           </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Copy Report Button */}
-          <button
-            onClick={handleCopy}
-            style={{
-              width: '40px',
-              height: '40px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: '10px',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(128,128,128,0.15)',
-              color: '#e7e5e4',
-              cursor: 'pointer',
-              transition: 'background-color 200ms ease',
-            }}
-            title="Copy Full Report"
-          >
-            <CopyIcon size={18} />
-          </button>
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              background: 'rgba(79, 70, 229, 0.15)',
-              color: '#818cf8',
-              padding: '4px 10px',
-              borderRadius: '9999px',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-            }}
-          >
-            Dev Mode
-          </span>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Grid View */}
       <main
         style={{
-          padding: '24px',
+          padding: '16px',
           maxWidth: '850px',
           margin: '0 auto',
           display: 'flex',
@@ -371,7 +355,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
         <section
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
             gap: '12px',
           }}
         >
@@ -490,7 +474,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 {error ? 'Failures Detected' : 'All Systems Nominal'}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
                   Registry Connection
@@ -629,10 +613,12 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
+                          justifyContent: 'space-between',
                           gap: '12px',
                           padding: '10px 14px',
                           background: 'rgba(25,26,26,0.5)',
                           borderBottom: '1px solid rgba(128,128,128,0.08)',
+                          flexWrap: 'wrap',
                         }}
                       >
                         <div
@@ -716,6 +702,8 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                               <span
                                 style={{
                                   color: log.level === 'ERROR' ? '#f43f5e' : log.level === 'DEBUG' ? '#a78bfa' : '#e7e5e4',
+                                  wordBreak: 'break-word',
+                                  whiteSpace: 'pre-wrap',
                                 }}
                               >
                                 {log.message}

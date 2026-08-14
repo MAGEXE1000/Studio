@@ -1,24 +1,12 @@
 import { useNavigationStore } from '../navigation/useNavigationStore';
 import { Capacitor } from '@capacitor/core';
 import { syncStatusBar } from '../platform/useStatusBar';
-export const rawAccentColors = {
-  blue: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
-  purple: { from: '#b57bee', to: '#7c3aed', mid: '#9d60e6' },
-  green: { from: '#34d399', to: '#059669', mid: '#10b981' },
-  orange: { from: '#fb923c', to: '#ea580c', mid: '#f97316' },
-  pink: { from: '#f472b6', to: '#db2777', mid: '#ec4899' },
-  teal: { from: '#2dd4bf', to: '#0891b2', mid: '#14b8a6' },
-  custom: { from: '#6ea8fe', to: '#0d6efd', mid: '#4188fc' },
-};
-
 export interface ThemeConfig {
   theme: 'light' | 'dark' | 'system' | 'dynamic';
-  accentColor: string;
   amoledMode: boolean;
   fontSize?: 'small' | 'medium' | 'large';
   displayDensity?: 'compact' | 'comfortable' | 'spacious';
   animationSpeed?: 'fast' | 'normal' | 'reduced';
-  customAccentHue?: number;
   dynamicLightStart?: number;
   dynamicLightEnd?: number;
 }
@@ -27,7 +15,6 @@ export function applyThemeTokens(settings: any) {
   if (typeof document === 'undefined' || !document.documentElement) return;
 
   const globalTheme = settings?.theme ?? 'light';
-  const globalAccent = settings?.accentColor ?? 'blue';
   const globalAmoled = settings?.amoledMode ?? false;
 
   const history = useNavigationStore.getState().history;
@@ -36,7 +23,6 @@ export function applyThemeTokens(settings: any) {
 
   const activeVis = {
     theme: perAppVis?.theme ?? globalTheme,
-    accentColor: perAppVis?.accentColor ?? globalAccent,
     amoledMode: perAppVis?.amoledMode ?? globalAmoled,
   };
 
@@ -119,16 +105,8 @@ export function applyThemeTokens(settings: any) {
   root.style.setProperty('--c-text-secondary', textSecondary);
   root.style.setProperty('--c-text-muted', textMuted);
 
-  // Accent Color Tokens
-  const hubAccentKey = activeVis.accentColor ?? 'blue';
-  const accent =
-    hubAccentKey === 'custom'
-      ? {
-          from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
-          mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
-          to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
-        }
-      : ((rawAccentColors as any)[hubAccentKey] ?? rawAccentColors.blue);
+  // Accent Color Tokens - Hardcoded to default blue
+  const accent = { from: '#679cff', to: '#007aff', mid: '#4d8ef7' };
 
   root.style.setProperty('--c-accent-from', accent.from);
   root.style.setProperty('--c-accent-to', accent.to);

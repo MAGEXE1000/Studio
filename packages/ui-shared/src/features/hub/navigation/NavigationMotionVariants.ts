@@ -1,4 +1,5 @@
 import type { Variants } from 'motion/react';
+import type { NavDirection } from './NavigationAnimationProvider';
 
 // Common spring configs for consistent physics across navigation
 export const navSpringConfig = {
@@ -22,172 +23,203 @@ export const snappySpringConfig = {
   mass: 0.6,
 };
 
-// Represents the animation played ONLY when the tab becomes active
-type IconVariantGetter = () => Variants;
+export type IconVariantGetter = (direction?: NavDirection) => Variants;
 
 // A dictionary mapping generic icon intents/keys to their premium motion variants
 export const NavigationMotionVariants: Record<string, IconVariantGetter> = {
-  // Settings: Full gear rotation with a subtle spring settle
-  settings: () => ({
-    initial: { rotate: 0, scale: 1 },
-    active: {
-      rotate: [0, 90, 90], // Overshoot handled by spring? Actually, we'll just let spring handle the rotation to 90 if we set it as target, but keyframes in motion override springs sometimes if not careful.
-      // Better way: define explicit target states and let the spring transition drive it.
-      scale: [1, 1.1, 1],
-      transition: {
-        rotate: { type: 'spring', stiffness: 300, damping: 20 },
-        scale: { type: 'spring', stiffness: 500, damping: 25 }
-      }
-    },
-    inactive: { rotate: 0, scale: 1 }
-  }),
+  // Settings: Full gear rotation with direction awareness (+90 vs -90 deg)
+  settings: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    const targetRotate = 90 * dirSign;
+    return {
+      initial: { rotate: 0, scale: 1 },
+      active: {
+        rotate: [0, targetRotate, targetRotate],
+        scale: [1, 1.15, 1],
+        transition: {
+          rotate: { type: 'spring', stiffness: 300, damping: 20 },
+          scale: { type: 'spring', stiffness: 500, damping: 25 },
+        },
+      },
+      inactive: { rotate: 0, scale: 1 },
+    };
+  },
 
-  // Home: Subtle scale up and settle
-  home: () => ({
-    initial: { scale: 1, y: 0 },
-    active: {
-      scale: [1, 1.15, 1],
-      y: [0, -2, 0],
-      transition: navSpringConfig
-    },
-    inactive: { scale: 1, y: 0 }
-  }),
+  // Home: Directional tilt and scale up
+  home: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { scale: 1, y: 0, rotate: 0 },
+      active: {
+        scale: [1, 1.15, 1],
+        rotate: [0, 8 * dirSign, 0],
+        y: [0, -2, 0],
+        transition: navSpringConfig,
+      },
+      inactive: { scale: 1, y: 0, rotate: 0 },
+    };
+  },
 
-  // Search: Lens expands slightly then settles
-  search: () => ({
-    initial: { scale: 1, x: 0, y: 0 },
-    active: {
-      scale: [1, 1.2, 1],
-      x: [0, 2, 0],
-      y: [0, -2, 0],
-      transition: snappySpringConfig
-    },
-    inactive: { scale: 1, x: 0, y: 0 }
-  }),
+  // Search: Lens expands slightly then settles with directional shift
+  search: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { scale: 1, x: 0, y: 0, rotate: 0 },
+      active: {
+        scale: [1, 1.2, 1],
+        x: [0, 2 * dirSign, 0],
+        y: [0, -2, 0],
+        rotate: [0, 6 * dirSign, 0],
+        transition: snappySpringConfig,
+      },
+      inactive: { scale: 1, x: 0, y: 0, rotate: 0 },
+    };
+  },
 
-  // Profile: Smooth pulse
-  profile: () => ({
-    initial: { scale: 1 },
-    active: {
-      scale: [1, 1.15, 1],
-      y: [0, -1.5, 0],
-      transition: navSpringConfig
-    },
-    inactive: { scale: 1 }
-  }),
+  // Profile: Smooth pulse with directional tilt
+  profile: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { scale: 1, rotate: 0 },
+      active: {
+        scale: [1, 1.15, 1],
+        rotate: [0, 6 * dirSign, 0],
+        y: [0, -1.5, 0],
+        transition: navSpringConfig,
+      },
+      inactive: { scale: 1, rotate: 0 },
+    };
+  },
 
-  // Library: Book opening motion (rotate + scale)
-  library: () => ({
-    initial: { scale: 1, rotate: 0 },
-    active: {
-      scale: [1, 1.12, 1],
-      rotate: [0, -4, 0],
-      transition: slowSpringConfig
-    },
-    inactive: { scale: 1, rotate: 0 }
-  }),
+  // Library: Book opening motion (rotate + scale) with direction awareness
+  library: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { scale: 1, rotate: 0 },
+      active: {
+        scale: [1, 1.12, 1],
+        rotate: [0, -6 * dirSign, 0],
+        transition: slowSpringConfig,
+      },
+      inactive: { scale: 1, rotate: 0 },
+    };
+  },
 
   // Favorites / Heart: Heartbeat double pulse
   favorite: () => ({
     initial: { scale: 1 },
     active: {
       scale: [1, 1.25, 1.1, 1.2, 1],
-      transition: { duration: 0.6, ease: 'easeOut' } // Custom timing for heartbeat
+      transition: { duration: 0.6, ease: 'easeOut' },
     },
-    inactive: { scale: 1 }
+    inactive: { scale: 1 },
   }),
 
-  // Music/Notes: Waveform/bounce motion
-  music: () => ({
-    initial: { y: 0, scale: 1 },
-    active: {
-      y: [0, -4, 1, -2, 0],
-      scale: [1, 1.1, 1],
-      transition: { duration: 0.5, ease: 'easeInOut' }
-    },
-    inactive: { y: 0, scale: 1 }
-  }),
-  
+  // Music/Notes: Waveform/bounce motion with directional swing
+  music: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { y: 0, scale: 1, rotate: 0 },
+      active: {
+        y: [0, -4, 1, -2, 0],
+        rotate: [0, 8 * dirSign, 0],
+        scale: [1, 1.1, 1],
+        transition: { duration: 0.5, ease: 'easeInOut' },
+      },
+      inactive: { y: 0, scale: 1, rotate: 0 },
+    };
+  },
+
   // Practice/Metronome: Tick-tock swing
-  practice: () => ({
-    initial: { rotate: 0, scale: 1 },
-    active: {
-      rotate: [0, -12, 12, -6, 0],
-      scale: [1, 1.1, 1],
-      transition: { duration: 0.6, ease: 'easeInOut' }
-    },
-    inactive: { rotate: 0, scale: 1 }
-  }),
+  practice: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { rotate: 0, scale: 1 },
+      active: {
+        rotate: [0, -12 * dirSign, 12 * dirSign, -6 * dirSign, 0],
+        scale: [1, 1.1, 1],
+        transition: { duration: 0.6, ease: 'easeInOut' },
+      },
+      inactive: { rotate: 0, scale: 1 },
+    };
+  },
 
   // Stage/Spotlight: Pivot motion
-  stage: () => ({
-    initial: { rotate: 0, scale: 1 },
-    active: {
-      rotate: [0, -10, 8, 0],
-      scale: [1, 1.1, 1],
-      transition: slowSpringConfig
-    },
-    inactive: { rotate: 0, scale: 1 }
-  }),
+  stage: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { rotate: 0, scale: 1 },
+      active: {
+        rotate: [0, 10 * dirSign, -8 * dirSign, 0],
+        scale: [1, 1.1, 1],
+        transition: slowSpringConfig,
+      },
+      inactive: { rotate: 0, scale: 1 },
+    };
+  },
 
   // Microphone/Record: Expansion pulse
   record: () => ({
     initial: { scale: 1 },
     active: {
       scale: [1, 1.25, 1],
-      transition: snappySpringConfig
+      transition: snappySpringConfig,
     },
-    inactive: { scale: 1 }
+    inactive: { scale: 1 },
   }),
 
   // Generic fallback for any unrecognized icon
-  generic: () => ({
-    initial: { scale: 1, y: 0 },
-    active: {
-      scale: [1, 1.15, 1],
-      y: [0, -1.5, 0],
-      transition: navSpringConfig
-    },
-    inactive: { scale: 1, y: 0 }
-  })
+  generic: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { scale: 1, y: 0, rotate: 0 },
+      active: {
+        scale: [1, 1.15, 1],
+        rotate: [0, 8 * dirSign, 0],
+        y: [0, -1.5, 0],
+        transition: navSpringConfig,
+      },
+      inactive: { scale: 1, y: 0, rotate: 0 },
+    };
+  },
 };
 
 /**
  * Helper to match an icon name/key to its personality variant
  */
-export function getMotionVariantForIcon(iconName: string): IconVariantGetter {
+export function getMotionVariantForIcon(iconName: string, direction: NavDirection = 'forward'): IconVariantGetter {
   const lower = iconName.toLowerCase();
   
   if (lower.includes('setting') || lower.includes('gear') || lower.includes('preference')) {
-    return NavigationMotionVariants.settings;
+    return () => NavigationMotionVariants.settings(direction);
   }
   if (lower.includes('search') || lower.includes('magnifier')) {
-    return NavigationMotionVariants.search;
+    return () => NavigationMotionVariants.search(direction);
   }
   if (lower.includes('profile') || lower.includes('user') || lower.includes('avatar') || lower.includes('account')) {
-    return NavigationMotionVariants.profile;
+    return () => NavigationMotionVariants.profile(direction);
   }
   if (lower.includes('library') || lower.includes('book')) {
-    return NavigationMotionVariants.library;
+    return () => NavigationMotionVariants.library(direction);
   }
   if (lower.includes('favorite') || lower.includes('heart')) {
-    return NavigationMotionVariants.favorite;
+    return () => NavigationMotionVariants.favorite();
   }
   if (lower.includes('music') || lower.includes('note') || lower.includes('song') || lower.includes('chord')) {
-    return NavigationMotionVariants.music;
+    return () => NavigationMotionVariants.music(direction);
   }
   if (lower.includes('practice') || lower.includes('metronome') || lower.includes('graphic_eq') || lower.includes('coach')) {
-    return NavigationMotionVariants.practice;
+    return () => NavigationMotionVariants.practice(direction);
   }
   if (lower.includes('stage') || lower.includes('spotlight') || lower.includes('setup')) {
-    return NavigationMotionVariants.stage;
+    return () => NavigationMotionVariants.stage(direction);
   }
   if (lower.includes('record') || lower.includes('mic') || lower.includes('takes')) {
-    return NavigationMotionVariants.record;
+    return () => NavigationMotionVariants.record();
   }
   if (lower.includes('home')) {
-    return NavigationMotionVariants.home;
+    return () => NavigationMotionVariants.home(direction);
   }
 
-  return NavigationMotionVariants.generic;
+  return () => NavigationMotionVariants.generic(direction);
 }

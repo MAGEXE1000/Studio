@@ -1,5 +1,30 @@
 import { Button, Toolbar } from '../../../shared/design-system/StudioDesignSystem';
-import { setBackHandler, useBackHandler, useChordStore, ACCENT_COLORS, translations, useT, useNavCollapsed, setNavCollapsed, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, updateStagexDiagnostics, getStagexDiagnostics, useNavigationStore, NavigationDispatcher, useSettingsStore, DurationPresets, EasingPresets, CollaborationService, authRepository, APP_VERSION, getFirebaseConfigDetails, getFirestoreDiagnostics, useSessionStore } from '@workspace/studio-core';
+import {
+  setBackHandler,
+  useBackHandler,
+  useChordStore,
+  ACCENT_COLORS,
+  translations,
+  useT,
+  useNavCollapsed,
+  setNavCollapsed,
+  useIsWebDesktop,
+  registerDebugProvider,
+  unregisterDebugProvider,
+  updateStagexDiagnostics,
+  getStagexDiagnostics,
+  useNavigationStore,
+  NavigationDispatcher,
+  useSettingsStore,
+  DurationPresets,
+  EasingPresets,
+  CollaborationService,
+  authRepository,
+  APP_VERSION,
+  getFirebaseConfigDetails,
+  getFirestoreDiagnostics,
+  useSessionStore,
+} from '@workspace/studio-core';
 import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
@@ -13,7 +38,11 @@ import { Capacitor } from '@capacitor/core';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Dialog } from '../../../shared/design-system/dialogs';
 import { SegmentedOtpInput } from '../components/SegmentedOtpInput';
-import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
+import {
+  BouncyAccordion,
+  type BouncyAccordionItem,
+} from '../../../components/motion/bouncy-accordion';
+import { ShareMenu } from '../../../components/share-menu';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -111,10 +140,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
     const t = translations[lang as keyof typeof translations] ?? translations.en;
     const sp = t.stagePrefs;
     const cur = store.settings.defaultStageView ?? 'Editor';
-    const accentKey = (store.settings.perApp?.stagex?.accentColor ??
-      store.settings.accentColor ??
-      'blue') as keyof typeof ACCENT_COLORS;
-    const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
+    const accent = ACCENT_COLORS.blue;
 
     const section = doc.createElement('div');
     section.id = 'sc-start-on-injected';
@@ -172,12 +198,7 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
           .getState()
           .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
-        const a2 =
-          ACCENT_COLORS[
-            (useSettingsStore.getState().settings.perApp?.stagex?.accentColor ??
-              useSettingsStore.getState().settings.accentColor ??
-              'blue') as keyof typeof ACCENT_COLORS
-          ] ?? ACCENT_COLORS.blue;
+        const a2 = ACCENT_COLORS.blue;
         btnWrap.querySelectorAll('button').forEach((b, idx) => {
           const isActive = views[idx].value === updated;
           (b as HTMLButtonElement).style.border = isActive
@@ -480,11 +501,18 @@ export default function StagexPanel() {
 
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || { app: 'hub' };
   const curView = useMemo(() => {
-    if (currentRoute.app === 'stagex' && currentRoute.page && currentRoute.page !== 'main' && currentRoute.page !== 'stage') {
+    if (
+      currentRoute.app === 'stagex' &&
+      currentRoute.page &&
+      currentRoute.page !== 'main' &&
+      currentRoute.page !== 'stage'
+    ) {
       return currentRoute.page;
     }
     const s = useSettingsStore.getState();
-    const saved = s.settings.restoreLastSession ? (useChordStore.getState() as any).lastSession?.stagexView : undefined;
+    const saved = s.settings.restoreLastSession
+      ? (useChordStore.getState() as any).lastSession?.stagexView
+      : undefined;
     return saved || s.settings.defaultStageView || 'Editor';
   }, [currentRoute]);
 
@@ -537,12 +565,18 @@ export default function StagexPanel() {
   });
 
   const handleConfirmOk = useCallback(() => {
-    iframeRef.current?.contentWindow?.postMessage({ type: 'stage-core:confirm-response', ok: true }, '*');
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'stage-core:confirm-response', ok: true },
+      '*'
+    );
     setConfirmConfig((prev) => ({ ...prev, open: false }));
   }, []);
 
   const handleConfirmCancel = useCallback(() => {
-    iframeRef.current?.contentWindow?.postMessage({ type: 'stage-core:confirm-response', ok: false }, '*');
+    iframeRef.current?.contentWindow?.postMessage(
+      { type: 'stage-core:confirm-response', ok: false },
+      '*'
+    );
     setConfirmConfig((prev) => ({ ...prev, open: false }));
   }, []);
 
@@ -593,7 +627,7 @@ export default function StagexPanel() {
       return {
         code: 'none',
         message: 'none',
-        stack: 'none'
+        stack: 'none',
       };
     }
     let code = 'unknown';
@@ -621,7 +655,7 @@ export default function StagexPanel() {
     const fbConfig = getFirebaseConfigDetails();
     const fsDiag = getFirestoreDiagnostics();
     const errInfo = getFirestoreErrorInfo(collabError);
-    
+
     return [
       `=== STAGEX ENGINEERING DIAGNOSTICS REPORT ===`,
       `Generated: ${new Date().toISOString()}`,
@@ -662,9 +696,17 @@ export default function StagexPanel() {
       `Firestore Error Code: ${errInfo.code}`,
       `Firestore Message: ${errInfo.message}`,
       `Firestore Stack: ${errInfo.stack}`,
-      `============================================`
+      `============================================`,
     ].join('\n');
-  }, [currentRoute, collabError, collabState, currentUser, collabRoom, collabParticipants, pendingOpsCount]);
+  }, [
+    currentRoute,
+    collabError,
+    collabState,
+    currentUser,
+    collabRoom,
+    collabParticipants,
+    pendingOpsCount,
+  ]);
 
   useEffect(() => {
     if (collabState !== 'connected') {
@@ -683,7 +725,7 @@ export default function StagexPanel() {
     });
 
     const service = CollaborationService.getInstance();
-    
+
     setCollabState(service.getConnectionState());
     setCollabRoom(service.getActiveRoom());
     setCollabParticipants(service.getParticipants());
@@ -1136,8 +1178,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             await (window.screen.orientation as any).lock('portrait');
           }
         }
-      } catch (e) {
-      }
+      } catch (e) {}
     })();
 
     setTimeout(() => setRotationTransition(false), 320);
@@ -1231,13 +1272,9 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
   const stageVis = settings.perApp?.stagex ?? {
     theme: 'dark' as const,
-    accentColor: 'blue' as const,
     amoledMode: false,
   };
-  const accentKey = (stageVis.accentColor ??
-    settings.accentColor ??
-    'blue') as keyof typeof ACCENT_COLORS;
-  const accent = ACCENT_COLORS[accentKey] ?? ACCENT_COLORS.blue;
+  const accent = ACCENT_COLORS.blue;
   const isLight = (() => {
     if (stageVis.theme === 'light') return true;
     if (stageVis.theme === 'system') {
@@ -1259,8 +1296,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   const iframeSrc = useRef(
     `${baseOrigin}/stage-core/index.html#${isLight ? 'light' : 'dark'},${encodeURIComponent(accent.from)},${encodeURIComponent(accent.to)},${isAmoled ? '1' : '0'}`
   ).current;
-  const stageBg = isLight ? '#f2f1ef' : '#000000';
-  const stageHdr = isLight ? '#f2f1ef' : '#000000';
+  const stageBg = isLight ? '#f2f1ef' : isAmoled ? '#000000' : '#0e0e0e';
+  const stageHdr = isLight ? '#f2f1ef' : isAmoled ? '#000000' : '#0e0e0e';
 
   const showBack =
     curView === 'Rider' ||
@@ -1359,8 +1396,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     let doc: Document | null = null;
     try {
       doc = iframe.contentDocument || iframe.contentWindow?.document || null;
-    } catch (e) {
-    }
+    } catch (e) {}
 
     if (!doc) {
       setScenesTestResult('Failed: Cannot access iframe DOM (origin restriction)');
@@ -1727,10 +1763,12 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       expectedOrigin: window.location.origin,
     });
     return () => {
-      void import('@workspace/studio-core').then(({ registerStageIframe, CollaborationService }) => {
-        registerStageIframe(null);
-        CollaborationService.getInstance().registerIframe(null);
-      });
+      void import('@workspace/studio-core').then(
+        ({ registerStageIframe, CollaborationService }) => {
+          registerStageIframe(null);
+          CollaborationService.getInstance().registerIframe(null);
+        }
+      );
       updateStagexDiagnostics({
         iframeMounted: false,
         wrapperListenerRegistered: false,
@@ -1740,10 +1778,12 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
   useEffect(() => {
     if (iframeRef.current) {
-      void import('@workspace/studio-core').then(({ registerStageIframe, CollaborationService }) => {
-        registerStageIframe(iframeRef.current);
-        CollaborationService.getInstance().registerIframe(iframeRef.current);
-      });
+      void import('@workspace/studio-core').then(
+        ({ registerStageIframe, CollaborationService }) => {
+          registerStageIframe(iframeRef.current);
+          CollaborationService.getInstance().registerIframe(iframeRef.current);
+        }
+      );
     }
   }, [curView]);
 
@@ -1871,7 +1911,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   const hasWebHeader = !isWebDesktop || curView === 'Editor' || curView === 'Export' || showBack;
   const collapseHeader =
     (isLandscape && curView === 'Editor') || liveMode || !hasWebHeader || isStageExpanded;
-  const hideBottomNav = curView === 'Export' || isStageExpanded || fabOpen || propPanelOpen;
+  const hideBottomNav = curView === 'Export' || isStageExpanded || propPanelOpen;
   const isLandscapeEditor = isLandscape && curView === 'Editor';
 
   const navTabs: { view: string; label: string; icon: string }[] = [
@@ -2091,7 +2131,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       id,
       title: (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="material-symbols-outlined" style={{ fontSize: '16px', color: headerColor }}>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: '16px', color: headerColor }}
+          >
             {icon}
           </span>
           <span
@@ -2210,8 +2253,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   variant="secondary"
                   className="h-8 !px-2.5"
                 >
-                  <span 
-                    className="material-symbols-outlined text-[15px]" 
+                  <span
+                    className="material-symbols-outlined text-[15px]"
                     style={{ color: collabState === 'connected' ? '#10b981' : undefined }}
                   >
                     {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
@@ -3042,6 +3085,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               flexShrink: 0,
               overflow: collapseHeader ? 'hidden' : 'visible',
               height: collapseHeader ? 0 : 'calc(env(safe-area-inset-top) + 68px)',
+              background: stageHdr,
               // In the Export view we want the header to disappear instantly on
               // scroll-down (no animation). In landscape Editor mode we still
               // animate the collapse for a smooth rotation feel.
@@ -3051,7 +3095,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             <div
               style={{
                 height: 'env(safe-area-inset-top)',
-                background: 'transparent',
+                background: stageHdr,
                 flexShrink: 0,
               }}
             />
@@ -3105,8 +3149,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   </span>
                 </button>
               </div>
-
-
 
               <div style={{ flex: 1 }} />
 
@@ -3234,13 +3276,21 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                       justifyContent: 'center',
                       width: 32,
                       height: 32,
-                      background: collabState === 'connected' 
-                        ? (isLight ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.20)') 
-                        : (isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)'),
-                      color: collabState === 'connected' 
-                        ? '#10b981' 
-                        : (isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)'),
-                      border: `1px solid ${collabState === 'connected' ? '#10b981' : (isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)')}`,
+                      background:
+                        collabState === 'connected'
+                          ? isLight
+                            ? 'rgba(16,185,129,0.15)'
+                            : 'rgba(16,185,129,0.20)'
+                          : isLight
+                            ? 'rgba(0,0,0,0.06)'
+                            : 'rgba(255,255,255,0.07)',
+                      color:
+                        collabState === 'connected'
+                          ? '#10b981'
+                          : isLight
+                            ? 'rgba(0,0,0,0.55)'
+                            : 'rgba(180,185,200,0.75)',
+                      border: `1px solid ${collabState === 'connected' ? '#10b981' : isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
                       borderRadius: '50%',
                       cursor: 'pointer',
                       flexShrink: 0,
@@ -3372,193 +3422,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               )}
               {hideBottomNav && <div className="hide-bottom-nav" style={{ display: 'none' }} />}
             </div>
-
-            {showDiagnostics && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 'env(safe-area-inset-top)',
-                  left: 8,
-                  right: 8,
-                  background: 'rgba(12,12,14,0.95)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                  borderRadius: 16,
-                  padding: 12,
-                  zIndex: 99999,
-                  fontFamily: 'monospace',
-                  fontSize: 10,
-                  color: '#40c057',
-                  boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
-                  maxHeight: '40vh',
-                  overflowY: 'auto',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderBottom: '1px solid rgba(255,255,255,0.08)',
-                    paddingBottom: 6,
-                  }}
-                >
-                  <span style={{ fontWeight: 800, color: '#fff' }}>STAGEX DIAGNOSTICS</span>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button
-                      onClick={() => {
-                        const report = generateDiagnosticsReport();
-                        navigator.clipboard.writeText(report).catch(() => {});
-                        logDiagnostic(`[Diagnostics] Engineering report copied to clipboard.`);
-                      }}
-                      style={{
-                        padding: '3px 6px',
-                        background: '#0ca678',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                        fontSize: 8,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Copy Diagnostics
-                    </button>
-                    <button
-                      onClick={() => {
-                        const next = !safeMode;
-                        setSafeMode(next);
-                        localStorage.setItem('stagex_safe_mode_enabled', next ? 'true' : 'false');
-                        logDiagnostic(`[Safe Mode] ${next ? 'ENABLED' : 'DISABLED'}`);
-                      }}
-                      style={{
-                        padding: '3px 6px',
-                        background: safeMode ? '#e63946' : '#2a2a30',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                        fontSize: 8,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {safeMode ? 'Disable Safe Mode' : 'Enable Safe Mode'}
-                    </button>
-                    <button
-                      onClick={runInteractionTest}
-                      disabled={testActive}
-                      style={{
-                        padding: '3px 6px',
-                        background: testActive ? '#ffb703' : '#3b5bdb',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                        fontSize: 8,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {testActive ? `Cycle ${testCycle} (${testStep})` : 'Run Test'}
-                    </button>
-                    <button
-                      onClick={() =>
-                        setDiagTaps({
-                          bottomNav: 0,
-                          plus: 0,
-                          eye: 0,
-                          picker: 0,
-                          toolbar: 0,
-                          sentMsgs: 0,
-                          recvMsgs: 0,
-                        })
-                      }
-                      style={{
-                        padding: '3px 6px',
-                        background: '#495057',
-                        color: '#fff',
-                        border: 'none',
-                        borderRadius: 4,
-                        fontSize: 8,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Reset
-                    </button>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: 4,
-                    background: 'rgba(0,0,0,0.3)',
-                    padding: 6,
-                    borderRadius: 8,
-                  }}
-                >
-                  <div>Nav: {diagTaps.bottomNav}</div>
-                  <div>Plus: {diagTaps.plus}</div>
-                  <div>Eye: {diagTaps.eye}</div>
-                  <div>Pick: {diagTaps.picker}</div>
-                  <div>Tool: {diagTaps.toolbar}</div>
-                  <div>Sent: {diagTaps.sentMsgs}</div>
-                  <div>Recv: {diagTaps.recvMsgs}</div>
-                  <div style={{ color: safeMode ? '#ff6b6b' : '#a0a0a5' }}>
-                    Safe: {safeMode ? 'ON' : 'OFF'}
-                  </div>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, 1fr)',
-                    gap: '4px 8px',
-                    background: 'rgba(0,0,0,0.4)',
-                    padding: 8,
-                    borderRadius: 8,
-                    border: '1px solid rgba(255,255,255,0.06)',
-                  }}
-                >
-                  <div style={{ gridColumn: 'span 2', fontWeight: 'bold', color: '#ffb703', borderBottom: '1px dashed rgba(255,255,255,0.1)', paddingBottom: 2 }}>
-                    Runtime Variables
-                  </div>
-                  <div><strong>Route:</strong> {window.location.pathname}</div>
-                  <div><strong>App:</strong> {currentRoute.app || 'N/A'}</div>
-                  <div><strong>Firebase Project:</strong> {getFirebaseConfigDetails().projectId}</div>
-                  <div><strong>Database ID:</strong> {(getFirebaseConfigDetails() as any).databaseId || '(default)'}</div>
-                  <div><strong>Connection State:</strong> {collabState}</div>
-                  <div><strong>Auth State:</strong> {currentUser ? 'Authenticated' : 'Unauthenticated'}</div>
-                  <div><strong>Room ID:</strong> {collabRoom?.roomId || 'N/A'}</div>
-                  <div><strong>Short Code:</strong> {collabRoom?.shortCode || 'N/A'}</div>
-                  <div><strong>Snapshot Metadata:</strong> fromCache={getFirestoreDiagnostics().firestoreRuntimeActive ? 'false' : 'true'}</div>
-                  <div><strong>Pending Writes:</strong> {pendingOpsCount > 0 ? 'true' : 'false'} ({pendingOpsCount})</div>
-                  <div><strong>fromCache:</strong> {getFirestoreDiagnostics().firestoreRuntimeActive ? 'false' : 'true'}</div>
-                  <div><strong>navigator.onLine:</strong> {navigator.onLine ? 'true' : 'false'}</div>
-                  <div><strong>App Version:</strong> {APP_VERSION}</div>
-                  <div><strong>Commit SHA:</strong> {import.meta.env.VITE_COMMIT_REF || 'unknown'}</div>
-                  <div><strong>Platform:</strong> {Capacitor.isNativePlatform() ? 'Native' : 'Web'}</div>
-                  <div><strong>Presence Status:</strong> {collabParticipants.length} active</div>
-                  <div><strong>Op Queue Status:</strong> {pendingOpsCount} pending</div>
-                  <div style={{ gridColumn: 'span 2', borderTop: '1px dashed rgba(255,255,255,0.1)', paddingTop: 4 }}>
-                    <strong>Firestore Error:</strong> Code: {getFirestoreErrorInfo(collabError).code} | Msg: {getFirestoreErrorInfo(collabError).message}
-                  </div>
-                  <div style={{ gridColumn: 'span 2', maxHeight: 40, overflowY: 'auto', fontSize: 8, color: '#ff8787', fontFamily: 'monospace' }}>
-                    <strong>Stack:</strong> {getFirestoreErrorInfo(collabError).stack}
-                  </div>
-                </div>
-                <pre
-                  style={{
-                    margin: 0,
-                    whiteSpace: 'pre-wrap',
-                    maxHeight: '18vh',
-                    overflowY: 'auto',
-                    background: 'rgba(0,0,0,0.5)',
-                    padding: 6,
-                    borderRadius: 6,
-                  }}
-                >
-                  {lastDiagLog}
-                </pre>
-              </div>
-            )}
 
             {/* ── Stage Expand/Rotate Toggle ── */}
             {curView === 'Editor' && (
@@ -3732,16 +3595,18 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   touchAction: 'manipulation',
                   display: 'flex',
                   opacity: liveMode || fabOpen ? 0 : isLandscapeEditor && propPanelOpen ? 0 : 1,
-                  pointerEvents: liveMode || fabOpen
-                    ? ('none' as const)
-                    : isLandscapeEditor && propPanelOpen
+                  pointerEvents:
+                    liveMode || fabOpen
                       ? ('none' as const)
-                      : ('auto' as const),
-                  visibility: liveMode || fabOpen
-                    ? ('hidden' as const)
-                    : isLandscapeEditor && propPanelOpen
+                      : isLandscapeEditor && propPanelOpen
+                        ? ('none' as const)
+                        : ('auto' as const),
+                  visibility:
+                    liveMode || fabOpen
                       ? ('hidden' as const)
-                      : ('visible' as const),
+                      : isLandscapeEditor && propPanelOpen
+                        ? ('hidden' as const)
+                        : ('visible' as const),
                   alignItems: 'center',
                   justifyContent: 'center',
                   boxShadow: fabOpen
@@ -3766,8 +3631,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 </span>
               </button>
             )}
-
-
           </div>
 
           {/* ── PDF Export Bottom Sheet ───────────────────────── */}
@@ -4038,51 +3901,59 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           `}</style>
             </>
           )}
-      <Dialog
-        open={confirmConfig.open}
-        onClose={handleConfirmCancel}
-        title={confirmConfig.title}
-        footer={
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={handleConfirmCancel}
+          <Dialog
+            open={confirmConfig.open}
+            onClose={handleConfirmCancel}
+            title={confirmConfig.title}
+            footer={
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  onClick={handleConfirmCancel}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 8,
+                    background: 'var(--c-surface-high)',
+                    border: '1px solid var(--c-border)',
+                    color: 'var(--c-text-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'Manrope',
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmOk}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 8,
+                    background: confirmConfig.isDestructive ? '#ff4b4b' : 'var(--accent-from)',
+                    border: 'none',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontFamily: 'Manrope',
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  Confirm
+                </button>
+              </div>
+            }
+          >
+            <p
               style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                background: 'var(--c-surface-high)',
-                border: '1px solid var(--c-border)',
-                color: 'var(--c-text-primary)',
-                cursor: 'pointer',
+                margin: 0,
+                fontSize: 14,
                 fontFamily: 'Manrope',
-                fontWeight: 600,
-                fontSize: 13,
+                color: 'var(--c-text-secondary)',
+                lineHeight: 1.5,
               }}
             >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmOk}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                background: confirmConfig.isDestructive ? '#ff4b4b' : 'var(--accent-from)',
-                border: 'none',
-                color: '#fff',
-                cursor: 'pointer',
-                fontFamily: 'Manrope',
-                fontWeight: 600,
-                fontSize: 13,
-              }}
-            >
-              Confirm
-            </button>
-          </div>
-        }
-      >
-        <p style={{ margin: 0, fontSize: 14, fontFamily: 'Manrope', color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {confirmConfig.message}
-        </p>
-      </Dialog>
+              {confirmConfig.message}
+            </p>
+          </Dialog>
 
           {/* ── Collaboration Modal ── */}
           <Dialog
@@ -4090,225 +3961,287 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             onClose={() => !collabLoading && setCollabModalOpen(false)}
           >
             <div className="w-full max-w-[480px] text-[#e2e2e2] font-body-md">
-
-                {/* Header */}
-                <div className="p-6 pb-0 flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div>
-                      <h1 className="font-headline-lg text-3xl font-bold tracking-tight text-on-surface">Collaborate</h1>
-                      <p className="font-body-md text-sm text-[#c1c6d7] mt-1">Work together on this stage in real time.</p>
-                    </div>
+              {/* Header */}
+              <div className="p-6 pb-0 flex items-start justify-between">
+                <div className="flex items-start gap-4">
+                  <div>
+                    <h1 className="font-headline-lg text-3xl font-bold tracking-tight text-on-surface">
+                      Collaborate
+                    </h1>
+                    <p className="font-body-md text-sm text-[#c1c6d7] mt-1">
+                      Work together on this stage in real time.
+                    </p>
                   </div>
-                  <button
-                    onClick={() => !collabLoading && setCollabModalOpen(false)}
-                    className="p-2 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center"
-                  >
-                    <span className="material-symbols-outlined text-on-surface-variant">close</span>
-                  </button>
                 </div>
+                <button
+                  onClick={() => !collabLoading && setCollabModalOpen(false)}
+                  className="p-2 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center"
+                >
+                  <span className="material-symbols-outlined text-on-surface-variant">close</span>
+                </button>
+              </div>
 
-                <div className="p-6 space-y-6">
-                  {collabError && (
-                    <div className="rounded-2xl bg-red-500/10 border border-red-500/25 text-[#ffb4ab] text-sm overflow-hidden">
-                      {/* Collapsed: friendly error message */}
-                      <div className="p-3 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg flex-shrink-0">error</span>
-                        <span className="font-medium flex-1">
-                          {collabError.includes('(Raw:') ? collabError.split('(Raw:')[0].trim() : collabError}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setCollabDiagExpanded(!collabDiagExpanded)}
-                          className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#ffb4ab]/70 hover:text-[#ffb4ab] transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
-                        >
-                          {collabDiagExpanded ? 'Hide' : 'Details'}
-                        </button>
-                      </div>
-                      {/* Expanded: full diagnostics */}
-                      {collabDiagExpanded && (
-                        <div className="px-3 pb-3 pt-0 border-t border-red-500/15 space-y-2">
-                          <div className="mt-2 text-[11px] font-mono text-[#ffb4ab]/60 leading-relaxed space-y-1">
-                            {collabError.includes('(Raw:') && (
-                              <div><span className="text-[#ffb4ab]/40">Raw: </span>{collabError.match(/\(Raw:\s*(.+)\)$/)?.[1] || 'N/A'}</div>
-                            )}
-                            {collabErrorTimestamp && (
-                              <div><span className="text-[#ffb4ab]/40">Time: </span>{collabErrorTimestamp}</div>
-                            )}
-                            <div><span className="text-[#ffb4ab]/40">State: </span>{collabState || 'disconnected'}</div>
-                            {collabRoom?.shortCode && (
-                              <div><span className="text-[#ffb4ab]/40">Room: </span>{collabRoom.shortCode}</div>
-                            )}
-                            {currentUser?.uid && (
-                              <div><span className="text-[#ffb4ab]/40">User: </span>{currentUser.uid.slice(0, 8)}…</div>
-                            )}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const diagText = generateDiagnosticsReport();
-                              navigator.clipboard.writeText(diagText).catch(() => {});
-                            }}
-                            className="w-full text-[11px] font-semibold text-[#ffb4ab]/50 hover:text-[#ffb4ab]/80 border border-red-500/15 hover:border-red-500/30 rounded-lg py-1.5 flex items-center justify-center gap-1.5 transition-all hover:bg-white/5"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">content_copy</span>
-                            Copy Diagnostics
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {!currentUser ? (
-                    <div className="text-center py-6 space-y-4">
-                      <p className="text-sm text-[#c1c6d7]">
-                        You must be signed in to host or join collaborative sessions.
-                      </p>
+              <div className="p-6 space-y-6">
+                {collabError && (
+                  <div className="rounded-2xl bg-red-500/10 border border-red-500/25 text-[#ffb4ab] text-sm overflow-hidden">
+                    {/* Collapsed: friendly error message */}
+                    <div className="p-3 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lg flex-shrink-0">error</span>
+                      <span className="font-medium flex-1">
+                        {collabError.includes('(Raw:')
+                          ? collabError.split('(Raw:')[0].trim()
+                          : collabError}
+                      </span>
                       <button
-                        onClick={() => {
-                          setCollabModalOpen(false);
-                          window.dispatchEvent(new CustomEvent('studio:open-auth'));
-                        }}
-                        className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-base h-12 rounded-full flex items-center justify-center font-bold hover:opacity-90 active:scale-95 transition-all"
+                        type="button"
+                        onClick={() => setCollabDiagExpanded(!collabDiagExpanded)}
+                        className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#ffb4ab]/70 hover:text-[#ffb4ab] transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
                       >
-                        Sign In
+                        {collabDiagExpanded ? 'Hide' : 'Details'}
                       </button>
                     </div>
-                  ) : collabState === 'connected' && collabRoom ? (
-                    /* Connected Room Experience */
-                    <div className="space-y-6">
-                      {/* Invite Code Section */}
-                      <section className="space-y-4">
-                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Your Invite Code</label>
-                        <div className="grid grid-cols-6 gap-3">
-                          {Array.from({ length: 6 }).map((_, idx) => (
-                            <div
-                              key={idx}
-                              className="h-16 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/10 flex items-center justify-center font-code-display text-2xl font-bold text-[#adc6ff] shadow-[0_0_12px_-2px_rgba(173,198,255,0.4)] border-[#adc6ff]"
-                            >
-                              {collabRoom.shortCode[idx] || ''}
+                    {/* Expanded: full diagnostics */}
+                    {collabDiagExpanded && (
+                      <div className="px-3 pb-3 pt-0 border-t border-red-500/15 space-y-2">
+                        <div className="mt-2 text-[11px] font-mono text-[#ffb4ab]/60 leading-relaxed space-y-1">
+                          {collabError.includes('(Raw:') && (
+                            <div>
+                              <span className="text-[#ffb4ab]/40">Raw: </span>
+                              {collabError.match(/\(Raw:\s*(.+)\)$/)?.[1] || 'N/A'}
                             </div>
-                          ))}
+                          )}
+                          {collabErrorTimestamp && (
+                            <div>
+                              <span className="text-[#ffb4ab]/40">Time: </span>
+                              {collabErrorTimestamp}
+                            </div>
+                          )}
+                          <div>
+                            <span className="text-[#ffb4ab]/40">State: </span>
+                            {collabState || 'disconnected'}
+                          </div>
+                          {collabRoom?.shortCode && (
+                            <div>
+                              <span className="text-[#ffb4ab]/40">Room: </span>
+                              {collabRoom.shortCode}
+                            </div>
+                          )}
+                          {currentUser?.uid && (
+                            <div>
+                              <span className="text-[#ffb4ab]/40">User: </span>
+                              {currentUser.uid.slice(0, 8)}…
+                            </div>
+                          )}
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const diagText = generateDiagnosticsReport();
+                            navigator.clipboard.writeText(diagText).catch(() => {});
+                          }}
+                          className="w-full text-[11px] font-semibold text-[#ffb4ab]/50 hover:text-[#ffb4ab]/80 border border-red-500/15 hover:border-red-500/30 rounded-lg py-1.5 flex items-center justify-center gap-1.5 transition-all hover:bg-white/5"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">
+                            content_copy
+                          </span>
+                          Copy Diagnostics
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                        <div className="flex gap-3 pt-2">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(collabRoom.shortCode);
-                              setCollabCopied(true);
-                              setTimeout(() => setCollabCopied(false), 2000);
-                            }}
-                            className="flex-1 bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all"
+                {!currentUser ? (
+                  <div className="text-center py-6 space-y-4">
+                    <p className="text-sm text-[#c1c6d7]">
+                      You must be signed in to host or join collaborative sessions.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setCollabModalOpen(false);
+                        window.dispatchEvent(new CustomEvent('studio:open-auth'));
+                      }}
+                      className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-base h-12 rounded-full flex items-center justify-center font-bold hover:opacity-90 active:scale-95 transition-all"
+                    >
+                      Sign In
+                    </button>
+                  </div>
+                ) : collabState === 'connected' && collabRoom ? (
+                  /* Connected Room Experience */
+                  <div className="space-y-6">
+                    {/* Invite Code Section */}
+                    <section className="space-y-4">
+                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                        Your Invite Code
+                      </label>
+                      <div className="grid grid-cols-6 gap-3">
+                        {Array.from({ length: 6 }).map((_, idx) => (
+                          <div
+                            key={idx}
+                            className="h-16 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/10 flex items-center justify-center font-code-display text-2xl font-bold text-[#adc6ff] shadow-[0_0_12px_-2px_rgba(173,198,255,0.4)] border-[#adc6ff]"
                           >
-                            <span className="material-symbols-outlined text-[18px]">
-                              {collabCopied ? 'check' : 'content_copy'}
-                            </span>
-                            {collabCopied ? 'Copied!' : 'Copy Invite Code'}
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (navigator.share) {
-                                navigator.share({
-                                  title: 'StageX Collaborative Session',
-                                  text: `Join my StageX collaboration session with room code: ${collabRoom.shortCode}`,
-                                  url: window.location.href,
-                                }).catch(() => {});
-                              } else {
-                                alert(`Room Code: ${collabRoom.shortCode}`);
-                              }
-                            }}
-                            className="px-6 border border-white/15 text-[#e2e2e2] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all"
-                          >
+                            {collabRoom.shortCode[idx] || ''}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex gap-3 pt-2">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(collabRoom.shortCode);
+                            setCollabCopied(true);
+                            setTimeout(() => setCollabCopied(false), 2000);
+                          }}
+                          className="flex-1 bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">
+                            {collabCopied ? 'check' : 'content_copy'}
+                          </span>
+                          {collabCopied ? 'Copied!' : 'Copy Invite Code'}
+                        </button>
+                        <ShareMenu title="StageX Collaborative Session" url={window.location.href}>
+                          <button className="px-6 border border-white/15 text-[#e2e2e2] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all">
                             <span className="material-symbols-outlined text-[18px]">share</span>
                             Share
                           </button>
+                        </ShareMenu>
+                      </div>
+                    </section>
+
+                    {/* QR Code Section */}
+                    <section className="flex flex-col items-center gap-2 pt-2">
+                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                        Scan to Join
+                      </label>
+                      <div className="p-3 bg-white rounded-2xl border border-white/10 shadow-lg">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${collabRoom.shortCode}`}
+                          alt="Room QR Code"
+                          className="w-[120px] h-[120px] rounded-lg"
+                        />
+                      </div>
+                    </section>
+
+                    {/* Soft Divider */}
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+                    {/* Collaborators Section */}
+                    <section className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse"></div>
+                          <label className="font-label-md text-sm font-semibold text-[#e2e2e2]">
+                            Connected ({collabParticipants.length})
+                          </label>
                         </div>
-                      </section>
-
-                      {/* QR Code Section */}
-                      <section className="flex flex-col items-center gap-2 pt-2">
-                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Scan to Join</label>
-                        <div className="p-3 bg-white rounded-2xl border border-white/10 shadow-lg">
-                          <img
-                            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${collabRoom.shortCode}`}
-                            alt="Room QR Code"
-                            className="w-[120px] h-[120px] rounded-lg"
-                          />
+                        {/* Sync Status Badge */}
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/8 text-[11px] font-semibold text-[#c1c6d7]">
+                          {pendingOpsCount > 0 ? (
+                            <Loader variant="comet" size={14} />
+                          ) : (
+                            <span className="material-symbols-outlined text-[14px] text-green-400">
+                              check_circle
+                            </span>
+                          )}
+                          {pendingOpsCount > 0 ? `Syncing (${pendingOpsCount})` : 'Synced'}
                         </div>
-                      </section>
+                      </div>
 
-                      {/* Soft Divider */}
-                      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-
-                      {/* Collaborators Section */}
-                      <section className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse"></div>
-                            <label className="font-label-md text-sm font-semibold text-[#e2e2e2]">
-                              Connected ({collabParticipants.length})
-                            </label>
-                          </div>
-                          {/* Sync Status Badge */}
-                          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/8 text-[11px] font-semibold text-[#c1c6d7]">
-                            {pendingOpsCount > 0 ? (
-                              <Loader variant="comet" size={14} />
-                            ) : (
-                              <span className="material-symbols-outlined text-[14px] text-green-400">
-                                check_circle
-                              </span>
-                            )}
-                            {pendingOpsCount > 0 ? `Syncing (${pendingOpsCount})` : 'Synced'}
-                          </div>
-                        </div>
-
-                        <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
-                          {collabParticipants.map((p, idx) => (
-                            <div
-                              key={p.id}
-                              className="stagger-avatar flex items-center justify-between p-3 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/8 transition-all hover:border-white/15"
-                              style={{ animationDelay: `${(idx + 1) * 0.1}s` }}
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="relative">
-                                  {p.avatar ? (
-                                    <img
-                                      src={p.avatar}
-                                      alt={p.displayName}
-                                      className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
-                                    />
-                                  ) : (
-                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-sm text-[#adc6ff] ring-2 ring-[#adc6ff]/20 uppercase">
-                                      {p.displayName ? p.displayName[0] : 'U'}
-                                    </div>
-                                  )}
-                                  <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#1f1f1f] ${p.online ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`} />
-                                </div>
-                                <div>
-                                  <p className="font-label-lg text-sm font-semibold text-[#e2e2e2]">
-                                    {p.displayName || 'Collaborator'} {p.id === currentUser.uid && <span className="text-[#c1c6d7]/60 font-normal">(You)</span>}
-                                  </p>
-                                  <p className="text-[11px] text-[#c1c6d7]/80 font-medium">
-                                    {p.id === collabRoom.hostId ? 'Owner' : (p.online ? 'Editing' : 'Offline')}
-                                  </p>
-                                </div>
+                      <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
+                        {collabParticipants.map((p, idx) => (
+                          <div
+                            key={p.id}
+                            className="stagger-avatar flex items-center justify-between p-3 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/8 transition-all hover:border-white/15"
+                            style={{ animationDelay: `${(idx + 1) * 0.1}s` }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="relative">
+                                {p.avatar ? (
+                                  <img
+                                    src={p.avatar}
+                                    alt={p.displayName}
+                                    className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-sm text-[#adc6ff] ring-2 ring-[#adc6ff]/20 uppercase">
+                                    {p.displayName ? p.displayName[0] : 'U'}
+                                  </div>
+                                )}
+                                <div
+                                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#1f1f1f] ${p.online ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`}
+                                />
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[#c1c6d7]/40 text-lg">signal_cellular_alt</span>
-                                <span className="text-[10px] text-[#c1c6d7]/50 font-medium">Excellent</span>
+                              <div>
+                                <p className="font-label-lg text-sm font-semibold text-[#e2e2e2]">
+                                  {p.displayName || 'Collaborator'}{' '}
+                                  {p.id === currentUser.uid && (
+                                    <span className="text-[#c1c6d7]/60 font-normal">(You)</span>
+                                  )}
+                                </p>
+                                <p className="text-[11px] text-[#c1c6d7]/80 font-medium">
+                                  {p.id === collabRoom.hostId
+                                    ? 'Owner'
+                                    : p.online
+                                      ? 'Editing'
+                                      : 'Offline'}
+                                </p>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </section>
+                            <div className="flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[#c1c6d7]/40 text-lg">
+                                signal_cellular_alt
+                              </span>
+                              <span className="text-[10px] text-[#c1c6d7]/50 font-medium">
+                                Excellent
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
 
-                      {/* Action Button */}
+                    {/* Action Button */}
+                    <button
+                      onClick={async () => {
+                        setCollabLoading(true);
+                        setCollabError(null);
+                        try {
+                          await CollaborationService.getInstance().leaveRoom();
+                          setCollabModalOpen(false);
+                        } catch (e: any) {
+                          setCollabError(e.friendlyMessage || e.message || String(e));
+                          setCollabErrorTimestamp(new Date().toISOString());
+                        } finally {
+                          setCollabLoading(false);
+                        }
+                      }}
+                      disabled={collabLoading}
+                      className="w-full bg-red-500/15 border border-red-500/35 hover:bg-red-500/25 active:scale-95 text-red-400 font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center transition-all mt-4"
+                    >
+                      {collabLoading ? 'Leaving...' : 'Leave Collaboration'}
+                    </button>
+                  </div>
+                ) : (
+                  /* Host / Join Screen */
+                  <div className="space-y-6">
+                    {/* Host Section */}
+                    <section className="space-y-4">
+                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                        Host a Stage
+                      </label>
                       <button
                         onClick={async () => {
                           setCollabLoading(true);
                           setCollabError(null);
                           try {
-                            await CollaborationService.getInstance().leaveRoom();
-                            setCollabModalOpen(false);
+                            await CollaborationService.getInstance().createRoom(
+                              currentUser.uid,
+                              {
+                                displayName: currentUser.displayName || 'Host',
+                                avatar: currentUser.photoURL || '',
+                              },
+                              cursorColor
+                            );
                           } catch (e: any) {
                             setCollabError(e.friendlyMessage || e.message || String(e));
                             setCollabErrorTimestamp(new Date().toISOString());
@@ -4317,96 +4250,70 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                           }
                         }}
                         disabled={collabLoading}
-                        className="w-full bg-red-500/15 border border-red-500/35 hover:bg-red-500/25 active:scale-95 text-red-400 font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center transition-all mt-4"
+                        className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-[0_4px_14px_rgba(173,198,255,0.25)]"
                       >
-                        {collabLoading ? 'Leaving...' : 'Leave Collaboration'}
+                        {collabLoading ? 'Hosting...' : 'Host Room'}
                       </button>
-                    </div>
-                  ) : (
-                    /* Host / Join Screen */
-                    <div className="space-y-6">
-                      {/* Host Section */}
-                      <section className="space-y-4">
-                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Host a Stage</label>
-                        <button
-                          onClick={async () => {
-                            setCollabLoading(true);
-                            setCollabError(null);
-                            try {
-                              await CollaborationService.getInstance().createRoom(
-                                currentUser.uid,
-                                { displayName: currentUser.displayName || 'Host', avatar: currentUser.photoURL || '' },
-                                cursorColor
-                              );
-                            } catch (e: any) {
-                              setCollabError(e.friendlyMessage || e.message || String(e));
-                              setCollabErrorTimestamp(new Date().toISOString());
-                            } finally {
-                              setCollabLoading(false);
-                            }
-                          }}
-                          disabled={collabLoading}
-                          className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-[0_4px_14px_rgba(173,198,255,0.25)]"
-                        >
-                          {collabLoading ? 'Hosting...' : 'Host Room'}
-                        </button>
-                      </section>
+                    </section>
 
-                      {/* Soft Divider */}
-                      <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                    {/* Soft Divider */}
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-                      {/* Join Section */}
-                      <section className="space-y-4">
-                        <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">Join a Stage</label>
-                        <SegmentedOtpInput
-                          value={shortCodeInput}
-                          onChange={(val) => setShortCodeInput(val.toUpperCase())}
-                          disabled={collabLoading}
-                        />
-                        <button
-                          onClick={async () => {
-                            if (shortCodeInput.length !== 6) {
-                              setCollabError('Room code must be exactly 6 characters.');
-                              return;
-                            }
-                            setCollabLoading(true);
-                            setCollabError(null);
-                            try {
-                              await CollaborationService.getInstance().joinRoom(
-                                shortCodeInput,
-                                currentUser.uid,
-                                { displayName: currentUser.displayName || 'Collaborator', avatar: currentUser.photoURL || '' },
-                                cursorColor
-                              );
-                            } catch (e: any) {
-                              setCollabError(e.friendlyMessage || e.message || String(e));
-                              setCollabErrorTimestamp(new Date().toISOString());
-                            } finally {
-                              setCollabLoading(false);
-                            }
-                          }}
-                          disabled={collabLoading || shortCodeInput.length !== 6}
-                          className={`w-full font-label-lg text-sm font-bold h-12 rounded-full transition-all mt-2 flex items-center justify-center ${shortCodeInput.length === 6 ? 'bg-[#4b8eff] text-white hover:opacity-90 active:scale-95 shadow-[0_4px_14px_rgba(75,142,255,0.25)]' : 'bg-white/5 text-white/30 border border-white/5 cursor-not-allowed'}`}
-                        >
-                          {collabLoading ? 'Joining...' : 'Join Stage'}
-                        </button>
-                      </section>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <footer className="p-6 pt-0">
-                  <p className="text-[11px] text-center text-[#c1c6d7]/60 font-medium">
-                    Only invited collaborators can edit this stage.
-                  </p>
-                </footer>
+                    {/* Join Section */}
+                    <section className="space-y-4">
+                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                        Join a Stage
+                      </label>
+                      <SegmentedOtpInput
+                        value={shortCodeInput}
+                        onChange={(val) => setShortCodeInput(val.toUpperCase())}
+                        disabled={collabLoading}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (shortCodeInput.length !== 6) {
+                            setCollabError('Room code must be exactly 6 characters.');
+                            return;
+                          }
+                          setCollabLoading(true);
+                          setCollabError(null);
+                          try {
+                            await CollaborationService.getInstance().joinRoom(
+                              shortCodeInput,
+                              currentUser.uid,
+                              {
+                                displayName: currentUser.displayName || 'Collaborator',
+                                avatar: currentUser.photoURL || '',
+                              },
+                              cursorColor
+                            );
+                          } catch (e: any) {
+                            setCollabError(e.friendlyMessage || e.message || String(e));
+                            setCollabErrorTimestamp(new Date().toISOString());
+                          } finally {
+                            setCollabLoading(false);
+                          }
+                        }}
+                        disabled={collabLoading || shortCodeInput.length !== 6}
+                        className={`w-full font-label-lg text-sm font-bold h-12 rounded-full transition-all mt-2 flex items-center justify-center ${shortCodeInput.length === 6 ? 'bg-[#4b8eff] text-white hover:opacity-90 active:scale-95 shadow-[0_4px_14px_rgba(75,142,255,0.25)]' : 'bg-white/5 text-white/30 border border-white/5 cursor-not-allowed'}`}
+                      >
+                        {collabLoading ? 'Joining...' : 'Join Stage'}
+                      </button>
+                    </section>
+                  </div>
+                )}
               </div>
-          </Dialog>
 
+              {/* Footer */}
+              <footer className="p-6 pt-0">
+                <p className="text-[11px] text-center text-[#c1c6d7]/60 font-medium">
+                  Only invited collaborators can edit this stage.
+                </p>
+              </footer>
+            </div>
+          </Dialog>
         </div>
       </div>
     </div>
   );
 }
-

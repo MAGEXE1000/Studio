@@ -17,13 +17,13 @@ import { Toggle, SectionHeader, SettingRow, SettingSection } from '../../../shar
 import { IconSongs, IconLibrary, IconSettings } from '../../hub/icons/NavIcons';
 import { ThemeToggle } from '../../../components/motion/theme-toggle';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
+import { Button } from '../../../shared/design-system/buttons';
 
 export default function ChordexPreferencesPanel() {
   const settings = useSettingsStore((s) => s.settings);
 
-  const acc =
-    ACCENT_COLORS[settings.perApp?.chordex?.accentColor ?? settings.accentColor] ??
-    ACCENT_COLORS.blue;
+  const acc = ACCENT_COLORS.blue;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
@@ -50,33 +50,10 @@ export default function ChordexPreferencesPanel() {
 
   if (isWebDesktop) {
     return (
-      <div className="flex flex-col h-full overflow-hidden bg-[var(--app-bg)] p-6">
-        {/* Page title */}
-        <div className="mb-6">
-          <h2
-            style={{
-              fontSize: '18px',
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
-            }}
-          >
-            {t.settings.title}
-          </h2>
-          <p
-            style={{
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'Inter',
-              fontSize: '11px',
-              marginTop: '2px',
-            }}
-          >
-            {t.settings.subtitle}
-          </p>
-        </div>
+      <div className="flex flex-col h-full overflow-hidden bg-[var(--app-bg)]">
+        <StudioHeader title={t.settings.title} subtitle={t.settings.subtitle} />
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar space-y-6">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar space-y-6 px-6 pb-6">
           {/* ── INSTRUMENT ── */}
           <SettingSection title="Global Instrument">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
@@ -246,9 +223,6 @@ export default function ChordexPreferencesPanel() {
 
           {/* ── DISPLAY ── */}
           <SettingSection title={t.settings.sections.display}>
-            <SettingRow label="App Theme" desc="Switch between Light and Dark themes">
-              <ThemeToggle variant="circle-blur" start="bottom-up" />
-            </SettingRow>
             <SettingRow label={t.settings.rows.chordColors} desc={t.settings.rows.chordColorsDesc}>
               <Toggle
                 value={settings.showChordQualityColors}
@@ -270,18 +244,23 @@ export default function ChordexPreferencesPanel() {
                     {tabs.map(({ value, Icon }) => {
                       const active = cur === value;
                       return (
-                        <button
+                        <Button
                           key={value}
+                          variant="ghost"
+                          size="icon"
                           onClick={() => useSettingsStore.getState().updateSettings({ defaultTab: value })}
                           style={{
+                            width: 36,
+                            height: 36,
                             background: active ? 'var(--c-surface-high)' : 'transparent',
                             color: active ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
                             borderColor: active ? 'var(--c-border-strong)' : 'var(--c-border)',
+                            borderRadius: '8px',
+                            borderWidth: '1.5px',
                           }}
-                          className="w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all"
                         >
                           <Icon active={active} />
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -367,37 +346,15 @@ export default function ChordexPreferencesPanel() {
     <div className="flex flex-col h-full overflow-hidden app-bg">
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto no-scrollbar px-5"
+        className="flex-1 overflow-y-auto no-scrollbar px-0"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
           paddingTop: isWebDesktop ? '20px' : '0',
         }}
       >
-        {/* Page title */}
-        <div className="mt-3 mb-6">
-          <h2
-            style={{
-              fontSize: 'var(--font-hero)',
-              fontWeight: 800,
-              letterSpacing: '-0.04em',
-              lineHeight: 1,
-              color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
-            }}
-          >
-            {t.settings.title}
-          </h2>
-          <p
-            style={{
-              color: 'var(--c-text-secondary)',
-              fontFamily: 'Inter',
-              fontSize: 'var(--font-sm)',
-              marginTop: '4px',
-            }}
-          >
-            {t.settings.subtitle}
-          </p>
-        </div>
+        <StudioHeader title={t.settings.title} subtitle={t.settings.subtitle} />
+
+        <div className="px-6">
 
         {/* ── INSTRUMENT ── */}
         <SectionHeader icon="music_note" title="Global Instrument" />
@@ -596,9 +553,6 @@ export default function ChordexPreferencesPanel() {
         {/* ── DISPLAY ── */}
         <SectionHeader icon="dashboard" title={t.settings.sections.display} />
         <div style={cardStyle}>
-          <SettingRow label="App Theme" desc="Switch between Light and Dark themes">
-            <ThemeToggle variant="circle-blur" start="bottom-up" />
-          </SettingRow>
           <SettingRow label={t.settings.rows.chordColors} desc={t.settings.rows.chordColorsDesc}>
             <Toggle
               value={settings.showChordQualityColors}
@@ -620,28 +574,25 @@ export default function ChordexPreferencesPanel() {
                   {tabs.map(({ value, Icon }) => {
                     const active = cur === value;
                     return (
-                      <button
-                        key={value}
-                        onClick={() => useSettingsStore.getState().updateSettings({ defaultTab: value })}
-                        style={{
-                          width: '40px',
-                          height: '40px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: '10px',
-                          border: active ? `2px solid ${acc.from}` : '2px solid transparent',
-                          background: active
-                            ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
-                            : 'var(--app-surface-low)',
-                          color: active ? acc.from : 'var(--c-text-secondary)',
-                          cursor: 'pointer',
-                          transition: 'all 150ms ease',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Icon active={active} />
-                      </button>
+                        <Button
+                          key={value}
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => useSettingsStore.getState().updateSettings({ defaultTab: value })}
+                          style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '10px',
+                            border: active ? `2.5px solid ${acc.from}` : '2px solid transparent',
+                            background: active
+                              ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
+                              : 'var(--app-surface-low)',
+                            color: active ? acc.from : 'var(--c-text-secondary)',
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Icon active={active} />
+                        </Button>
                     );
                   })}
                 </div>
@@ -728,6 +679,7 @@ export default function ChordexPreferencesPanel() {
               </SettingRow>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

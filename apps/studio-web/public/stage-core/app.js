@@ -369,7 +369,7 @@ const TRANSLATIONS = {
     autosaveOff: 'AUTOSAVE: OFF',
     autosaveOn: 'AUTOSAVE: ON',
     // Stage labels
-    downstageLabel: 'Downstage / Audience',
+    downstageLabel: 'DOWNSTAGE',
     dragHere: 'Drag Elements Here',
     // Properties panel
     propLabel: 'Label',
@@ -698,7 +698,7 @@ const TRANSLATIONS = {
     autosaveOff: 'AUTOGUARDADO: OFF',
     autosaveOn: 'AUTOGUARDADO: ON',
     // Stage labels
-    downstageLabel: 'Frente / Público',
+    downstageLabel: 'DOWNSTAGE',
     dragHere: 'Arrastra elementos aquí',
     // Properties panel
     propLabel: 'Etiqueta',

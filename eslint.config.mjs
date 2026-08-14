@@ -136,5 +136,30 @@ export default tseslint.config(
       'react-hooks/rules-of-hooks': 'warn', // Phase 2: decompose → error
     },
   },
+  // ── TDZ Hook Order & Variable Scope Guard ──
+  // Prevents using hooks, refs, motion values, and local state before their declaration line.
+  // Hard failure in navigation, shared layout, android app, and web app shells.
+  {
+    files: [
+      'packages/ui-shared/src/features/hub/navigation/**/*.{ts,tsx}',
+      'packages/ui-shared/src/shared/layout/**/*.{ts,tsx}',
+      'packages/ui-shared/src/navigation/**/*.{ts,tsx}',
+      'apps/studio-android/src/**/*.{ts,tsx}',
+      'apps/studio-web/src/**/*.{ts,tsx}',
+    ],
+    rules: {
+      '@typescript-eslint/no-use-before-define': [
+        'error',
+        {
+          functions: false,
+          classes: true,
+          variables: true,
+          allowNamedExports: false,
+          typedefs: false,
+          ignoreTypeReferences: true,
+        },
+      ],
+    },
+  },
   prettierConfig // Must be last to disable conflicting rules
 );

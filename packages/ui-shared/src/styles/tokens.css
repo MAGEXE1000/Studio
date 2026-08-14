@@ -56,6 +56,24 @@
   --radius-2xl: 2.25rem;
   --radius-3xl: 2.75rem;
   --radius-full: 9999px;
+  --expo-out: linear(
+    0 0%,
+    0.1684 2.66%,
+    0.3165 5.49%,
+    0.446 8.52%,
+    0.5581 11.78%,
+    0.6535 15.29%,
+    0.7341 19.11%,
+    0.8011 23.3%,
+    0.8557 27.93%,
+    0.8962 32.68%,
+    0.9283 38.01%,
+    0.9529 44.08%,
+    0.9711 51.14%,
+    0.9833 59.06%,
+    0.9915 68.74%,
+    1 100%
+  );
 }
 
 /* ===== Livex Appearance HTML Spec Helper Styles ===== */
@@ -63,7 +81,8 @@
   box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.4);
 }
 .color-canvas {
-  background: linear-gradient(to bottom, transparent, #000), linear-gradient(to right, #fff, transparent);
+  background:
+    linear-gradient(to bottom, transparent, #000), linear-gradient(to right, #fff, transparent);
 }
 .switch-toggle:checked + .switch-bg {
   background-color: var(--c-accent-from, #adc6ff) !important;
@@ -200,8 +219,6 @@
     --c-text-secondary 300ms cubic-bezier(0.4, 0, 0.2, 1),
     --c-text-muted 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-
-
 
 :root.amoled {
   --app-bg: #000000;
@@ -382,10 +399,11 @@ html[data-perf-mode='on'] *::after {
 html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt]),
 html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt])::before,
 html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt])::after {
-  transition: background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
-              color 200ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  transition:
+    background-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 200ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 /* ===== Global Base ===== */
@@ -422,6 +440,42 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
     -moz-osx-font-smoothing: grayscale;
     touch-action: manipulation;
     overscroll-behavior: none;
+  }
+  ::view-transition-group(root) {
+    animation-duration: 0.7s;
+    animation-timing-function: var(--expo-out);
+  }
+  ::view-transition-new(root) {
+    animation-name: reveal-light;
+    animation-fill-mode: both;
+  }
+  ::view-transition-old(root),
+  .dark::view-transition-old(root) {
+    animation: none;
+    animation-fill-mode: both;
+    z-index: -1;
+  }
+  .dark::view-transition-new(root) {
+    animation-name: reveal-dark;
+    animation-fill-mode: both;
+  }
+
+  @keyframes reveal-dark {
+    from {
+      clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
+    }
+    to {
+      clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
+    }
+  }
+
+  @keyframes reveal-light {
+    from {
+      clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
+    }
+    to {
+      clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
+    }
   }
 }
 
@@ -461,11 +515,8 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
     /* Prevent the blur from leaking into parent stacking contexts */
     isolation: isolate;
     transition:
-      transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-radius 250ms cubic-bezier(0.2, 0.8, 0.2, 1),
       background-color 250ms ease,
-      border-color 250ms ease,
-      box-shadow 250ms ease !important;
+      border-color 250ms ease !important;
   }
 
   /* ===== Panel Transitions ===== */
@@ -744,22 +795,7 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
   /* Direct-DOM scroll collapse for the bottom nav bar (zero-React) */
   html[data-nav-collapsed='true']:not([data-nav-hidden='true']) .glass-nav {
-    transform: translateX(-50%) translateY(calc(100% - 12px + var(--nav-safe-bottom, 0px)))
-      scaleX(0.33) scaleY(0.045) !important;
-    background: var(--c-surface-glass-bg) !important;
-    border-color: transparent !important;
-    border-radius: 99px !important;
     pointer-events: none !important;
-    box-shadow: none !important;
-  }
-
-  html[data-nav-collapsed='true'] .glass-nav > div {
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-
-  .glass-nav > div {
-    transition: opacity 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   /* ===== Panel section transitions — unified across all apps =================
@@ -1120,6 +1156,131 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --density-row-pad: 14px 20px;
   --density-gap: 12px;
   --density-card-gap: 10px;
+}
+
+/* ============================================================
+   Studio Layout Tokens — Fix V
+   Canonical spacing scale, typography sizes, content-widths,
+   and floating-surface values for all Hub & app pages.
+   Consumers reference these vars; hardcoded literals in the
+   scope are migrated in Fix W (Hub/Settings) and Fix X+
+   (per-app). Do not add app-specific overrides here.
+   ============================================================ */
+:root {
+  /* ── Spacing scale (4px base) ──────────────────────────────
+     Maps to the values found across all page containers in
+     the Fix U audit. No mid-values (e.g. 10px, 14px) appear
+     here — those are density-level concerns handled by
+     --density-row-pad. Use the nearest step for migration.   */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px; /* canonical page horizontal inset */
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px; /* desktop outer pad / StudioHeader top */
+
+  /* ── Page structural insets ─────────────────────────────── */
+  --page-inset-h: var(--space-6); /* 24px horizontal page padding  */
+  --page-inset-v-top: var(--space-12); /* 48px header top-padding       */
+  --page-inset-v-bottom: var(--space-6); /* 24px scroll-bottom clearance  */
+
+  /* ── Content max-widths ─────────────────────────────────── */
+  --content-max-w: 640px; /* settings / hub right-pane default   */
+  --content-max-w-wide: 720px; /* 1024px+ breakpoint override         */
+
+  /* ── Typography additions ───────────────────────────────────
+     Extends the existing --font-base/sm/xs/lg/xl set.
+     --font-page-title is the already-landed Fix R value (18px)
+     locked in StudioHeader; display-* covers the 24–36px hero
+     range found in Library / Player / LabPanel views.         */
+  --font-page-title: 18px; /* settings / sub-page h2 (Fix R ref) */
+  --font-section-label: 11px; /* uppercase group-header labels       */
+  --font-display-page: 28px; /* desktop settings right-pane h1      */
+  --font-display-sm: 24px; /* mid-weight section heroes           */
+  --font-display-md: 32px; /* large numeric / metric displays     */
+  --font-display-lg: 36px; /* full-hero titles (player, lab)      */
+
+  /* ── Floating-surface tokens — dark (default) ───────────── */
+  --surface-float-bg: rgba(12, 12, 14, 0.25); /* bottom nav / pill bar    */
+  --surface-topbar-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(20, 21, 26, 0.65) 50%,
+    rgba(12, 13, 16, 0.75) 100%
+  );
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.16);
+  --surface-topbar-shadow:
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28), inset 0 -0.5px 1px 0 rgba(0, 0, 0, 0.25),
+    0 8px 32px -4px rgba(0, 0, 0, 0.4);
+  --surface-topbar-blur: blur(20px) saturate(160%) brightness(1.04) contrast(1.02);
+  --surface-topbar-fallback: rgba(16, 17, 22, 0.94);
+  --surface-float-blur: blur(24px) saturate(190%) brightness(1.02); /* shared backdrop-filter   */
+  --surface-modal-bg: rgba(0, 0, 0, 0.6); /* sheet / modal scrim      */
+
+  /* ── Semantic surface aliases ───────────────────────────────
+     Thin wrappers over --app-* so migration sites reference a
+     stable semantic name rather than the raw ramp token.      */
+  --surface-page: var(--app-bg);
+  --surface-card: var(--app-surface);
+  --surface-card-raised: var(--app-surface-high);
+}
+
+/* Light-theme overrides */
+:root.light {
+  --surface-float-bg: rgba(255, 255, 255, 0.38);
+  --surface-topbar-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(245, 248, 255, 0.68) 50%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.95);
+  --surface-topbar-shadow:
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px 0 rgba(0, 0, 0, 0.04),
+    0 6px 24px -2px rgba(0, 0, 0, 0.08);
+  --surface-topbar-blur: blur(20px) saturate(160%) brightness(1.04) contrast(1.02);
+  --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
+  --surface-modal-bg: rgba(0, 0, 0, 0.35);
+}
+
+/* AMOLED overrides — slightly higher alpha so bars stay
+   visible against pure-black (#000) backgrounds.           */
+:root.amoled {
+  --surface-float-bg: rgba(0, 0, 0, 0.32);
+  --surface-topbar-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(10, 10, 12, 0.7) 50%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.2);
+  --surface-topbar-shadow:
+    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.32), inset 0 -0.5px 1px 0 rgba(0, 0, 0, 0.4),
+    0 8px 32px -4px rgba(0, 0, 0, 0.6);
+  --surface-topbar-blur: blur(20px) saturate(160%) brightness(1.04) contrast(1.02);
+  --surface-topbar-fallback: rgba(0, 0, 0, 0.96);
+  --surface-modal-bg: rgba(0, 0, 0, 0.75);
+}
+
+/* Light + AMOLED (pure-white) — same as light */
+:root.light.amoled {
+  --surface-float-bg: rgba(255, 255, 255, 0.38);
+  --surface-topbar-bg: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(245, 248, 255, 0.68) 50%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.95);
+  --surface-topbar-shadow:
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px 0 rgba(0, 0, 0, 0.04),
+    0 6px 24px -2px rgba(0, 0, 0, 0.08);
+  --surface-topbar-blur: blur(20px) saturate(160%) brightness(1.04) contrast(1.02);
+  --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
+  --surface-modal-bg: rgba(0, 0, 0, 0.35);
 }
 
 /* ===== Groovex design tokens ===== */
@@ -2236,7 +2397,9 @@ html.web-desktop.light.amoled .app-sub-app-container {
   border: 1.2px solid rgba(255, 255, 255, 0.08) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;

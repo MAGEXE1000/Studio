@@ -367,24 +367,10 @@ export default function PracticePanel() {
   }
 
   return (
-    <div style={{ padding: '16px 20px', minHeight: '100%' }}>
+    <div style={{ padding: '0 24px', minHeight: '100%' }}>
       <StudioHeader
         title={t.vocalex.tipsTitle}
         subtitle={t.vocalex.tipsSubtitle}
-        titleStyle={{
-          fontFamily: 'var(--font-headline)',
-          fontWeight: 800,
-          fontSize: 24,
-          color: 'var(--vx-text)',
-          margin: '0 0 6px',
-        }}
-        subtitleStyle={{
-          fontFamily: 'var(--font-body)',
-          fontSize: 13,
-          color: 'var(--vx-text-3)',
-          margin: '0 0 28px',
-          lineHeight: 1.5,
-        }}
       />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

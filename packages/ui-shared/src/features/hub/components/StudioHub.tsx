@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { Button, StatefulButton } from '../../../shared/design-system/buttons';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, RELEASE_HISTORY, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
 import {
@@ -29,12 +30,12 @@ import {
   GroovexLogo,
   VocalexLogo,
 } from '../../chordex/icons/ChordexLogo';
+import { SpotlightLogo } from '../../../components/spotlight-logo';
 import {
   Toggle,
   SectionHeader,
   SettingRow,
   SegmentedControl,
-  COLOR_OPTIONS,
   BentoSettingCard,
   BentoSettingRow,
   SettingSection,
@@ -52,7 +53,8 @@ import {
 import ProfileDropdown from '../../auth/components/ProfileDropdown';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../../../shared/loading/StudioSkeleton';
-import { SettingsScaffold } from '../../../shared/layout/StudioLayoutSystem';
+import { SettingsScaffold, SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { ProgressiveBlur } from '../../../shared/design-system/ProgressiveBlur';
 import { SharedNavigationBar } from '../navigation/SharedNavigationBar';
 import { StaggeredReveal } from '../../../shared/animation';
@@ -383,18 +385,7 @@ export default function StudioHub() {
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
   const lang = settings.language ?? 'en';
-  const hubAccentKey = settings.perApp?.hub?.accentColor ?? settings.accentColor ?? 'blue';
-  const accent = useMemo(
-    () =>
-      hubAccentKey === 'custom'
-        ? {
-            from: `hsl(${settings.customAccentHue ?? 220}, 75%, 65%)`,
-            mid: `hsl(${settings.customAccentHue ?? 220}, 80%, 55%)`,
-            to: `hsl(${((settings.customAccentHue ?? 220) + 25) % 360}, 85%, 42%)`,
-          }
-        : (ACCENT_COLORS[hubAccentKey] ?? ACCENT_COLORS.blue),
-    [hubAccentKey, settings.customAccentHue]
-  );
+  const accent = ACCENT_COLORS.blue;
   const isHubLight = (() => {
     const hubTheme = settings.perApp?.hub?.theme ?? settings.theme ?? 'dark';
     if (hubTheme === 'light') return true;
@@ -1336,10 +1327,10 @@ export default function StudioHub() {
                                     width: '48px',
                                     height: '48px',
                                     borderRadius: '50%',
-                                    background: isLight ? 'rgba(255, 255, 255, 0.85)' : 'rgba(12, 12, 14, 0.45)',
+                                    background: 'var(--surface-float-bg)',
                                     border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                                    backdropFilter: 'blur(25px)',
-                                    WebkitBackdropFilter: 'blur(25px)',
+                                    backdropFilter: 'blur(25px)', // token-guard-ignore
+                                    WebkitBackdropFilter: 'blur(25px)', // token-guard-ignore
                                     boxShadow: isLight
                                       ? '0 6px 20px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9)'
                                       : '0 8px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
@@ -1673,8 +1664,8 @@ export default function StudioHub() {
                           alignItems: 'center',
                           justifyContent: 'center',
                           background: 'rgba(10, 10, 12, 0.72)',
-                          backdropFilter: 'blur(20px)',
-                          WebkitBackdropFilter: 'blur(20px)',
+                          backdropFilter: 'blur(20px)', // token-guard-ignore
+                          WebkitBackdropFilter: 'blur(20px)', // token-guard-ignore
                           animation:
                             successAnimationState === 'entering'
                               ? 'success-fade-in-blur 0.4s cubic-bezier(0.16, 1, 0.3, 1) both'
@@ -1684,10 +1675,10 @@ export default function StudioHub() {
                         <style>{`
                           @keyframes success-fade-in-blur {
                             from { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); }
-                            to { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+                            to { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); } // token-guard-ignore
                           }
                           @keyframes success-fade-out-blur {
-                            from { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transform: scale(1); }
+                            from { opacity: 1; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transform: scale(1); } // token-guard-ignore
                             to { opacity: 0; backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px); transform: scale(0.95); filter: blur(8px); }
                           }
                           @keyframes success-pop {
@@ -1846,8 +1837,8 @@ export default function StudioHub() {
             inset: 0,
             zIndex: 10000,
             background: 'rgba(10, 10, 12, 0.65)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
+            backdropFilter: 'blur(20px)', // token-guard-ignore
+            WebkitBackdropFilter: 'blur(20px)', // token-guard-ignore
             display: 'flex',
             alignItems: 'flex-end',
             justifyContent: 'center',
@@ -1876,7 +1867,7 @@ export default function StudioHub() {
               borderTopRightRadius: 28,
               border: '1px solid rgba(255, 255, 255, 0.08)',
               borderBottom: 'none',
-              padding: '24px 20px',
+              padding: '24px 20px', // token-guard-ignore
               paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
               boxSizing: 'border-box',
               display: 'flex',
@@ -1936,7 +1927,7 @@ export default function StudioHub() {
                 <h4
                   style={{
                     fontFamily: 'Inter',
-                    fontSize: 11,
+                    fontSize: 'var(--font-section-label)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -2065,7 +2056,7 @@ export default function StudioHub() {
                 <h4
                   style={{
                     fontFamily: 'Inter',
-                    fontSize: 11,
+                    fontSize: 'var(--font-section-label)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -2164,144 +2155,7 @@ export default function StudioHub() {
   );
 }
 
-// ── StudioFamilyOrbit ─────────────────────────────────────────────────────────
-// Clean monochrome orbit — Studio sine-wave in a neutral dark circle at center,
-// 5 sub-app icons orbiting in white-outlined circles (no color gradients).
-// Uses the canonical animata double-rotate trick so icons stay upright.
-function StudioFamilyOrbit({
-  items,
-  onLogoPress,
-}: {
-  items: { key: string; node: React.ReactNode; label: string }[];
-  onLogoPress?: () => void;
-}) {
-  const RADIUS = 96;
-  const SPEED = 22;
-  const SIZE = 240;
-  const N = items.length;
 
-  const keyframes = items
-    .map((_, i) => {
-      const a = (i / N) * 360;
-      return `
-      @keyframes family-orbit-${i} {
-        from { transform: rotate(${a}deg) translateX(${RADIUS}px) rotate(${-a}deg); }
-        to   { transform: rotate(${a + 360}deg) translateX(${RADIUS}px) rotate(${-(a + 360)}deg); }
-      }
-    `;
-    })
-    .join('\n');
-
-  return (
-    <div
-      style={{
-        position: 'relative',
-        width: '100%',
-        height: SIZE,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-      }}
-    >
-      <style>{`
-        ${keyframes}
-        @keyframes family-orbit-bob {
-          0%,100% { transform: translateY(0); }
-          50%     { transform: translateY(-3px); }
-        }
-      `}</style>
-
-      {/* Subtle neutral glow */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          width: 200,
-          height: 200,
-          marginTop: -100,
-          marginLeft: -100,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Dashed orbit ring */}
-      <div
-        style={{
-          position: 'absolute',
-          width: RADIUS * 2,
-          height: RADIUS * 2,
-          borderRadius: '50%',
-          border: '1px dashed rgba(128,128,128,0.22)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Center Studio logo — neutral dark circle, no pink gradient */}
-      <div
-        onClick={onLogoPress}
-        style={{
-          position: 'relative',
-          zIndex: 2,
-          width: 84,
-          height: 84,
-          borderRadius: '50%',
-          background: 'var(--c-surface-2, rgba(255,255,255,0.05))',
-          border: '1px solid rgba(255,255,255,0.10)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--c-text-primary)',
-          animation: 'family-orbit-bob 3.2s ease-in-out infinite',
-          cursor: onLogoPress ? 'pointer' : 'default',
-        }}
-      >
-        <StudioLogo size={48} />
-      </div>
-
-      {/* Orbiters — clean white-outlined circles */}
-      {items.map(({ key, node }, i) => (
-        <div
-          key={key}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: 0,
-            height: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            animation: `family-orbit-${i} ${SPEED}s linear infinite`,
-            zIndex: 1,
-          }}
-        >
-          <div
-            style={{
-              width: 46,
-              height: 46,
-              minWidth: 46,
-              minHeight: 46,
-              flexShrink: 0,
-              borderRadius: '50%',
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.22)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--c-text-primary)',
-            }}
-          >
-            {React.cloneElement(node as React.ReactElement<{ size: number }>, { size: 24 })}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 // ── App row (list item inside the combined card) ───────────────────────────────
 function AppRow({
@@ -2504,6 +2358,7 @@ type SettingsPageId =
   | 'subscription'
   | 'devices-sessions'
   | 'privacy-data'
+  | 'licenses'
   | 'changelog';
 
 function formatHour(h: number): string {
@@ -2764,7 +2619,7 @@ function SettingsSectionLabel({
     >
       <span
         style={{
-          fontSize: 11,
+          fontSize: 'var(--font-section-label)',
           fontWeight: 800,
           color: 'var(--c-text-secondary)',
           letterSpacing: '0.15em',
@@ -2786,106 +2641,6 @@ function SettingsSectionLabel({
   );
 }
 
-function SettingsSubHeader({ title, onBack }: { title: string; onBack: () => void }) {
-  const [pressed, setPressed] = useState(false);
-  const isWebDesktop = useIsWebDesktop();
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        paddingTop: isWebDesktop ? 32 : 'calc(env(safe-area-inset-top, 0px) + 20px)',
-        paddingBottom: 16,
-      }}
-    >
-      {!isWebDesktop && (
-        <button
-          onClick={onBack}
-          onPointerDown={() => setPressed(true)}
-          onPointerUp={() => setPressed(false)}
-          onPointerLeave={() => setPressed(false)}
-          onPointerCancel={() => setPressed(false)}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: 'rgba(128,128,128,0.10)',
-            border: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'var(--c-text-primary)',
-            flexShrink: 0,
-            transform: pressed ? 'scale(0.91)' : 'scale(1)',
-            transition: 'transform 130ms cubic-bezier(0.34,1.15,0.64,1)',
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-            arrow_back
-          </span>
-        </button>
-      )}
-      <p
-        style={{
-          fontSize: 22,
-          fontWeight: 800,
-          color: 'var(--c-text-primary)',
-          margin: 0,
-          letterSpacing: '-0.03em',
-          fontFamily: 'Manrope',
-        }}
-      >
-        {title}
-      </p>
-    </div>
-  );
-}
-
-function ProfileHeaderBack({ onBack }: { onBack: () => void }) {
-  const [pressed, setPressed] = useState(false);
-  const isWebDesktop = useIsWebDesktop();
-  if (isWebDesktop) return null;
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: '0 20px',
-        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)',
-        paddingBottom: 16,
-      }}
-    >
-      <button
-        onClick={onBack}
-        onPointerDown={() => setPressed(true)}
-        onPointerUp={() => setPressed(false)}
-        onPointerLeave={() => setPressed(false)}
-        onPointerCancel={() => setPressed(false)}
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          background: 'rgba(128,128,128,0.10)',
-          border: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'var(--c-text-primary)',
-          flexShrink: 0,
-          transform: pressed ? 'scale(0.91)' : 'scale(1)',
-          transition: 'transform 130ms cubic-bezier(0.34,1.15,0.64,1)',
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-          arrow_back
-        </span>
-      </button>
-    </div>
-  );
-}
 
 function GlobalHint() {
   const t = useT();
@@ -2905,7 +2660,7 @@ function GlobalHint() {
       <p
         style={{
           margin: 0,
-          fontSize: 11,
+          fontSize: 'var(--font-section-label)',
           fontWeight: 600,
           color: 'var(--c-text-secondary)',
           fontFamily: 'Inter',
@@ -3228,7 +2983,6 @@ function HubSettings({
 
   const hubVis: PerAppVisuals = settings.perApp?.hub ?? {
     theme: 'dark',
-    accentColor: 'blue',
     amoledMode: false,
   };
   const [changelogOpen, setChangelogOpen] = useState(false);
@@ -3237,7 +2991,6 @@ function HubSettings({
     const ALL_APPS: AppKey[] = ['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'];
     updatePerApp(ALL_APPS, patch);
     if (patch.theme) settingsController.updateSettings({ theme: patch.theme });
-    if (patch.accentColor) settingsController.updateSettings({ accentColor: patch.accentColor });
     if (patch.amoledMode !== undefined)
       settingsController.updateSettings({ amoledMode: patch.amoledMode });
   }
@@ -3682,7 +3435,7 @@ function HubSettings({
 
   function renderHelpContent() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', marginTop: 8 }}>
         <HelpAccordion accent={accent} lang={lang} />
       </div>
     );
@@ -3694,7 +3447,7 @@ function HubSettings({
 
   function renderFaqContent() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
         <HelpAccordion accent={accent} lang={lang} />
       </div>
     );
@@ -3703,7 +3456,7 @@ function HubSettings({
   function renderReleaseNotesContent() {
     const changelogSections = getChangelogSections(lang) || [];
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', paddingBottom: 'var(--space-6)' }}>
         <div
           style={{
             display: 'flex',
@@ -3720,12 +3473,12 @@ function HubSettings({
             Released on {APP_VERSION_DATE}
           </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
           {changelogSections.map((sec, i) => (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <h3
                 style={{
-                  fontSize: 11,
+                  fontSize: 'var(--font-section-label)',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
@@ -3803,7 +3556,7 @@ function HubSettings({
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
         {/* Android Card */}
         <div
           style={{
@@ -3969,7 +3722,7 @@ function HubSettings({
               </div>
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 'var(--font-section-label)',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -4007,12 +3760,12 @@ function HubSettings({
     ];
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
         {categories.map((cat, i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <h3
               style={{
-                fontSize: 11,
+                fontSize: 'var(--font-section-label)',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
@@ -4058,7 +3811,7 @@ function HubSettings({
                             border: '1px solid rgba(128, 128, 128, 0.2)',
                             background: 'rgba(255, 255, 255, 0.06)',
                             borderRadius: 4,
-                            fontSize: 11,
+                            fontSize: 'var(--font-section-label)',
                             fontWeight: 700,
                             color: 'var(--c-text-primary)',
                             fontFamily: 'monospace',
@@ -4084,11 +3837,11 @@ function HubSettings({
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 'var(--space-4)',
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
-          paddingBottom: 24,
+          paddingBottom: 'var(--space-6)',
         }}
       >
         <p style={{ margin: 0 }}>
@@ -4150,11 +3903,11 @@ function HubSettings({
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 'var(--space-4)',
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
-          paddingBottom: 24,
+          paddingBottom: 'var(--space-6)',
         }}
       >
         <p style={{ margin: 0 }}>
@@ -4236,7 +3989,7 @@ Date: ${new Date().toISOString()}
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
           {Capacitor.isNativePlatform()
             ? 'If you encounter an issue or unexpected behavior in Studio, please report it! Tap below to send us a support email with pre-filled diagnostic information.'
@@ -4337,9 +4090,9 @@ User Agent: [Automatically Generated]
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 'var(--space-4)',
           width: '100%',
-          paddingBottom: 24,
+          paddingBottom: 'var(--space-6)',
         }}
       >
         <SettingsSectionLabel>{sSets.sidebarBehavior}</SettingsSectionLabel>
@@ -4518,9 +4271,9 @@ User Agent: [Automatically Generated]
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 'var(--space-4)',
           width: '100%',
-          paddingBottom: 24,
+          paddingBottom: 'var(--space-6)',
         }}
       >
         <SettingsSectionLabel>
@@ -4571,7 +4324,7 @@ User Agent: [Automatically Generated]
         return (
           <div
             style={{
-              padding: '14px 20px',
+              padding: 'var(--density-row-pad)',
               borderBottom: '1px solid rgba(128,128,128,0.08)',
               display: 'flex',
               alignItems: 'center',
@@ -4606,28 +4359,19 @@ User Agent: [Automatically Generated]
                 </p>
               )}
             </div>
-            <button
+            <StatefulButton
+              state={isLoading ? 'loading' : 'idle'}
               onClick={onPress}
-              disabled={disabled || isLoading || devLoadingAction !== null}
-              className="btn-smooth"
+              disabled={disabled || devLoadingAction !== null}
+              variant={isDestructive ? 'danger' : 'secondary'}
+              size="sm"
               style={{
-                padding: '8px 16px',
                 borderRadius: '8px',
-                background: isDestructive ? 'rgba(239, 68, 68, 0.08)' : 'rgba(128,128,128,0.08)',
-                border: isDestructive
-                  ? '1px solid rgba(239, 68, 68, 0.20)'
-                  : '1px solid rgba(128,128,128,0.15)',
-                color: isDestructive ? '#ef4444' : 'var(--c-text-primary)',
-                fontFamily: 'Manrope',
-                fontWeight: 700,
-                fontSize: '12.5px',
-                cursor: disabled || isLoading ? 'not-allowed' : 'pointer',
-                opacity: disabled || isLoading ? 0.6 : 1,
                 whiteSpace: 'nowrap',
               }}
             >
-              {isLoading ? 'Running...' : actionLabel}
-            </button>
+              {actionLabel}
+            </StatefulButton>
           </div>
         );
       };
@@ -4643,7 +4387,7 @@ User Agent: [Automatically Generated]
         value: string;
         canCopy?: boolean;
       }) => (
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
+        <div style={{ padding: 'var(--density-row-pad)', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
           <div
             style={{
               display: 'flex',
@@ -4735,7 +4479,7 @@ User Agent: [Automatically Generated]
       }) => {
         const [open, setOpen] = useState(false);
         return (
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
+          <div style={{ padding: 'var(--density-row-pad)', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
             <div
               style={{
                 display: 'flex',
@@ -5297,7 +5041,7 @@ User Agent: [Automatically Generated]
                   style={{
                     fontFamily: 'Manrope',
                     fontWeight: 800,
-                    fontSize: 11,
+                    fontSize: 'var(--font-section-label)',
                     padding: '4px 0',
                     opacity: 0.75,
                     color: 'var(--c-text-primary)',
@@ -5332,7 +5076,7 @@ User Agent: [Automatically Generated]
                   style={{
                     fontFamily: 'Manrope',
                     fontWeight: 800,
-                    fontSize: 11,
+                    fontSize: 'var(--font-section-label)',
                     padding: '4px 0',
                     opacity: 0.75,
                     color: 'var(--c-text-primary)',
@@ -5375,7 +5119,7 @@ User Agent: [Automatically Generated]
                   style={{
                     fontFamily: 'Manrope',
                     fontWeight: 800,
-                    fontSize: 11,
+                    fontSize: 'var(--font-section-label)',
                     padding: '4px 0',
                     opacity: 0.75,
                     color: 'var(--c-text-primary)',
@@ -5559,8 +5303,6 @@ User Agent: [Automatically Generated]
             <DevInfoRow label="Remote Display Name" value={diag.remoteDisplayName} />
             <DevInfoRow label="Local Theme" value={diag.localTheme} />
             <DevInfoRow label="Remote Theme" value={diag.remoteTheme} />
-            <DevInfoRow label="Local Accent Color" value={diag.localAccentColor} />
-            <DevInfoRow label="Remote Accent Color" value={diag.remoteAccentColor} />
             <DevInfoRow label="Local Photo URL" value={diag.localPhotoURL} canCopy />
             <DevInfoRow label="Remote Photo URL" value={diag.remotePhotoURL} canCopy />
             <DevInfoRow
@@ -5816,7 +5558,7 @@ User Agent: [Automatically Generated]
           background: 'transparent',
           borderRadius: '0px',
           border: 'none',
-          padding: '24px 20px',
+          padding: 'var(--space-6) var(--space-5)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -5824,7 +5566,7 @@ User Agent: [Automatically Generated]
         }
       : {
           ...cardStyle,
-          padding: '24px 20px',
+          padding: 'var(--space-6) var(--space-5)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -5832,23 +5574,15 @@ User Agent: [Automatically Generated]
         };
 
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
-          width: '100%',
-          paddingBottom: 24,
-        }}
-      >
+      <SettingsContentContainer style={{ paddingBottom: 'var(--space-6)' }}>
         <div style={heroCardStyle}>
-          <StudioFamilyOrbit items={subAppLogos} onLogoPress={handleLogoTap} />
+          <SpotlightLogo onClick={handleLogoTap} />
           <p
             style={{
-              margin: '16px 0 0',
+              margin: 'var(--space-4) 0 0',
               fontFamily: 'Manrope',
               fontWeight: 800,
-              fontSize: 24,
+              fontSize: 'var(--font-display-sm)',
               letterSpacing: '-0.03em',
               color: 'var(--c-text-primary)',
               lineHeight: 1.1,
@@ -5869,7 +5603,7 @@ User Agent: [Automatically Generated]
           </p>
           <p
             style={{
-              margin: '14px 0 0',
+              margin: 'var(--space-3.5) 0 0',
               fontFamily: 'Inter',
               fontSize: 13,
               color: 'var(--c-text-secondary)',
@@ -5892,7 +5626,7 @@ User Agent: [Automatically Generated]
               justifyContent: 'space-between',
               alignItems: 'center',
               width: '100%',
-              padding: '12px 0',
+              padding: '12px 20px',
               borderBottom: '1px solid rgba(128,128,128,0.08)',
               background: 'transparent',
               borderTop: 'none',
@@ -5921,7 +5655,7 @@ User Agent: [Automatically Generated]
               justifyContent: 'space-between',
               alignItems: 'center',
               width: '100%',
-              padding: '12px 0',
+              padding: '12px 20px',
               borderBottom: '1px solid rgba(128,128,128,0.08)',
               background: 'transparent',
               borderTop: 'none',
@@ -5943,20 +5677,14 @@ User Agent: [Automatically Generated]
             </span>
           </button>
           <button
-            onClick={() =>
-              showDevToast(
-                lang === 'es'
-                  ? 'Licencias de código abierto: MIT, Apache 2.0, BSD'
-                  : 'Open Source Licenses: MIT, Apache 2.0, BSD'
-              )
-            }
+            onClick={() => navigate('licenses')}
             className="btn-smooth"
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               width: '100%',
-              padding: '12px 0',
+              padding: '12px 20px',
               borderBottom: '1px solid rgba(128,128,128,0.08)',
               background: 'transparent',
               borderTop: 'none',
@@ -5985,7 +5713,7 @@ User Agent: [Automatically Generated]
               justifyContent: 'space-between',
               alignItems: 'center',
               width: '100%',
-              padding: '12px 0',
+              padding: '12px 20px',
               background: 'transparent',
               border: 'none',
               color: 'var(--c-text-primary)',
@@ -6037,6 +5765,60 @@ User Agent: [Automatically Generated]
             {t.settings.about.footer}
           </p>
         </div>
+      </SettingsContentContainer>
+    );
+  }
+
+  function renderLicensesContent() {
+    const licenses = [
+      { name: 'React', license: 'MIT', desc: 'A JavaScript library for building user interfaces.' },
+      { name: 'React DOM', license: 'MIT', desc: 'React package for working with the DOM.' },
+      { name: 'Motion (Framer Motion)', license: 'MIT', desc: 'A production-ready motion library for React.' },
+      { name: 'Zustand', license: 'MIT', desc: 'A small, fast, and scalable bearbones state-management solution.' },
+      { name: 'Firebase SDK', license: 'Apache-2.0', desc: 'Firebase services client library.' },
+      { name: 'Supabase JS', license: 'MIT', desc: 'Isomorphic JavaScript client for Supabase.' },
+      { name: 'Capacitor Core', license: 'MIT', desc: 'Cross-platform native runtime for web apps.' },
+      { name: 'i18next', license: 'MIT', desc: 'Internationalization framework for JavaScript.' },
+      { name: 'Lucide React', license: 'ISC', desc: 'Beautiful & consistent icon toolkit.' },
+    ];
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', paddingBottom: 'var(--space-6)' }}>
+        <div style={cardStyle}>
+          {licenses.map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                padding: 'var(--density-row-pad)',
+                borderBottom: idx === licenses.length - 1 ? 'none' : '1px solid rgba(128,128,128,0.08)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 13.5, color: 'var(--c-text-primary)' }}>
+                  {item.name}
+                </span>
+                <span
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: 6,
+                    background: 'rgba(128,128,128,0.1)',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  {item.license}
+                </span>
+              </div>
+              <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'var(--c-text-secondary)', lineHeight: 1.4 }}>
+                {item.desc}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -6080,7 +5862,7 @@ User Agent: [Automatically Generated]
             width: 100,
             height: 100,
             background: `${accent.from}0e`,
-            filter: 'blur(20px)',
+            filter: 'blur(20px)', // token-guard-ignore
             borderRadius: '50%',
             pointerEvents: 'none',
           }}
@@ -6120,7 +5902,7 @@ User Agent: [Automatically Generated]
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : hasUser ? (
-              <span style={{ fontSize: 24, fontWeight: 800, color: 'var(--c-text-primary)' }}>
+              <span style={{ fontSize: 'var(--font-display-sm)', fontWeight: 800, color: 'var(--c-text-primary)' }}>
                 {initial}
               </span>
             ) : (
@@ -6137,7 +5919,7 @@ User Agent: [Automatically Generated]
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <h2
                 style={{
-                  fontSize: 18,
+                  fontSize: 'var(--font-page-title)',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
                   margin: 0,
@@ -6246,9 +6028,9 @@ User Agent: [Automatically Generated]
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 'var(--space-4)',
           width: '100%',
-          paddingBottom: 24,
+          paddingBottom: 'var(--space-6)',
         }}
       >
         <Suspense fallback={null}>
@@ -6257,15 +6039,7 @@ User Agent: [Automatically Generated]
           ) : (
             <div style={{ paddingBottom: 80 }}>
               <div style={{ marginBottom: 16 }}>
-                <StudioFamilyOrbit
-                  items={[
-                    { key: 'chordex', label: 'Chordex', node: <ChordexLogo size={34} /> },
-                    { key: 'drumex', label: 'Drumex', node: <DrumexLogo size={34} /> },
-                    { key: 'stagex', label: 'Stagex', node: <StagexLogoIcon size={34} /> },
-                    { key: 'groovex', label: 'Groovex', node: <GroovexLogo size={34} /> },
-                    { key: 'vocalex', label: 'Vocalex', node: <VocalexLogo size={34} /> },
-                  ]}
-                />
+                <SpotlightLogo onClick={handleLogoTap} />
               </div>
               <AccountCard
                 accent={accent}
@@ -6286,82 +6060,227 @@ User Agent: [Automatically Generated]
 
   function renderUpdaterContent() {
     const isNative = Capacitor.isNativePlatform();
+    const [autoUpdates, setAutoUpdates] = useState(() => {
+      return localStorage.getItem('studio:automatic_updates') !== 'false';
+    });
+    const handleToggleAutoUpdates = (val: boolean) => {
+      setAutoUpdates(val);
+      localStorage.setItem('studio:automatic_updates', String(val));
+    };
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', paddingBottom: 24 }}>
-        <div
-          style={{
-            padding: 20,
-            background: 'var(--app-surface-high, rgba(128, 128, 128, 0.06))',
-            borderRadius: 16,
-            border: '1px solid rgba(128, 128, 128, 0.1)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 28, color: accent.from }}>
-                {isNative ? 'system_update' : 'cloud_done'}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', paddingBottom: 'var(--space-6)' }}>
+        <SettingSection title={lang === 'es' ? 'SISTEMA DE ACTUALIZACIONES' : 'UPDATE SYSTEM'}>
+          {/* Current Version */}
+          <SettingRow
+            label={lang === 'es' ? 'Versión actual' : 'Current Version'}
+            desc={`${APP_VERSION_TAG} ${APP_VERSION} (Build ${APP_VERSION_DATE})`}
+          >
+            <span style={{ fontSize: 12, color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+              {lang === 'es' ? 'Instalado' : 'Installed'}
+            </span>
+          </SettingRow>
+
+          {/* Check for Updates */}
+          <SettingRow
+            label={lang === 'es' ? 'Buscar actualizaciones' : 'Check for Updates'}
+            desc={getUpdaterStatusText(updater, lang)}
+          >
+            {updater.loading ? (
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: 18,
+                  color: accent.from,
+                  animation: 'updater-check-spin 1s linear infinite',
+                  display: 'inline-block',
+                }}
+              >
+                refresh
               </span>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
-                  {isNative ? 'Android System Updater' : 'Studio Web Client'}
-                </h3>
-                <span style={{ fontSize: 12, color: 'var(--c-text-secondary)' }}>
-                  Current Version: v{APP_VERSION} ({isNative ? 'Native Android App' : 'PWA Web Version'})
+            ) : updater.updateAvailable ? (
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
+                className="btn-smooth animate-click"
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 10,
+                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                  color: 'white',
+                  border: 'none',
+                  fontSize: 'var(--font-section-label)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: `0 4px 10px color-mix(in srgb, ${accent.to} 20%, transparent)`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
+                    ? 'install_mobile'
+                    : 'download'}
                 </span>
+                {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
+                  ? (lang === 'es' ? 'Instalar' : 'Install Update')
+                  : (lang === 'es' ? 'Continuar' : 'Continue Update')}
+              </button>
+            ) : (
+              <button
+                onClick={async () => {
+                  await updater.checkNow();
+                }}
+                className="btn-smooth animate-click"
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 10,
+                  background: 'rgba(255,255,255,0.06)',
+                  color: 'var(--c-text-primary)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  fontSize: 'var(--font-section-label)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                }}
+              >
+                {lang === 'es' ? 'Buscar' : 'Check Now'}
+              </button>
+            )}
+          </SettingRow>
+
+          {/* Automatic Updates */}
+          <SettingRow
+            label={lang === 'es' ? 'Actualizaciones automáticas' : 'Automatic Updates'}
+            desc={lang === 'es' ? 'Buscar y descargar compilaciones en segundo plano' : 'Check and download builds in the background'}
+          >
+            <Toggle
+              value={autoUpdates}
+              onChange={handleToggleAutoUpdates}
+            />
+          </SettingRow>
+
+          {/* Update Diagnostics */}
+          <SettingRow
+            label={lang === 'es' ? 'Diagnósticos de actualización' : 'Update Diagnostics'}
+            desc={lang === 'es' ? 'Copiar informes de depuración y estado del actualizador' : 'Copy debug reports and check recovery logs'}
+          >
+            <button
+              onClick={async () => {
+                try {
+                  const report = await updater.getDiagnosticsReport();
+                  await navigator.clipboard.writeText(report);
+                  showDevToast(lang === 'es' ? 'Copiado al portapapeles' : 'Copied report to clipboard');
+                } catch (e) {
+                  alert(e instanceof Error ? e.message : String(e));
+                }
+              }}
+              className="btn-smooth animate-click"
+              style={{
+                padding: '6px 14px',
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.06)',
+                color: 'var(--c-text-primary)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                fontSize: 'var(--font-section-label)',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                content_copy
+              </span>
+              {lang === 'es' ? 'Copiar' : 'Copy'}
+            </button>
+          </SettingRow>
+
+          {/* Changelog */}
+          <SettingRow
+            label={lang === 'es' ? 'Historial de cambios' : 'Changelog'}
+            desc={lang === 'es' ? 'Ver notas de lanzamiento completas' : 'View full chronological release notes'}
+          >
+            <button
+              onClick={() => navigate('changelog')}
+              className="btn-smooth animate-click"
+              style={{
+                padding: '6px 14px',
+                borderRadius: 10,
+                background: 'rgba(255,255,255,0.06)',
+                color: 'var(--c-text-primary)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                fontSize: 'var(--font-section-label)',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                history
+              </span>
+              {lang === 'es' ? 'Ver' : 'View'}
+            </button>
+          </SettingRow>
+        </SettingSection>
+
+        {/* About this Update */}
+        {updater.updateAvailable && updater.changelog && (
+          <SettingSection title={lang === 'es' ? 'ACERCA DE ESTA ACTUALIZACIÓN' : 'ABOUT THIS UPDATE'}>
+            <div style={{ padding: 'var(--density-row-pad)', color: 'var(--c-text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
+              <p style={{ margin: '0 0 10px 0', fontWeight: 700, color: 'var(--c-text-primary)' }}>
+                {lang === 'es' ? 'Novedades en v' : "What's new in v"}{updater.remoteVersion}:
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {updater.changelog.split('\n').map((line, idx) => {
+                  const cleanLine = line.replace(/^[•\s*-]+/g, '').trim();
+                  if (!cleanLine) return null;
+                  return (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                      <span style={{ color: accent.from, marginTop: 1 }}>•</span>
+                      <span>{cleanLine}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <button
-              onClick={() => updater.checkNow()}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                background: accent.from,
-                color: '#fff',
-                border: 'none',
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: 'pointer',
-              }}
+          </SettingSection>
+        )}
+
+        {/* Recovery official releases link */}
+        {isNative && (
+          <SettingSection title={lang === 'es' ? 'RECUPERACIÓN' : 'RECOVERY'}>
+            <SettingRow
+              label={lang === 'es' ? 'Descargas oficiales' : 'Official Downloads'}
+              desc={lang === 'es' ? 'Descargar compilaciones firmadas desde GitHub' : 'Download signed production builds from GitHub'}
             >
-              {updater.loading ? 'Checking...' : 'Check Now'}
-            </button>
-          </div>
-
-          <div style={{ height: 1, background: 'rgba(128, 128, 128, 0.08)', margin: '4px 0' }} />
-
-          <div style={{ fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-            {updater.updateAvailable ? (
-              <span style={{ color: '#10b981', fontWeight: 600 }}>
-                Update available: v{updater.remoteVersion}
-              </span>
-            ) : (
-              <span>Your application is fully up to date.</span>
-            )}
-          </div>
-
-          {isNative && updater.updateAvailable && (
-            <button
-              onClick={() => updater.applyUpdate()}
-              style={{
-                marginTop: 8,
-                padding: '10px 20px',
-                borderRadius: 10,
-                background: 'linear-gradient(135deg, #10b981, #059669)',
-                color: '#fff',
-                border: 'none',
-                fontWeight: 800,
-                fontSize: 14,
-                cursor: 'pointer',
-                textAlign: 'center',
-              }}
-            >
-              Download & Install Update
-            </button>
-          )}
-        </div>
+              <button
+                onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
+                className="btn-smooth animate-click"
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: 10,
+                  background: 'rgba(255,255,255,0.06)',
+                  color: 'var(--c-text-primary)',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  fontSize: 'var(--font-section-label)',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  download
+                </span>
+                GitHub
+              </button>
+            </SettingRow>
+          </SettingSection>
+        )}
       </div>
     );
   }
@@ -6380,6 +6299,8 @@ User Agent: [Automatically Generated]
         return renderPrivacyContent();
       case 'about':
         return renderAboutContent();
+      case 'licenses':
+        return renderLicensesContent();
       case 'profile':
       case 'personal-info':
       case 'security-login':
@@ -6522,38 +6443,24 @@ User Agent: [Automatically Generated]
                       flex: 1,
                       overflowY: 'auto',
                       overflowX: 'hidden',
-                      padding: '0 20px',
+                      padding: '0',
                       paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
                       WebkitOverflowScrolling: 'touch',
                     }}
                     className="no-scrollbar"
                   >
-                    <div style={{ paddingTop: 32, paddingBottom: 16 }}>
-                      <p
-                        style={{
-                          fontSize: 32,
-                          fontWeight: 800,
-                          color: 'var(--c-text-primary)',
-                          margin: 0,
-                          letterSpacing: '-0.03em',
-                          fontFamily: 'Manrope',
-                        }}
-                      >
-                        Settings
-                      </p>
-                      <p
-                        style={{
-                          fontSize: 10,
-                          color: 'var(--c-text-secondary)',
-                          margin: '5px 0 0',
-                          fontWeight: 600,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.2em',
-                        }}
-                      >
-                        Livex System
-                      </p>
-                    </div>
+                    <div
+                      style={{
+                        width: '100%',
+                        maxWidth: 'var(--content-max-w)',
+                        marginLeft: 'auto',
+                        marginRight: 'auto',
+                        boxSizing: 'border-box',
+                        paddingLeft: 'var(--page-inset-h)',
+                        paddingRight: 'var(--page-inset-h)',
+                      }}
+                    >
+                      <StudioHeader title="Settings" subtitle="Livex System" containerStyle={{ paddingLeft: 0, paddingRight: 0 }} />
 
                     {/* Minimal Update Card */}
                     {updater.updateAvailable && (
@@ -6630,7 +6537,7 @@ User Agent: [Automatically Generated]
                     <div style={{ marginBottom: 24 }}>
                       <h3
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--font-section-label)',
                           fontWeight: 700,
                           textTransform: 'uppercase',
                           letterSpacing: '0.12em',
@@ -6701,7 +6608,7 @@ User Agent: [Automatically Generated]
                             </span>
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 'var(--font-section-label)',
                                 color: 'var(--c-text-secondary)',
                                 opacity: 0.7,
                               }}
@@ -6724,7 +6631,7 @@ User Agent: [Automatically Generated]
                     <div style={{ marginBottom: 24 }}>
                       <h3
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--font-section-label)',
                           fontWeight: 700,
                           textTransform: 'uppercase',
                           letterSpacing: '0.12em',
@@ -6794,7 +6701,7 @@ User Agent: [Automatically Generated]
                             </span>
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 'var(--font-section-label)',
                                 color: 'var(--c-text-secondary)',
                                 opacity: 0.7,
                               }}
@@ -6857,7 +6764,7 @@ User Agent: [Automatically Generated]
                             </span>
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 'var(--font-section-label)',
                                 color: 'var(--c-text-secondary)',
                                 opacity: 0.7,
                               }}
@@ -6876,10 +6783,10 @@ User Agent: [Automatically Generated]
                     </div>
 
                     {/* System & About Group */}
-                    <div style={{ marginBottom: 24 }}>
+                    <div style={{ marginBottom: 'var(--space-6)' }}>
                       <h3
                         style={{
-                          fontSize: 11,
+                          fontSize: 'var(--font-section-label)',
                           fontWeight: 700,
                           textTransform: 'uppercase',
                           letterSpacing: '0.12em',
@@ -6952,7 +6859,7 @@ User Agent: [Automatically Generated]
                             </span>
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 'var(--font-section-label)',
                                 color: 'var(--c-text-secondary)',
                                 opacity: 0.7,
                                 display: 'flex',
@@ -7028,7 +6935,7 @@ User Agent: [Automatically Generated]
                             </span>
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 'var(--font-section-label)',
                                 color: 'var(--c-text-secondary)',
                                 opacity: 0.7,
                               }}
@@ -7091,7 +6998,7 @@ User Agent: [Automatically Generated]
                               </span>
                               <span
                                 style={{
-                                  fontSize: 11,
+                                  fontSize: 'var(--font-section-label)',
                                   color: 'var(--c-text-secondary)',
                                   opacity: 0.7,
                                 }}
@@ -7115,6 +7022,7 @@ User Agent: [Automatically Generated]
                     </div>
                   </div>
                 </div>
+                </div>
               );
             }
             return null;
@@ -7130,8 +7038,8 @@ User Agent: [Automatically Generated]
         position: 'fixed',
         inset: 0,
         background: 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        backdropFilter: 'var(--surface-float-blur)',
+        WebkitBackdropFilter: 'var(--surface-float-blur)',
         zIndex: 99999,
         display: 'flex',
         alignItems: 'center',
@@ -7237,7 +7145,7 @@ User Agent: [Automatically Generated]
           >
             <h2
               style={{
-                fontSize: 18,
+                fontSize: 'var(--font-page-title)',
                 fontWeight: 800,
                 color: 'var(--c-text-primary)',
                 margin: 0,
@@ -7248,7 +7156,7 @@ User Agent: [Automatically Generated]
               {lang === 'es' ? 'Ajustes de Studio' : 'Studio Settings'}
             </h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {sections.map((section, secIdx) => (
               <div key={section.label} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {secIdx > 0 && (
@@ -7262,7 +7170,7 @@ User Agent: [Automatically Generated]
                 )}
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 'var(--font-section-label)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -7329,7 +7237,7 @@ User Agent: [Automatically Generated]
         <div
           style={{
             flex: 1,
-            padding: '32px 48px',
+            padding: 'var(--space-8) var(--space-12)',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
@@ -7339,7 +7247,7 @@ User Agent: [Automatically Generated]
           <div
             key={activePageId}
             className="settings-content-animate"
-            style={{ maxWidth: '640px', width: '100%', margin: '0 auto' }}
+            style={{ maxWidth: 'var(--content-max-w)', width: '100%', margin: '0 auto' }}
           >
             <div
               style={{
@@ -7350,7 +7258,7 @@ User Agent: [Automatically Generated]
             >
               <h1
                 style={{
-                  fontSize: 28,
+                  fontSize: 'var(--font-display-page)',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
                   margin: 0,
@@ -7528,7 +7436,7 @@ function HubHelp({
   function renderReleaseNotesContent() {
     const changelogSections = getChangelogSections(lang) || [];
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', paddingBottom: 'var(--space-6)' }}>
         <div
           style={{
             display: 'flex',
@@ -7545,12 +7453,12 @@ function HubHelp({
             Released on {APP_VERSION_DATE}
           </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
           {changelogSections.map((sec, i) => (
             <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <h3
                 style={{
-                  fontSize: 11,
+                  fontSize: 'var(--font-section-label)',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.08em',
@@ -7624,7 +7532,7 @@ function HubHelp({
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
         <div
           style={{
             padding: 20,
@@ -7786,7 +7694,7 @@ function HubHelp({
               </div>
               <span
                 style={{
-                  fontSize: 11,
+                  fontSize: 'var(--font-section-label)',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -7824,12 +7732,12 @@ function HubHelp({
     ];
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
         {categories.map((cat, i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <h3
               style={{
-                fontSize: 11,
+                fontSize: 'var(--font-section-label)',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
@@ -7875,7 +7783,7 @@ function HubHelp({
                             border: '1px solid rgba(128, 128, 128, 0.2)',
                             background: 'rgba(255, 255, 255, 0.06)',
                             borderRadius: 4,
-                            fontSize: 11,
+                            fontSize: 'var(--font-section-label)',
                             fontWeight: 700,
                             color: 'var(--c-text-primary)',
                             fontFamily: 'monospace',
@@ -7905,7 +7813,7 @@ function HubHelp({
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
-          paddingBottom: 24,
+          paddingBottom: 'var(--space-6)',
         }}
       >
         <p style={{ margin: 0 }}>{t.help.terms.welcome}</p>
@@ -7956,7 +7864,7 @@ function HubHelp({
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
-          paddingBottom: 24,
+          paddingBottom: 'var(--space-6)',
         }}
       >
         <p style={{ margin: 0 }}>{t.help.privacy.welcome}</p>
@@ -8024,7 +7932,7 @@ Date: ${new Date().toISOString()}
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 24 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
           {Capacitor.isNativePlatform() ? t.help.bugReport.nativeDesc : t.help.bugReport.webDesc}
         </p>
@@ -8260,8 +8168,8 @@ User Agent: [Automatically Generated]
         position: 'fixed',
         inset: 0,
         background: 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
+        backdropFilter: 'var(--surface-float-blur)',
+        WebkitBackdropFilter: 'var(--surface-float-blur)',
         zIndex: 99999,
         display: 'flex',
         alignItems: 'center',
@@ -8378,7 +8286,7 @@ User Agent: [Automatically Generated]
               {lang === 'es' ? 'Ayuda de Studio' : 'Studio Help'}
             </h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
             {sections.map((section, secIdx) => (
               <div key={section.label} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {secIdx > 0 && (
@@ -8392,7 +8300,7 @@ User Agent: [Automatically Generated]
                 )}
                 <span
                   style={{
-                    fontSize: 11,
+                    fontSize: 'var(--font-section-label)',
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
@@ -8447,7 +8355,7 @@ User Agent: [Automatically Generated]
         <div
           style={{
             flex: 1,
-            padding: '32px 48px',
+            padding: 'var(--space-8) var(--space-12)',
             overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
@@ -8458,7 +8366,7 @@ User Agent: [Automatically Generated]
           <div
             key={activePageId}
             className="settings-content-animate"
-            style={{ maxWidth: '640px', width: '100%', margin: '0 auto' }}
+            style={{ maxWidth: 'var(--content-max-w)', width: '100%', margin: '0 auto' }}
           >
             <div
               style={{
@@ -8469,7 +8377,7 @@ User Agent: [Automatically Generated]
             >
               <h1
                 style={{
-                  fontSize: 28,
+                  fontSize: 'var(--font-display-page)',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
                   margin: 0,
@@ -8781,7 +8689,7 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 0', gap: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-10) 0', gap: 12 }}>
         <div style={{ width: 32, height: 32, border: `3px solid rgba(128,128,128,0.1)`, borderTopColor: accent.from, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <span style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
           {lang === 'es' ? 'Cargando historial de cambios...' : 'Loading changelog history...'}
@@ -8851,7 +8759,7 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
                   {lang === 'es' ? 'Más Reciente' : 'Latest'}
                 </span>
               )}
-              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8, marginLeft: 'auto' }}>
+              <span style={{ fontSize: 'var(--font-section-label)', color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8, marginLeft: 'auto' }}>
                 {rel.date}
               </span>
             </div>

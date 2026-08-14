@@ -26,8 +26,15 @@ export function ApplicationTransitionEngine({
   const isHub = appKey === 'hub';
 
   useEffect(() => {
-    setLogoFormed(true);
-  }, [setLogoFormed]);
+    if (isHub) {
+      setLogoFormed(true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setLogoFormed(true);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [isHub, setLogoFormed]);
 
   const startZoom =
     state === 'ZOOM_TRANSITION' || state === 'OVERLAY_DISMISS' || state === 'INTERACTION_ENABLE';
@@ -36,15 +43,15 @@ export function ApplicationTransitionEngine({
     if (startZoom) {
       const timer = setTimeout(() => {
         completeTransition();
-      }, 300);
+      }, isHub ? 175 : 455);
       return () => clearTimeout(timer);
     }
     return () => {};
-  }, [startZoom, completeTransition]);
+  }, [startZoom, completeTransition, isHub]);
 
   const bgColor = isAmoled ? '#000000' : isLight ? '#f8f9fa' : '#0a0a0c';
 
-  const baseColor = isLight ? '#1f2937' : '#ffffff';
+  const baseColor = isLight ? '#000000' : '#ffffff';
 
   // App Specific Colors
   const appColors: Record<AppKey, string> = {
@@ -66,8 +73,8 @@ export function ApplicationTransitionEngine({
       : { backgroundColor: 'rgba(0,0,0,0)', opacity: [1, 1, 0] };
 
   const containerTransition: any = isHub
-    ? { duration: 0.35, ease: 'easeOut' }
-    : { duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] };
+    ? { duration: 0.175, ease: 'easeOut' }
+    : { duration: 0.455, ease: [0.6, 0.01, 0.05, 0.95] };
 
   // Render progressive icons
   const renderIcon = () => {
@@ -556,8 +563,8 @@ export function ApplicationTransitionEngine({
             !startZoom
               ? { type: 'spring', stiffness: 380, damping: 26 }
               : {
-                  scale: { duration: 0.95, ease: [0.65, 0, 0.35, 1] },
-                  opacity: { duration: 0.8, times: [0, 0.45, 1], ease: 'easeOut' },
+                  scale: { duration: 0.65, ease: [0.65, 0, 0.35, 1] },
+                  opacity: { duration: 0.55, times: [0, 0.45, 1], ease: 'easeOut' },
                 }
           }
           style={{

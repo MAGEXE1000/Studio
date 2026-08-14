@@ -1,6 +1,5 @@
 import { type NavigationRoute, type NavigationHistory } from './navigationTypes';
-import { useChordStore } from '../../store/useChordStore.js';
-import { useSettingsStore } from '../../store/useSettingsStore.js';;
+import { useSettingsStore } from '../../store/useSettingsStore.js';
 
 export class NavigationCoordinator {
   /**

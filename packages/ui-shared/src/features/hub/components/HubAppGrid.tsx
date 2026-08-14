@@ -19,7 +19,7 @@ const APP_CARDS: AppCardItem[] = [
 
 export function HubAppGrid() {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, padding: 12 }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 12, padding: 'var(--space-3)' }}>
       {APP_CARDS.map((app) => (
         <div
           key={app.key}

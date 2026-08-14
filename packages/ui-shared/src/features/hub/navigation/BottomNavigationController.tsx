@@ -17,6 +17,7 @@ import {
   useShallow,
 } from '@workspace/studio-core';
 import { SharedNavigationBar } from './SharedNavigationBar';
+import { NavigationAnimationProvider } from './NavigationAnimationProvider';
 import { IconSongs, IconLibrary, IconSettings } from '../icons/NavIcons';
 import { motion, AnimatePresence } from 'motion/react';
 import { activeOverlaysRegistry } from '../../../shared/design-system/dialogs';
@@ -402,20 +403,22 @@ export function BottomNavigationController() {
   const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible;
 
   return (
-    <SharedNavigationBar
-      items={computedItems}
-      isLight={isLight}
-      visible={visible}
-      collapsed={collapsed}
-      isSwitcherOpen={isSwitcherOpen}
-      setIsSwitcherOpen={setIsSwitcherOpen}
-      currentApp={currentApp}
-      onOpenSearch={() => setProfileMenuOpen(false)}
-      onOpenProfile={() => toggleProfileMenu()}
-      user={user}
-      customPhoto={customPhoto}
-      profileIcon={profileIcon}
-    />
+    <NavigationAnimationProvider activeTab={activeTab} items={computedItems}>
+      <SharedNavigationBar
+        items={computedItems}
+        isLight={isLight}
+        visible={visible}
+        collapsed={collapsed}
+        isSwitcherOpen={isSwitcherOpen}
+        setIsSwitcherOpen={setIsSwitcherOpen}
+        currentApp={currentApp}
+        onOpenSearch={() => setProfileMenuOpen(false)}
+        onOpenProfile={() => toggleProfileMenu()}
+        user={user}
+        customPhoto={customPhoto}
+        profileIcon={profileIcon}
+      />
+    </NavigationAnimationProvider>
   );
 }
 

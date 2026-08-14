@@ -2,14 +2,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
-import { getAppVersionInfo } from './parse-version.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 
 // Run Repository-Wide Reference & Navigation Integrity Auditors first
-execSync('node scripts/verify-all-references.mjs', { stdio: 'inherit' });
-execSync('node scripts/verify-navigation-integrity.mjs', { stdio: 'inherit' });
+execSync('node scripts/verify-all-references.mjs', { cwd: repoRoot, stdio: 'inherit' });
+execSync('node scripts/verify-navigation-integrity.mjs', { cwd: repoRoot, stdio: 'inherit' });
 
 const paths = {
   rootPkg: path.join(repoRoot, 'package.json'),
@@ -27,37 +26,45 @@ const paths = {
 
 console.log('=== RUNNING MULTI-MANIFEST VERSION CONSISTENCY CHECK ===');
 
-// 1. Single Source of Truth: appVersion.ts
-const versionInfo = getAppVersionInfo();
-const EXPECTED_VERSION = versionInfo.nativeVersion;
-const EXPECTED_WEB_VERSION = versionInfo.webVersion;
-
-if (EXPECTED_VERSION !== EXPECTED_WEB_VERSION) {
-  console.error(`::error::VERSION CONSISTENCY FAILURE: NATIVE_VERSION (${EXPECTED_VERSION}) and WEB_VERSION (${EXPECTED_WEB_VERSION}) in appVersion.ts disagree!`);
+// 1. Single Source of Truth: root package.json
+if (!fs.existsSync(paths.rootPkg)) {
+  console.error(`::error::VERSION CONSISTENCY FAILURE: Single Source of Truth package.json not found!`);
   process.exit(1);
 }
 
-console.log(`Single Source of Truth Version: ${EXPECTED_VERSION}`);
+const rootPkg = JSON.parse(fs.readFileSync(paths.rootPkg, 'utf8'));
+const EXPECTED_VERSION = rootPkg.version;
 
-// Expected versionCode
-const EXPECTED_VERSION_CODE = versionInfo.nativeVersionCode;
-
-function assertVersion(filePath, detectedVersion, label) {
-  if (detectedVersion !== EXPECTED_VERSION) {
-    console.error(`::error::VERSION CONSISTENCY FAILURE: Artifact version mismatch detected!`);
-    console.error(`  Expected Version: ${EXPECTED_VERSION}`);
-    console.error(`  Detected Version: ${detectedVersion}`);
-    console.error(`  Source File:      ${filePath}`);
-    console.error(`  Label:            ${label}`);
-    process.exit(1);
-  }
-  console.log(`✓ ${label} matches version ${EXPECTED_VERSION} (${filePath})`);
+if (!EXPECTED_VERSION || typeof EXPECTED_VERSION !== 'string') {
+  console.error(`::error::VERSION CONSISTENCY FAILURE: Invalid version in root package.json: ${EXPECTED_VERSION}`);
+  process.exit(1);
 }
 
-// 2. Root package.json
-if (fs.existsSync(paths.rootPkg)) {
-  const rootPkg = JSON.parse(fs.readFileSync(paths.rootPkg, 'utf8'));
-  assertVersion(paths.rootPkg, rootPkg.version, 'package.json (root)');
+const semverMatch = /^(\d+)\.(\d+)\.(\d+)$/.exec(EXPECTED_VERSION.trim());
+if (!semverMatch) {
+  console.error(`::error::VERSION CONSISTENCY FAILURE: Expected Version "${EXPECTED_VERSION}" is not valid strict SemVer (X.Y.Z)`);
+  process.exit(1);
+}
+
+const major = parseInt(semverMatch[1], 10);
+const minor = parseInt(semverMatch[2], 10);
+const patch = parseInt(semverMatch[3], 10);
+const EXPECTED_VERSION_CODE = major * 10000 + minor * 100 + patch;
+
+console.log(`Single Source of Truth Version: ${EXPECTED_VERSION} (Expected versionCode: ${EXPECTED_VERSION_CODE})`);
+
+function assertVersion(filePath, detectedVersion, label, isVersionCode = false) {
+  const expected = isVersionCode ? EXPECTED_VERSION_CODE : EXPECTED_VERSION;
+  if (detectedVersion !== expected) {
+    console.error(`::error::VERSION CONSISTENCY FAILURE: Artifact version mismatch detected!`);
+    console.error(`  Expected:         ${expected}`);
+    console.error(`  Detected:         ${detectedVersion}`);
+    console.error(`  Source File:      ${filePath}`);
+    console.error(`  Label:            ${label}`);
+    console.error(`  \x1b[33mSuggested Fix:    Run \`node scripts/sync-versions.mjs\` to automatically resolve mismatches.\x1b[0m`);
+    process.exit(1);
+  }
+  console.log(`✓ ${label} matches ${expected} (${filePath})`);
 }
 
 // 3. Web package.json
@@ -72,10 +79,27 @@ if (fs.existsSync(paths.androidPkg)) {
   assertVersion(paths.androidPkg, androidPkg.version, 'apps/studio-android/package.json');
 }
 
-// 4. build.gradle
+// 5. appVersion.ts
+if (fs.existsSync(paths.appVersionTs)) {
+  const content = fs.readFileSync(paths.appVersionTs, 'utf8');
+  const nativeMatch = content.match(/export\s+const\s+NATIVE_VERSION\s*=\s*['"]([^'"]+)['"]/);
+  const nativeCodeMatch = content.match(/export\s+const\s+NATIVE_VERSION_CODE\s*=\s*(\d+)/);
+  const webMatch = content.match(/export\s+const\s+WEB_VERSION\s*=\s*['"]([^'"]+)['"]/);
+
+  if (!nativeMatch || !nativeCodeMatch || !webMatch) {
+    console.error(`::error::VERSION CONSISTENCY FAILURE: Could not parse versions in ${paths.appVersionTs}`);
+    process.exit(1);
+  }
+
+  assertVersion(paths.appVersionTs, nativeMatch[1], 'appVersion.ts NATIVE_VERSION');
+  assertVersion(paths.appVersionTs, parseInt(nativeCodeMatch[1], 10), 'appVersion.ts NATIVE_VERSION_CODE', true);
+  assertVersion(paths.appVersionTs, webMatch[1], 'appVersion.ts WEB_VERSION');
+}
+
+// 6. build.gradle
 if (fs.existsSync(paths.buildGradle)) {
   const gradleSrc = fs.readFileSync(paths.buildGradle, 'utf8');
-  const nameMatch = gradleSrc.match(/versionName\s+['"]([^'"]+)['"]/);
+  const nameMatch = gradleSrc.match(/versionName\s+["']([^"']+)["']/);
   const codeMatch = gradleSrc.match(/versionCode\s+(\d+)/);
 
   if (!nameMatch || !codeMatch) {
@@ -84,17 +108,10 @@ if (fs.existsSync(paths.buildGradle)) {
   }
 
   assertVersion(paths.buildGradle, nameMatch[1], 'build.gradle versionName');
-  const detectedCode = parseInt(codeMatch[1], 10);
-  if (detectedCode !== EXPECTED_VERSION_CODE) {
-    console.error(`::error::VERSION CONSISTENCY FAILURE: versionCode mismatch in ${paths.buildGradle}!`);
-    console.error(`  Expected versionCode: ${EXPECTED_VERSION_CODE}`);
-    console.error(`  Detected versionCode: ${detectedCode}`);
-    process.exit(1);
-  }
-  console.log(`✓ build.gradle versionCode matches ${EXPECTED_VERSION_CODE}`);
+  assertVersion(paths.buildGradle, parseInt(codeMatch[1], 10), 'build.gradle versionCode', true);
 }
 
-// 5. CHANGELOG.md
+// 7. CHANGELOG.md
 if (fs.existsSync(paths.changelog)) {
   const changelogText = fs.readFileSync(paths.changelog, 'utf8');
   const changelogRegex = new RegExp(`^(?:#|##)\\s+(?:Version\\s+)?v?${EXPECTED_VERSION.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`, 'm');
@@ -105,7 +122,7 @@ if (fs.existsSync(paths.changelog)) {
   console.log(`✓ CHANGELOG.md section for v${EXPECTED_VERSION} verified.`);
 }
 
-// 6. release-notes.md (if present)
+// 8. release-notes.md (if present)
 if (fs.existsSync(paths.releaseNotes)) {
   const rnText = fs.readFileSync(paths.releaseNotes, 'utf8');
   const rnMatch = rnText.match(/Version\s+(\d+\.\d+\.\d+)/i);
@@ -114,19 +131,19 @@ if (fs.existsSync(paths.releaseNotes)) {
   }
 }
 
-// 7. version.json (if present)
+// 9. version.json (if present)
 if (fs.existsSync(paths.versionJson)) {
   const vj = JSON.parse(fs.readFileSync(paths.versionJson, 'utf8'));
   assertVersion(paths.versionJson, vj.version || vj.versionName, 'public/version.json');
 }
 
-// 8. app-release.json (if present)
+// 10. app-release.json (if present)
 if (fs.existsSync(paths.appReleaseJson)) {
   const arj = JSON.parse(fs.readFileSync(paths.appReleaseJson, 'utf8'));
   assertVersion(paths.appReleaseJson, arj.version || arj.versionName, 'public/app-release.json');
 }
 
-// 9. release-manifest.json (if present)
+// 11. release-manifest.json (if present)
 if (fs.existsSync(paths.releaseManifest)) {
   const rm = JSON.parse(fs.readFileSync(paths.releaseManifest, 'utf8'));
   assertVersion(paths.releaseManifest, rm.releaseVersion || rm.versionName || rm.version, 'release-manifest.json');

@@ -9,7 +9,7 @@
  *
  * The `public/version.json` file shipped alongside the bundle is
  * generated from `APP_VERSION` at build time by
- * `scripts/sync-version.mjs` (wired in via the `prebuild` npm hook),
+ * `scripts/sync-versions.mjs` (wired in via the `prebuild` npm hook),
  * so the freshly-deployed bundle and its companion manifest are
  * always in lockstep.
  *
@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.3.91';
-export const NATIVE_VERSION_CODE = 40422;
-export const WEB_VERSION = '4.3.91';
+export const NATIVE_VERSION = '4.5.31';
+export const NATIVE_VERSION_CODE = 40531;
+export const WEB_VERSION = '4.5.31';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -65,21 +65,21 @@ export const APP_VERSION_LABEL = APP_VERSION;
 
 /**
  * Local date this build was stamped (e.g. "July 24, 2026").
- * Stamped by `scripts/sync-version.mjs` on build.
+ * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_VERSION_DATE = '8/1/2026';
+export const APP_VERSION_DATE = '8/12/2026';
 
 /**
  * Git commit hash this build was generated from.
- * Stamped by `scripts/sync-version.mjs` on build.
+ * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'e33fdfe1';
+export const APP_COMMIT_SHA = '1110b65f';
 
 /**
  * Unix epoch timestamp this build was generated.
- * Stamped by `scripts/sync-version.mjs` on build.
+ * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/6/2026, 10:56:09 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/13/2026, 8:23:47 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,10 +96,13 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: "Improved",
+    heading: 'Added',
     items: [
-      "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
-      "Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.",
+      'Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).',
+      'Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.',
+      'Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.',
+      'Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.',
+      'Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation.',
     ],
   },
 ];

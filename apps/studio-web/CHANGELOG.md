@@ -7,13 +7,72 @@ copies the bullet list under the section that matches the current
 "Update available" modal always shows the actual changes that ship in
 that bundle.
 
-## 4.3.89
+## 4.5.5
+
+Release Date: 2026-08-07
+
+### Fixed
+- Fixed critical RootApp runtime TDZ crash (`ReferenceError: Cannot access 'xe' before initialization`) by removing unused `rawProgress` and `downloadPct` variables from `UpdateIndicator.tsx`.
+- Restored the exact 3-stage GitHub Release Pipeline (Preflight, Build, Package & Sign, Publish) as Run #703.
+
+## 4.5.4
+
+Release Date: 2026-08-07
+
+### Added
+- Redesigned RootApp crash screen and developer report UI, implementing clean system recovery view and structured diagnostics tabs.
+- Broke circular dependency loops and added automated circular dependency checking to verify-circular-deps script.
+- Restored Release Pipeline to match #703 parity.
+
+## 4.5.3
+
+Release Date: 2026-08-07
+
+### Added
+- Redesigned RootApp crash report analyzer engine and visual dashboard UI with structured facts, evidence, and chronological timelines.
+- Restored release pipeline behavior to parity with Run #703 including certificate verification.
+
+## 4.5.2
+
+Release Date: 2026-08-07
+
+### Added
+- Redesigned RootApp crash screen UI into a structured, searchable engineering report with recovery actions, card layout, component hierarchy tree, and expandable raw details.
+- Restored GitHub Release Pipeline (`release.yml`) to match Pipeline #703 multi-stage preflight checks and keystore fingerprint verification.
+
+## 4.5.1
+
+Release Date: 2026-08-07
+
+### Added
+- Implemented production-grade Diagnostic Intelligence Layer across studio-core and ui-shared error systems.
+- Added automated root cause analysis, hypothesis confidence scoring, file prioritization, and error deduplication.
+
+## 4.5.0
+
+Release Date: 2026-08-07
+
+### Fixed
+- Fixed StudioHub startup crash (`ReferenceError: Cannot access 'Se' before initialization`) by configuring Rollup bundling with a dedicated `motion-vendor` chunk to prevent temporal dead zones.
+
+### Added
+- Completed repository-wide migration to the official BeUI component library, successfully replacing all legacy themes, accordions, modals, and loaders.
+
+## 4.3.91
 
 Release Date: 2026-08-06
 
 ### Improved
 - Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).
-- Executed production Android release pipeline v4.3.89 (versionCode 40420) with signed APK and metadata synchronization.
+- Executed production Android release pipeline v4.3.91 (versionCode 40422) with signed APK and metadata synchronization.
+
+## 4.3.90
+
+Release Date: 2026-08-06
+
+### Improved
+- Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).
+- Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.
 
 ## 4.3.88
 
@@ -321,6 +380,8 @@ Release Date: 2026-08-02
 - Added live presence tracking and participant cursor color indicators.
 - Created operation-based synchronization engine with conflict resolution and offline queuing.
 - Added a Collaborate button and dialog popup in both mobile and desktop views.
+
+
 
 ## 4.3.43
 

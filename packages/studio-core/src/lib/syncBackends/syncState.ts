@@ -62,14 +62,11 @@ export async function refetchAllData(provider: any, userId: string, source: stri
       if (appearance) {
         provider.updateDiag({
           cloudTheme: appearance.theme || 'N/A',
-          cloudAccentColor: appearance.accent_color || 'N/A',
           appearanceLastSnapshotAt: nowStr,
           appearanceListenerStatus: 'active',
         });
         const mappedAppearance: AppearanceSettings = {
           theme: appearance.theme,
-          accentColor: appearance.accent_color,
-          customAccentHue: Number(appearance.custom_accent_hue || 220),
           palette: appearance.palette,
           language: appearance.language,
         };
@@ -346,11 +343,9 @@ export async function getAppearanceSettings(provider: any): Promise<AppearanceSe
       if (error) throw error;
       return data
         ? {
-            theme: data.theme,
-            accentColor: data.accent_color,
-            customAccentHue: Number(data.custom_accent_hue || 220),
-            palette: data.palette,
-            language: data.language,
+             theme: data.theme,
+             palette: data.palette,
+             language: data.language,
           }
         : null;
     } catch (e: any) {

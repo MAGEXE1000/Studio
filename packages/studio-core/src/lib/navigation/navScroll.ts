@@ -45,12 +45,22 @@ export function setNavHidden(hidden: boolean) {
       if (_locked || !_hidden) return;
       _hidden = false;
       emit(false);
+      if (typeof window !== 'undefined') {
+        document.documentElement.removeAttribute('data-nav-hidden');
+      }
       onStateChanged();
     }, AUTO_SHOW_MS);
   }
   if (_hidden === hidden) return;
   _hidden = hidden;
   emit(hidden);
+  if (typeof window !== 'undefined') {
+    if (hidden) {
+      document.documentElement.setAttribute('data-nav-hidden', 'true');
+    } else {
+      document.documentElement.removeAttribute('data-nav-hidden');
+    }
+  }
   onStateChanged();
 }
 
@@ -63,6 +73,14 @@ export function resetNav() {
   if (_hidden) {
     _hidden = false;
     emit(false);
+  }
+  if (_collapsed) {
+    _collapsed = false;
+    _collapsedListeners.forEach((fn) => fn(false));
+  }
+  if (typeof window !== 'undefined') {
+    document.documentElement.removeAttribute('data-nav-collapsed');
+    document.documentElement.removeAttribute('data-nav-hidden');
   }
   onStateChanged();
 }
@@ -92,6 +110,19 @@ export function setNavScrollOffset(offset: number) {
   if (_scrollOffset === clamped) return;
   _scrollOffset = clamped;
   _scrollOffsetListeners.forEach((fn) => fn(clamped));
+
+  const isCollapsed = clamped >= 0.8;
+  if (_collapsed !== isCollapsed) {
+    _collapsed = isCollapsed;
+    _collapsedListeners.forEach((fn) => fn(isCollapsed));
+    if (typeof window !== 'undefined') {
+      if (isCollapsed) {
+        document.documentElement.setAttribute('data-nav-collapsed', 'true');
+      } else {
+        document.documentElement.removeAttribute('data-nav-collapsed');
+      }
+    }
+  }
 }
 
 export function useNavScrollOffset(): number {
@@ -114,6 +145,13 @@ export function setNavCollapsed(collapsed: boolean) {
   _collapsed = collapsed;
   _collapsedListeners.forEach((fn) => fn(collapsed));
   setNavScrollOffset(collapsed ? 1 : 0);
+  if (typeof window !== 'undefined') {
+    if (collapsed) {
+      document.documentElement.setAttribute('data-nav-collapsed', 'true');
+    } else {
+      document.documentElement.removeAttribute('data-nav-collapsed');
+    }
+  }
   onStateChanged();
 }
 
@@ -157,6 +195,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
         _registeredScrollElements.add(el);
 
         const onScroll = () => {
+          _lastInteractionTime = Date.now();
           const y = el.scrollTop;
           const maxScroll = el.scrollHeight - el.clientHeight;
 
@@ -221,8 +260,32 @@ export function onStateChanged() {
   }
 }
 
+let _watchdogRetryTimer: any = null;
+
+function scheduleWatchdogRetry(delayMs: number) {
+  if (typeof window === 'undefined') return;
+  if (_watchdogRetryTimer) clearTimeout(_watchdogRetryTimer);
+  _watchdogRetryTimer = setTimeout(() => {
+    _watchdogRetryTimer = null;
+    console.log(`[navScroll Watchdog] Executing scheduled watchdog check after interaction settled`);
+    const tempLastInteraction = _lastInteractionTime;
+    _lastInteractionTime = 0;
+    resetNav();
+    runWatchdogCheck();
+    _lastInteractionTime = tempLastInteraction;
+  }, delayMs);
+}
+
 function runWatchdogCheck() {
   if (typeof window === 'undefined') return;
+  const timeSinceLastInteraction = Date.now() - _lastInteractionTime;
+  // Bypasses watchdog resets during active user scrolling/interaction
+  if (timeSinceLastInteraction < 1000) {
+    const remaining = 1000 - timeSinceLastInteraction;
+    console.log(`[navScroll Watchdog] Gated by interaction lockout: ${remaining}ms remaining. Scheduling retry.`);
+    scheduleWatchdogRetry(remaining + 50);
+    return;
+  }
   const now = Date.now();
 
   if (_hidden && !_locked) {
@@ -230,6 +293,9 @@ function runWatchdogCheck() {
       _hidden = false;
       _hiddenStartTime = 0;
       emit(false);
+      if (typeof window !== 'undefined') {
+        document.documentElement.removeAttribute('data-nav-hidden');
+      }
       if ((window as any).__navMetrics) {
         (window as any).__navMetrics.fallbackActivations++;
         (window as any).__navMetrics.recoveries++;
@@ -265,11 +331,23 @@ if (typeof window !== 'undefined') {
     });
 
     window.addEventListener('focus', () => {
+      const timeSinceLastInteraction = Date.now() - _lastInteractionTime;
+      if (timeSinceLastInteraction < 1000) {
+        console.log(`[navScroll focus] Gated by interaction lockout, scheduling watchdog retry`);
+        scheduleWatchdogRetry(1000 - timeSinceLastInteraction + 50);
+        return;
+      }
       resetNav();
       runWatchdogCheck();
     });
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
+        const timeSinceLastInteraction = Date.now() - _lastInteractionTime;
+        if (timeSinceLastInteraction < 1000) {
+          console.log(`[navScroll visibilitychange] Gated by interaction lockout, scheduling watchdog retry`);
+          scheduleWatchdogRetry(1000 - timeSinceLastInteraction + 50);
+          return;
+        }
         resetNav();
         runWatchdogCheck();
       }
@@ -337,6 +415,7 @@ if (typeof window !== 'undefined') {
     window.addEventListener(
       'touchstart',
       (e: TouchEvent) => {
+        _lastInteractionTime = Date.now();
         if (e.touches[0]) {
           lastTouchY = e.touches[0].clientY;
         }
@@ -347,6 +426,7 @@ if (typeof window !== 'undefined') {
     window.addEventListener(
       'touchmove',
       (e: TouchEvent) => {
+        _lastInteractionTime = Date.now();
         if (!e.touches[0]) return;
         const y = e.touches[0].clientY;
         const dy = lastTouchY - y; // positive when scrolling down
@@ -368,6 +448,7 @@ if (typeof window !== 'undefined') {
     window.addEventListener(
       'scroll',
       () => {
+        _lastInteractionTime = Date.now();
         const y = window.scrollY || document.documentElement.scrollTop;
         const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
         if (maxScroll <= 2) return;

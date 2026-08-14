@@ -83,8 +83,88 @@ if (!ghToken) {
 }
 console.log('release-firebase: ✓ GH_TOKEN presence validated.');
 
+// ── Canonical Production Version Guard ─────────────────────────────────────────
+// Resolve the true production versionCode from GitHub Releases (authoritative).
+// This runs before EVERY mode (--validate-only, --dry-run, normal release) and
+// before any expensive work (changelog, Vite, Gradle), ensuring a duplicate
+// versionCode fails in seconds rather than after 60+ seconds of Gradle.
+console.log('release-firebase: → Resolving production baseline from GitHub Releases...');
+let productionVersionCode = 0;
+let productionVersion = '(none)';
+try {
+  const ghListResult = spawnSync(
+    'gh', ['release', 'list', '--limit', '20', '--json', 'tagName,isLatest', '--repo', 'MAGEXE1000/Studio'],
+    { encoding: 'utf8', shell: false }
+  );
+  if (ghListResult.status === 0 && ghListResult.stdout) {
+    const releases = JSON.parse(ghListResult.stdout);
+    // Find the latest non-draft release tag that is not the current version being built
+    const currentTag = `v${version}`;
+    let latestTag = null;
+    // Prefer the release marked isLatest first
+    const latestMarked = releases.find((r) => r.isLatest && r.tagName !== currentTag);
+    if (latestMarked) {
+      latestTag = latestMarked.tagName;
+    } else {
+      // Fall back to the first published release that is not the current version
+      const fallback = releases.find((r) => r.tagName !== currentTag);
+      if (fallback) latestTag = fallback.tagName;
+    }
+    if (latestTag) {
+      const tagVer = latestTag.replace(/^v/, '');
+      const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(tagVer);
+      if (m) {
+        productionVersion = tagVer;
+        productionVersionCode = parseInt(m[1], 10) * 10000 + parseInt(m[2], 10) * 100 + parseInt(m[3], 10);
+      }
+    }
+  }
+} catch (e) {
+  // A failed gh call on CI is always an environment problem (missing GH_TOKEN scope,
+  // network failure, or repository misconfigured). Silently proceeding means the version
+  // guard is skipped entirely — the same class of failure the guard was designed to catch.
+  // In CI (GITHUB_ACTIONS=true), fail-fast. Locally, warn and proceed so developers
+  // can run the script without network access.
+  if (process.env.GITHUB_ACTIONS === 'true') {
+    console.error(`\x1b[31mrelease-firebase: \u2717 FATAL: Could not resolve production version from GitHub Releases: ${e.message}\x1b[0m`);
+    console.error('  The version guard is required in CI. Check GH_TOKEN permissions and network access.');
+    process.exit(1);
+  }
+  console.warn(`release-firebase: \u26a0  Could not resolve production version from GitHub Releases: ${e.message}`);
+  console.warn('release-firebase: \u26a0  Running locally without network \u2014 version guard skipped.');
+}
+
+// Derive candidate versionCode from version (same formula as sync-versions)
+{
+  const m = /^(\d+)\.(\d+)\.(\d+)$/.exec(version);
+  if (!m) {
+    console.error(`\x1b[31mrelease-firebase: ✗ Candidate version "${version}" is not valid SemVer (X.Y.Z).\x1b[0m`);
+    process.exit(1);
+  }
+  const candidateVersionCode = parseInt(m[1], 10) * 10000 + parseInt(m[2], 10) * 100 + parseInt(m[3], 10);
+  console.log('');
+  console.log('================================================================');
+  console.log('CANONICAL VERSION GUARD');
+  console.log('================================================================');
+  console.log(`Release candidate:       ${version} (versionCode ${candidateVersionCode})`);
+  console.log(`Production baseline:     ${productionVersion} (versionCode ${productionVersionCode})`);
+  if (productionVersionCode > 0) {
+    if (candidateVersionCode <= productionVersionCode) {
+      console.error(`\x1b[31mrelease-firebase: ✗ VERSION GUARD FAILED: Candidate versionCode (${candidateVersionCode}) must be greater than production (${productionVersionCode}).\x1b[0m`);
+      console.error('  Production is already at version ' + productionVersion + '.');
+      console.error('  Increment the version in package.json and re-run sync-versions before releasing.');
+      process.exit(1);
+    }
+    console.log(`Version guard:           ✓ PASSED (${candidateVersionCode} > ${productionVersionCode})`);
+  } else {
+    console.log(`Version guard:           ⚠  No prior production release found — treating as first release.`);
+  }
+  console.log('================================================================\n');
+}
+
 // B. PREFLIGHT CODE QUALITY & VERSION CONSISTENCY CHECKS
 const qualityScripts = [
+  { file: 'validate-version-code.mjs', label: 'VersionCode Collision Safety' },
   { file: 'verify-versions-consistency.mjs', label: 'Version Consistency' },
   { file: 'enforce-import-boundaries.mjs', label: 'Import Boundaries' },
   { file: 'verify-all-references.mjs', label: 'Reference Audit' },
@@ -96,6 +176,7 @@ for (const script of qualityScripts) {
   const scriptPath = path.join(repoRoot, 'scripts', script.file);
   if (existsSync(scriptPath)) {
     const res = spawnSync('node', [scriptPath], {
+      cwd: repoRoot,
       stdio: 'inherit',
       shell: process.platform === 'win32',
     });
@@ -164,12 +245,23 @@ console.log(
   `release-firebase: âœ“ Validated changelog for version ${version}. Found ${flatBullets.length} bullets.`
 );
 
-// Write to release-notes.md in repo root
+// Idempotent write: only update release-notes.md if content would actually change.
+// sectionContent is read from release-notes.md (line 191) which already ends with '\n'.
+// Appending '\n' directly always produces sectionContent + '\n\n', which never equals
+// the existing file content — making the comparison always fire and the file always dirty.
+// Fix: normalise with trimEnd() to strip any trailing whitespace before appending the
+// canonical single trailing newline. Invariant: release-notes.md has exactly one trailing '\n'.
 const releaseNotesMdPath = path.join(repoRoot, 'release-notes.md');
-writeFileSync(releaseNotesMdPath, sectionContent + '\n', 'utf8');
-console.log(`release-firebase: âœ“ Wrote ${path.relative(repoRoot, releaseNotesMdPath)}`);
+const releaseNotesMdContent = sectionContent.trimEnd() + '\n';
+const existingReleaseNotesMd = existsSync(releaseNotesMdPath) ? readFileSync(releaseNotesMdPath, 'utf8') : null;
+if (existingReleaseNotesMd !== releaseNotesMdContent) {
+  writeFileSync(releaseNotesMdPath, releaseNotesMdContent, 'utf8');
+  console.log(`release-firebase: \u2713 Wrote ${path.relative(repoRoot, releaseNotesMdPath)} (content changed)`);
+} else {
+  console.log(`release-firebase: \u2713 ${path.relative(repoRoot, releaseNotesMdPath)} already up to date (idempotent skip)`);
+}
 
-// Write temp notes file
+// Write temp notes file (gitignored, untracked — safe to write unconditionally)
 const tempNotesPath = path.join(pkgRoot, '.release-temp-notes.json');
 writeFileSync(
   tempNotesPath,
@@ -318,40 +410,18 @@ const supabaseAnonKey = (process.env.VITE_SUPABASE_ANON_KEY || '').trim();
 const syncBackendProvider = (process.env.VITE_SYNC_BACKEND_PROVIDER || '').trim();
 
 if (!supabaseUrl || !supabaseAnonKey || syncBackendProvider !== 'supabase-realtime') {
+  console.log(`release-firebase: Observability - Supabase check: url=${!!supabaseUrl}, key=${!!supabaseAnonKey}, provider=${syncBackendProvider}`);
   console.error(
     '\x1b[31mrelease-firebase: âœ— Supabase config missing. Refusing to build a Supabase sync release.\x1b[0m'
   );
   process.exit(1);
 }
 console.log('release-firebase: âœ“ Supabase build gate validation passed.');
-
-// Update other version configurations
-console.log('release-firebase: â†’ Running version-sync...');
-const syncResult = spawnSync('node', ['scripts/sync-version.mjs'], {
-  cwd: pkgRoot,
-  stdio: 'inherit',
-  shell: process.platform === 'win32',
-});
-if (syncResult.status !== 0) {
-  process.exit(syncResult.status ?? 1);
-}
-
-if (validateOnly) {
-  console.log('release-firebase: → Running AppInstaller contract validation...');
-  const validateArgs = ['scripts/validate-app-installer.mjs', '--allow-missing-apk'];
-  if (isDevPreview) {
-    validateArgs.push('--development-preview');
-  }
-  const validateResult = spawnSync('node', validateArgs, {
-    cwd: pkgRoot,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
-  if (validateResult.status !== 0) {
-    console.error('release-firebase: ✗ AppInstaller contract validation failed!');
-    process.exit(validateResult.status ?? 1);
-  }
-}
+// NOTE: sync-versions is intentionally omitted here.
+// The CI Preflight job runs it once (release.yml). Re-running it in the Build job
+// mutates tracked files (appVersion.ts buildTimestamp / manifest timestamps),
+// causing Vite's git-status dirty-tree check to fire. The version guard above
+// already confirmed candidate > production, so no additional sync is needed.
 
 function run(cmd, args, extraEnv = {}) {
   const result = spawnSync(cmd, args, {

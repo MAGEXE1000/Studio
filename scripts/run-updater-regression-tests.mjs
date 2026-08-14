@@ -427,8 +427,8 @@ async function runRegressionTests() {
     });
 
     const state = await checkForUpdate(true);
-    // Version 3.7.7 is lower than local 3.7.8, but since it is manual, it is detected as downgrade
-    assert.strictEqual(state.updateAvailable, true);
+    // Version is lower than local, so it is detected as a downgrade and blocked
+    assert.strictEqual(state.updateAvailable, false);
   });
 
   // Scenario 9: PackageInstaller error mapping

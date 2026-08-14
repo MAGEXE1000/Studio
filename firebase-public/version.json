@@ -1,17 +1,26 @@
 {
   "platform": "web",
-  "version": "4.3.90",
-  "commit": "e33fdfe1",
-  "releasedAt": "8/6/2026, 10:44:41 PM CST",
-  "buildTimestamp": "8/6/2026, 10:44:41 PM CST",
+  "version": "4.5.23",
+  "commit": "2d872e07",
+  "releasedAt": "8/11/2026, 5:33:25 PM CST",
+  "buildTimestamp": "8/11/2026, 5:33:25 PM CST",
   "updateMode": "refresh",
-  "description": "â€¢ Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\nâ€¢ Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.",
-  "whatsNew": "â€¢ Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\nâ€¢ Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.",
-  "changelog": "â€¢ Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).\nâ€¢ Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization.",
+  "description": "â€¢ Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.\nâ€¢ Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.\nâ€¢ Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.\nâ€¢ Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.\nâ€¢ Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.\nâ€¢ Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.\nâ€¢ Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.\nâ€¢ Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.\nâ€¢ Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.\nâ€¢ Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.\nâ€¢ Fixed tab scrubbing gestures via continuous fractional pointer indexing.",
+  "whatsNew": "â€¢ Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.\nâ€¢ Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.\nâ€¢ Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.\nâ€¢ Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.\nâ€¢ Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.\nâ€¢ Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.\nâ€¢ Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.\nâ€¢ Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.\nâ€¢ Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.\nâ€¢ Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.\nâ€¢ Fixed tab scrubbing gestures via continuous fractional pointer indexing.",
+  "changelog": "â€¢ Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.\nâ€¢ Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.\nâ€¢ Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.\nâ€¢ Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.\nâ€¢ Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.\nâ€¢ Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.\nâ€¢ Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.\nâ€¢ Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.\nâ€¢ Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.\nâ€¢ Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.\nâ€¢ Fixed tab scrubbing gestures via continuous fractional pointer indexing.",
   "releaseNotes": {
-    "improved": [
-      "Migrated the complete motion system across all applications to official BeUI components (`ThemeToggle`, `MorphingModal`, `BouncyAccordion`, `Loader`).",
-      "Executed production Android release pipeline v4.3.90 (versionCode 40421) with signed APK and metadata synchronization."
+    "added": [
+      "Migrated Vocalex delete, sorting, and metadata actions to the stateful @beui/button-base design system.",
+      "Migrated Studio Hub developer options controls to the stateful @beui/button-base button systems.",
+      "Migrated all authentication, settings, preferences, and sub-app action buttons across Chordex, Groovex, and Stagex to BeUI design primitives.",
+      "Ensured zero auditory feedback and neutral visual styling on the About page SpotlightLogo.",
+      "Created canonical design tokens for spacing, typography, and surface floating elements in tokens.css.",
+      "Migrated Studio Hub, Settings dashboards, scaffolds, and headers to layout tokens, eliminating hardcoded values.",
+      "Added automated token check regression guard rule (pnpm check:tokens) in CI/build pipeline.",
+      "Applied real backdrop-filter blur and metallic/reflective inner-bezel highlights to the bottom navigation bar and float buttons.",
+      "Implemented Framer Motion elastic squish-and-stretch micro-animations on tab icon selection.",
+      "Added direction-aware liquid/gooey transition stretching to active-tab indicator pill.",
+      "Fixed tab scrubbing gestures via continuous fractional pointer indexing."
     ]
   },
   "mandatory": false

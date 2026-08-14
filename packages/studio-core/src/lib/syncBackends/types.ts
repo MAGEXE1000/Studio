@@ -10,8 +10,6 @@ export interface UserProfile {
 
 export interface AppearanceSettings {
   theme: string;
-  accentColor: string;
-  customAccentHue: number;
   palette: any;
   language: string;
   updatedAt?: number;
@@ -244,7 +242,6 @@ export interface SyncDiagnostics {
   sameProjectConfirmed: boolean;
 
   cloudTheme: string;
-  cloudAccentColor: string;
   cloudDisplayName: string;
   cloudPhotoURL: string;
   cloudPreferences: any;

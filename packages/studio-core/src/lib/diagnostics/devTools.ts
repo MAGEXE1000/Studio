@@ -26,6 +26,8 @@ export interface NavigationEntry {
   fallbackRendered: boolean;
 }
 
+import { processDiagnosticReport, IntelligentDiagnosticReport } from './diagnosticEngine';
+
 export interface ErrorEntry {
   id?: string;
   fingerprint?: string;
@@ -37,6 +39,7 @@ export interface ErrorEntry {
   stack: string;
   source: string;
   module: string;
+  diagnosticReport?: IntelligentDiagnosticReport;
 }
 
 export interface EventEntry {
@@ -435,6 +438,11 @@ export function addError(err: Omit<ErrorEntry, 'timestamp'>) {
   const fingerprint = err.fingerprint || getErrorFingerprint(mod, err.message, err.stack || '');
   const now = Date.now();
 
+  const report = processDiagnosticReport(err.message, err.stack || '', {
+    module: mod,
+    source: src,
+  });
+
   const existingIndex = errorsBuffer.findIndex(
     (e) => (e.fingerprint && e.fingerprint === fingerprint) || (e.message === err.message && e.module === mod)
   );
@@ -444,6 +452,7 @@ export function addError(err: Omit<ErrorEntry, 'timestamp'>) {
     existing.count = (existing.count || 1) + 1;
     existing.lastSeen = now;
     existing.timestamp = now;
+    existing.diagnosticReport = report;
   } else {
     const id = err.id || Math.random().toString(36).substring(2, 9);
     errorsBuffer.push({
@@ -456,6 +465,7 @@ export function addError(err: Omit<ErrorEntry, 'timestamp'>) {
       module: mod,
       source: src,
       timestamp: now,
+      diagnosticReport: report,
     });
   }
 

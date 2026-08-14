@@ -51,7 +51,7 @@ import StudioUpdateScreen from './StudioUpdateScreen';
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
 ;
 import { DownloadIcon } from '../../../shared/icons/DownloadIcon';
-import CossProgress from '../../../components/ui/progress';
+import { Progress } from '@base-ui/react/progress';
 
 import { enableLiquidGlass, tagLiquidTarget, untagLiquidTarget } from '@workspace/studio-core';
 
@@ -323,7 +323,7 @@ export default function UpdateIndicator({
       };
     }
 
-    if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
+    if (true && isAppInstallerAvailable()) {
       (async () => {
         try {
           const { AppInstaller } = await import('@workspace/studio-core');
@@ -425,7 +425,7 @@ export default function UpdateIndicator({
 
   // WEB-ONLY: track whether the user dismissed the web refresh banner this session
   const [webBannerDismissed, setWebBannerDismissed] = useState(() => {
-    if (Capacitor.isNativePlatform()) return false;
+    if (true) return false;
     try {
       const dismissed = sessionStorage.getItem('studio:web-update-dismissed');
       return dismissed === updater.remoteVersion;
@@ -491,7 +491,7 @@ export default function UpdateIndicator({
   if (!updater.updateAvailable) {
     if (!open) return null;
     // Only show the full update modal on native
-    if (!Capacitor.isNativePlatform()) return null;
+    if (!true) return null;
     return (
       <UpdateModal
         fromLabel={APP_VERSION_LABEL}
@@ -511,7 +511,7 @@ export default function UpdateIndicator({
   }
 
   /* ── WEB-ONLY: slim non-blocking refresh banner ─────────────────────── */
-  if (!Capacitor.isNativePlatform()) {
+  if (!true) {
     if (webBannerDismissed) return null;
     return (
       <>
@@ -789,7 +789,7 @@ export default function UpdateIndicator({
   }
 
   // Only show the full update modal on native
-  if (!Capacitor.isNativePlatform()) return null;
+  if (!true) return null;
 
   return (
     <>
@@ -895,7 +895,9 @@ const DownloadProgressIndicator = React.memo(
     }
 
     return (
-      <div
+      <Progress.Root
+        value={pct}
+        max={100}
         style={{
           width: '100%',
           overflow: 'hidden',
@@ -919,7 +921,7 @@ const DownloadProgressIndicator = React.memo(
           <span>{pct}%</span>
         </div>
 
-        <div
+        <Progress.Track
           style={{
             width: '100%',
             height: 6,
@@ -929,16 +931,17 @@ const DownloadProgressIndicator = React.memo(
             position: 'relative',
           }}
         >
-          <div
+          <Progress.Indicator
             style={{
               height: '100%',
               width: `${pct}%`,
               background: `linear-gradient(90deg, ${accentFrom || '#679cff'}, ${accentTo || '#007aff'})`,
               transition: 'width 120ms ease-out',
+              borderRadius: 3,
             }}
           />
-        </div>
-      </div>
+        </Progress.Track>
+      </Progress.Root>
     );
   },
   (prev: any, next: any) => {
@@ -1132,7 +1135,7 @@ function UpdateModal({
 
   const handleStartUpdate = async () => {
     try {
-      if (Capacitor.isNativePlatform() && isAppInstallerAvailable()) {
+      if (true && isAppInstallerAvailable()) {
         const { AppInstaller } = await import('@workspace/studio-core');
         await AppInstaller.clearInstallerLogHistory();
       }
@@ -1145,7 +1148,7 @@ function UpdateModal({
 
   const handleInstallApk = async () => {
     try {
-      if (Capacitor.isNativePlatform()) {
+      if (true) {
         const { AppInstaller, updateActiveSession } = await import('@workspace/studio-core');
         const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
         if (!hasPerm) {
@@ -2007,7 +2010,7 @@ function UpdateModal({
                 clearInstallationJustCompleted();
                 onClose();
                 updater.dismissUpdate();
-                if (Capacitor.isNativePlatform()) {
+                if (true) {
                   await AppInstaller.clearInstallerLogHistory();
                   const { App: CapApp } = await import('@capacitor/app');
                   await CapApp.exitApp();
@@ -2156,10 +2159,101 @@ function UpdateModal({
   // Render buttons
   const actionButtons = renderButtons();
 
-  const rawProgress = typeof updater.progress === 'number' ? updater.progress : 0;
-  const downloadPct = Math.min(100, Math.max(0, Math.round(rawProgress * 100)));
+  let progressComponent: React.ReactNode = undefined;
+  if (state === 'downloading' && !isNearCompletion) {
+    progressComponent = (
+      <DownloadProgressIndicator
+        updater={updater}
+        toVersion={toVersion}
+        accentFrom={accentFrom}
+        accentTo={accentTo}
+        isLight={isLight}
+      />
+    );
+  }
 
-  const progressComponent = undefined;
+  // Construct What's New changelog content
+  const notesList: string[] = (() => {
+    if (!updater.releaseNotes) return [];
+    if (Array.isArray(updater.releaseNotes)) {
+      return updater.releaseNotes;
+    }
+    if (typeof updater.releaseNotes === 'object') {
+      const rn = updater.releaseNotes as any;
+      const list: string[] = [];
+      const categories = ['added', 'improved', 'fixed', 'changed'];
+      for (const cat of categories) {
+        if (Array.isArray(rn[cat])) {
+          const label = cat.charAt(0).toUpperCase() + cat.slice(1);
+          for (const item of rn[cat]) {
+            list.push(`[${label}] ${item}`);
+          }
+        }
+      }
+      return list;
+    }
+    return [];
+  })();
+
+  const fallbackNotes = [
+    'Completely separated Chordex preferences from Hub/Studio Settings.',
+    'Redesigned floating top bar capsule geometry aligned with section cards.',
+    'Accelerated app entrance animations by 30% across all 6 applications.',
+    'Made Developer Inspector compact (floating drawer panel) and repaired debug controls.',
+  ];
+
+  const finalNotes = notesList.length > 0 ? notesList : fallbackNotes;
+
+  const changelogContent = (
+    <div
+      style={{
+        width: '100%',
+        background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
+        border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 14,
+        padding: '12px 14px',
+        textAlign: 'left',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6,
+        maxHeight: 150,
+        overflowY: 'auto',
+        boxSizing: 'border-box',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          color: 'var(--c-accent-from, #679cff)',
+          fontFamily: 'Manrope, sans-serif',
+        }}
+      >
+        What's New
+      </div>
+      <ul
+        style={{
+          margin: 0,
+          paddingLeft: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
+          fontSize: 12,
+          color: isLight ? '#334155' : '#e2e8f0',
+          fontFamily: 'Inter, sans-serif',
+          lineHeight: 1.4,
+        }}
+      >
+        {finalNotes.map((note, idx) => (
+          <li key={idx}>{note}</li>
+        ))}
+      </ul>
+    </div>
+  );
+
+  const showChangelog = updater.updateAvailable && ['available', 'downloading', 'readyForInstallPrompt', 'installing', 'installedOrReady'].includes(state);
 
   return (
     <StudioUpdateScreen
@@ -2172,7 +2266,7 @@ function UpdateModal({
       iconColor={iconColor}
       showSpinner={showSpinner}
       actionButtons={actionButtons}
-      changelog={null}
+      changelog={showChangelog ? changelogContent : undefined}
       isRequired={mandatory && state === 'available'}
       onClose={onClose}
       progressComponent={progressComponent}

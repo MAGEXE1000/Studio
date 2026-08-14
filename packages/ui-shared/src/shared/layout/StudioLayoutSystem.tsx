@@ -1,10 +1,12 @@
 import { activeOverlaysRegistry } from '../design-system/dialogs';
 import { useEffect } from 'react';
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
 
-import { useScrollHide, SpringPresets } from '@workspace/studio-core';
+import { useScrollHide, SpringPresets, useSettingsStore } from '@workspace/studio-core';
 import { ProgressiveBlur } from '../design-system/ProgressiveBlur';
+import { StudioLogo } from '../../features/chordex/icons/ChordexLogo';
+import { StudioHeader } from './StudioHeader';
 
 // Helper hook to detect responsive design states (tablets, landscape, foldables)
 export function useLayoutMetrics() {
@@ -153,7 +155,8 @@ export interface SharedFloatingHeaderProps {
   hideBack?: boolean;
   toolbarActions?: React.ReactNode;
   headerBgRef?: React.RefObject<HTMLDivElement | null>;
-  titleRef?: React.RefObject<HTMLSpanElement | null>;
+  titleRef?: React.RefObject<HTMLDivElement | null>;
+  headerProgress?: any;
 }
 
 export function SharedFloatingHeader({
@@ -163,15 +166,29 @@ export function SharedFloatingHeader({
   toolbarActions,
   headerBgRef,
   titleRef,
+  headerProgress,
 }: SharedFloatingHeaderProps) {
+  const { isLargeScreen } = useLayoutMetrics();
+  const sideMargin = isLargeScreen ? '20%' : '12%';
+
+  // Read current theme to apply warm tinted translucency
+  const settings = useSettingsStore((s) => s.settings);
+  const isLight = settings.theme === 'light';
+
+  const defaultProgress = useMotionValue(1);
+  const progress = headerProgress ?? defaultProgress;
+
+  const bgOpacity = useTransform(progress, [0, 1], [0, 1]);
+  const titleOpacity = useTransform(progress, [0, 1], [0, 1]);
+
   return (
     <div
       style={{
         position: 'absolute',
-        top: 'calc(max(0px, env(safe-area-inset-top, 0px) - 8px))',
+        top: 'calc(env(safe-area-inset-top, 0px) * 0.70)',
         left: 0,
         right: 0,
-        height: 56,
+        height: 48,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -180,82 +197,149 @@ export function SharedFloatingHeader({
         padding: '0 16px',
       }}
     >
-      {/* Floating rounded header card with live theme adaptive blur */}
-      <div
+      {/* Floating rounded capsule header card with production liquid-glass material */}
+      <motion.div
         ref={headerBgRef}
         style={{
           position: 'absolute',
-          top: 6,
-          left: 12,
-          right: 12,
-          bottom: 6,
-          background: 'var(--c-surface-glass-bg, rgba(20, 20, 25, 0.65))',
+          top: 0,
+          left: sideMargin,
+          right: sideMargin,
+          bottom: 0,
+          background: 'var(--surface-topbar-bg)',
           borderRadius: '24px',
-          border: '1px solid var(--c-border, rgba(128, 128, 128, 0.15))',
-          backdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
-          WebkitBackdropFilter: 'var(--c-surface-glass-blur, blur(20px))',
-          opacity: 0,
-          transform: 'scale(0.96) translateY(-4px)',
-          transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
-          zIndex: -1,
+          border: 'var(--surface-topbar-border)',
+          backdropFilter: 'var(--surface-topbar-blur)',
+          WebkitBackdropFilter: 'var(--surface-topbar-blur)',
+          boxShadow: 'var(--surface-topbar-shadow)',
+          opacity: bgOpacity,
           pointerEvents: 'auto',
+          zIndex: -1,
+          transform: 'translateZ(0)',
+          willChange: 'transform, opacity',
+          backfaceVisibility: 'hidden',
+          contain: 'layout paint',
+          overflow: 'hidden',
         }}
-      />
-
-      <div style={{ display: 'flex', alignItems: 'center', width: '100%', pointerEvents: 'auto', gap: 12, height: '100%' }}>
-        {!hideBack && onBack && (
-          <button
-            onClick={onBack}
-            className="premium-back-btn"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 34,
-              height: 34,
-              borderRadius: '50%',
-              background: 'var(--app-surface-low, rgba(128, 128, 128, 0.06))',
-              border: '1px solid rgba(128, 128, 128, 0.08)',
-              color: 'var(--c-text-primary)',
-              cursor: 'pointer',
-              transition: 'background-color 200ms',
-              outline: 'none',
-              flexShrink: 0,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-              arrow_back
-            </span>
-          </button>
-        )}
-
-        {/* Small Sticky Title */}
-        <span
-          ref={titleRef}
+      >
+        {/* Upper Fresnel Specular Highlight Rim */}
+        <div
           style={{
-            fontSize: '14px',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '50%',
+            borderRadius: '24px 24px 0 0',
+            background: isLight
+              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%)'
+              : 'linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+      </motion.div>
+
+      {/* Left Back Action Button Layer */}
+      {onBack && !hideBack && (
+        <motion.button
+          onClick={onBack}
+          aria-label="Go back"
+          whileTap={{ scale: 0.9 }}
+          style={{
+            position: 'absolute',
+            left: `calc(${sideMargin} + 8px)`,
+            top: 0,
+            bottom: 0,
+            margin: 'auto 0',
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+            border: isLight
+              ? '1px solid rgba(0, 0, 0, 0.06)'
+              : '1px solid rgba(255, 255, 255, 0.12)',
+            color: 'var(--c-text-primary)',
+            cursor: 'pointer',
+            zIndex: 2,
+            pointerEvents: 'auto',
+            outline: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            opacity: titleOpacity,
+          }}
+        >
+          <span className="material-symbols-rounded" style={{ fontSize: 18, lineHeight: 1 }}>
+            arrow_back
+          </span>
+        </motion.button>
+      )}
+
+      {/* Absolute Centered Section Title Layer (Centered against capsule bounds) */}
+      <motion.div
+        ref={titleRef}
+        style={{
+          position: 'absolute',
+          left: sideMargin,
+          right: sideMargin,
+          top: 0,
+          bottom: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          pointerEvents: 'none',
+          padding:
+            onBack && !hideBack
+              ? toolbarActions
+                ? '0 52px'
+                : '0 16px 0 52px'
+              : toolbarActions
+                ? '0 52px 0 16px'
+                : '0 20px',
+          zIndex: 1,
+          opacity: titleOpacity,
+        }}
+      >
+        <span
+          style={{
+            fontSize: '16px',
             fontWeight: 800,
             color: 'var(--c-text-primary)',
             letterSpacing: '-0.02em',
-            fontFamily: 'Manrope',
-            opacity: 0,
-            transform: 'translateY(8px)',
-            transition: 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)',
+            fontFamily: 'Manrope, sans-serif',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
-            flex: 1,
+            textAlign: 'center',
+            maxWidth: '100%',
+            pointerEvents: 'auto',
+            textShadow: isLight ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.50)',
           }}
         >
           {title}
         </span>
+      </motion.div>
 
-        {toolbarActions && (
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-            {toolbarActions}
-          </div>
-        )}
-      </div>
+      {/* Right Toolbar Actions Layer */}
+      {toolbarActions && (
+        <motion.div
+          style={{
+            position: 'absolute',
+            right: `calc(${sideMargin} + 12px)`,
+            top: 0,
+            bottom: 0,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            zIndex: 2,
+            pointerEvents: 'auto',
+            opacity: titleOpacity,
+          }}
+        >
+          {toolbarActions}
+        </motion.div>
+      )}
     </div>
   );
 }
@@ -266,28 +350,20 @@ export function SettingsScaffold({
   toolbarActions,
   children,
   hideBack,
-}: SettingsScaffoldProps) {
+  showLargeTitle = true,
+}: SettingsScaffoldProps & { showLargeTitle?: boolean }) {
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const headerBgRef = React.useRef<HTMLDivElement | null>(null);
-  const titleRef = React.useRef<HTMLSpanElement | null>(null);
+  const titleRef = React.useRef<HTMLDivElement | null>(null);
   const largeTitleRef = React.useRef<HTMLHeadingElement | null>(null);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const scrollTop = e.currentTarget.scrollTop;
-    // Transition range: 0px to 48px
-    const progress = Math.min(1, Math.max(0, scrollTop / 48));
+  const scrollYRaw = useMotionValue(0);
+  const headerProgress = useTransform(scrollYRaw, [8, 48], [0, 1], { clamp: true });
+  const largeTitleOpacity = useTransform(headerProgress, [0, 0.7], [1, 0]);
+  const largeTitleY = useTransform(headerProgress, [0, 1], [0, -6]);
 
-    if (headerBgRef.current) {
-      headerBgRef.current.style.opacity = String(progress);
-      headerBgRef.current.style.transform = `scale(${0.96 + progress * 0.04}) translateY(${Math.max(0, (1 - progress) * -4)}px)`;
-    }
-    if (titleRef.current) {
-      titleRef.current.style.opacity = String(progress);
-      titleRef.current.style.transform = `translateY(${Math.max(0, 8 - progress * 8)}px)`;
-    }
-    if (largeTitleRef.current) {
-      largeTitleRef.current.style.opacity = String(Math.max(0, 1 - progress * 1.5));
-    }
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    scrollYRaw.set(e.currentTarget.scrollTop);
   };
 
   return (
@@ -313,6 +389,7 @@ export function SettingsScaffold({
         toolbarActions={toolbarActions}
         headerBgRef={headerBgRef}
         titleRef={titleRef}
+        headerProgress={headerProgress}
       />
 
       {/* Continuous Scrolling View */}
@@ -325,37 +402,77 @@ export function SettingsScaffold({
           overflowX: 'hidden',
           WebkitOverflowScrolling: 'touch',
           boxSizing: 'border-box',
-          padding: 'var(--density-pad, 16px)',
-          paddingTop: 'calc(max(0px, env(safe-area-inset-top, 0px) - 8px) + 64px)',
+          padding: '0',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
         }}
         className="no-scrollbar"
       >
-        {/* Large scrolling title */}
-        <h2
-          ref={largeTitleRef}
+        {/* Centered page column wrapper to align title and content perfectly */}
+        <div
           style={{
-            fontSize: 'var(--font-hero, 28px)',
-            fontWeight: 800,
-            color: 'var(--c-text-primary)',
-            margin: '0 0 20px 4px',
-            letterSpacing: '-0.03em',
-            fontFamily: 'Manrope',
-            transition: 'opacity 100ms linear',
+            width: '100%',
+            maxWidth: 'var(--content-max-w)',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            boxSizing: 'border-box',
+            paddingLeft: 'var(--page-inset-h)',
+            paddingRight: 'var(--page-inset-h)',
           }}
         >
-          {title}
-        </h2>
+          {/* Large scrolling title crossfades into floating header pill on scroll */}
+          {showLargeTitle && (
+            <motion.div
+              ref={largeTitleRef}
+              style={{
+                opacity: largeTitleOpacity,
+                y: largeTitleY,
+                width: '100%',
+              }}
+            >
+              <StudioHeader
+                title={title}
+                containerStyle={{ paddingTop: 'var(--space-6)', paddingLeft: 0, paddingRight: 0 }}
+              />
+            </motion.div>
+          )}
 
-        {/* Content Canvas */}
-        <div style={{ width: '100%' }}>
-          {children}
+          {/* Content Canvas */}
+          <div style={{ width: '100%' }}>{children}</div>
         </div>
       </div>
     </div>
   );
 }
 
+export interface SettingsContentContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+export function SettingsContentContainer({
+  children,
+  style,
+  className = '',
+  ...props
+}: SettingsContentContainerProps) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--density-section-gap, 16px)',
+        width: '100%',
+        boxSizing: 'border-box',
+        background: 'transparent',
+        ...style,
+      }}
+      className={`studio-settings-content-container ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+}
 
 // ── 5. HubScaffold ──────────────────────────────────────────────────────────
 // Responsive Scaffold structure specifically optimized for main Studio Hub dashboard layouts.

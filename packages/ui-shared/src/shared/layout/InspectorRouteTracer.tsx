@@ -4,6 +4,7 @@ import {
   useNavigationStore,
   useSettingsStore,
   useBottomNavigationStore,
+  NavigationDispatcher,
 } from '@workspace/studio-core';
 
 /* ── INSPECTOR ROUTE TRACER DEBUG TOOL ────────────────────────────────── */
@@ -105,28 +106,58 @@ export function InspectorRouteTracer() {
 
   if (minimized) {
     return (
-      <button
-        onClick={() => setMinimized(false)}
-        style={{
-          position: 'fixed',
-          bottom: '80px',
-          right: '16px',
-          zIndex: 999999,
-          width: '36px',
-          height: '36px',
-          borderRadius: '50%',
-          background: 'rgba(0,0,0,0.85)',
-          border: '1px solid rgba(255,255,255,0.15)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#10b981',
-          cursor: 'pointer',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 18 }}>route</span>
-      </button>
+      <>
+        {/* Developer Inspector Floating Control Button (Stacked DIRECTLY ABOVE Route Tracer) */}
+        <button
+          onClick={() => {
+            NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'developer' });
+          }}
+          title="Open Developer Inspector"
+          style={{
+            position: 'fixed',
+            bottom: '126px',
+            right: '16px',
+            zIndex: 999999,
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: 'rgba(0,0,0,0.85)',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#ef4444',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>bug_report</span>
+        </button>
+
+        {/* Route Tracer Floating Control Button */}
+        <button
+          onClick={() => setMinimized(false)}
+          style={{
+            position: 'fixed',
+            bottom: '80px',
+            right: '16px',
+            zIndex: 999999,
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: 'rgba(0,0,0,0.85)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#10b981',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+          }}
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>route</span>
+        </button>
+      </>
     );
   }
 

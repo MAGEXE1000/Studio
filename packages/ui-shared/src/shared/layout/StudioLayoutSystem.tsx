@@ -185,7 +185,7 @@ export function SharedFloatingHeader({
     <div
       style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) * 0.70)',
+        top: 'calc(env(safe-area-inset-top, 0px) * 0.70 + 6px)',
         left: 0,
         right: 0,
         height: 48,
@@ -197,7 +197,7 @@ export function SharedFloatingHeader({
         padding: '0 16px',
       }}
     >
-      {/* Floating rounded capsule header card matching beUI Pro reference */}
+      {/* Floating rounded capsule header card with production liquid-glass material */}
       <motion.div
         ref={headerBgRef}
         style={{
@@ -208,15 +208,73 @@ export function SharedFloatingHeader({
           bottom: 0,
           background: 'var(--surface-topbar-bg)',
           borderRadius: '24px',
-          border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
-          backdropFilter: 'var(--surface-float-blur)',
-          WebkitBackdropFilter: 'var(--surface-float-blur)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25)',
+          border: 'var(--surface-topbar-border)',
+          backdropFilter: 'var(--surface-topbar-blur)',
+          WebkitBackdropFilter: 'var(--surface-topbar-blur)',
+          boxShadow: 'var(--surface-topbar-shadow)',
           opacity: bgOpacity,
           pointerEvents: 'auto',
           zIndex: -1,
+          transform: 'translateZ(0)',
+          willChange: 'transform, opacity',
+          backfaceVisibility: 'hidden',
+          contain: 'layout paint',
+          overflow: 'hidden',
         }}
-      />
+      >
+        {/* Upper Fresnel Specular Highlight Rim */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '50%',
+            borderRadius: '24px 24px 0 0',
+            background: isLight
+              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%)'
+              : 'linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+      </motion.div>
+
+      {/* Left Back Action Button Layer */}
+      {onBack && !hideBack && (
+        <motion.button
+          onClick={onBack}
+          aria-label="Go back"
+          whileTap={{ scale: 0.9 }}
+          style={{
+            position: 'absolute',
+            left: `calc(${sideMargin} + 8px)`,
+            top: 0,
+            bottom: 0,
+            margin: 'auto 0',
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+            border: isLight
+              ? '1px solid rgba(0, 0, 0, 0.06)'
+              : '1px solid rgba(255, 255, 255, 0.12)',
+            color: 'var(--c-text-primary)',
+            cursor: 'pointer',
+            zIndex: 2,
+            pointerEvents: 'auto',
+            outline: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            opacity: titleOpacity,
+          }}
+        >
+          <span className="material-symbols-rounded" style={{ fontSize: 18, lineHeight: 1 }}>
+            arrow_back
+          </span>
+        </motion.button>
+      )}
 
       {/* Absolute Centered Section Title Layer (Centered against capsule bounds) */}
       <motion.div
@@ -231,14 +289,21 @@ export function SharedFloatingHeader({
           alignItems: 'center',
           justifyContent: 'center',
           pointerEvents: 'none',
-          padding: '0 52px',
+          padding:
+            onBack && !hideBack
+              ? toolbarActions
+                ? '0 52px'
+                : '0 16px 0 52px'
+              : toolbarActions
+                ? '0 52px 0 16px'
+                : '0 20px',
           zIndex: 1,
           opacity: titleOpacity,
         }}
       >
         <span
           style={{
-            fontSize: '17px',
+            fontSize: '16px',
             fontWeight: 800,
             color: 'var(--c-text-primary)',
             letterSpacing: '-0.02em',
@@ -249,6 +314,7 @@ export function SharedFloatingHeader({
             textAlign: 'center',
             maxWidth: '100%',
             pointerEvents: 'auto',
+            textShadow: isLight ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.50)',
           }}
         >
           {title}
@@ -257,7 +323,7 @@ export function SharedFloatingHeader({
 
       {/* Right Toolbar Actions Layer */}
       {toolbarActions && (
-        <div
+        <motion.div
           style={{
             position: 'absolute',
             right: `calc(${sideMargin} + 12px)`,
@@ -268,10 +334,11 @@ export function SharedFloatingHeader({
             gap: '6px',
             zIndex: 2,
             pointerEvents: 'auto',
+            opacity: titleOpacity,
           }}
         >
           {toolbarActions}
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -363,20 +430,20 @@ export function SettingsScaffold({
                 width: '100%',
               }}
             >
-              <StudioHeader title={title} containerStyle={{ paddingTop: 'var(--space-6)', paddingLeft: 0, paddingRight: 0 }} />
+              <StudioHeader
+                title={title}
+                containerStyle={{ paddingTop: 'var(--space-6)', paddingLeft: 0, paddingRight: 0 }}
+              />
             </motion.div>
           )}
 
           {/* Content Canvas */}
-          <div style={{ width: '100%' }}>
-            {children}
-          </div>
+          <div style={{ width: '100%' }}>{children}</div>
         </div>
       </div>
     </div>
   );
 }
-
 
 export interface SettingsContentContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -406,7 +473,6 @@ export function SettingsContentContainer({
     </div>
   );
 }
-
 
 // ── 5. HubScaffold ──────────────────────────────────────────────────────────
 // Responsive Scaffold structure specifically optimized for main Studio Hub dashboard layouts.

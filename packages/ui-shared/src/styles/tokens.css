@@ -168,9 +168,38 @@
   --app-surface-high: var(--c-surface-high, #1f2025);
   --app-surface-highest: var(--c-surface-highest, #25262c);
 
+  --c-background: #09090b;
+  --c-surface-lowest: #0e0e11;
+  --c-surface-low: #131316;
+  --c-surface-mid: #191a1e;
+  --c-surface-high: #1f2025;
+  --c-surface-highest: #25262c;
+
   --c-text-primary: #e7e5e4;
   --c-text-secondary: #acabaa;
   --c-text-muted: #484848;
+
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-border-dashed: 1px dashed rgba(255, 255, 255, 0.16);
+  --c-surface-glass-bg: rgba(20, 20, 25, 0.65);
+  --c-surface-glass-blur: blur(16px);
+  
+  --c-error: #ef4444;
+  --c-error-dim: #f87171;
+  --c-error-container: rgba(239, 68, 68, 0.15);
+
+  --elevation-low: none;
+  --elevation-mid: none;
+  --elevation-high: 0 8px 32px rgba(0,0,0,0.4);
+
+  --c-accent-from: #679cff;
+  --c-accent-to: #007aff;
+  --c-accent-mid: #4d8ef7;
+  --c-accent-rgb: 0, 122, 255;
+  --c-accent-soft: color-mix(in srgb, var(--c-accent-to) 12%, transparent);
+  --c-accent-glow: 0 4px 20px color-mix(in srgb, var(--c-accent-to) 25%, transparent);
+  --c-accent-border: color-mix(in srgb, var(--c-accent-to) 30%, transparent);
+  --c-brand: var(--c-accent-from);
 
   --add-bar-border: 1px dashed rgba(255, 255, 255, 0.14);
 
@@ -227,6 +256,15 @@
   --app-surface: #080808;
   --app-surface-high: #0d0d0d;
   --app-surface-highest: #121212;
+  
+  --c-background: #000000;
+  --c-surface-lowest: #000000;
+  --c-surface-low: #030303;
+  --c-surface-mid: #080808;
+  --c-surface-high: #0d0d0d;
+  --c-surface-highest: #121212;
+  
+  --c-surface-glass-bg: rgba(4, 4, 4, 0.88);
   --sidebar-bg: rgba(0, 0, 0, 0.7);
   --sidebar-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
   --popover-bg: rgba(0, 0, 0, 0.75);
@@ -248,6 +286,15 @@
   --app-surface: #f7f7f7;
   --app-surface-high: #fafafa;
   --app-surface-highest: #ffffff;
+  
+  --c-background: #ffffff;
+  --c-surface-lowest: #f0f0f0;
+  --c-surface-low: #f4f4f4;
+  --c-surface-mid: #f7f7f7;
+  --c-surface-high: #fafafa;
+  --c-surface-highest: #ffffff;
+
+  --c-surface-glass-bg: rgba(255, 255, 255, 0.92);
   --sidebar-bg: rgba(255, 255, 255, 0.75);
   --sidebar-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   --popover-bg: rgba(255, 255, 255, 0.8);
@@ -273,9 +320,26 @@
   --app-surface-high: #fafafa;
   --app-surface-highest: #ffffff;
 
+  --c-background: #f4f4f5;
+  --c-surface-lowest: #e4e4e7;
+  --c-surface-low: #ececed;
+  --c-surface-mid: #f4f4f5;
+  --c-surface-high: #fafafa;
+  --c-surface-highest: #ffffff;
+
   --c-text-primary: #18181b;
   --c-text-secondary: #52525b;
   --c-text-muted: #71717a;
+
+  --c-border: rgba(0, 0, 0, 0.08);
+  --c-border-dashed: 1px dashed rgba(0, 0, 0, 0.16);
+  --c-surface-glass-bg: rgba(255, 255, 255, 0.65);
+  
+  --c-error-container: rgba(239, 68, 68, 0.05);
+
+  --elevation-low: 0 1px 3px rgba(0,0,0,0.06);
+  --elevation-mid: 0 4px 12px rgba(0,0,0,0.04);
+  --elevation-high: 0 12px 32px rgba(0,0,0,0.08);
 
   --add-bar-border: 1px dashed rgba(0, 0, 0, 0.22);
 

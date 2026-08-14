@@ -62,87 +62,7 @@ export function applyThemeTokens(settings: any) {
   }
 
   // 2. Color Tokens
-  // Backgrounds
-  const bg = isLightMode ? '#f4f4f5' : activeVis.amoledMode ? '#000000' : '#09090b';
-  const lowest = isLightMode ? '#e4e4e7' : activeVis.amoledMode ? '#000000' : '#0e0e11';
-  const low = isLightMode ? '#ececed' : activeVis.amoledMode ? '#030303' : '#131316';
-  const mid = isLightMode ? '#f4f4f5' : activeVis.amoledMode ? '#080808' : '#191a1e';
-  const high = isLightMode ? '#fafafa' : activeVis.amoledMode ? '#0d0d0d' : '#1f2025';
-  const highest = isLightMode ? '#ffffff' : activeVis.amoledMode ? '#121212' : '#25262c';
-
-  root.style.setProperty('--c-background', bg);
-  root.style.setProperty('--c-surface-lowest', lowest);
-  root.style.setProperty('--c-surface-low', low);
-  root.style.setProperty('--c-surface-mid', mid);
-  root.style.setProperty('--c-surface-high', high);
-  root.style.setProperty('--c-surface-highest', highest);
-
-  // Borders
-  const border = isLightMode ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-  const borderDashed = isLightMode
-    ? '1px dashed rgba(0, 0, 0, 0.16)'
-    : '1px dashed rgba(255, 255, 255, 0.16)';
-  root.style.setProperty('--c-border', border);
-  root.style.setProperty('--c-border-dashed', borderDashed);
-
-  // Glassmorphism overlays
-  const glassBg = isLightMode
-    ? activeVis.amoledMode
-      ? 'rgba(255, 255, 255, 0.92)'
-      : 'rgba(255, 255, 255, 0.65)'
-    : activeVis.amoledMode
-      ? 'rgba(4, 4, 4, 0.88)'
-      : 'rgba(20, 20, 25, 0.65)';
-  const glassBlur = 'blur(16px)';
-  root.style.setProperty('--c-surface-glass-bg', glassBg);
-  root.style.setProperty('--c-surface-glass-blur', glassBlur);
-
-  // Text
-  const textPrimary = isLightMode ? '#18181b' : '#e7e5e4';
-  const textSecondary = isLightMode ? '#52525b' : '#acabaa';
-  const textMuted = isLightMode ? '#71717a' : '#484848';
-  root.style.setProperty('--c-text-primary', textPrimary);
-  root.style.setProperty('--c-text-secondary', textSecondary);
-  root.style.setProperty('--c-text-muted', textMuted);
-
-  // Accent Color Tokens - Hardcoded to default blue
-  const accent = { from: '#679cff', to: '#007aff', mid: '#4d8ef7' };
-
-  root.style.setProperty('--c-accent-from', accent.from);
-  root.style.setProperty('--c-accent-to', accent.to);
-  root.style.setProperty('--c-accent-mid', accent.mid);
-
-  const colorToRgbStr = (colorStr: string) => {
-    if (colorStr.startsWith('rgb')) {
-      const m = colorStr.match(/\d+/g);
-      return m ? m.slice(0, 3).join(', ') : '0, 122, 255';
-    }
-    if (colorStr.startsWith('#')) {
-      const hex = colorStr.replace('#', '');
-      const r = parseInt(hex.substring(0, 2), 16);
-      const g = parseInt(hex.substring(2, 4), 16);
-      const b = parseInt(hex.substring(4, 6), 16);
-      return `${r}, ${g}, ${b}`;
-    }
-    return '0, 122, 255';
-  };
-
-  root.style.setProperty('--c-accent-rgb', colorToRgbStr(accent.to));
-  root.style.setProperty('--c-accent-soft', `color-mix(in srgb, ${accent.to} 12%, transparent)`);
-  root.style.setProperty(
-    '--c-accent-glow',
-    `0 4px 20px color-mix(in srgb, ${accent.to} 25%, transparent)`
-  );
-  root.style.setProperty('--c-accent-border', `color-mix(in srgb, ${accent.to} 30%, transparent)`);
-  root.style.setProperty('--c-brand', accent.from);
-
-  // Error colors
-  root.style.setProperty('--c-error', '#ef4444');
-  root.style.setProperty('--c-error-dim', '#f87171');
-  root.style.setProperty(
-    '--c-error-container',
-    isLightMode ? 'rgba(239, 68, 68, 0.05)' : 'rgba(239, 68, 68, 0.15)'
-  );
+  // Color tokens have been moved to tokens.css for a single canonical source of truth
 
   // 3. Spacing Tokens & Density System
   const spacingDefs = {
@@ -243,13 +163,7 @@ export function applyThemeTokens(settings: any) {
   root.style.setProperty('--radius-3xl', '2rem');
   root.style.setProperty('--radius-full', '9999px');
 
-  // 5. Elevation Tokens
-  root.style.setProperty('--elevation-low', isLightMode ? '0 1px 3px rgba(0,0,0,0.06)' : 'none');
-  root.style.setProperty('--elevation-mid', isLightMode ? '0 4px 12px rgba(0,0,0,0.04)' : 'none');
-  root.style.setProperty(
-    '--elevation-high',
-    isLightMode ? '0 12px 32px rgba(0,0,0,0.08)' : '0 8px 32px rgba(0,0,0,0.4)'
-  );
+  // 5. Elevation Tokens (Moved to tokens.css)
 
   // 6. Typography Tokens
   root.style.setProperty('--font-headline', 'Manrope, sans-serif');

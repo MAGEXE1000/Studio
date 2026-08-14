@@ -185,7 +185,7 @@ export function SharedFloatingHeader({
     <div
       style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) * 0.70 + 6px)',
+        top: 'calc(env(safe-area-inset-top, 0px) * 0.70)',
         left: 0,
         right: 0,
         height: 48,

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.30';
-export const NATIVE_VERSION_CODE = 40530;
-export const WEB_VERSION = '4.5.30';
+export const NATIVE_VERSION = '4.5.31';
+export const NATIVE_VERSION_CODE = 40531;
+export const WEB_VERSION = '4.5.31';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '8fe73f19';
+export const APP_COMMIT_SHA = '1110b65f';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/13/2026, 6:52:40 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/13/2026, 8:23:47 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,11 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Integrated Android Liquid Glass navigation dock via CMP Backdrop (`io.github.kyant0:backdrop`) with live blur, lens refraction, vibrancy, specular highlight contour, and theme-adaptive styling.',
-      'Mounted native Compose Liquid Glass overlay onto host ViewGroup to render seamless backdrop shaders behind navigation elements.',
-      'Embedded crisp native vector icons on top of the Liquid Glass surface while maintaining transparent DOM hitboxes for touch routing.',
-      'Fixed critical RootApp runtime TDZ ReferenceErrors in SharedNavigationBar and SharedAppShell.',
-      'Introduced automated TDZ hook order & variable scope regression guard (`scripts/check-hook-order.mjs`) into the lint/build CI pipeline.',
+      'Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).',
+      'Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.',
+      'Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.',
+      'Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.',
+      'Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation.',
     ],
   },
 ];

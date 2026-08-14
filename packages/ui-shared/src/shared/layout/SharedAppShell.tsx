@@ -33,6 +33,7 @@ import {
   EasingPresets,
   type AppKey,
   useDeveloperInspectorStore,
+  lockOrientation,
 } from '@workspace/studio-core';
 
 import { StudioHubSkeleton } from '../loading/StudioSkeleton';
@@ -41,8 +42,6 @@ import { AppEntryTransition, useAnimationSpeed } from '../../shared/animation';
 import { SubAppScaffold, ScreenScaffold } from './StudioLayoutSystem';
 import { SharedNavigationContainer } from '../../navigation/SharedNavigationContainer';
 import { ApplicationTransitionEngine } from '../../shared/animation';
-import { Capacitor } from '@capacitor/core';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Toaster } from '../../components/ui/sonner';
 
 const ALL_PANELS = ['songs', 'library', 'preferences'] as const;
@@ -260,21 +259,8 @@ export function SharedAppShell({
   // Global Orientation Policy: Lock non-stage views to Portrait mode
   useEffect(() => {
     const enforcePortrait = async () => {
-      try {
-        if (routeApp !== 'stagex') {
-          if (Capacitor.isNativePlatform()) {
-            await ScreenOrientation.lock({ orientation: 'portrait' });
-          } else if (
-            typeof window !== 'undefined' &&
-            window.screen &&
-            window.screen.orientation &&
-            (window.screen.orientation as any).lock
-          ) {
-            await (window.screen.orientation as any).lock('portrait');
-          }
-        }
-      } catch (e) {
-        // Ignore orientation lock errors
+      if (routeApp !== 'stagex') {
+        await lockOrientation('portrait');
       }
     };
     enforcePortrait();

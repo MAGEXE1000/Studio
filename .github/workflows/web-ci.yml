@@ -76,6 +76,9 @@ jobs:
       - name: Platform Scope Check
         run: pnpm scope:check --platform shared
 
+      - name: Run TDZ Hook Order Regression Guard
+        run: pnpm check:hook-order
+
       - name: Lint
         run: pnpm lint
 

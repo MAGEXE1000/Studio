@@ -150,6 +150,9 @@ jobs:
       - name: Run Circular Dependency Check
         run: pnpm check:circular
 
+      - name: Run TDZ Hook Order Regression Guard
+        run: pnpm check:hook-order
+
       - name: Run Fast Preflight Validation
         env:
           GH_TOKEN: ${{ github.token }}

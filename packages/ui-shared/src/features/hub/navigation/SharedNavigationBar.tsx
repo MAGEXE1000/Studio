@@ -238,6 +238,10 @@ export function SharedNavigationBar({
   const containerRef = useRef<HTMLDivElement>(null);
   const navBarRef = useRef<HTMLDivElement | null>(null);
   const floatingButtonRef = useRef<HTMLButtonElement>(null);
+  const navigationEpochRef = useRef(0);
+  const [navigationEpoch, setNavigationEpoch] = useState(0);
+  const pointerUpHandledAtRef = useRef(0);
+  const lastProfileToggleTimeRef = useRef(0);
 
   const theme = useSettingsStore((s) => s.settings?.theme ?? 'dark');
   const amoledMode = useSettingsStore((s) => s.settings?.amoledMode ?? false);
@@ -317,6 +321,22 @@ export function SharedNavigationBar({
       } catch (e) {}
     };
   }, [updateNativeGlass, currentThemeStr]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handler = (e: any) => {
+      const t = e.detail?.theme;
+      if (t === 'dark') {
+        useSettingsStore.getState().updateSettings({ theme: 'dark', amoledMode: false });
+      } else if (t === 'amoled') {
+        useSettingsStore.getState().updateSettings({ theme: 'dark', amoledMode: true });
+      } else if (t === 'light') {
+        useSettingsStore.getState().updateSettings({ theme: 'light', amoledMode: false });
+      }
+    };
+    window.addEventListener('studio-set-theme', handler);
+    return () => window.removeEventListener('studio-set-theme', handler);
+  }, []);
 
   const scrollOffset = useNavScrollOffset();
   const startupComplete = useStartupComplete();
@@ -1254,16 +1274,11 @@ export function SharedNavigationBar({
     setIsScrubbing(false);
   };
 
-  const lastProfileToggleTimeRef = useRef(0);
   useEffect(() => {
     if (isProfileMenuOpen) {
       lastProfileToggleTimeRef.current = Date.now();
     }
   }, [isProfileMenuOpen]);
-
-  const navigationEpochRef = useRef(0);
-  const [navigationEpoch, setNavigationEpoch] = useState(0);
-  const pointerUpHandledAtRef = useRef(0);
 
   const activeTabKey = useMemo(() => {
     const currentItems = isSwitcherOpen ? switcherApps : items;
@@ -1814,7 +1829,7 @@ export function SharedNavigationBar({
                       height: '100%',
                       alignItems: 'center',
                       justifyContent: 'space-around',
-                      opacity: pillOpacity,
+                      opacity: isNative ? 0 : pillOpacity,
                       pointerEvents: 'auto',
                     }}
                   >
@@ -1963,7 +1978,7 @@ export function SharedNavigationBar({
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
                     scale: switcherScale,
-                    opacity: switcherOpacity,
+                    opacity: isNative ? 0 : switcherOpacity,
                     x: switcherX,
                   }}
                 >
@@ -2010,7 +2025,7 @@ export function SharedNavigationBar({
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
                     scale: switcherScale,
-                    opacity: switcherOpacity,
+                    opacity: isNative ? 0 : switcherOpacity,
                     x: switcherX,
                   }}
                 >

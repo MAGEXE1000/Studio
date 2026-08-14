@@ -23,7 +23,7 @@ function EmergencyDebugOverlayWrapper() {
   });
 
   useEffect(() => {
-    (window as any).__openEmergencyOverlay = (targetTab?: string) => {
+    const openEmergencyStub = (targetTab?: string) => {
       setShouldRender(true);
       setTimeout(() => {
         if (
@@ -35,7 +35,7 @@ function EmergencyDebugOverlayWrapper() {
       }, 50);
     };
 
-    const openEmergencyStub = (window as any).__openEmergencyOverlay;
+    (window as any).__openEmergencyOverlay = openEmergencyStub;
 
     return () => {
       if ((window as any).__openEmergencyOverlay === openEmergencyStub) {

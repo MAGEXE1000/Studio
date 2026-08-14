@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.29';
-export const NATIVE_VERSION_CODE = 40529;
-export const WEB_VERSION = '4.5.29';
+export const NATIVE_VERSION = '4.5.30';
+export const NATIVE_VERSION_CODE = 40530;
+export const WEB_VERSION = '4.5.30';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'aabbd4b4';
+export const APP_COMMIT_SHA = '8fe73f19';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/12/2026, 5:44:00 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/13/2026, 6:52:40 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,7 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      "Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.",
+      'Integrated Android Liquid Glass navigation dock via CMP Backdrop (`io.github.kyant0:backdrop`) with live blur, lens refraction, vibrancy, specular highlight contour, and theme-adaptive styling.',
+      'Mounted native Compose Liquid Glass overlay onto host ViewGroup to render seamless backdrop shaders behind navigation elements.',
+      'Embedded crisp native vector icons on top of the Liquid Glass surface while maintaining transparent DOM hitboxes for touch routing.',
+      'Fixed critical RootApp runtime TDZ ReferenceErrors in SharedNavigationBar and SharedAppShell.',
+      'Introduced automated TDZ hook order & variable scope regression guard (`scripts/check-hook-order.mjs`) into the lint/build CI pipeline.',
     ],
   },
 ];

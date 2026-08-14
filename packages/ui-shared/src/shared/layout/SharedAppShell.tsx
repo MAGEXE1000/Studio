@@ -76,6 +76,142 @@ export interface SharedAppShellProps {
 
 const InspectorRouteTracer = lazy(() => import('./InspectorRouteTracer').then(m => ({ default: m.InspectorRouteTracer })));
 
+const AppReadyNotifier = memo(function AppReadyNotifier({
+  app,
+  onReady,
+}: {
+  app: AppKey;
+  onReady: (app: AppKey) => void;
+}) {
+  useEffect(() => {
+    let active = true;
+    const rafId = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (active) onReady(app);
+      });
+    });
+    return () => {
+      active = false;
+      cancelAnimationFrame(rafId);
+    };
+  }, [app, onReady]);
+  return null;
+});
+
+function FallbackTracker({ app, children }: { app: AppKey; children: React.ReactNode }) {
+  useEffect(() => {
+    recordNavigation({
+      fromApp: 'hub',
+      toApp: app,
+      activeAppAfterTransition: app,
+      transitionLockState: (window as any).studioTransitionActive || false,
+      fallbackRendered: true,
+    });
+  }, [app]);
+  return <>{children}</>;
+}
+
+const SubAppWrapper = memo(function SubAppWrapper({
+  app,
+  activePanel,
+  settings,
+  onReady,
+  subApps,
+}: {
+  app: AppKey;
+  activePanel: string;
+  settings: any;
+  onReady: (app: AppKey) => void;
+  subApps: SharedAppShellProps['subApps'];
+}) {
+  return (
+    <>
+      {app === 'devtools' && subApps.devtools && (
+        <SubAppScaffold appKey="devtools">
+          <ErrorBoundary moduleName="DevTools">
+            <AppReadyNotifier app="devtools" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.devtools}
+            </AppEntryTransition>
+          </ErrorBoundary>
+        </SubAppScaffold>
+      )}
+
+      {app === 'groovex' && subApps.groovex && (
+        <SubAppScaffold appKey="groovex">
+          <ErrorBoundary moduleName="Groovex">
+            <AppReadyNotifier app="groovex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.groovex}
+            </AppEntryTransition>
+          </ErrorBoundary>
+        </SubAppScaffold>
+      )}
+
+      {app === 'vocalex' && subApps.vocalex && (
+        <SubAppScaffold appKey="vocalex">
+          <ErrorBoundary moduleName="Vocalex">
+            <AppReadyNotifier app="vocalex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.vocalex}
+            </AppEntryTransition>
+          </ErrorBoundary>
+        </SubAppScaffold>
+      )}
+
+      {app === 'stagex' && subApps.stagex && (
+        <SubAppScaffold appKey="stagex">
+          <ErrorBoundary moduleName="Stagex">
+            <AppReadyNotifier app="stagex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.stagex}
+            </AppEntryTransition>
+          </ErrorBoundary>
+        </SubAppScaffold>
+      )}
+
+      {app === 'drumex' && subApps.drumex && (
+        <SubAppScaffold appKey="drumex">
+          <ErrorBoundary moduleName="Drumex">
+            <AppReadyNotifier app="drumex" onReady={onReady} />
+            <AppEntryTransition>
+              {subApps.drumex}
+            </AppEntryTransition>
+          </ErrorBoundary>
+        </SubAppScaffold>
+      )}
+
+      {app === 'chordex' && subApps.chordex && (
+        <SubAppScaffold appKey="chordex">
+          <ScreenScaffold safeAreaTop={true} safeAreaBottom={false} className="app-bg">
+            <AppEntryTransition className="flex flex-col w-full overflow-hidden select-none" style={{ position: 'relative', height: '100%' } as any}>
+              <div style={{ display: 'flex', flexDirection: subApps.chordex.sidebar ? 'row' : 'column', flex: 1, width: '100%', height: '100%', overflow: 'hidden' }}>
+                {subApps.chordex.sidebar}
+                <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
+                  <ErrorBoundary moduleName="Chordex">
+                    <AppReadyNotifier app="chordex" onReady={onReady} />
+                    <SharedNavigationContainer activeView={activePanel} viewOrder={ALL_PANELS}>
+                      {(panel) => (
+                        <>
+                          {panel === 'songs' && subApps.chordex?.songs}
+                          {panel === 'practice' && subApps.chordex?.practice}
+                          {panel === 'library' && subApps.chordex?.library}
+                          {panel === 'preferences' && subApps.chordex?.preferences}
+                        </>
+                      )}
+                    </SharedNavigationContainer>
+                  </ErrorBoundary>
+                </div>
+              </div>
+            </AppEntryTransition>
+          </ScreenScaffold>
+        </SubAppScaffold>
+      )}
+      <Toaster />
+    </>
+  );
+});
+
 export function SharedAppShell({
   isAndroid,
   isWeb,
@@ -345,139 +481,3 @@ export function SharedAppShell({
 
   return wrapProviders ? <>{wrapProviders(content)}</> : content;
 }
-
-const AppReadyNotifier = memo(function AppReadyNotifier({
-  app,
-  onReady,
-}: {
-  app: AppKey;
-  onReady: (app: AppKey) => void;
-}) {
-  useEffect(() => {
-    let active = true;
-    const rafId = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (active) onReady(app);
-      });
-    });
-    return () => {
-      active = false;
-      cancelAnimationFrame(rafId);
-    };
-  }, [app, onReady]);
-  return null;
-});
-
-function FallbackTracker({ app, children }: { app: AppKey; children: React.ReactNode }) {
-  useEffect(() => {
-    recordNavigation({
-      fromApp: 'hub',
-      toApp: app,
-      activeAppAfterTransition: app,
-      transitionLockState: (window as any).studioTransitionActive || false,
-      fallbackRendered: true,
-    });
-  }, [app]);
-  return <>{children}</>;
-}
-
-const SubAppWrapper = memo(function SubAppWrapper({
-  app,
-  activePanel,
-  settings,
-  onReady,
-  subApps,
-}: {
-  app: AppKey;
-  activePanel: string;
-  settings: any;
-  onReady: (app: AppKey) => void;
-  subApps: SharedAppShellProps['subApps'];
-}) {
-  return (
-    <>
-      {app === 'devtools' && subApps.devtools && (
-        <SubAppScaffold appKey="devtools">
-          <ErrorBoundary moduleName="DevTools">
-            <AppReadyNotifier app="devtools" onReady={onReady} />
-            <AppEntryTransition>
-              {subApps.devtools}
-            </AppEntryTransition>
-          </ErrorBoundary>
-        </SubAppScaffold>
-      )}
-
-      {app === 'groovex' && subApps.groovex && (
-        <SubAppScaffold appKey="groovex">
-          <ErrorBoundary moduleName="Groovex">
-            <AppReadyNotifier app="groovex" onReady={onReady} />
-            <AppEntryTransition>
-              {subApps.groovex}
-            </AppEntryTransition>
-          </ErrorBoundary>
-        </SubAppScaffold>
-      )}
-
-      {app === 'vocalex' && subApps.vocalex && (
-        <SubAppScaffold appKey="vocalex">
-          <ErrorBoundary moduleName="Vocalex">
-            <AppReadyNotifier app="vocalex" onReady={onReady} />
-            <AppEntryTransition>
-              {subApps.vocalex}
-            </AppEntryTransition>
-          </ErrorBoundary>
-        </SubAppScaffold>
-      )}
-
-      {app === 'stagex' && subApps.stagex && (
-        <SubAppScaffold appKey="stagex">
-          <ErrorBoundary moduleName="Stagex">
-            <AppReadyNotifier app="stagex" onReady={onReady} />
-            <AppEntryTransition>
-              {subApps.stagex}
-            </AppEntryTransition>
-          </ErrorBoundary>
-        </SubAppScaffold>
-      )}
-
-      {app === 'drumex' && subApps.drumex && (
-        <SubAppScaffold appKey="drumex">
-          <ErrorBoundary moduleName="Drumex">
-            <AppReadyNotifier app="drumex" onReady={onReady} />
-            <AppEntryTransition>
-              {subApps.drumex}
-            </AppEntryTransition>
-          </ErrorBoundary>
-        </SubAppScaffold>
-      )}
-
-      {app === 'chordex' && subApps.chordex && (
-        <SubAppScaffold appKey="chordex">
-          <ScreenScaffold safeAreaTop={true} safeAreaBottom={false} className="app-bg">
-            <AppEntryTransition className="flex flex-col w-full overflow-hidden select-none" style={{ position: 'relative', height: '100%' } as any}>
-              <div style={{ display: 'flex', flexDirection: subApps.chordex.sidebar ? 'row' : 'column', flex: 1, width: '100%', height: '100%', overflow: 'hidden' }}>
-                {subApps.chordex.sidebar}
-                <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
-                  <ErrorBoundary moduleName="Chordex">
-                    <AppReadyNotifier app="chordex" onReady={onReady} />
-                    <SharedNavigationContainer activeView={activePanel} viewOrder={ALL_PANELS}>
-                      {(panel) => (
-                        <>
-                          {panel === 'songs' && subApps.chordex?.songs}
-                          {panel === 'practice' && subApps.chordex?.practice}
-                          {panel === 'library' && subApps.chordex?.library}
-                          {panel === 'preferences' && subApps.chordex?.preferences}
-                        </>
-                      )}
-                    </SharedNavigationContainer>
-                  </ErrorBoundary>
-                </div>
-              </div>
-            </AppEntryTransition>
-          </ScreenScaffold>
-        </SubAppScaffold>
-      )}
-      <Toaster />
-    </>
-  );
-});

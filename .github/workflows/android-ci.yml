@@ -89,6 +89,9 @@ jobs:
       - name: Run Circular Dependency Check
         run: pnpm check:circular
 
+      - name: Run TDZ Hook Order Regression Guard
+        run: pnpm check:hook-order
+
       - name: Lint
         run: pnpm lint
 

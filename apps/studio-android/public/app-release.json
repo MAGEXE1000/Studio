@@ -1,18 +1,22 @@
 {
   "platform": "android",
-  "version": "4.5.29",
-  "versionName": "4.5.29",
-  "versionCode": 40529,
-  "version_code": 40529,
-  "commit": "aabbd4b4",
-  "releasedAt": "8/12/2026, 5:44:26 AM CST",
-  "buildTimestamp": "8/12/2026, 5:44:26 AM CST",
+  "version": "4.5.30",
+  "versionName": "4.5.30",
+  "versionCode": 40530,
+  "version_code": 40530,
+  "commit": "8fe73f19",
+  "releasedAt": "8/13/2026, 6:52:40 PM CST",
+  "buildTimestamp": "8/13/2026, 6:52:40 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.",
-  "whatsNew": "• Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx.",
+  "changelog": "• Integrated Android Liquid Glass navigation dock via CMP Backdrop (`io.github.kyant0:backdrop`) with live blur, lens refraction, vibrancy, specular highlight contour, and theme-adaptive styling.\n• Mounted native Compose Liquid Glass overlay onto host ViewGroup to render seamless backdrop shaders behind navigation elements.\n• Embedded crisp native vector icons on top of the Liquid Glass surface while maintaining transparent DOM hitboxes for touch routing.\n• Fixed critical RootApp runtime TDZ ReferenceErrors in SharedNavigationBar and SharedAppShell.\n• Introduced automated TDZ hook order & variable scope regression guard (`scripts/check-hook-order.mjs`) into the lint/build CI pipeline.",
+  "whatsNew": "• Integrated Android Liquid Glass navigation dock via CMP Backdrop (`io.github.kyant0:backdrop`) with live blur, lens refraction, vibrancy, specular highlight contour, and theme-adaptive styling.\n• Mounted native Compose Liquid Glass overlay onto host ViewGroup to render seamless backdrop shaders behind navigation elements.\n• Embedded crisp native vector icons on top of the Liquid Glass surface while maintaining transparent DOM hitboxes for touch routing.\n• Fixed critical RootApp runtime TDZ ReferenceErrors in SharedNavigationBar and SharedAppShell.\n• Introduced automated TDZ hook order & variable scope regression guard (`scripts/check-hook-order.mjs`) into the lint/build CI pipeline.",
   "releaseNotes": {
     "added": [
-      "Fixed critical RootApp runtime TDZ crash (ReferenceError: Cannot access 'R' before initialization) by correcting declaration ordering in SharedNavigationBar.tsx."
+      "Integrated Android Liquid Glass navigation dock via CMP Backdrop (`io.github.kyant0:backdrop`) with live blur, lens refraction, vibrancy, specular highlight contour, and theme-adaptive styling.",
+      "Mounted native Compose Liquid Glass overlay onto host ViewGroup to render seamless backdrop shaders behind navigation elements.",
+      "Embedded crisp native vector icons on top of the Liquid Glass surface while maintaining transparent DOM hitboxes for touch routing.",
+      "Fixed critical RootApp runtime TDZ ReferenceErrors in SharedNavigationBar and SharedAppShell.",
+      "Introduced automated TDZ hook order & variable scope regression guard (`scripts/check-hook-order.mjs`) into the lint/build CI pipeline."
     ]
   },
   "mandatory": false

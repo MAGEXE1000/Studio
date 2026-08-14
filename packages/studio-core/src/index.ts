@@ -111,3 +111,4 @@ export * from './repositories/UserRepository';
 export * from './lib/stageCollaboration/Types';
 export * from './lib/stageCollaboration/CollaborationService';
 export * from './lib/stageCollaboration/CollabDiagnostics';
+export * from './lib/search/searchService';

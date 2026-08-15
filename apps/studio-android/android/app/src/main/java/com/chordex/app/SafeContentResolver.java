@@ -11,6 +11,15 @@ import java.io.IOException;
 public final class SafeContentResolver {
     private SafeContentResolver() {}
 
+    public static boolean isAllowedAuthority(String authority) {
+        if (authority == null || authority.isEmpty()) {
+            return false;
+        }
+        return !authority.contains("com.chordex.app") && 
+               !authority.endsWith(".fileprovider") && 
+               !authority.equalsIgnoreCase("com.chordex.app.fileprovider");
+    }
+
     public static boolean isSafeUri(Context context, Uri uri) {
         if (context == null || uri == null) return false;
         String scheme = uri.getScheme();
@@ -18,13 +27,12 @@ public final class SafeContentResolver {
             return false;
         }
         String authority = uri.getAuthority();
-        if (authority == null || authority.isEmpty()) {
+        if (!isAllowedAuthority(authority)) {
             return false;
         }
         String packageName = context.getPackageName();
         if (authority.contains(packageName) || 
-            authority.equalsIgnoreCase(packageName + ".fileprovider") || 
-            authority.equalsIgnoreCase("com.chordex.app.fileprovider")) {
+            authority.equalsIgnoreCase(packageName + ".fileprovider")) {
             return false;
         }
         ProviderInfo info = context.getPackageManager().resolveContentProvider(authority, 0);
@@ -43,13 +51,12 @@ public final class SafeContentResolver {
             throw new SecurityException("Only content:// URIs are supported: " + scheme);
         }
         String authority = uri.getAuthority();
-        if (authority == null || authority.isEmpty()) {
-            throw new SecurityException("Missing URI authority: " + uri);
+        if (!isAllowedAuthority(authority)) {
+            throw new SecurityException("Authority is not allowed: " + authority);
         }
         String packageName = context.getPackageName();
         if (authority.contains(packageName) || 
-            authority.equalsIgnoreCase(packageName + ".fileprovider") || 
-            authority.equalsIgnoreCase("com.chordex.app.fileprovider")) {
+            authority.equalsIgnoreCase(packageName + ".fileprovider")) {
             throw new SecurityException("Access to internal app file provider blocked: " + authority);
         }
         ProviderInfo info = context.getPackageManager().resolveContentProvider(authority, 0);

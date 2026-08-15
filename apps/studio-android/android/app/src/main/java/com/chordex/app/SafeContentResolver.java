@@ -12,7 +12,11 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * SafeContentResolver centralizes all ContentResolver operations on incoming
@@ -24,6 +28,17 @@ import java.util.Locale;
 public final class SafeContentResolver {
     public static final long DEFAULT_MAX_TEXT_BYTES = 5 * 1024 * 1024L; // 5 MB
     public static final long DEFAULT_MAX_STREAM_BYTES = 50 * 1024 * 1024L; // 50 MB
+
+    public static final Set<String> TRUSTED_AUTHORITIES = Collections.unmodifiableSet(
+        new HashSet<>(Arrays.asList(
+            "media",
+            "com.android.providers.media.documents",
+            "com.android.providers.downloads.documents",
+            "com.android.externalstorage.documents",
+            "com.google.android.apps.docs.storage",
+            "com.google.android.apps.photos.contentprovider"
+        ))
+    );
 
     private SafeContentResolver() {}
 
@@ -71,21 +86,25 @@ public final class SafeContentResolver {
         if (packageName != null && !packageName.trim().isEmpty()) {
             String lowerPackageName = packageName.trim().toLowerCase(Locale.ROOT);
             if (authority.equals(lowerPackageName) ||
-                authority.equals(lowerPackageName + ".fileprovider") ||
+                authority.startsWith(lowerPackageName + ".") ||
                 authority.equals("com.chordex.app.fileprovider") ||
-                (authority.endsWith(".fileprovider") && (authority.startsWith(lowerPackageName) || authority.contains(lowerPackageName))) ||
-                authority.contains(lowerPackageName)) {
+                authority.endsWith(".fileprovider")) {
                 return false;
             }
         } else {
             if (authority.equals("com.chordex.app") ||
+                authority.startsWith("com.chordex.app.") ||
                 authority.equals("com.chordex.app.fileprovider") ||
                 authority.endsWith(".fileprovider")) {
                 return false;
             }
         }
 
-        // 4. Verify read permission grant
+        // 4. Verify trusted authority or read permission grant
+        if (TRUSTED_AUTHORITIES.contains(authority)) {
+            return true;
+        }
+
         try {
             return context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     == PackageManager.PERMISSION_GRANTED;

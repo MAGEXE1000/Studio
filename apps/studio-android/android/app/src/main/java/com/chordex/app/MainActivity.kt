@@ -556,6 +556,12 @@ class MainActivity : BridgeActivity() {
             authority.equals("com.chordex.app.fileprovider", ignoreCase = true)) {
             return false
         }
+        if (scheme == "content") {
+            val providerInfo = packageManager.resolveContentProvider(authority, 0)
+            if (providerInfo == null || providerInfo.packageName == packageName || !providerInfo.exported) {
+                return false
+            }
+        }
         return true
     }
 
@@ -586,10 +592,17 @@ class MainActivity : BridgeActivity() {
             return
         }
 
-        if ("content" == uri.scheme && 
-            checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            android.util.Log.w("MainActivity", "Permission denied to access URI: $uri")
-            return
+        val authority = uri.authority ?: return
+        if (uri.scheme == "content") {
+            val providerInfo = packageManager.resolveContentProvider(authority, 0)
+            if (providerInfo == null || providerInfo.packageName == packageName || !providerInfo.exported) {
+                android.util.Log.w("MainActivity", "Blocked resolution of unexported/internal content provider: $authority")
+                return
+            }
+            if (checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                android.util.Log.w("MainActivity", "Permission denied to access URI: $uri")
+                return
+            }
         }
 
         try {

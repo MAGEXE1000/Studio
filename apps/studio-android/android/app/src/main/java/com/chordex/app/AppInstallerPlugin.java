@@ -71,14 +71,28 @@ public class AppInstallerPlugin extends Plugin {
     public static Intent pendingConfirmIntent = null;
     public static PluginCall activeDownloadCall = null;
 
+    private static boolean isValidInstallIntent(Intent intent) {
+        if (intent == null) return false;
+        String action = intent.getAction();
+        android.content.ComponentName comp = intent.getComponent();
+        String pkg = comp != null ? comp.getPackageName() : intent.getPackage();
+        boolean isExpectedAction = Intent.ACTION_INSTALL_PACKAGE.equals(action) || 
+                                   (Build.VERSION.SDK_INT >= 21 && "android.content.pm.action.CONFIRM_INSTALL".equals(action));
+        boolean isSystemPkg = pkg != null && (pkg.contains("packageinstaller") || pkg.equals("android") || pkg.equals("com.google.android.packageinstaller"));
+        return isExpectedAction || isSystemPkg;
+    }
+
     public static void resumePendingInstall(android.app.Activity activity) {
-        if (pendingConfirmIntent != null) {
+        if (pendingConfirmIntent != null && isValidInstallIntent(pendingConfirmIntent)) {
             try {
                 android.util.Log.i("AppInstallerPlugin", "[INSTRUMENTATION] [NATIVE] Relaunching pending confirmation intent from MainActivity.onResume()");
                 activity.startActivity(pendingConfirmIntent);
             } catch (Exception e) {
                 android.util.Log.e("AppInstallerPlugin", "[INSTRUMENTATION] [NATIVE] Failed to relaunch pending confirmation intent", e);
             }
+        } else if (pendingConfirmIntent != null) {
+            android.util.Log.e("AppInstallerPlugin", "Blocked potentially unsafe pending confirmation intent redirection.");
+            pendingConfirmIntent = null;
         }
     }
 
@@ -641,7 +655,7 @@ public class AppInstallerPlugin extends Plugin {
     @PluginMethod
     public void resumePendingInstall(PluginCall call) {
         try {
-            if (pendingConfirmIntent != null) {
+            if (pendingConfirmIntent != null && isValidInstallIntent(pendingConfirmIntent)) {
                 android.app.Activity activity = getActivity();
                 if (activity != null) {
                     android.util.Log.i("AppInstallerPlugin", "[INSTRUMENTATION] [NATIVE] Relaunching pending confirmation intent via PluginMethod");
@@ -658,7 +672,7 @@ public class AppInstallerPlugin extends Plugin {
                     call.reject("MainActivity activity context is null");
                 }
             } else {
-                call.reject("No pending confirmation intent exists");
+                call.reject("No pending confirmation intent exists or it is invalid");
             }
         } catch (Exception e) {
             call.reject("Failed to resume pending install: " + e.getMessage(), e);
@@ -683,7 +697,7 @@ public class AppInstallerPlugin extends Plugin {
                 return;
             }
             
-            if (pendingConfirmIntent != null) {
+            if (pendingConfirmIntent != null && isValidInstallIntent(pendingConfirmIntent)) {
                 android.app.Activity activity = getActivity();
                 if (activity != null) {
                     if (android.os.Build.VERSION.SDK_INT >= 34) {
@@ -699,7 +713,7 @@ public class AppInstallerPlugin extends Plugin {
                     call.reject("Activity context is null");
                 }
             } else {
-                call.resolve(); // Session is active in OS but no intent saved
+                call.resolve(); // Session is active in OS but no intent saved or it was invalid
             }
         } catch (Exception e) {
             call.reject("Failed to resume session: " + e.getMessage(), e);

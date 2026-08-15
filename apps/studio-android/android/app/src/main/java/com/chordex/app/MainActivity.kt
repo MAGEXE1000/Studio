@@ -412,7 +412,7 @@ class MainActivity : BridgeActivity() {
         }
 
         if (sharedFileUriToProcess != null) {
-            processIncomingFile(sharedFileUriToProcess!!)
+            resolveContentUri(sharedFileUriToProcess!!)
             sharedFileUriToProcess = null
         }
         handlePackageInstallerIntent(intent)
@@ -518,7 +518,7 @@ class MainActivity : BridgeActivity() {
         }
 
         if (targetUri != null) {
-            processIncomingFile(targetUri)
+            resolveContentUri(targetUri)
         }
         handlePackageInstallerIntent(intent)
         handleThemeIntent(intent)
@@ -566,8 +566,12 @@ class MainActivity : BridgeActivity() {
         }
     }
 
-    private fun processIncomingFile(uri: Uri) {
+    private fun resolveContentUri(uri: Uri) {
         try {
+            val auth = uri.authority
+            if (auth == "${packageName}.fileprovider" || auth == packageName || auth == "com.chordex.app.fileprovider") {
+                throw SecurityException("Access to internal app file provider blocked.")
+            }
             val fileName = getFileName(uri) ?: "unknown"
             val mimeType = contentResolver.getType(uri) ?: ""
 
@@ -594,6 +598,9 @@ class MainActivity : BridgeActivity() {
                 val inputStream = contentResolver.openInputStream(uri)
                 val cacheDir = cacheDir
                 val tempFile = File(cacheDir, "shared_" + System.currentTimeMillis() + "_" + fileName)
+                if (!tempFile.canonicalPath.startsWith(cacheDir.canonicalPath)) {
+                    throw SecurityException("Path traversal attempt blocked.")
+                }
                 val outputStream = java.io.FileOutputStream(tempFile)
                 val buffer = ByteArray(1024)
                 var read: Int
@@ -638,6 +645,10 @@ class MainActivity : BridgeActivity() {
             if (cut != -1) {
                 result = result?.substring(cut + 1)
             }
+        }
+        if (result != null) {
+            result = java.io.File(result).name
+            result = result.replace(Regex("[^a-zA-Z0-9.\\-_]"), "_")
         }
         return result
     }

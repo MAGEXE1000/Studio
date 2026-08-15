@@ -114,6 +114,48 @@ public final class SafeContentResolver {
     }
 
     /**
+     * Validates and reconstructs a safe, non-tainted Uri instance from validated components.
+     *
+     * @param context Application/Activity context
+     * @param uri The incoming URI to validate
+     * @return Validated, sanitized Uri instance
+     * @throws SecurityException If URI fails safety validation
+     */
+    public static Uri buildValidatedUri(Context context, Uri uri) throws SecurityException {
+        if (context == null || uri == null || !isSafeUri(context, uri)) {
+            throw new SecurityException("Unsafe or unauthorized content URI: " + uri);
+        }
+
+        String rawAuth = uri.getAuthority();
+        if (rawAuth == null || rawAuth.trim().isEmpty()) {
+            throw new SecurityException("Authority must not be empty");
+        }
+
+        String safeAuth = rawAuth.trim();
+        int atIndex = safeAuth.lastIndexOf('@');
+        if (atIndex != -1) {
+            safeAuth = safeAuth.substring(atIndex + 1);
+        }
+        int colonIndex = safeAuth.indexOf(':');
+        if (colonIndex != -1) {
+            safeAuth = safeAuth.substring(0, colonIndex);
+        }
+        safeAuth = safeAuth.trim().toLowerCase(Locale.ROOT);
+
+        String safePath = uri.getEncodedPath();
+        if (safePath == null) {
+            safePath = "";
+        }
+
+        return new Uri.Builder()
+                .scheme("content")
+                .encodedAuthority(safeAuth)
+                .encodedPath(safePath)
+                .encodedQuery(uri.getEncodedQuery())
+                .build();
+    }
+
+    /**
      * Safely queries the display name of a content URI via OpenableColumns.DISPLAY_NAME.
      *
      * @param context Application/Activity context
@@ -121,13 +163,20 @@ public final class SafeContentResolver {
      * @return Sanitized file name string
      */
     public static String getSafeDisplayName(Context context, Uri uri) {
-        if (context == null || uri == null || !isSafeUri(context, uri)) {
+        if (context == null || uri == null) {
+            return "shared_file";
+        }
+
+        Uri validatedUri;
+        try {
+            validatedUri = buildValidatedUri(context, uri);
+        } catch (Exception e) {
             return "shared_file";
         }
 
         String displayName = null;
         try (Cursor cursor = context.getContentResolver().query(
-                uri,
+                validatedUri,
                 new String[]{OpenableColumns.DISPLAY_NAME},
                 null,
                 null,
@@ -144,7 +193,7 @@ public final class SafeContentResolver {
         }
 
         if (displayName == null || displayName.trim().isEmpty()) {
-            String path = uri.getLastPathSegment();
+            String path = validatedUri.getLastPathSegment();
             if (path != null && !path.trim().isEmpty()) {
                 int cut = path.lastIndexOf('/');
                 displayName = (cut != -1) ? path.substring(cut + 1) : path;
@@ -169,11 +218,12 @@ public final class SafeContentResolver {
      * @return MIME type string, or null if unresolvable or unsafe
      */
     public static String getSafeMimeType(Context context, Uri uri) {
-        if (context == null || uri == null || !isSafeUri(context, uri)) {
+        if (context == null || uri == null) {
             return null;
         }
         try {
-            return context.getContentResolver().getType(uri);
+            Uri validatedUri = buildValidatedUri(context, uri);
+            return context.getContentResolver().getType(validatedUri);
         } catch (Exception e) {
             return null;
         }
@@ -192,12 +242,10 @@ public final class SafeContentResolver {
         if (context == null || uri == null) {
             throw new IllegalArgumentException("Context and URI cannot be null");
         }
-        if (!isSafeUri(context, uri)) {
-            throw new SecurityException("Unsafe or unauthorized content URI: " + uri);
-        }
-        final android.os.ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
+        Uri validatedUri = buildValidatedUri(context, uri);
+        final android.os.ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(validatedUri, "r");
         if (pfd == null) {
-            throw new IOException("Unable to open file descriptor for: " + uri);
+            throw new IOException("Unable to open file descriptor for: " + validatedUri);
         }
         return new java.io.FileInputStream(pfd.getFileDescriptor()) {
             @Override

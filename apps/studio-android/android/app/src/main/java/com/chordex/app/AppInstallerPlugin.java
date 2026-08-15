@@ -92,6 +92,10 @@ public class AppInstallerPlugin extends Plugin {
         notifyListeners("apkDownloadProgress", data);
     }
 
+    public void emitSharedFileReceived(JSObject data) {
+        notifyListeners("onSharedFileReceived", data);
+    }
+
     private static int callIdCounter = 0;
     
     public static int downloadApkCallCount = 0;

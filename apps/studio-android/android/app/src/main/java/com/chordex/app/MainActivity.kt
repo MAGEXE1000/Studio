@@ -507,12 +507,24 @@ class MainActivity : BridgeActivity() {
 
     private fun handleThemeIntent(intent: Intent?) {
         val themeArg = intent?.getStringExtra("theme")
-        if (!themeArg.isNullOrEmpty()) {
-            runOnUiThread {
-                navTheme = themeArg
-                val js = "window.dispatchEvent(new CustomEvent('studio-set-theme', { detail: { theme: '$themeArg' } }));"
-                this.bridge?.webView?.evaluateJavascript(js, null)
+        val safeTheme = when (themeArg?.lowercase(java.util.Locale.ROOT)) {
+            "light" -> "light"
+            "dark" -> "dark"
+            "amoled" -> "amoled"
+            "system" -> "system"
+            else -> null
+        } ?: return
+
+        runOnUiThread {
+            navTheme = safeTheme
+            val js = when (safeTheme) {
+                "light" -> "window.dispatchEvent(new CustomEvent('studio-set-theme', { detail: { theme: 'light' } }));"
+                "dark" -> "window.dispatchEvent(new CustomEvent('studio-set-theme', { detail: { theme: 'dark' } }));"
+                "amoled" -> "window.dispatchEvent(new CustomEvent('studio-set-theme', { detail: { theme: 'amoled' } }));"
+                "system" -> "window.dispatchEvent(new CustomEvent('studio-set-theme', { detail: { theme: 'system' } }));"
+                else -> return@runOnUiThread
             }
+            this.bridge?.webView?.evaluateJavascript(js, null)
         }
     }
 
@@ -572,40 +584,21 @@ class MainActivity : BridgeActivity() {
             val fileObj = JSObject()
             fileObj.put("fileName", fileName)
 
-            if (fileName.endsWith(".json") || mimeType.contains("json")) {
+            if (fileName.endsWith(".json", ignoreCase = true) || mimeType.contains("json", ignoreCase = true)) {
                 val jsonContent = SafeContentResolver.readSafeTextContent(this, uri) ?: return
 
                 fileObj.put("type", "json")
                 fileObj.put("data", jsonContent)
-                lastSharedFile = fileObj
-
-                triggerJsEvent("chordex:shared-json", jsonContent, fileName)
             } else {
                 val tempFile = SafeContentResolver.copySafeStreamToCache(this, uri, fileName)
                 val filePath = tempFile.absolutePath
                 fileObj.put("type", "audio")
                 fileObj.put("data", filePath)
-                lastSharedFile = fileObj
-
-                triggerJsEvent("chordex:shared-audio", filePath, fileName)
             }
+            lastSharedFile = fileObj
+            AppInstallerPlugin.instance?.emitSharedFileReceived(fileObj)
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Failed to process shared file: " + e.message)
-        }
-    }
-
-    private fun triggerJsEvent(eventName: String, data: String, fileName: String) {
-        if (this.bridge == null || this.bridge.webView == null) return
-        runOnUiThread {
-            try {
-                val quotedEventName = org.json.JSONObject.quote(eventName)
-                val quotedData = org.json.JSONObject.quote(data)
-                val quotedFileName = org.json.JSONObject.quote(fileName)
-                val js = "window.dispatchEvent(new CustomEvent($quotedEventName, { detail: { data: $quotedData, fileName: $quotedFileName } }));"
-                this.bridge.webView.evaluateJavascript(js, null)
-            } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "Failed to evaluate JS: " + e.message)
-            }
         }
     }
 

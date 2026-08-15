@@ -545,24 +545,7 @@ class MainActivity : BridgeActivity() {
     }
 
     private fun isSafeUri(uri: Uri?): Boolean {
-        if (uri == null) return false
-        val scheme = uri.scheme ?: return false
-        if (scheme != "content" && scheme != "file") {
-            return false
-        }
-        val authority = uri.authority ?: return false
-        if (authority.contains(packageName) || 
-            authority.equals("${packageName}.fileprovider", ignoreCase = true) || 
-            authority.equals("com.chordex.app.fileprovider", ignoreCase = true)) {
-            return false
-        }
-        if (scheme == "content") {
-            val providerInfo = packageManager.resolveContentProvider(authority, 0)
-            if (providerInfo == null || providerInfo.packageName == packageName || !providerInfo.exported) {
-                return false
-            }
-        }
-        return true
+        return SafeContentResolver.isSafeUri(this, uri)
     }
 
     private fun handleIncomingIntent(intent: Intent?) {
@@ -592,19 +575,6 @@ class MainActivity : BridgeActivity() {
             return
         }
 
-        val authority = uri.authority ?: return
-        if (uri.scheme == "content") {
-            val providerInfo = packageManager.resolveContentProvider(authority, 0)
-            if (providerInfo == null || providerInfo.packageName == packageName || !providerInfo.exported) {
-                android.util.Log.w("MainActivity", "Blocked resolution of unexported/internal content provider: $authority")
-                return
-            }
-            if (checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                android.util.Log.w("MainActivity", "Permission denied to access URI: $uri")
-                return
-            }
-        }
-
         try {
             val fileName = getFileName(uri) ?: "unknown"
             val mimeType = contentResolver.getType(uri) ?: ""
@@ -613,7 +583,7 @@ class MainActivity : BridgeActivity() {
             fileObj.put("fileName", fileName)
 
             if (fileName.endsWith(".json") || mimeType.contains("json")) {
-                val inputStream = contentResolver.openInputStream(uri) ?: return
+                val inputStream = SafeContentResolver.openSafeInputStream(this, uri) ?: return
                 val reader = java.io.BufferedReader(java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8))
                 val stringBuilder = StringBuilder()
                 var line: String?
@@ -629,7 +599,7 @@ class MainActivity : BridgeActivity() {
 
                 triggerJsEvent("chordex:shared-json", jsonContent, fileName)
             } else {
-                val inputStream = contentResolver.openInputStream(uri) ?: return
+                val inputStream = SafeContentResolver.openSafeInputStream(this, uri) ?: return
                 val cacheDir = cacheDir
                 val safeName = fileName.replace(Regex("[^a-zA-Z0-9._-]"), "_")
                 val tempFile = File(cacheDir, "shared_" + System.currentTimeMillis() + "_" + safeName)

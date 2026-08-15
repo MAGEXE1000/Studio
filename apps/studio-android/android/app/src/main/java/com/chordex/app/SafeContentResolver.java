@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.net.Uri;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 
@@ -28,6 +30,9 @@ public final class SafeContentResolver {
             return false;
         }
         if ("content".equalsIgnoreCase(scheme)) {
+            if (context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
             ProviderInfo info = context.getPackageManager().resolveContentProvider(authority, 0);
             if (info == null || info.packageName.equals(packageName) || !info.exported) {
                 return false;
@@ -41,28 +46,36 @@ public final class SafeContentResolver {
             return null;
         }
         String scheme = uri.getScheme();
-        if (!"content".equalsIgnoreCase(scheme) && !"file".equalsIgnoreCase(scheme)) {
-            throw new SecurityException("Unsupported URI scheme: " + scheme);
-        }
-        String authority = uri.getAuthority();
-        if (authority == null || authority.isEmpty()) {
-            throw new SecurityException("Missing URI authority");
-        }
-        String packageName = context.getPackageName();
-        if (authority.contains(packageName) || 
-            authority.equalsIgnoreCase(packageName + ".fileprovider") || 
-            authority.equalsIgnoreCase("com.chordex.app.fileprovider")) {
-            throw new SecurityException("Access to internal app file provider blocked.");
-        }
         if ("content".equalsIgnoreCase(scheme)) {
+            if (context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
+                throw new SecurityException("Permission denied to read content URI: " + uri);
+            }
+            String authority = uri.getAuthority();
+            if (authority == null || authority.isEmpty()) {
+                throw new SecurityException("Missing URI authority: " + uri);
+            }
+            String packageName = context.getPackageName();
+            if (authority.contains(packageName) || 
+                authority.equalsIgnoreCase(packageName + ".fileprovider") || 
+                authority.equalsIgnoreCase("com.chordex.app.fileprovider")) {
+                throw new SecurityException("Access to internal app file provider blocked: " + authority);
+            }
             ProviderInfo info = context.getPackageManager().resolveContentProvider(authority, 0);
             if (info == null || info.packageName.equals(packageName) || !info.exported) {
-                throw new SecurityException("Blocked resolution of unexported/internal content provider.");
+                throw new SecurityException("Blocked resolution of unexported/internal content provider: " + authority);
             }
-            if (context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-                throw new SecurityException("Permission denied to read content URI.");
+            return context.getContentResolver().openInputStream(uri);
+        } else if ("file".equalsIgnoreCase(scheme)) {
+            String path = uri.getPath();
+            if (path == null || path.isEmpty()) {
+                throw new SecurityException("Invalid file path in URI: " + uri);
             }
+            File file = new File(path);
+            if (!file.exists() || !file.canRead()) {
+                throw new SecurityException("File does not exist or cannot be read: " + path);
+            }
+            return new FileInputStream(file);
         }
-        return context.getContentResolver().openInputStream(uri);
+        throw new SecurityException("Unsupported URI scheme: " + scheme);
     }
 }

@@ -586,6 +586,12 @@ class MainActivity : BridgeActivity() {
             return
         }
 
+        if ("content" == uri.scheme && 
+            checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            android.util.Log.w("MainActivity", "Permission denied to access URI: $uri")
+            return
+        }
+
         try {
             val fileName = getFileName(uri) ?: "unknown"
             val mimeType = contentResolver.getType(uri) ?: ""

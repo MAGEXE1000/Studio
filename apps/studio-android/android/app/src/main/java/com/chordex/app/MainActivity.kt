@@ -544,21 +544,35 @@ class MainActivity : BridgeActivity() {
         }
     }
 
+    private fun isSafeUri(uri: Uri?): Boolean {
+        if (uri == null) return false
+        val scheme = uri.scheme ?: return false
+        if (scheme != "content" && scheme != "file") {
+            return false
+        }
+        val authority = uri.authority ?: return false
+        if (authority.contains(packageName) || 
+            authority.equals("${packageName}.fileprovider", ignoreCase = true) || 
+            authority.equals("com.chordex.app.fileprovider", ignoreCase = true)) {
+            return false
+        }
+        return true
+    }
+
     private fun handleIncomingIntent(intent: Intent?) {
         if (intent == null) return
         val action = intent.action
         val data = intent.data
 
         if (Intent.ACTION_VIEW == action && data != null) {
-            val scheme = data.scheme
-            if ("content" == scheme || "file" == scheme) {
+            if (isSafeUri(data)) {
                 intent.data = null // Prevent BridgeActivity from loading this file path directly as a webpage
                 intent.action = Intent.ACTION_MAIN
                 sharedFileUriToProcess = data
             }
         } else if (Intent.ACTION_SEND == action && intent.type != null) {
             val streamUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-            if (streamUri != null) {
+            if (streamUri != null && isSafeUri(streamUri)) {
                 intent.action = Intent.ACTION_MAIN
                 intent.removeExtra(Intent.EXTRA_STREAM)
                 sharedFileUriToProcess = streamUri
@@ -567,13 +581,8 @@ class MainActivity : BridgeActivity() {
     }
 
     private fun resolveContentUri(uri: Uri) {
-        val scheme = uri.scheme ?: return
-        if (scheme != "content" && scheme != "file") {
-            return
-        }
-        val authority = uri.authority ?: return
-        if (authority.contains(packageName) || authority.equals("com.chordex.app.fileprovider", ignoreCase = true)) {
-            android.util.Log.w("MainActivity", "Access to internal app file provider blocked: $authority")
+        if (!isSafeUri(uri)) {
+            android.util.Log.w("MainActivity", "Access to internal or unsafe content URI blocked: $uri")
             return
         }
 

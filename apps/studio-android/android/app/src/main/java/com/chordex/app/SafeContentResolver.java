@@ -81,15 +81,29 @@ public final class SafeContentResolver {
             return false;
         }
 
-        // 3. Anti-Confused-Deputy: Reject internal app and FileProvider URIs
-        String packageName = context.getPackageName();
-        if (packageName != null && !packageName.trim().isEmpty()) {
-            String lowerPackageName = packageName.trim().toLowerCase(Locale.ROOT);
-            if (authority.equals(lowerPackageName) ||
-                authority.startsWith(lowerPackageName + ".") ||
-                authority.equals("com.chordex.app.fileprovider") ||
-                authority.endsWith(".fileprovider")) {
-                return false;
+        // 3. Dynamic Package & Provider Self-Exclusion (Anti-Confused-Deputy)
+        if (context != null) {
+            String currentPackage = context.getPackageName();
+            if (currentPackage != null && !currentPackage.trim().isEmpty()) {
+                String lowerPackage = currentPackage.trim().toLowerCase(Locale.ROOT);
+                if (authority.equals(lowerPackage) ||
+                    authority.startsWith(lowerPackage + ".") ||
+                    authority.equals("com.chordex.app.fileprovider") ||
+                    authority.endsWith(".fileprovider")) {
+                    return false;
+                }
+            }
+
+            try {
+                android.content.pm.PackageManager pm = context.getPackageManager();
+                if (pm != null) {
+                    android.content.pm.ProviderInfo providerInfo = pm.resolveContentProvider(authority, 0);
+                    if (providerInfo != null && currentPackage != null && currentPackage.equalsIgnoreCase(providerInfo.packageName)) {
+                        return false;
+                    }
+                }
+            } catch (Exception ignored) {
+                // Fallback
             }
         } else {
             if (authority.equals("com.chordex.app") ||
@@ -114,48 +128,6 @@ public final class SafeContentResolver {
     }
 
     /**
-     * Validates and reconstructs a safe, non-tainted Uri instance from validated components.
-     *
-     * @param context Application/Activity context
-     * @param uri The incoming URI to validate
-     * @return Validated, sanitized Uri instance
-     * @throws SecurityException If URI fails safety validation
-     */
-    public static Uri buildValidatedUri(Context context, Uri uri) throws SecurityException {
-        if (context == null || uri == null || !isSafeUri(context, uri)) {
-            throw new SecurityException("Unsafe or unauthorized content URI: " + uri);
-        }
-
-        String rawAuth = uri.getAuthority();
-        if (rawAuth == null || rawAuth.trim().isEmpty()) {
-            throw new SecurityException("Authority must not be empty");
-        }
-
-        String safeAuth = rawAuth.trim();
-        int atIndex = safeAuth.lastIndexOf('@');
-        if (atIndex != -1) {
-            safeAuth = safeAuth.substring(atIndex + 1);
-        }
-        int colonIndex = safeAuth.indexOf(':');
-        if (colonIndex != -1) {
-            safeAuth = safeAuth.substring(0, colonIndex);
-        }
-        safeAuth = safeAuth.trim().toLowerCase(Locale.ROOT);
-
-        String safePath = uri.getEncodedPath();
-        if (safePath == null) {
-            safePath = "";
-        }
-
-        return new Uri.Builder()
-                .scheme("content")
-                .encodedAuthority(safeAuth)
-                .encodedPath(safePath)
-                .encodedQuery(uri.getEncodedQuery())
-                .build();
-    }
-
-    /**
      * Safely queries the display name of a content URI via OpenableColumns.DISPLAY_NAME.
      *
      * @param context Application/Activity context
@@ -163,20 +135,13 @@ public final class SafeContentResolver {
      * @return Sanitized file name string
      */
     public static String getSafeDisplayName(Context context, Uri uri) {
-        if (context == null || uri == null) {
-            return "shared_file";
-        }
-
-        Uri validatedUri;
-        try {
-            validatedUri = buildValidatedUri(context, uri);
-        } catch (Exception e) {
+        if (context == null || uri == null || !isSafeUri(context, uri)) {
             return "shared_file";
         }
 
         String displayName = null;
         try (Cursor cursor = context.getContentResolver().query(
-                validatedUri,
+                uri,
                 new String[]{OpenableColumns.DISPLAY_NAME},
                 null,
                 null,
@@ -193,7 +158,7 @@ public final class SafeContentResolver {
         }
 
         if (displayName == null || displayName.trim().isEmpty()) {
-            String path = validatedUri.getLastPathSegment();
+            String path = uri.getLastPathSegment();
             if (path != null && !path.trim().isEmpty()) {
                 int cut = path.lastIndexOf('/');
                 displayName = (cut != -1) ? path.substring(cut + 1) : path;
@@ -218,12 +183,11 @@ public final class SafeContentResolver {
      * @return MIME type string, or null if unresolvable or unsafe
      */
     public static String getSafeMimeType(Context context, Uri uri) {
-        if (context == null || uri == null) {
+        if (context == null || uri == null || !isSafeUri(context, uri)) {
             return null;
         }
         try {
-            Uri validatedUri = buildValidatedUri(context, uri);
-            return context.getContentResolver().getType(validatedUri);
+            return context.getContentResolver().getType(uri);
         } catch (Exception e) {
             return null;
         }
@@ -242,10 +206,12 @@ public final class SafeContentResolver {
         if (context == null || uri == null) {
             throw new IllegalArgumentException("Context and URI cannot be null");
         }
-        Uri validatedUri = buildValidatedUri(context, uri);
-        final android.os.ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(validatedUri, "r");
+        if (!isSafeUri(context, uri)) {
+            throw new SecurityException("Unsafe or unauthorized content URI: " + uri);
+        }
+        final android.os.ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
         if (pfd == null) {
-            throw new IOException("Unable to open file descriptor for: " + validatedUri);
+            throw new IOException("Unable to open file descriptor for: " + uri);
         }
         return new java.io.FileInputStream(pfd.getFileDescriptor()) {
             @Override

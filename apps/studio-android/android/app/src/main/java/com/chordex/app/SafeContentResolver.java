@@ -209,20 +209,11 @@ public final class SafeContentResolver {
         if (!isSafeUri(context, uri)) {
             throw new SecurityException("Unsafe or unauthorized content URI: " + uri);
         }
-        final android.os.ParcelFileDescriptor pfd = context.getContentResolver().openFileDescriptor(uri, "r");
-        if (pfd == null) {
-            throw new IOException("Unable to open file descriptor for: " + uri);
+        InputStream is = context.getContentResolver().openInputStream(uri);
+        if (is == null) {
+            throw new IOException("Unable to open input stream for: " + uri);
         }
-        return new java.io.FileInputStream(pfd.getFileDescriptor()) {
-            @Override
-            public void close() throws IOException {
-                try {
-                    super.close();
-                } finally {
-                    pfd.close();
-                }
-            }
-        };
+        return is;
     }
 
     /**

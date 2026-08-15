@@ -497,26 +497,7 @@ class MainActivity : BridgeActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         
-        val action = intent.action
-        val data = intent.data
-        var targetUri: Uri? = null
-
-        if (Intent.ACTION_VIEW == action && data != null) {
-            val scheme = data.scheme
-            if ("content" == scheme || "file" == scheme) {
-                intent.data = null
-                intent.action = Intent.ACTION_MAIN
-                targetUri = data
-            }
-        } else if (Intent.ACTION_SEND == action && intent.type != null) {
-            val streamUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-            if (streamUri != null) {
-                intent.action = Intent.ACTION_MAIN
-                intent.removeExtra(Intent.EXTRA_STREAM)
-                targetUri = streamUri
-            }
-        }
-
+        val targetUri = extractTargetUri(intent)
         if (targetUri != null) {
             resolveContentUri(targetUri)
         }
@@ -548,50 +529,51 @@ class MainActivity : BridgeActivity() {
         return SafeContentResolver.isSafeUri(this, uri)
     }
 
-    private fun handleIncomingIntent(intent: Intent?) {
-        if (intent == null) return
+    private fun extractTargetUri(intent: Intent?): Uri? {
+        if (intent == null) return null
         val action = intent.action
-        val data = intent.data
+        var targetUri: Uri? = null
 
-        if (Intent.ACTION_VIEW == action && data != null) {
-            if (isSafeUri(data)) {
+        if (Intent.ACTION_VIEW == action && intent.data != null) {
+            val data = intent.data
+            if (data != null && SafeContentResolver.isSafeUri(this, data)) {
                 intent.data = null // Prevent BridgeActivity from loading this file path directly as a webpage
                 intent.action = Intent.ACTION_MAIN
-                sharedFileUriToProcess = data
+                targetUri = data
             }
         } else if (Intent.ACTION_SEND == action && intent.type != null) {
             val streamUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
-            if (streamUri != null && isSafeUri(streamUri)) {
+            if (streamUri != null && SafeContentResolver.isSafeUri(this, streamUri)) {
                 intent.action = Intent.ACTION_MAIN
                 intent.removeExtra(Intent.EXTRA_STREAM)
-                sharedFileUriToProcess = streamUri
+                targetUri = streamUri
             }
+        }
+        return targetUri
+    }
+
+    private fun handleIncomingIntent(intent: Intent?) {
+        val targetUri = extractTargetUri(intent)
+        if (targetUri != null) {
+            sharedFileUriToProcess = targetUri
         }
     }
 
     private fun resolveContentUri(uri: Uri) {
-        if (!isSafeUri(uri)) {
+        if (!SafeContentResolver.isSafeUri(this, uri)) {
             android.util.Log.w("MainActivity", "Access to internal or unsafe content URI blocked: $uri")
             return
         }
 
         try {
-            val fileName = getFileName(uri) ?: "unknown"
-            val mimeType = contentResolver.getType(uri) ?: ""
+            val fileName = SafeContentResolver.getSafeDisplayName(this, uri)
+            val mimeType = SafeContentResolver.getSafeMimeType(this, uri) ?: ""
 
             val fileObj = JSObject()
             fileObj.put("fileName", fileName)
 
             if (fileName.endsWith(".json") || mimeType.contains("json")) {
-                val inputStream = SafeContentResolver.openSafeInputStream(this, uri) ?: return
-                val reader = java.io.BufferedReader(java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8))
-                val stringBuilder = StringBuilder()
-                var line: String?
-                while (reader.readLine().also { line = it } != null) {
-                    stringBuilder.append(line)
-                }
-                inputStream.close()
-                val jsonContent = stringBuilder.toString()
+                val jsonContent = SafeContentResolver.readSafeTextContent(this, uri, 10 * 1024 * 1024) ?: return
 
                 fileObj.put("type", "json")
                 fileObj.put("data", jsonContent)
@@ -599,23 +581,7 @@ class MainActivity : BridgeActivity() {
 
                 triggerJsEvent("chordex:shared-json", jsonContent, fileName)
             } else {
-                val inputStream = SafeContentResolver.openSafeInputStream(this, uri) ?: return
-                val cacheDir = cacheDir
-                val safeName = fileName.replace(Regex("[^a-zA-Z0-9._-]"), "_")
-                val tempFile = File(cacheDir, "shared_" + System.currentTimeMillis() + "_" + safeName)
-                if (!tempFile.canonicalPath.startsWith(cacheDir.canonicalPath)) {
-                    inputStream.close()
-                    throw SecurityException("Path traversal attempt blocked.")
-                }
-                val outputStream = java.io.FileOutputStream(tempFile)
-                val buffer = ByteArray(4096)
-                var read: Int
-                while (inputStream.read(buffer).also { read = it } != -1) {
-                    outputStream.write(buffer, 0, read)
-                }
-                inputStream.close()
-                outputStream.close()
-
+                val tempFile = SafeContentResolver.copySafeStreamToCache(this, uri, fileName)
                 val filePath = tempFile.absolutePath
                 fileObj.put("type", "audio")
                 fileObj.put("data", filePath)
@@ -626,37 +592,6 @@ class MainActivity : BridgeActivity() {
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Failed to process shared file: " + e.message)
         }
-    }
-
-    private fun getFileName(uri: Uri): String? {
-        var result: String? = null
-        if ("content" == uri.scheme) {
-            val cursor = contentResolver.query(uri, null, null, null, null)
-            try {
-                if (cursor != null && cursor.moveToFirst()) {
-                    val index = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
-                    if (index >= 0) {
-                        result = cursor.getString(index)
-                    }
-                }
-            } catch (e: Exception) {
-                android.util.Log.w("MainActivity", "Failed to query filename: " + e.message)
-            } finally {
-                cursor?.close()
-            }
-        }
-        if (result == null) {
-            result = uri.path
-            val cut = result?.lastIndexOf('/') ?: -1
-            if (cut != -1) {
-                result = result?.substring(cut + 1)
-            }
-        }
-        if (result != null) {
-            result = java.io.File(result).name
-            result = result.replace(Regex("[^a-zA-Z0-9.\\-_]"), "_")
-        }
-        return result
     }
 
     private fun triggerJsEvent(eventName: String, data: String, fileName: String) {

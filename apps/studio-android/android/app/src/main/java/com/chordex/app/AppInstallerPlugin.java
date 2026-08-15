@@ -85,6 +85,11 @@ public class AppInstallerPlugin extends Plugin {
     public static void resumePendingInstall(android.app.Activity activity) {
         if (pendingConfirmIntent != null && isValidInstallIntent(pendingConfirmIntent)) {
             try {
+                android.content.ComponentName comp = pendingConfirmIntent.getComponent();
+                String pkg = comp != null ? comp.getPackageName() : pendingConfirmIntent.getPackage();
+                if (pkg != null) {
+                    pendingConfirmIntent.setPackage(pkg);
+                }
                 android.util.Log.i("AppInstallerPlugin", "[INSTRUMENTATION] [NATIVE] Relaunching pending confirmation intent from MainActivity.onResume()");
                 activity.startActivity(pendingConfirmIntent);
             } catch (Exception e) {
@@ -658,6 +663,11 @@ public class AppInstallerPlugin extends Plugin {
             if (pendingConfirmIntent != null && isValidInstallIntent(pendingConfirmIntent)) {
                 android.app.Activity activity = getActivity();
                 if (activity != null) {
+                    android.content.ComponentName comp = pendingConfirmIntent.getComponent();
+                    String pkg = comp != null ? comp.getPackageName() : pendingConfirmIntent.getPackage();
+                    if (pkg != null) {
+                        pendingConfirmIntent.setPackage(pkg);
+                    }
                     android.util.Log.i("AppInstallerPlugin", "[INSTRUMENTATION] [NATIVE] Relaunching pending confirmation intent via PluginMethod");
                     if (android.os.Build.VERSION.SDK_INT >= 34) {
                         android.app.ActivityOptions options = android.app.ActivityOptions.makeBasic();
@@ -700,6 +710,11 @@ public class AppInstallerPlugin extends Plugin {
             if (pendingConfirmIntent != null && isValidInstallIntent(pendingConfirmIntent)) {
                 android.app.Activity activity = getActivity();
                 if (activity != null) {
+                    android.content.ComponentName comp = pendingConfirmIntent.getComponent();
+                    String pkg = comp != null ? comp.getPackageName() : pendingConfirmIntent.getPackage();
+                    if (pkg != null) {
+                        pendingConfirmIntent.setPackage(pkg);
+                    }
                     if (android.os.Build.VERSION.SDK_INT >= 34) {
                         android.app.ActivityOptions options = android.app.ActivityOptions.makeBasic();
                         options.setPendingIntentBackgroundActivityStartMode(

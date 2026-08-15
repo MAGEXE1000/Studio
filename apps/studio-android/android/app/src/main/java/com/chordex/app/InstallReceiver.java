@@ -165,10 +165,13 @@ public class InstallReceiver extends BroadcastReceiver {
                     String confPkg = confComp != null ? confComp.getPackageName() : confirmIntent.getPackage();
                     boolean isExpectedAction = Intent.ACTION_INSTALL_PACKAGE.equals(confAction) || 
                                                (android.os.Build.VERSION.SDK_INT >= 21 && "android.content.pm.action.CONFIRM_INSTALL".equals(confAction));
-                    boolean isSystemPkg = confPkg != null && (confPkg.contains("packageinstaller") || confPkg.equals("android"));
+                    boolean isSystemPkg = confPkg != null && (confPkg.contains("packageinstaller") || confPkg.equals("android") || confPkg.equals("com.google.android.packageinstaller"));
                     if (!isExpectedAction && !isSystemPkg) {
                         Log.e(TAG, "Blocked unsafe intent redirection.");
                         return;
+                    }
+                    if (confPkg != null) {
+                        confirmIntent.setPackage(confPkg);
                     }
                     prefs.edit().putBoolean("confirmation_intent_received", true).apply();
                     AppInstallerPlugin.pendingConfirmIntent = confirmIntent;

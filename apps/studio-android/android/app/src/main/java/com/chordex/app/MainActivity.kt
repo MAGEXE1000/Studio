@@ -568,8 +568,12 @@ class MainActivity : BridgeActivity() {
 
     private fun resolveContentUri(uri: Uri) {
         try {
+            val scheme = uri.scheme
+            if (scheme != "content" && scheme != "file") {
+                return
+            }
             val auth = uri.authority
-            if (auth == "${packageName}.fileprovider" || auth == packageName || auth == "com.chordex.app.fileprovider") {
+            if (auth != null && (auth == "${packageName}.fileprovider" || auth == packageName || auth == "com.chordex.app.fileprovider" || auth.contains(packageName))) {
                 throw SecurityException("Access to internal app file provider blocked.")
             }
             val fileName = getFileName(uri) ?: "unknown"
@@ -579,14 +583,14 @@ class MainActivity : BridgeActivity() {
             fileObj.put("fileName", fileName)
 
             if (fileName.endsWith(".json") || mimeType.contains("json")) {
-                val inputStream = contentResolver.openInputStream(uri)
-                val reader = java.io.BufferedReader(java.io.InputStreamReader(inputStream))
+                val inputStream = contentResolver.openInputStream(uri) ?: return
+                val reader = java.io.BufferedReader(java.io.InputStreamReader(inputStream, java.nio.charset.StandardCharsets.UTF_8))
                 val stringBuilder = StringBuilder()
                 var line: String?
                 while (reader.readLine().also { line = it } != null) {
                     stringBuilder.append(line)
                 }
-                inputStream?.close()
+                inputStream.close()
                 val jsonContent = stringBuilder.toString()
 
                 fileObj.put("type", "json")
@@ -595,16 +599,18 @@ class MainActivity : BridgeActivity() {
 
                 triggerJsEvent("chordex:shared-json", jsonContent, fileName)
             } else {
-                val inputStream = contentResolver.openInputStream(uri)
+                val inputStream = contentResolver.openInputStream(uri) ?: return
                 val cacheDir = cacheDir
-                val tempFile = File(cacheDir, "shared_" + System.currentTimeMillis() + "_" + fileName)
+                val safeName = fileName.replace(Regex("[^a-zA-Z0-9._-]"), "_")
+                val tempFile = File(cacheDir, "shared_" + System.currentTimeMillis() + "_" + safeName)
                 if (!tempFile.canonicalPath.startsWith(cacheDir.canonicalPath)) {
+                    inputStream.close()
                     throw SecurityException("Path traversal attempt blocked.")
                 }
                 val outputStream = java.io.FileOutputStream(tempFile)
-                val buffer = ByteArray(1024)
+                val buffer = ByteArray(4096)
                 var read: Int
-                while (inputStream!!.read(buffer).also { read = it } != -1) {
+                while (inputStream.read(buffer).also { read = it } != -1) {
                     outputStream.write(buffer, 0, read)
                 }
                 inputStream.close()

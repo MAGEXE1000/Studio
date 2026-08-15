@@ -56,18 +56,11 @@ public final class SafeContentResolver {
         if (info == null || info.packageName.equals(packageName) || !info.exported) {
             throw new SecurityException("Blocked resolution of unexported/internal content provider: " + authority);
         }
-        if (context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) != PackageManager.PERMISSION_GRANTED) {
-            throw new SecurityException("Permission denied to read content URI: " + uri);
+
+        if (context.checkCallingOrSelfUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+            return context.getContentResolver().openInputStream(uri);
         }
 
-        Uri safeUri = new Uri.Builder()
-                .scheme("content")
-                .authority(info.authority != null ? info.authority : authority)
-                .encodedPath(uri.getEncodedPath())
-                .encodedQuery(uri.getEncodedQuery())
-                .encodedFragment(uri.getEncodedFragment())
-                .build();
-
-        return context.getContentResolver().openInputStream(safeUri);
+        throw new SecurityException("Permission denied to read content URI: " + uri);
     }
 }

@@ -567,15 +567,17 @@ class MainActivity : BridgeActivity() {
     }
 
     private fun resolveContentUri(uri: Uri) {
+        val scheme = uri.scheme ?: return
+        if (scheme != "content" && scheme != "file") {
+            return
+        }
+        val authority = uri.authority ?: return
+        if (authority.contains(packageName) || authority.equals("com.chordex.app.fileprovider", ignoreCase = true)) {
+            android.util.Log.w("MainActivity", "Access to internal app file provider blocked: $authority")
+            return
+        }
+
         try {
-            val scheme = uri.scheme
-            if (scheme != "content" && scheme != "file") {
-                return
-            }
-            val auth = uri.authority
-            if (auth != null && (auth == "${packageName}.fileprovider" || auth == packageName || auth == "com.chordex.app.fileprovider" || auth.contains(packageName))) {
-                throw SecurityException("Access to internal app file provider blocked.")
-            }
             val fileName = getFileName(uri) ?: "unknown"
             val mimeType = contentResolver.getType(uri) ?: ""
 

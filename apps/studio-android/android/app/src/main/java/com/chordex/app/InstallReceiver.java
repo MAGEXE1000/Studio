@@ -170,24 +170,38 @@ public class InstallReceiver extends BroadcastReceiver {
                         Log.e(TAG, "Blocked unsafe intent redirection.");
                         return;
                     }
-                    if (confPkg != null) {
-                        confirmIntent.setPackage(confPkg);
+                    
+                    Intent safeIntent;
+                    if (confComp != null && (confComp.getPackageName().contains("packageinstaller") || confComp.getPackageName().equals("android"))) {
+                        safeIntent = new Intent();
+                        safeIntent.setComponent(new android.content.ComponentName(confComp.getPackageName(), confComp.getClassName()));
+                    } else if (confPkg != null && (confPkg.contains("packageinstaller") || confPkg.equals("android") || confPkg.equals("com.google.android.packageinstaller"))) {
+                        safeIntent = new Intent(confAction);
+                        safeIntent.setPackage(confPkg);
+                    } else {
+                        safeIntent = new Intent(confAction);
+                        safeIntent.setPackage("com.google.android.packageinstaller");
                     }
+                    if (confirmIntent.getData() != null) {
+                        safeIntent.setDataAndType(confirmIntent.getData(), confirmIntent.getType());
+                    }
+                    if (confirmIntent.getExtras() != null) {
+                        safeIntent.putExtras(confirmIntent.getExtras());
+                    }
+                    safeIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    
                     prefs.edit().putBoolean("confirmation_intent_received", true).apply();
-                    AppInstallerPlugin.pendingConfirmIntent = confirmIntent;
-                    confirmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     try {
                         Log.d(TAG, "[INSTRUMENTATION] [NATIVE] Starting PackageInstaller confirmation intent using BroadcastReceiver context with FLAG_ACTIVITY_NEW_TASK");
                         if (android.os.Build.VERSION.SDK_INT >= 34) {
                             android.app.ActivityOptions options = android.app.ActivityOptions.makeBasic();
                             options.setPendingIntentBackgroundActivityStartMode(
                                     android.app.ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED);
-                            context.startActivity(confirmIntent, options.toBundle());
+                            context.startActivity(safeIntent, options.toBundle());
                         } else {
-                            context.startActivity(confirmIntent);
+                            context.startActivity(safeIntent);
                         }
                         prefs.edit().putBoolean("confirmation_intent_started", true).apply();
-                        AppInstallerPlugin.pendingConfirmIntent = null;
                     } catch (Exception e) {
                         Log.e(TAG, "[INSTRUMENTATION] [NATIVE] Failed to start confirmation intent", e);
                         appendLog(context, "Install Failure", status, "Failed to start confirmation intent: " + e.getMessage(), otherPackageName, null);
@@ -196,7 +210,6 @@ public class InstallReceiver extends BroadcastReceiver {
                     Log.e(TAG, "[INSTRUMENTATION] [NATIVE] confirmIntent is null");
                 }
             } else {
-                AppInstallerPlugin.pendingConfirmIntent = null;
                 if (status == PackageInstaller.STATUS_SUCCESS) {
                     appendLog(context, "User Accepted", status, "User accepted installation", otherPackageName, null);
                     appendLog(context, "Install Success", status, "Update installation complete", otherPackageName, null);

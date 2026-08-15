@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.31';
-export const NATIVE_VERSION_CODE = 40531;
-export const WEB_VERSION = '4.5.31';
+export const NATIVE_VERSION = '4.5.32';
+export const NATIVE_VERSION_CODE = 40532;
+export const WEB_VERSION = '4.5.32';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '1110b65f';
+export const APP_COMMIT_SHA = 'b33cfa4b';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/13/2026, 8:23:47 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/15/2026, 1:06:23 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,11 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).',
-      'Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.',
-      'Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.',
-      'Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.',
-      'Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation.',
+      'Hardened Android intent content resolution boundary with dynamic `PackageManager` provider self-exclusion in `SafeContentResolver` to prevent Confused Deputy attacks.',
+      'Modernized native-to-web IPC bridge by replacing dynamic `evaluateJavascript` execution with structured Capacitor events (`AppInstallerPlugin.instance.emitSharedFileReceived`) for secure shared file delivery.',
+      'Implemented static enum theme matcher in `MainActivity.kt` ensuring zero untrusted script execution in WebView context.',
+      'Streamlined `SafeContentResolver.openSafeInputStream` to support physical file descriptors and virtual cloud documents (Google Drive, OneDrive, MediaStore) while enforcing strict 5MB text and 50MB stream bounds.',
+      'Added comprehensive Android JVM security unit test suite in `SafeContentResolverTest.java` verifying scheme validation, authority normalization, and directory traversal protections.',
     ],
   },
 ];

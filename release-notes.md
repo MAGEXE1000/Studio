@@ -1,11 +1,11 @@
-# Version 4.5.31
+# Version 4.5.32
 
-Release Date: 2026-08-13
+Release Date: 2026-08-15
 
 ### Added
 
-- Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).
-- Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.
-- Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.
-- Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.
-- Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation.
+- Hardened Android intent content resolution boundary with dynamic `PackageManager` provider self-exclusion in `SafeContentResolver` to prevent Confused Deputy attacks.
+- Modernized native-to-web IPC bridge by replacing dynamic `evaluateJavascript` execution with structured Capacitor events (`AppInstallerPlugin.instance.emitSharedFileReceived`) for secure shared file delivery.
+- Implemented static enum theme matcher in `MainActivity.kt` ensuring zero untrusted script execution in WebView context.
+- Streamlined `SafeContentResolver.openSafeInputStream` to support physical file descriptors and virtual cloud documents (Google Drive, OneDrive, MediaStore) while enforcing strict 5MB text and 50MB stream bounds.
+- Added comprehensive Android JVM security unit test suite in `SafeContentResolverTest.java` verifying scheme validation, authority normalization, and directory traversal protections.

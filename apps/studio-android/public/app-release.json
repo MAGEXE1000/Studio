@@ -1,22 +1,22 @@
 {
   "platform": "android",
-  "version": "4.5.31",
-  "versionName": "4.5.31",
-  "versionCode": 40531,
-  "version_code": 40531,
-  "commit": "1110b65f",
-  "releasedAt": "8/13/2026, 8:23:47 PM CST",
-  "buildTimestamp": "8/13/2026, 8:23:47 PM CST",
+  "version": "4.5.32",
+  "versionName": "4.5.32",
+  "versionCode": 40532,
+  "version_code": 40532,
+  "commit": "b33cfa4b",
+  "releasedAt": "8/15/2026, 1:06:23 PM CST",
+  "buildTimestamp": "8/15/2026, 1:06:23 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).\n• Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.\n• Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.\n• Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.\n• Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation.",
-  "whatsNew": "• Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).\n• Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.\n• Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.\n• Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.\n• Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation.",
+  "changelog": "• Hardened Android intent content resolution boundary with dynamic `PackageManager` provider self-exclusion in `SafeContentResolver` to prevent Confused Deputy attacks.\n• Modernized native-to-web IPC bridge by replacing dynamic `evaluateJavascript` execution with structured Capacitor events (`AppInstallerPlugin.instance.emitSharedFileReceived`) for secure shared file delivery.\n• Implemented static enum theme matcher in `MainActivity.kt` ensuring zero untrusted script execution in WebView context.\n• Streamlined `SafeContentResolver.openSafeInputStream` to support physical file descriptors and virtual cloud documents (Google Drive, OneDrive, MediaStore) while enforcing strict 5MB text and 50MB stream bounds.\n• Added comprehensive Android JVM security unit test suite in `SafeContentResolverTest.java` verifying scheme validation, authority normalization, and directory traversal protections.",
+  "whatsNew": "• Hardened Android intent content resolution boundary with dynamic `PackageManager` provider self-exclusion in `SafeContentResolver` to prevent Confused Deputy attacks.\n• Modernized native-to-web IPC bridge by replacing dynamic `evaluateJavascript` execution with structured Capacitor events (`AppInstallerPlugin.instance.emitSharedFileReceived`) for secure shared file delivery.\n• Implemented static enum theme matcher in `MainActivity.kt` ensuring zero untrusted script execution in WebView context.\n• Streamlined `SafeContentResolver.openSafeInputStream` to support physical file descriptors and virtual cloud documents (Google Drive, OneDrive, MediaStore) while enforcing strict 5MB text and 50MB stream bounds.\n• Added comprehensive Android JVM security unit test suite in `SafeContentResolverTest.java` verifying scheme validation, authority normalization, and directory traversal protections.",
   "releaseNotes": {
     "added": [
-      "Implemented production-quality live-blur liquid-glass treatment for the shared Studio top bar with specular highlight rim, multi-layer gradient depth, and GPU compositing layer promotion (`transform: translateZ(0)`).",
-      "Upgraded top bar theme tokens with calibrated contrast, bevel reflections, and solid fallback tints for Dark, Light, and AMOLED modes.",
-      "Added dynamic app-specific bottom navigation items, elastic gliding active indicator highlight, and smooth drag-to-scrub navigation gestures.",
-      "Cleaned Stagex production UI by eliminating the intrusive in-screen diagnostics floating overlay while preserving full telemetry in DevTools.",
-      "Added bottom navigation startup lifecycle guard to prevent premature mounting or visual bleed-through during Studio boot/startup animation."
+      "Hardened Android intent content resolution boundary with dynamic `PackageManager` provider self-exclusion in `SafeContentResolver` to prevent Confused Deputy attacks.",
+      "Modernized native-to-web IPC bridge by replacing dynamic `evaluateJavascript` execution with structured Capacitor events (`AppInstallerPlugin.instance.emitSharedFileReceived`) for secure shared file delivery.",
+      "Implemented static enum theme matcher in `MainActivity.kt` ensuring zero untrusted script execution in WebView context.",
+      "Streamlined `SafeContentResolver.openSafeInputStream` to support physical file descriptors and virtual cloud documents (Google Drive, OneDrive, MediaStore) while enforcing strict 5MB text and 50MB stream bounds.",
+      "Added comprehensive Android JVM security unit test suite in `SafeContentResolverTest.java` verifying scheme validation, authority normalization, and directory traversal protections."
     ]
   },
   "mandatory": false

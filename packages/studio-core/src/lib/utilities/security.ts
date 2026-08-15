@@ -6,8 +6,6 @@
  * tamper detection, and transparent backward-compatible migration for legacy payloads.
  */
 
-const SECURITY_MIGRATION_LOG_KEY = 'studio_security_migrations';
-
 // ── 1. Web Crypto CSPRNG & Encoding Helpers ─────────────────────────────────
 
 export function getRandomBytes(count: number): Uint8Array {
@@ -46,15 +44,17 @@ function bytesToString(bytes: Uint8Array): string {
 
 // ── 2. Migration Logger ──────────────────────────────────────────────────────
 
+const inMemoryMigrationLogs: Array<{
+  storageName: string;
+  fromVersion: string;
+  toVersion: string;
+  timestamp: number;
+}> = [];
+
 export function reportMigration(storageName: string, fromVersion: string, toVersion: string): void {
-  try {
-    const entry = { storageName, fromVersion, toVersion, timestamp: Date.now() };
-    const logsStr = localStorage.getItem(SECURITY_MIGRATION_LOG_KEY) || '[]';
-    const logs = JSON.parse(logsStr);
-    logs.push(entry);
-    if (logs.length > 50) logs.shift();
-    localStorage.setItem(SECURITY_MIGRATION_LOG_KEY, JSON.stringify(logs));
-  } catch (_) {}
+  const entry = { storageName, fromVersion, toVersion, timestamp: Date.now() };
+  inMemoryMigrationLogs.push(entry);
+  if (inMemoryMigrationLogs.length > 50) inMemoryMigrationLogs.shift();
 }
 
 // ── 3. Synchronous Derived Key Cache for Local Storage ───────────────────────

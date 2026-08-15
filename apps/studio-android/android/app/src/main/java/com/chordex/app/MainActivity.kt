@@ -573,7 +573,7 @@ class MainActivity : BridgeActivity() {
             fileObj.put("fileName", fileName)
 
             if (fileName.endsWith(".json") || mimeType.contains("json")) {
-                val jsonContent = SafeContentResolver.readSafeTextContent(this, uri, 10 * 1024 * 1024) ?: return
+                val jsonContent = SafeContentResolver.readSafeTextContent(this, uri) ?: return
 
                 fileObj.put("type", "json")
                 fileObj.put("data", jsonContent)
@@ -598,9 +598,10 @@ class MainActivity : BridgeActivity() {
         if (this.bridge == null || this.bridge.webView == null) return
         runOnUiThread {
             try {
-                val escapedData = data.replace("\\", "\\\\").replace("'", "\\'").replace("\\n", "\\\\n").replace("\\r", "\\\\r")
-                val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
-                val js = "window.dispatchEvent(new CustomEvent('$eventName', { detail: { data: '$escapedData', fileName: '$escapedFileName' } }));"
+                val quotedEventName = org.json.JSONObject.quote(eventName)
+                val quotedData = org.json.JSONObject.quote(data)
+                val quotedFileName = org.json.JSONObject.quote(fileName)
+                val js = "window.dispatchEvent(new CustomEvent($quotedEventName, { detail: { data: $quotedData, fileName: $quotedFileName } }));"
                 this.bridge.webView.evaluateJavascript(js, null)
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Failed to evaluate JS: " + e.message)

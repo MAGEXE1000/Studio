@@ -89,7 +89,6 @@ const NavigationItem = React.memo(
     isLight = false,
     isSwitcherOpen,
     activeIdxSpring,
-    scrollOffsetSpring,
     activeIndex,
     onMeasureGeometry,
     innerWrapperRef,
@@ -102,7 +101,6 @@ const NavigationItem = React.memo(
     isLight?: boolean;
     isSwitcherOpen?: boolean;
     activeIdxSpring: any;
-    scrollOffsetSpring?: any;
     activeIndex?: number;
     onMeasureGeometry?: (index: number, width: number, leftOffset: number) => void;
     innerWrapperRef?: React.RefObject<HTMLDivElement | null>;
@@ -111,37 +109,13 @@ const NavigationItem = React.memo(
     const isIconString = typeof item.icon === 'string';
     const contentRef = useRef<HTMLDivElement | null>(null);
 
-    // Continuous motion derivation for label & icon state based on distance from activeIdxSpring
+    // Continuous motion derivation for label & icon state based on distance from activeIdxSpring.
+    // Items do NOT independently translate/fade on scroll — the container-level scale is the sole
+    // collapse driver (unified-object collapse). Only the active/inactive label expand/contract
+    // remains, which is purely active-index driven.
     const distance = useTransform(activeIdxSpring, (val: number) => Math.abs(val - index));
-    const labelOpacity = useTransform(distance, [0, 0.45], [1, 0]);
+    const finalLabelOpacity = useTransform(distance, [0, 0.45], [1, 0]);
     const labelScale = useTransform(distance, [0, 0.45], [1, 0.85]);
-
-    // Scroll collapse: non-active items fade, scale down, and shift inward toward active item
-    const itemOpacity = useTransform(scrollOffsetSpring || activeIdxSpring, (s: number) => {
-      if (!scrollOffsetSpring) return 1;
-      if (isActive) return 1;
-      return Math.max(0, 1 - (s as number) * 2.2);
-    });
-
-    const itemScale = useTransform(scrollOffsetSpring || activeIdxSpring, (s: number) => {
-      if (!scrollOffsetSpring) return 1;
-      if (isActive) return 1;
-      return Math.max(0.72, 1 - (s as number) * 0.32);
-    });
-
-    const itemX = useTransform(scrollOffsetSpring || activeIdxSpring, (s: number) => {
-      if (!scrollOffsetSpring || typeof activeIndex !== 'number') return 0;
-      if (isActive) return 0;
-      return (activeIndex - index) * (s as number) * 16;
-    });
-
-    const finalLabelOpacity = useTransform(
-      [labelOpacity, scrollOffsetSpring || activeIdxSpring],
-      ([lo, so]) => {
-        if (!scrollOffsetSpring) return lo as number;
-        return (lo as number) * Math.max(0, 1 - (so as number) * 2.8);
-      }
-    );
 
     const handleMeasure = useCallback(() => {
       if (contentRef.current && onMeasureGeometry) {
@@ -197,9 +171,6 @@ const NavigationItem = React.memo(
           padding: '0 6px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
-          opacity: itemOpacity,
-          scale: itemScale,
-          x: itemX,
         }}
       >
         <motion.div
@@ -687,8 +658,9 @@ export function SharedNavigationBar({
   const pressPressureRaw = useMotionValue(0);
 
   // Synchronized Apple-grade spring physics
+  // scrollOffsetSpring: stiffness/damping tuned for settled, premium one-piece collapse feel
   const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
-  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 400, damping: 25, mass: 0.8 });
+  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 340, damping: 28, mass: 0.9 });
   const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
   const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
 
@@ -714,7 +686,8 @@ export function SharedNavigationBar({
     scrollOffsetSpring.jump(0);
   }, [currentApp, items, scrollOffsetRaw, scrollOffsetSpring]);
 
-  // Scale navigation by 15% towards center-center (1.00 -> 0.85) on scroll down with zero vertical translation or hiding
+  // Scale navigation bar as ONE physical object toward its own geometric center (1.00 → 0.85).
+  // No width/height animation — purely compositor-friendly transform.
   const containerScale = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
@@ -723,27 +696,14 @@ export function SharedNavigationBar({
     }
   );
 
-  // Dynamic composition centering for all 6 modules (Hub, Chordex, Drumex, Stagex, Groovex, Vocalex):
-  // On scroll down (1.00 -> 0.85 scale), glass-nav translates subtly right (+10px) towards screen composition center,
-  // and floating right bubble translates left (-12px) toward glass-nav so both elements converge symmetrically.
+  // Mild composition centering: glass-nav shifts subtly toward screen center on collapse.
+  // Removed the switcherX shift — Search/App Changer now fades in-place (opacity-only).
   const targetDockShift = useMemo(() => {
     if (!hasRightBubble) return 0;
     return 10;
   }, [hasRightBubble]);
 
-  const targetSwitcherShift = useMemo(() => {
-    if (!hasRightBubble) return 0;
-    return -6;
-  }, [hasRightBubble]);
-
-  // Dynamic bar width morphing on scroll down
-  const collapsedBarWidth = isSwitcherOpen ? 52 : 72;
-  const barWidthVal = useTransform(
-    scrollOffsetSpring,
-    [0, 1],
-    [`${barWidth}px`, `${collapsedBarWidth}px`]
-  );
-
+  // Search/App Changer: opacity-only fade on scroll. No scale, no translation.
   const switcherOpacity = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
@@ -752,20 +712,11 @@ export function SharedNavigationBar({
     }
   );
 
-  const switcherScale = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
-    if ((search as number) > 0.1) return 1.0;
-    return 1.0 - (offset as number) * 0.12;
-  });
-
-  // Subtle inward horizontal translation towards screen center composition on scroll down
+  // Subtle inward horizontal translation of glass-nav towards screen center composition on scroll down.
+  // Only the navbar itself shifts; the floating right bubble stays in place (fades in-place).
   const navX = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
     if ((search as number) > 0.1) return 0;
     return (offset as number) * targetDockShift;
-  });
-
-  const switcherX = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
-    if ((search as number) > 0.1) return 0;
-    return (offset as number) * targetSwitcherShift;
   });
 
   // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
@@ -1435,21 +1386,19 @@ export function SharedNavigationBar({
               style={{
                 pointerEvents: 'auto',
                 justifySelf: 'center',
-                width: barWidthVal,
+                // Bar renders at its natural computed width. Visual collapse comes from
+                // containerScale (transform only — no layout reflow) so the collapse looks
+                // like ONE physical object scaling toward its center.
+                width: barWidth,
                 maxWidth: `${barWidth}px`,
                 height: '64px',
                 borderRadius: '9999px',
-                border: isLight
-                  ? '1px solid rgba(255, 255, 255, 0.85)'
-                  : '1px solid rgba(255, 255, 255, 0.15)',
-                background: isLight
-                  ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 248, 255, 0.70) 100%)'
-                  : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
-                boxShadow: isLight
-                  ? '0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03)'
-                  : '0 24px 48px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1.2px 1.8px rgba(255, 255, 255, 0.30), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
-                backdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
-                WebkitBackdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
+                // Design tokens handle dark / light / AMOLED / system theme variants automatically.
+                border: 'var(--surface-topbar-border)',
+                background: 'var(--surface-topbar-bg)',
+                boxShadow: 'var(--surface-topbar-shadow)',
+                backdropFilter: 'var(--surface-float-blur)',
+                WebkitBackdropFilter: 'var(--surface-float-blur)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
@@ -1538,7 +1487,6 @@ export function SharedNavigationBar({
                           isLight={isLight}
                           isSwitcherOpen={isSwitcherOpen}
                           activeIdxSpring={activeIdxSpring}
-                          scrollOffsetSpring={scrollOffsetSpring}
                           activeIndex={activeIndex}
                           onMeasureGeometry={handleMeasureGeometry}
                           innerWrapperRef={innerWrapperRef}
@@ -1639,17 +1587,12 @@ export function SharedNavigationBar({
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: isLight
-                      ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 248, 255, 0.70) 100%)'
-                      : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
-                    border: isLight
-                      ? '1px solid rgba(255, 255, 255, 0.85)'
-                      : '1px solid rgba(255, 255, 255, 0.15)',
-                    backdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
-                    WebkitBackdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
-                    boxShadow: isLight
-                      ? '0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03)'
-                      : '0 24px 48px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1.2px 1.8px rgba(255, 255, 255, 0.30), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
+                    // Same material family as the glass nav — design tokens handle all themes.
+                    background: 'var(--surface-topbar-bg)',
+                    border: 'var(--surface-topbar-border)',
+                    backdropFilter: 'var(--surface-float-blur)',
+                    WebkitBackdropFilter: 'var(--surface-float-blur)',
+                    boxShadow: 'var(--surface-topbar-shadow)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1658,9 +1601,8 @@ export function SharedNavigationBar({
                     outline: 'none',
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
-                    scale: switcherScale,
+                    // Opacity-only fade on scroll — no scale, no translation (spec requirement).
                     opacity: switcherOpacity,
-                    x: switcherX,
                   }}
                 >
                   <span className="material-symbols-outlined text-[20px]">search</span>
@@ -1677,17 +1619,12 @@ export function SharedNavigationBar({
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: isLight
-                      ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 248, 255, 0.70) 100%)'
-                      : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
-                    border: isLight
-                      ? '1px solid rgba(255, 255, 255, 0.85)'
-                      : '1px solid rgba(255, 255, 255, 0.15)',
-                    backdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
-                    WebkitBackdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
-                    boxShadow: isLight
-                      ? '0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03)'
-                      : '0 24px 48px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1.2px 1.8px rgba(255, 255, 255, 0.30), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
+                    // Same material family as the glass nav — design tokens handle all themes.
+                    background: 'var(--surface-topbar-bg)',
+                    border: 'var(--surface-topbar-border)',
+                    backdropFilter: 'var(--surface-float-blur)',
+                    WebkitBackdropFilter: 'var(--surface-float-blur)',
+                    boxShadow: 'var(--surface-topbar-shadow)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1702,9 +1639,8 @@ export function SharedNavigationBar({
                     outline: 'none',
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
-                    scale: switcherScale,
+                    // Opacity-only fade on scroll — no scale, no translation (spec requirement).
                     opacity: switcherOpacity,
-                    x: switcherX,
                   }}
                 >
                   <motion.span

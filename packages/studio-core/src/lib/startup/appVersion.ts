@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.33';
-export const NATIVE_VERSION_CODE = 40533;
-export const WEB_VERSION = '4.5.33';
+export const NATIVE_VERSION = '4.5.34';
+export const NATIVE_VERSION_CODE = 40534;
+export const WEB_VERSION = '4.5.34';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '580be8dd';
+export const APP_COMMIT_SHA = '032ccc9d';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/19/2026, 7:05:21 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/19/2026, 8:04:50 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,11 +98,10 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Modernized Studio Hub and bottom navigation dock with layered translucent liquid-glass controls, specular highlight reflections, and dynamic spring physics.',
-      'Implemented interruptible scroll-driven bottom navigation collapse choreography where inactive items fade and shift inward toward active item, morphing the dock into a compact pill island.',
-      'Upgraded HubAppGrid launcher cards with spring touch feedback, specular border highlights, and ambient app brand color glow.',
-      'Coordinated Studio Hub header and pinned quick action shortcuts with scroll-responsive compression and liquid-glass circular styling.',
-      'Modernized Hub-owned settings and profile screens with elevated glass cards and ambient profile avatar rings.',
+      'Redesigned mobile bottom navigation with unified-object center-anchor collapse scaling (`containerScale`), eliminating internal item layout reflow.',
+      'Replaced multi-transform Search / App Changer bubble animation with in-place opacity-only fade during downward scroll.',
+      'Migrated bottom navigation dock and floating bubble materials to canonical CSS design tokens (`--surface-topbar-*`, `--surface-float-blur`) with full Dark, Light, and AMOLED compatibility.',
+      'Retuned navigation spring physics to critically damped curves (`stiffness: 340, damping: 28, mass: 0.9`) for a smooth, physical, native feel.',
     ],
   },
 ];

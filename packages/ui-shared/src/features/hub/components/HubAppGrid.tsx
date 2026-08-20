@@ -130,7 +130,7 @@ export function HubAppGrid() {
             </div>
             <div
               style={{
-                fontSize: 11,
+                fontSize: 'var(--font-section-label)',
                 color: 'var(--c-text-secondary)',
                 fontFamily: 'Inter, sans-serif',
                 opacity: 0.85,

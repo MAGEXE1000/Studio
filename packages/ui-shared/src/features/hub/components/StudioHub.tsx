@@ -6754,7 +6754,7 @@ User Agent: [Automatically Generated]
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <span
                               className="material-symbols-outlined"
-                              style={{ color: accent.from, fontSize: 24 }}
+                              style={{ color: accent.from, fontSize: 'var(--font-display-sm)' }}
                             >
                               system_update
                             </span>

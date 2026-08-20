@@ -55,9 +55,7 @@ export function SettingRow({
       className="flex items-center justify-between gap-4"
       style={{
         padding: 'var(--density-row-pad, 14px 20px)',
-        paddingLeft: indent
-          ? 'calc(var(--spacing-md, 16px) * 1.75)'
-          : 'var(--spacing-md, 16px)',
+        paddingLeft: indent ? 'calc(var(--spacing-md, 16px) * 1.75)' : 'var(--spacing-md, 16px)',
         borderBottom: '1px solid rgba(128,128,128,0.08)',
       }}
     >
@@ -167,8 +165,6 @@ export function SegmentedControl<T extends string>({
   );
 }
 
-
-
 export function BentoSettingCard({
   icon,
   iconColor,
@@ -210,7 +206,15 @@ export function BentoSettingCard({
         animationDelay: `${delay}ms`,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--density-list-item-gap, 16px)', minWidth: 0, flex: 1 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--density-list-item-gap, 16px)',
+          minWidth: 0,
+          flex: 1,
+        }}
+      >
         <div
           style={{
             width: 'calc(var(--density-icon-size, 22px) * 2)',
@@ -349,7 +353,15 @@ export function BentoSettingRow({
         animationDelay: `${delay}ms`,
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--density-list-item-gap, 16px)', minWidth: 0, flex: 1 }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 'var(--density-list-item-gap, 16px)',
+          minWidth: 0,
+          flex: 1,
+        }}
+      >
         <span
           className="material-symbols-outlined"
           style={{
@@ -446,7 +458,7 @@ export function SettingSection({
   className?: string;
 }) {
   return (
-    <div className={`flex flex-col ${className}`} style={{ gap: 'var(--spacing-xs, 4px)' }}>
+    <div className={`flex flex-col ${className}`} style={{ gap: 'var(--spacing-xs, 6px)' }}>
       <span
         className="px-1 text-[9.5px] font-extrabold uppercase tracking-wider"
         style={{ letterSpacing: '0.06em', color: 'var(--c-text-tertiary, #808080)' }}
@@ -455,10 +467,13 @@ export function SettingSection({
       </span>
       <div
         style={{
-          border: '1px solid var(--c-border, rgba(128, 128, 128, 0.15))',
-          backgroundColor: 'var(--app-surface-low, rgba(128, 128, 128, 0.08))',
-          borderRadius: 'var(--density-card-radius, var(--radius-lg))',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          backgroundColor: 'var(--c-surface-glass-bg, rgba(255, 255, 255, 0.03))',
+          borderRadius: 'var(--density-card-radius, 20px)',
           overflow: 'hidden',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
         }}
       >
         {children}

@@ -10,41 +10,86 @@ interface AccountProfileHeaderProps {
   accentFrom?: string;
 }
 
-export function AccountProfileHeader({ user, customPhoto, accentFrom = '#3b82f6' }: AccountProfileHeaderProps) {
+export function AccountProfileHeader({
+  user,
+  customPhoto,
+  accentFrom = '#3b82f6',
+}: AccountProfileHeaderProps) {
   const photo = customPhoto || user?.photoURL;
   const name = user?.displayName || 'Studio User';
   const email = user?.email || 'No email attached';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0' }}>
-      {photo ? (
-        <img
-          src={photo}
-          alt=""
-          style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover' }}
-          referrerPolicy="no-referrer"
-        />
-      ) : (
-        <div
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 0' }}>
+      <div
+        style={{
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          padding: 2,
+          background: `linear-gradient(135deg, ${accentFrom} 0%, rgba(255, 255, 255, 0.4) 100%)`,
+          boxShadow: `0 4px 16px ${accentFrom}30, inset 0 1px 1px rgba(255, 255, 255, 0.40)`,
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {photo ? (
+          <img
+            src={photo}
+            alt=""
+            style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }}
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              backgroundColor: 'var(--c-surface-mid, #1c1c1e)',
+              color: '#fff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 22,
+              fontWeight: 800,
+              fontFamily: 'Manrope, sans-serif',
+            }}
+          >
+            {name.charAt(0).toUpperCase()}
+          </div>
+        )}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <span
           style={{
-            width: 52,
-            height: 52,
-            borderRadius: '50%',
-            backgroundColor: accentFrom,
-            color: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 22,
-            fontWeight: 700,
+            fontSize: 17,
+            fontWeight: 800,
+            color: 'var(--c-text-primary)',
+            fontFamily: 'Manrope, sans-serif',
+            letterSpacing: '-0.02em',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
           }}
         >
-          {name.charAt(0).toUpperCase()}
-        </div>
-      )}
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--c-text-primary)' }}>{name}</span>
-        <span style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>{email}</span>
+          {name}
+        </span>
+        <span
+          style={{
+            fontSize: 13,
+            color: 'var(--c-text-secondary)',
+            fontFamily: 'Inter, sans-serif',
+            opacity: 0.85,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {email}
+        </span>
       </div>
     </div>
   );

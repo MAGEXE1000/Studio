@@ -1,7 +1,68 @@
 import { Capacitor } from '@capacitor/core';
 import { Button, StatefulButton } from '../../../shared/design-system/buttons';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
-import { useBackHandler, type AuthUser, subscribeSyncStatus, type SyncStatus, deviceId, getConflictLogs, clearConflictLogs, createCloudBackup, getSyncDiagnostics, pushLocalSettingsToCloud, pullCloudSettingsFromCloud, registerDevice, registerCurrentDevice, reconnectDevices, useChordStore, ACCENT_COLORS, type AnimationSpeed, type DisplayDensity, type AppKey, type PerAppVisuals, useNavHidden, useNavCollapsed, useScrollHide, setNavHidden, useT, APP_VERSION_LABEL, APP_VERSION_TAG, APP_VERSION_DATE, compareSemver, APP_VERSION, getChangelogSections, RELEASE_HISTORY, useAppUpdate, updateDebugLogs, updateDiagnostics, checkForUpdate, resetAppUpdateState, isAppInstallerAvailable, applyUpdate, fadeToBlackAndReload, resolveApkUrl, downloadAndInstallApk, resolveReleasePageUrl, useIsWebDesktop, useStudioPreferences, registerDebugProvider, unregisterDebugProvider, recordNavigation, getFirestoreDiagnostics, getNavigationEntries, resetNav, useNavigationStore, NavigationDispatcher, useBottomNavigationStore, useSettingsStore, DurationPresets, EasingPresets, SpringPresets, authRepository } from "@workspace/studio-core";
+import {
+  useBackHandler,
+  type AuthUser,
+  subscribeSyncStatus,
+  type SyncStatus,
+  deviceId,
+  getConflictLogs,
+  clearConflictLogs,
+  createCloudBackup,
+  getSyncDiagnostics,
+  pushLocalSettingsToCloud,
+  pullCloudSettingsFromCloud,
+  registerDevice,
+  registerCurrentDevice,
+  reconnectDevices,
+  useChordStore,
+  ACCENT_COLORS,
+  type AnimationSpeed,
+  type DisplayDensity,
+  type AppKey,
+  type PerAppVisuals,
+  useNavHidden,
+  useNavCollapsed,
+  useNavScrollOffset,
+  useScrollHide,
+  setNavHidden,
+  useT,
+  APP_VERSION_LABEL,
+  APP_VERSION_TAG,
+  APP_VERSION_DATE,
+  compareSemver,
+  APP_VERSION,
+  getChangelogSections,
+  RELEASE_HISTORY,
+  useAppUpdate,
+  updateDebugLogs,
+  updateDiagnostics,
+  checkForUpdate,
+  resetAppUpdateState,
+  isAppInstallerAvailable,
+  applyUpdate,
+  fadeToBlackAndReload,
+  resolveApkUrl,
+  downloadAndInstallApk,
+  resolveReleasePageUrl,
+  useIsWebDesktop,
+  useStudioPreferences,
+  registerDebugProvider,
+  unregisterDebugProvider,
+  recordNavigation,
+  getFirestoreDiagnostics,
+  getNavigationEntries,
+  resetNav,
+  useNavigationStore,
+  NavigationDispatcher,
+  useBottomNavigationStore,
+  useSettingsStore,
+  DurationPresets,
+  EasingPresets,
+  SpringPresets,
+  authRepository,
+} from '@workspace/studio-core';
 import {
   getUpdateHistory,
   StartupCoordinator,
@@ -20,7 +81,14 @@ import React, {
   useCallback,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence, useMotionValue, motionValue, animate, Reorder } from 'motion/react';
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  motionValue,
+  animate,
+  Reorder,
+} from 'motion/react';
 import { HubAppGrid } from './HubAppGrid';
 import {
   StudioLogo,
@@ -53,7 +121,10 @@ import {
 import ProfileDropdown from '../../auth/components/ProfileDropdown';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { StudioSkeletonProfile, StudioSkeletonList } from '../../../shared/loading/StudioSkeleton';
-import { SettingsScaffold, SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
+import {
+  SettingsScaffold,
+  SettingsContentContainer,
+} from '../../../shared/layout/StudioLayoutSystem';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { ProgressiveBlur } from '../../../shared/design-system/ProgressiveBlur';
 import { SharedNavigationBar } from '../navigation/SharedNavigationBar';
@@ -75,7 +146,10 @@ const syncController = {
   },
 };
 
-import AccountCard, { AccountDangerZone, AccountSettingsPage } from '../../auth/components/AccountCard';
+import AccountCard, {
+  AccountDangerZone,
+  AccountSettingsPage,
+} from '../../auth/components/AccountCard';
 import DevToolsDashboard from '../../devtools/components/DevToolsDashboard';
 
 import {
@@ -94,7 +168,10 @@ import {
   getSessionIndex,
 } from './hubConstants';
 import { FAQ_ITEMS, HelpAccordion } from './faqConstants';
-import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
+import {
+  BouncyAccordion,
+  type BouncyAccordionItem,
+} from '../../../components/motion/bouncy-accordion';
 
 const ALL_SHORTCUT_OPTIONS = [
   {
@@ -294,28 +371,28 @@ const ALL_SHORTCUT_OPTIONS = [
 const SHORTCUT_LABEL_MAP: Record<string, { en: string; es: string }> = {
   'chords-songs': { en: 'Songs', es: 'Canciones' },
   'chords-practice': { en: 'Practice', es: 'Práctica' },
-  'drumex': { en: 'Drums', es: 'Batería' },
-  'stagex': { en: 'Console', es: 'Consola' },
-  'groovex': { en: 'Groovex', es: 'Groovex' },
+  drumex: { en: 'Drums', es: 'Batería' },
+  stagex: { en: 'Console', es: 'Consola' },
+  groovex: { en: 'Groovex', es: 'Groovex' },
   'vocalex-coach': { en: 'Coach', es: 'Entrenador' },
   'vocalex-pitch': { en: 'Pitch', es: 'Tono' },
-  'developer': { en: 'Dev', es: 'Desarrollador' },
-  'notifications': { en: 'Alerts', es: 'Alertas' },
-  'help': { en: 'Help', es: 'Ayuda' },
-  'settings': { en: 'Settings', es: 'Ajustes' },
-  'updater': { en: 'Updates', es: 'Actualiz.' },
-  'sync': { en: 'Sync', es: 'Sincro' },
-  'backup': { en: 'Backup', es: 'Copia' },
-  'appearance': { en: 'Style', es: 'Estilo' },
-  'language': { en: 'Lang', es: 'Idioma' },
-  'faq': { en: 'FAQ', es: 'FAQ' },
+  developer: { en: 'Dev', es: 'Desarrollador' },
+  notifications: { en: 'Alerts', es: 'Alertas' },
+  help: { en: 'Help', es: 'Ayuda' },
+  settings: { en: 'Settings', es: 'Ajustes' },
+  updater: { en: 'Updates', es: 'Actualiz.' },
+  sync: { en: 'Sync', es: 'Sincro' },
+  backup: { en: 'Backup', es: 'Copia' },
+  appearance: { en: 'Style', es: 'Estilo' },
+  language: { en: 'Lang', es: 'Idioma' },
+  faq: { en: 'FAQ', es: 'FAQ' },
   'bug-report': { en: 'Bugs', es: 'Fallos' },
   'keyboard-shortcuts': { en: 'Keys', es: 'Teclas' },
   'vocalex-takes': { en: 'Takes', es: 'Tomas' },
   'stage-setlist': { en: 'Setlist', es: 'Setlist' },
   'stage-gear': { en: 'Gear', es: 'Equipos' },
   'stage-members': { en: 'Crew', es: 'Banda' },
-  'diagnostics': { en: 'Diag', es: 'Diag' },
+  diagnostics: { en: 'Diag', es: 'Diag' },
 };
 
 function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): GreetingPair {
@@ -427,7 +504,9 @@ export default function StudioHub() {
   }, []);
 
   useEffect(() => {
-    console.log(`[STARTUP-TRACE] StudioHub: mount useEffect fired at ${performance.now().toFixed(0)}ms, calling notifyHubMounted()`);
+    console.log(
+      `[STARTUP-TRACE] StudioHub: mount useEffect fired at ${performance.now().toFixed(0)}ms, calling notifyHubMounted()`
+    );
     StartupCoordinator.notifyHubMounted();
     (window as any).__studioHubReady = true;
     window.dispatchEvent(new CustomEvent('studio:hub-ready'));
@@ -460,7 +539,6 @@ export default function StudioHub() {
     (settings.theme === 'system' &&
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
-
 
   const [langQuery, setLangQuery] = useState('');
   const [shortcutPickerOpen, setShortcutPickerOpen] = useState(false);
@@ -534,23 +612,23 @@ export default function StudioHub() {
         matchedId = 'updater';
       }
       if (matchedId) {
-        const cand = candidates.find(c => c.id === matchedId);
+        const cand = candidates.find((c) => c.id === matchedId);
         if (cand) cand.score += recencyWeight;
       }
     });
 
     const suggested = candidates
-      .filter(c => !shortcuts.includes(c.id))
+      .filter((c) => !shortcuts.includes(c.id))
       .sort((a, b) => b.score - a.score);
 
     const defaults = ['chords-practice', 'notifications', 'settings', 'help', 'updater', 'sync'];
     for (const defId of defaults) {
       if (suggested.length >= 4) break;
-      if (!shortcuts.includes(defId) && !suggested.some(s => s.id === defId)) {
+      if (!shortcuts.includes(defId) && !suggested.some((s) => s.id === defId)) {
         suggested.push({ id: defId, score: -1 });
       }
     }
-    return suggested.slice(0, 4).map(s => s.id);
+    return suggested.slice(0, 4).map((s) => s.id);
   };
 
   const activeRouteApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
@@ -734,6 +812,7 @@ export default function StudioHub() {
           : helpScrollRef;
 
   useScrollHide(activeScrollRef, tab);
+  const navScrollOffset = useNavScrollOffset();
 
   const isFirstAuthRun = useRef(true);
 
@@ -1108,8 +1187,6 @@ export default function StudioHub() {
     return list.slice(0, 3);
   }, [formatTimeAgo, launchApp]);
 
-
-
   return (
     <div
       data-livex-hub-root="true"
@@ -1179,7 +1256,17 @@ export default function StudioHub() {
                       className="flex flex-col gap-6 w-full"
                     >
                       {/* Greetings Section & Logo Header Row */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+                      <motion.div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          width: '100%',
+                          transform: `translateY(${navScrollOffset * -8}px)`,
+                          opacity: Math.max(0.7, 1 - navScrollOffset * 0.3),
+                          transition: 'transform 150ms ease-out, opacity 150ms ease-out',
+                        }}
+                      >
                         <section className="space-y-1" style={{ flex: 1, minWidth: 0 }}>
                           <h2
                             style={{
@@ -1202,14 +1289,39 @@ export default function StudioHub() {
                             {subtitle}
                           </p>
                         </section>
-                        <div style={{ color: 'var(--c-text-primary)', marginLeft: 16, marginTop: 4, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+                        <div
+                          style={{
+                            color: 'var(--c-text-primary)',
+                            marginLeft: 16,
+                            marginTop: 4,
+                            display: 'flex',
+                            alignItems: 'center',
+                            flexShrink: 0,
+                          }}
+                        >
                           <StudioLogo size={32} />
                         </div>
-                      </div>
+                      </motion.div>
 
                       {/* Pinned Quick Actions Section */}
-                      <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <motion.section
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 12,
+                          transform: `scale(${1 - navScrollOffset * 0.03})`,
+                          opacity: Math.max(0.85, 1 - navScrollOffset * 0.15),
+                          transformOrigin: 'top center',
+                          transition: 'transform 150ms ease-out, opacity 150ms ease-out',
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                          }}
+                        >
                           <h3
                             style={{
                               fontFamily: 'Inter',
@@ -1290,100 +1402,171 @@ export default function StudioHub() {
                             {shortcuts.slice(0, 5).map((id) => {
                               const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
                               if (!opt) return null;
-                              const mappedLabel = SHORTCUT_LABEL_MAP[id] || { en: opt.titleEn.split(' ')[0], es: opt.titleEs.split(' ')[0] };
+                              const mappedLabel = SHORTCUT_LABEL_MAP[id] || {
+                                en: opt.titleEn.split(' ')[0],
+                                es: opt.titleEs.split(' ')[0],
+                              };
                               const displayLabel = lang === 'es' ? mappedLabel.es : mappedLabel.en;
 
                               return (
                                 <Reorder.Item
                                   key={id}
                                   value={id}
-                                  drag={isEditMode ? "x" : false}
+                                  drag={isEditMode ? 'x' : false}
                                   dragConstraints={gridRef}
                                   dragElastic={0}
+                                  style={{
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    cursor: isEditMode ? 'grab' : 'pointer',
+                                    position: 'relative',
+                                    userSelect: 'none',
+                                  }}
+                                  onPointerDown={startLongPressTimer}
+                                  onPointerUp={clearLongPressTimer}
+                                  onPointerCancel={clearLongPressTimer}
+                                  onPointerLeave={clearLongPressTimer}
+                                  onClick={() => {
+                                    if (!isEditMode) {
+                                      handleShortcutClick(id);
+                                    }
+                                  }}
+                                >
+                                  <motion.div
+                                    animate={
+                                      isEditMode
+                                        ? {
+                                            rotate: [0, -1.2, 0, 1.2, 0],
+                                            transition: {
+                                              duration: 0.28,
+                                              repeat: Infinity,
+                                              ease: 'easeInOut',
+                                            },
+                                          }
+                                        : { rotate: 0 }
+                                    }
+                                    style={{
+                                      width: '48px',
+                                      height: '48px',
+                                      borderRadius: '50%',
+                                      background: isLight
+                                        ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 248, 255, 0.70) 100%)'
+                                        : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
+                                      border: isLight
+                                        ? '1px solid rgba(255, 255, 255, 0.90)'
+                                        : '1px solid rgba(255, 255, 255, 0.14)',
+                                      backdropFilter: 'blur(24px) saturate(180%)',
+                                      WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+                                      boxShadow: isLight
+                                        ? '0 6px 20px rgba(0, 0, 0, 0.06), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), 0 2px 6px rgba(0, 0, 0, 0.03)'
+                                        : '0 8px 24px rgba(0, 0, 0, 0.30), inset 0 1px 1.5px rgba(255, 255, 255, 0.22), 0 2px 8px rgba(0, 0, 0, 0.20)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      position: 'relative',
+                                    }}
+                                  >
+                                    <span
+                                      className="material-symbols-outlined"
+                                      style={{
+                                        color: accent.from,
+                                        fontSize: '20px',
+                                      }}
+                                    >
+                                      {opt.icon}
+                                    </span>
+
+                                    {isEditMode && (
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const newShortcuts = shortcuts.filter((x) => x !== id);
+                                          setShortcuts(newShortcuts);
+                                          localStorage.setItem(
+                                            'studio:quick-shortcuts',
+                                            JSON.stringify(newShortcuts)
+                                          );
+                                        }}
+                                        style={{
+                                          position: 'absolute',
+                                          top: -2,
+                                          right: -2,
+                                          background: '#f87171',
+                                          color: '#fff',
+                                          border: 'none',
+                                          borderRadius: '50%',
+                                          width: 16,
+                                          height: 16,
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          cursor: 'pointer',
+                                          padding: 0,
+                                          zIndex: 20,
+                                        }}
+                                      >
+                                        <span
+                                          className="material-symbols-outlined"
+                                          style={{ fontSize: 10, fontWeight: 'bold' }}
+                                        >
+                                          close
+                                        </span>
+                                      </button>
+                                    )}
+                                  </motion.div>
+                                  <span
+                                    style={{
+                                      fontSize: '11px',
+                                      fontWeight: 600,
+                                      color: 'var(--c-text-secondary)',
+                                      marginTop: '6px',
+                                      textAlign: 'center',
+                                      width: '100%',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {displayLabel}
+                                  </span>
+                                </Reorder.Item>
+                              );
+                            })}
+
+                            {shortcuts.length < 5 && !isEditMode && (
+                              <div
                                 style={{
                                   display: 'flex',
                                   flexDirection: 'column',
                                   alignItems: 'center',
-                                  cursor: isEditMode ? 'grab' : 'pointer',
-                                  position: 'relative',
-                                  userSelect: 'none',
+                                  cursor: 'pointer',
                                 }}
-                                onPointerDown={startLongPressTimer}
-                                onPointerUp={clearLongPressTimer}
-                                onPointerCancel={clearLongPressTimer}
-                                onPointerLeave={clearLongPressTimer}
-                                onClick={() => {
-                                  if (!isEditMode) {
-                                    handleShortcutClick(id);
-                                  }
-                                }}
+                                onClick={() => setShortcutPickerOpen(true)}
                               >
                                 <motion.div
-                                  animate={isEditMode ? {
-                                    rotate: [0, -1.2, 0, 1.2, 0],
-                                    transition: { duration: 0.28, repeat: Infinity, ease: "easeInOut" }
-                                  } : { rotate: 0 }}
+                                  whileTap={{ scale: 0.92 }}
                                   style={{
                                     width: '48px',
                                     height: '48px',
                                     borderRadius: '50%',
-                                    background: 'var(--surface-float-bg)',
-                                    border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                                    backdropFilter: 'blur(25px)', // token-guard-ignore
-                                    WebkitBackdropFilter: 'blur(25px)', // token-guard-ignore
-                                    boxShadow: isLight
-                                      ? '0 6px 20px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9)'
-                                      : '0 8px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+                                    background: 'transparent',
+                                    border: '1px dashed rgba(255, 255, 255, 0.25)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    position: 'relative',
                                   }}
                                 >
                                   <span
                                     className="material-symbols-outlined"
                                     style={{
-                                      color: accent.from,
+                                      color: 'var(--c-text-secondary)',
                                       fontSize: '20px',
+                                      opacity: 0.7,
                                     }}
                                   >
-                                    {opt.icon}
+                                    add
                                   </span>
-
-                                  {isEditMode && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        const newShortcuts = shortcuts.filter((x) => x !== id);
-                                        setShortcuts(newShortcuts);
-                                        localStorage.setItem(
-                                          'studio:quick-shortcuts',
-                                          JSON.stringify(newShortcuts)
-                                        );
-                                      }}
-                                      style={{
-                                        position: 'absolute',
-                                        top: -2,
-                                        right: -2,
-                                        background: '#f87171',
-                                        color: '#fff',
-                                        border: 'none',
-                                        borderRadius: '50%',
-                                        width: 16,
-                                        height: 16,
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        cursor: 'pointer',
-                                        padding: 0,
-                                        zIndex: 20,
-                                      }}
-                                    >
-                                      <span className="material-symbols-outlined" style={{ fontSize: 10, fontWeight: 'bold' }}>
-                                        close
-                                      </span>
-                                    </button>
-                                  )}
                                 </motion.div>
                                 <span
                                   style={{
@@ -1392,69 +1575,16 @@ export default function StudioHub() {
                                     color: 'var(--c-text-secondary)',
                                     marginTop: '6px',
                                     textAlign: 'center',
-                                    width: '100%',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  {displayLabel}
-                                </span>
-                              </Reorder.Item>
-                            );
-                          })}
-
-                          {shortcuts.length < 5 && !isEditMode && (
-                            <div
-                              style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => setShortcutPickerOpen(true)}
-                            >
-                              <motion.div
-                                whileTap={{ scale: 0.92 }}
-                                style={{
-                                  width: '48px',
-                                  height: '48px',
-                                  borderRadius: '50%',
-                                  background: 'transparent',
-                                  border: '1px dashed rgba(255, 255, 255, 0.25)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                }}
-                              >
-                                <span
-                                  className="material-symbols-outlined"
-                                  style={{
-                                    color: 'var(--c-text-secondary)',
-                                    fontSize: '20px',
                                     opacity: 0.7,
                                   }}
                                 >
-                                  add
+                                  {lang === 'es' ? 'Añadir' : 'Add'}
                                 </span>
-                              </motion.div>
-                              <span
-                                style={{
-                                  fontSize: '11px',
-                                  fontWeight: 600,
-                                  color: 'var(--c-text-secondary)',
-                                  marginTop: '6px',
-                                  textAlign: 'center',
-                                  opacity: 0.7,
-                                }}
-                              >
-                                {lang === 'es' ? 'Añadir' : 'Add'}
-                              </span>
-                            </div>
-                          )}
-                         </Reorder.Group>
+                              </div>
+                            )}
+                          </Reorder.Group>
                         </div>
-                      </section>
+                      </motion.section>
 
                       {/* Studio Modules grid columns */}
                       <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1966,7 +2096,14 @@ export default function StudioHub() {
                           JSON.stringify(newShortcuts)
                         );
                       }}
-                      style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: 0, margin: 0, listStyle: 'none' }}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                        padding: 0,
+                        margin: 0,
+                        listStyle: 'none',
+                      }}
                     >
                       {shortcuts.map((id) => {
                         const opt = ALL_SHORTCUT_OPTIONS.find((o) => o.id === id);
@@ -1997,7 +2134,11 @@ export default function StudioHub() {
                             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                               <span
                                 className="material-symbols-outlined"
-                                style={{ color: 'rgba(255, 255, 255, 0.3)', fontSize: 18, cursor: 'grab' }}
+                                style={{
+                                  color: 'rgba(255, 255, 255, 0.3)',
+                                  fontSize: 18,
+                                  cursor: 'grab',
+                                }}
                               >
                                 drag_indicator
                               </span>
@@ -2038,7 +2179,10 @@ export default function StudioHub() {
                                   cursor: 'pointer',
                                 }}
                               >
-                                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ fontSize: 18 }}
+                                >
                                   remove_circle
                                 </span>
                               </button>
@@ -2149,13 +2293,9 @@ export default function StudioHub() {
           </div>
         </div>
       )}
-
-
     </div>
   );
 }
-
-
 
 // ── App row (list item inside the combined card) ───────────────────────────────
 function AppRow({
@@ -2641,7 +2781,6 @@ function SettingsSectionLabel({
   );
 }
 
-
 function GlobalHint() {
   const t = useT();
   return (
@@ -2683,19 +2822,22 @@ function getUpdaterStatusText(updater: any, lang: string) {
     }
     return lang === 'es' ? 'Buscando actualizaciones…' : 'Checking for updates...';
   }
-  
-  if (updater.updateState === 'WAITING_USER_CONFIRMATION' || updater.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+
+  if (
+    updater.updateState === 'WAITING_USER_CONFIRMATION' ||
+    updater.updateState === 'PACKAGEINSTALLER_VISIBLE'
+  ) {
     return lang === 'es' ? 'Listo para instalar' : 'Ready to install';
   }
-  
+
   if (['INSTALL_FAILED', 'RECOVERY'].includes(updater.updateState)) {
     return lang === 'es' ? 'Error al instalar' : 'Failed';
   }
-  
+
   if (updater.updateAvailable) {
     return lang === 'es' ? 'Actualización disponible' : 'Update available';
   }
-  
+
   return lang === 'es' ? 'Estás al día' : 'Up to date';
 }
 
@@ -2892,10 +3034,13 @@ function HubSettings({
         t.hub.studioSettings.profileTitle ||
         (lang === 'es' ? 'Perfil y Cuenta' : 'Profile & Account')
       );
-    if (id === 'personal-info') return lang === 'es' ? 'Información personal' : 'Personal Information';
+    if (id === 'personal-info')
+      return lang === 'es' ? 'Información personal' : 'Personal Information';
     if (id === 'security-login') return lang === 'es' ? 'Seguridad y acceso' : 'Security & Login';
-    if (id === 'subscription') return lang === 'es' ? 'Suscripción y facturación' : 'Subscription & Billing';
-    if (id === 'devices-sessions') return lang === 'es' ? 'Dispositivos y sesiones' : 'Devices & Sessions';
+    if (id === 'subscription')
+      return lang === 'es' ? 'Suscripción y facturación' : 'Subscription & Billing';
+    if (id === 'devices-sessions')
+      return lang === 'es' ? 'Dispositivos y sesiones' : 'Devices & Sessions';
     if (id === 'privacy-data') return lang === 'es' ? 'Privacidad y datos' : 'Privacy & Data';
 
     for (const section of sections) {
@@ -3435,7 +3580,9 @@ function HubSettings({
 
   function renderHelpContent() {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', marginTop: 8 }}>
+      <div
+        style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', marginTop: 8 }}
+      >
         <HelpAccordion accent={accent} lang={lang} />
       </div>
     );
@@ -3456,7 +3603,14 @@ function HubSettings({
   function renderReleaseNotesContent() {
     const changelogSections = getChangelogSections(lang) || [];
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-5)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         <div
           style={{
             display: 'flex',
@@ -3556,7 +3710,14 @@ function HubSettings({
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-6)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         {/* Android Card */}
         <div
           style={{
@@ -3760,7 +3921,14 @@ function HubSettings({
     ];
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-6)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         {categories.map((cat, i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <h3
@@ -3989,7 +4157,14 @@ Date: ${new Date().toISOString()}
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-4)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
           {Capacitor.isNativePlatform()
             ? 'If you encounter an issue or unexpected behavior in Studio, please report it! Tap below to send us a support email with pre-filled diagnostic information.'
@@ -4262,9 +4437,6 @@ User Agent: [Automatically Generated]
     );
   }
 
-
-
-
   function renderPrivacyContent() {
     return (
       <div
@@ -4286,8 +4458,6 @@ User Agent: [Automatically Generated]
       </div>
     );
   }
-
-
 
   function renderDeveloperContent() {
     try {
@@ -4387,7 +4557,12 @@ User Agent: [Automatically Generated]
         value: string;
         canCopy?: boolean;
       }) => (
-        <div style={{ padding: 'var(--density-row-pad)', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
+        <div
+          style={{
+            padding: 'var(--density-row-pad)',
+            borderBottom: '1px solid rgba(128,128,128,0.08)',
+          }}
+        >
           <div
             style={{
               display: 'flex',
@@ -4479,7 +4654,12 @@ User Agent: [Automatically Generated]
       }) => {
         const [open, setOpen] = useState(false);
         return (
-          <div style={{ padding: 'var(--density-row-pad)', borderBottom: '1px solid rgba(128,128,128,0.08)' }}>
+          <div
+            style={{
+              padding: 'var(--density-row-pad)',
+              borderBottom: '1px solid rgba(128,128,128,0.08)',
+            }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -5773,30 +5953,60 @@ User Agent: [Automatically Generated]
     const licenses = [
       { name: 'React', license: 'MIT', desc: 'A JavaScript library for building user interfaces.' },
       { name: 'React DOM', license: 'MIT', desc: 'React package for working with the DOM.' },
-      { name: 'Motion (Framer Motion)', license: 'MIT', desc: 'A production-ready motion library for React.' },
-      { name: 'Zustand', license: 'MIT', desc: 'A small, fast, and scalable bearbones state-management solution.' },
+      {
+        name: 'Motion (Framer Motion)',
+        license: 'MIT',
+        desc: 'A production-ready motion library for React.',
+      },
+      {
+        name: 'Zustand',
+        license: 'MIT',
+        desc: 'A small, fast, and scalable bearbones state-management solution.',
+      },
       { name: 'Firebase SDK', license: 'Apache-2.0', desc: 'Firebase services client library.' },
       { name: 'Supabase JS', license: 'MIT', desc: 'Isomorphic JavaScript client for Supabase.' },
-      { name: 'Capacitor Core', license: 'MIT', desc: 'Cross-platform native runtime for web apps.' },
+      {
+        name: 'Capacitor Core',
+        license: 'MIT',
+        desc: 'Cross-platform native runtime for web apps.',
+      },
       { name: 'i18next', license: 'MIT', desc: 'Internationalization framework for JavaScript.' },
       { name: 'Lucide React', license: 'ISC', desc: 'Beautiful & consistent icon toolkit.' },
     ];
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-4)',
+          width: '100%',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         <div style={cardStyle}>
           {licenses.map((item, idx) => (
             <div
               key={idx}
               style={{
                 padding: 'var(--density-row-pad)',
-                borderBottom: idx === licenses.length - 1 ? 'none' : '1px solid rgba(128,128,128,0.08)',
+                borderBottom:
+                  idx === licenses.length - 1 ? 'none' : '1px solid rgba(128,128,128,0.08)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 4,
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'Manrope', fontWeight: 800, fontSize: 13.5, color: 'var(--c-text-primary)' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span
+                  style={{
+                    fontFamily: 'Manrope',
+                    fontWeight: 800,
+                    fontSize: 13.5,
+                    color: 'var(--c-text-primary)',
+                  }}
+                >
                   {item.name}
                 </span>
                 <span
@@ -5813,7 +6023,14 @@ User Agent: [Automatically Generated]
                   {item.license}
                 </span>
               </div>
-              <span style={{ fontFamily: 'Inter', fontSize: 12, color: 'var(--c-text-secondary)', lineHeight: 1.4 }}>
+              <span
+                style={{
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  color: 'var(--c-text-secondary)',
+                  lineHeight: 1.4,
+                }}
+              >
                 {item.desc}
               </span>
             </div>
@@ -5902,7 +6119,13 @@ User Agent: [Automatically Generated]
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : hasUser ? (
-              <span style={{ fontSize: 'var(--font-display-sm)', fontWeight: 800, color: 'var(--c-text-primary)' }}>
+              <span
+                style={{
+                  fontSize: 'var(--font-display-sm)',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                }}
+              >
                 {initial}
               </span>
             ) : (
@@ -6058,7 +6281,7 @@ User Agent: [Automatically Generated]
     );
   }
 
-  function renderUpdaterContent() {
+  function RenderUpdaterContent() {
     const isNative = Capacitor.isNativePlatform();
     const [autoUpdates, setAutoUpdates] = useState(() => {
       return localStorage.getItem('studio:automatic_updates') !== 'false';
@@ -6069,7 +6292,15 @@ User Agent: [Automatically Generated]
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', width: '100%', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-4)',
+          width: '100%',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         <SettingSection title={lang === 'es' ? 'SISTEMA DE ACTUALIZACIONES' : 'UPDATE SYSTEM'}>
           {/* Current Version */}
           <SettingRow
@@ -6118,13 +6349,21 @@ User Agent: [Automatically Generated]
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                  {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
+                  {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(
+                    updater.updateState
+                  )
                     ? 'install_mobile'
                     : 'download'}
                 </span>
-                {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(updater.updateState)
-                  ? (lang === 'es' ? 'Instalar' : 'Install Update')
-                  : (lang === 'es' ? 'Continuar' : 'Continue Update')}
+                {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(
+                  updater.updateState
+                )
+                  ? lang === 'es'
+                    ? 'Instalar'
+                    : 'Install Update'
+                  : lang === 'es'
+                    ? 'Continuar'
+                    : 'Continue Update'}
               </button>
             ) : (
               <button
@@ -6151,25 +6390,32 @@ User Agent: [Automatically Generated]
           {/* Automatic Updates */}
           <SettingRow
             label={lang === 'es' ? 'Actualizaciones automáticas' : 'Automatic Updates'}
-            desc={lang === 'es' ? 'Buscar y descargar compilaciones en segundo plano' : 'Check and download builds in the background'}
+            desc={
+              lang === 'es'
+                ? 'Buscar y descargar compilaciones en segundo plano'
+                : 'Check and download builds in the background'
+            }
           >
-            <Toggle
-              value={autoUpdates}
-              onChange={handleToggleAutoUpdates}
-            />
+            <Toggle value={autoUpdates} onChange={handleToggleAutoUpdates} />
           </SettingRow>
 
           {/* Update Diagnostics */}
           <SettingRow
             label={lang === 'es' ? 'Diagnósticos de actualización' : 'Update Diagnostics'}
-            desc={lang === 'es' ? 'Copiar informes de depuración y estado del actualizador' : 'Copy debug reports and check recovery logs'}
+            desc={
+              lang === 'es'
+                ? 'Copiar informes de depuración y estado del actualizador'
+                : 'Copy debug reports and check recovery logs'
+            }
           >
             <button
               onClick={async () => {
                 try {
                   const report = await updater.getDiagnosticsReport();
                   await navigator.clipboard.writeText(report);
-                  showDevToast(lang === 'es' ? 'Copiado al portapapeles' : 'Copied report to clipboard');
+                  showDevToast(
+                    lang === 'es' ? 'Copiado al portapapeles' : 'Copied report to clipboard'
+                  );
                 } catch (e) {
                   alert(e instanceof Error ? e.message : String(e));
                 }
@@ -6199,7 +6445,11 @@ User Agent: [Automatically Generated]
           {/* Changelog */}
           <SettingRow
             label={lang === 'es' ? 'Historial de cambios' : 'Changelog'}
-            desc={lang === 'es' ? 'Ver notas de lanzamiento completas' : 'View full chronological release notes'}
+            desc={
+              lang === 'es'
+                ? 'Ver notas de lanzamiento completas'
+                : 'View full chronological release notes'
+            }
           >
             <button
               onClick={() => navigate('changelog')}
@@ -6228,10 +6478,20 @@ User Agent: [Automatically Generated]
 
         {/* About this Update */}
         {updater.updateAvailable && updater.changelog && (
-          <SettingSection title={lang === 'es' ? 'ACERCA DE ESTA ACTUALIZACIÓN' : 'ABOUT THIS UPDATE'}>
-            <div style={{ padding: 'var(--density-row-pad)', color: 'var(--c-text-secondary)', fontSize: 13, lineHeight: 1.6 }}>
+          <SettingSection
+            title={lang === 'es' ? 'ACERCA DE ESTA ACTUALIZACIÓN' : 'ABOUT THIS UPDATE'}
+          >
+            <div
+              style={{
+                padding: 'var(--density-row-pad)',
+                color: 'var(--c-text-secondary)',
+                fontSize: 13,
+                lineHeight: 1.6,
+              }}
+            >
               <p style={{ margin: '0 0 10px 0', fontWeight: 700, color: 'var(--c-text-primary)' }}>
-                {lang === 'es' ? 'Novedades en v' : "What's new in v"}{updater.remoteVersion}:
+                {lang === 'es' ? 'Novedades en v' : "What's new in v"}
+                {updater.remoteVersion}:
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {updater.changelog.split('\n').map((line, idx) => {
@@ -6254,10 +6514,16 @@ User Agent: [Automatically Generated]
           <SettingSection title={lang === 'es' ? 'RECUPERACIÓN' : 'RECOVERY'}>
             <SettingRow
               label={lang === 'es' ? 'Descargas oficiales' : 'Official Downloads'}
-              desc={lang === 'es' ? 'Descargar compilaciones firmadas desde GitHub' : 'Download signed production builds from GitHub'}
+              desc={
+                lang === 'es'
+                  ? 'Descargar compilaciones firmadas desde GitHub'
+                  : 'Download signed production builds from GitHub'
+              }
             >
               <button
-                onClick={() => window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')}
+                onClick={() =>
+                  window.open('https://github.com/MAGEXE1000/Studio/releases', '_system')
+                }
                 className="btn-smooth animate-click"
                 style={{
                   padding: '6px 14px',
@@ -6290,9 +6556,11 @@ User Agent: [Automatically Generated]
       case 'general':
         return renderGeneralContent();
       case 'updater':
-        return renderUpdaterContent();
+        return <RenderUpdaterContent />;
       case 'appearance':
-        console.log('[APPEARANCE-RUNTIME-PROOF] StudioHub renderActivePageContent rendering StudioHubSettingsPanel for page: appearance');
+        console.log(
+          '[APPEARANCE-RUNTIME-PROOF] StudioHub renderActivePageContent rendering StudioHubSettingsPanel for page: appearance'
+        );
         return <StudioHubSettingsPanel />;
 
       case 'privacy':
@@ -6460,501 +6728,230 @@ User Agent: [Automatically Generated]
                         paddingRight: 'var(--page-inset-h)',
                       }}
                     >
-                      <StudioHeader title="Settings" subtitle="Livex System" containerStyle={{ paddingLeft: 0, paddingRight: 0 }} />
+                      <StudioHeader
+                        title="Settings"
+                        subtitle="Livex System"
+                        containerStyle={{ paddingLeft: 0, paddingRight: 0 }}
+                      />
 
-                    {/* Minimal Update Card */}
-                    {updater.updateAvailable && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        style={{
-                          background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}10)`,
-                          border: `1px solid ${accent.from}30`,
-                          borderRadius: 16,
-                          padding: 16,
-                          marginBottom: 20,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 12,
-                          boxShadow: `0 4px 20px ${accent.from}08`,
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                          <span className="material-symbols-outlined" style={{ color: accent.from, fontSize: 24 }}>
-                            system_update
-                          </span>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ margin: 0, fontSize: 15, fontWeight: 700, color: 'var(--c-text-primary)', fontFamily: 'Manrope' }}>
-                              Update available
-                            </p>
-                            <p style={{ margin: 0, fontSize: 12, color: 'var(--c-text-secondary)', opacity: 0.8, fontFamily: 'Inter' }}>
-                              Version {updater.remoteVersion}
-                            </p>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <motion.button
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => navigate('updater')}
-                            style={{
-                              flex: 1,
-                              padding: '10px 16px',
-                              borderRadius: 12,
-                              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                              color: '#ffffff',
-                              border: 'none',
-                              fontSize: 13,
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              boxShadow: `0 4px 12px ${accent.from}30`,
-                            }}
-                          >
-                            Update
-                          </motion.button>
-                          <motion.button
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => {
-                              updater.dismissUpdate();
-                            }}
-                            style={{
-                              padding: '10px 16px',
-                              borderRadius: 12,
-                              background: 'rgba(255, 255, 255, 0.04)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
-                              color: 'var(--c-text-secondary)',
-                              fontSize: 13,
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                            }}
-                          >
-                            Dismiss
-                          </motion.button>
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Preferences Group */}
-                    <div style={{ marginBottom: 24 }}>
-                      <h3
-                        style={{
-                          fontSize: 'var(--font-section-label)',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.12em',
-                          color: 'var(--c-text-secondary)',
-                          opacity: 0.8,
-                          paddingLeft: 4,
-                          marginBottom: 8,
-                          fontFamily: 'Manrope',
-                        }}
-                      >
-                        PREFERENCES
-                      </h3>
-                      <div
-                        style={{
-                          background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
-                          borderRadius: 16,
-                          padding: '6px 8px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 2,
-                          border: '1px solid rgba(128,128,128,0.06)',
-                        }}
-                      >
+                      {/* Minimal Update Card */}
+                      {updater.updateAvailable && (
                         <motion.div
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('appearance')}
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
                           style={{
+                            background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}10)`,
+                            border: `1px solid ${accent.from}30`,
+                            borderRadius: 16,
+                            padding: 16,
+                            marginBottom: 20,
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            padding: 12,
-                            borderRadius: 10,
-                            cursor: 'pointer',
+                            flexDirection: 'column',
+                            gap: 12,
+                            boxShadow: `0 4px 20px ${accent.from}08`,
                           }}
-                          className="hover:bg-white/5 transition-colors"
                         >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <span
                               className="material-symbols-outlined"
-                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
-                            >
-                              palette
-                            </span>
-                          </div>
-                          <div
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                          >
-                            <span
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: 'var(--c-text-primary)',
-                                fontFamily: 'Inter',
-                              }}
-                            >
-                              Appearance
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 'var(--font-section-label)',
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.7,
-                              }}
-                            >
-                              Theme, dynamic colors, accent
-                            </span>
-                          </div>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
-                          >
-                            chevron_right
-                          </span>
-                        </motion.div>
-
-                      </div>
-                    </div>
-
-                    {/* Help & Support Group */}
-                    <div style={{ marginBottom: 24 }}>
-                      <h3
-                        style={{
-                          fontSize: 'var(--font-section-label)',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.12em',
-                          color: 'var(--c-text-secondary)',
-                          opacity: 0.8,
-                          paddingLeft: 4,
-                          marginBottom: 8,
-                          fontFamily: 'Manrope',
-                        }}
-                      >
-                        HELP & SUPPORT
-                      </h3>
-                      <div
-                        style={{
-                          background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
-                          borderRadius: 16,
-                          padding: '6px 8px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 2,
-                          border: '1px solid rgba(128,128,128,0.06)',
-                        }}
-                      >
-                        <motion.div
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('help-center')}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            padding: 12,
-                            borderRadius: 10,
-                            cursor: 'pointer',
-                          }}
-                          className="hover:bg-white/5 transition-colors"
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
-                            <AnimatedIcon
-                              name="circle-help"
-                              size={18}
-                              color="var(--c-text-secondary)"
-                            />
-                          </div>
-                          <div
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                          >
-                            <span
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: 'var(--c-text-primary)',
-                                fontFamily: 'Inter',
-                              }}
-                            >
-                              Help & Support
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 'var(--font-section-label)',
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.7,
-                              }}
-                            >
-                              Documentation and FAQ
-                            </span>
-                          </div>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
-                          >
-                            chevron_right
-                          </span>
-                        </motion.div>
-
-                        <motion.div
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('bug-report')}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            padding: 12,
-                            borderRadius: 10,
-                            cursor: 'pointer',
-                          }}
-                          className="hover:bg-white/5 transition-colors"
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
-                            >
-                              bug_report
-                            </span>
-                          </div>
-                          <div
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                          >
-                            <span
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: 'var(--c-text-primary)',
-                                fontFamily: 'Inter',
-                              }}
-                            >
-                              Report a Bug
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 'var(--font-section-label)',
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.7,
-                              }}
-                            >
-                              Help us improve the workspace
-                            </span>
-                          </div>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
-                          >
-                            chevron_right
-                          </span>
-                        </motion.div>
-                      </div>
-                    </div>
-
-                    {/* System & About Group */}
-                    <div style={{ marginBottom: 'var(--space-6)' }}>
-                      <h3
-                        style={{
-                          fontSize: 'var(--font-section-label)',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.12em',
-                          color: 'var(--c-text-secondary)',
-                          opacity: 0.8,
-                          paddingLeft: 4,
-                          marginBottom: 8,
-                          fontFamily: 'Manrope',
-                        }}
-                      >
-                        SYSTEM & ABOUT
-                      </h3>
-                      <div
-                        style={{
-                          background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
-                          borderRadius: 16,
-                          padding: '6px 8px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 2,
-                          border: '1px solid rgba(128,128,128,0.06)',
-                        }}
-                      >
-
-
-                        <motion.div
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('updater')}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            padding: 12,
-                            borderRadius: 10,
-                            cursor: 'pointer',
-                          }}
-                          className="hover:bg-white/5 transition-colors"
-                        >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                              style={{ color: accent.from, fontSize: 24 }}
                             >
                               system_update
                             </span>
+                            <div style={{ flex: 1 }}>
+                              <p
+                                style={{
+                                  margin: 0,
+                                  fontSize: 15,
+                                  fontWeight: 700,
+                                  color: 'var(--c-text-primary)',
+                                  fontFamily: 'Manrope',
+                                }}
+                              >
+                                Update available
+                              </p>
+                              <p
+                                style={{
+                                  margin: 0,
+                                  fontSize: 12,
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.8,
+                                  fontFamily: 'Inter',
+                                }}
+                              >
+                                Version {updater.remoteVersion}
+                              </p>
+                            </div>
                           </div>
-                          <div
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                          >
-                            <span
+                          <div style={{ display: 'flex', gap: 8 }}>
+                            <motion.button
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => navigate('updater')}
                               style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: 'var(--c-text-primary)',
-                                fontFamily: 'Inter',
+                                flex: 1,
+                                padding: '10px 16px',
+                                borderRadius: 12,
+                                background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                                color: '#ffffff',
+                                border: 'none',
+                                fontSize: 13,
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                boxShadow: `0 4px 12px ${accent.from}30`,
                               }}
                             >
-                              {lang === 'es' ? 'Actualizador' : 'Updater'}
-                            </span>
-                            <span
+                              Update
+                            </motion.button>
+                            <motion.button
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => {
+                                updater.dismissUpdate();
+                              }}
                               style={{
-                                fontSize: 'var(--font-section-label)',
+                                padding: '10px 16px',
+                                borderRadius: 12,
+                                background: 'rgba(255, 255, 255, 0.04)',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
                                 color: 'var(--c-text-secondary)',
-                                opacity: 0.7,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
+                                fontSize: 13,
+                                fontWeight: 600,
+                                cursor: 'pointer',
                               }}
                             >
-                              {getUpdaterStatusText(updater, lang)}
-                              {updater.updateAvailable && (
-                                <span
-                                  style={{
-                                    width: 6,
-                                    height: 6,
-                                    borderRadius: '50%',
-                                    background: '#ef4444',
-                                    display: 'inline-block',
-                                  }}
-                                />
-                              )}
-                            </span>
+                              Dismiss
+                            </motion.button>
                           </div>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
-                          >
-                            chevron_right
-                          </span>
                         </motion.div>
+                      )}
 
-                        <motion.div
-                          whileTap={{ scale: 0.98 }}
-                          onClick={() => navigate('about')}
+                      {/* Preferences Group */}
+                      <div style={{ marginBottom: 24 }}>
+                        <h3
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 14,
-                            padding: 12,
-                            borderRadius: 10,
-                            cursor: 'pointer',
+                            fontSize: 'var(--font-section-label)',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.12em',
+                            color: 'var(--c-text-secondary)',
+                            opacity: 0.8,
+                            paddingLeft: 4,
+                            marginBottom: 8,
+                            fontFamily: 'Manrope',
                           }}
-                          className="hover:bg-white/5 transition-colors"
                         >
-                          <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(255,255,255,0.03)',
-                              border: '1px solid rgba(255,255,255,0.05)',
-                            }}
-                          >
-                            <AnimatedIcon
-                              name="badge-alert"
-                              size={18}
-                              color="var(--c-text-secondary)"
-                            />
-                          </div>
-                          <div
-                            style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                          >
-                            <span
-                              style={{
-                                fontSize: 14,
-                                fontWeight: 600,
-                                color: 'var(--c-text-primary)',
-                                fontFamily: 'Inter',
-                              }}
-                            >
-                              About
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 'var(--font-section-label)',
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.7,
-                              }}
-                            >
-                              Version {APP_VERSION}
-                            </span>
-                          </div>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.4, fontSize: 16 }}
-                          >
-                            chevron_right
-                          </span>
-                        </motion.div>
-
-                        {settings.developerMode && (
+                          PREFERENCES
+                        </h3>
+                        <div
+                          style={{
+                            background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
+                            borderRadius: 16,
+                            padding: '6px 8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                            border: '1px solid rgba(128,128,128,0.06)',
+                          }}
+                        >
                           <motion.div
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => navigate('developer')}
+                            onClick={() => navigate('appearance')}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 14,
+                              padding: 12,
+                              borderRadius: 10,
+                              cursor: 'pointer',
+                            }}
+                            className="hover:bg-white/5 transition-colors"
+                          >
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                              >
+                                palette
+                              </span>
+                            </div>
+                            <div
+                              style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: 'var(--c-text-primary)',
+                                  fontFamily: 'Inter',
+                                }}
+                              >
+                                Appearance
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 'var(--font-section-label)',
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.7,
+                                }}
+                              >
+                                Theme, dynamic colors, accent
+                              </span>
+                            </div>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{
+                                color: 'var(--c-text-secondary)',
+                                opacity: 0.4,
+                                fontSize: 16,
+                              }}
+                            >
+                              chevron_right
+                            </span>
+                          </motion.div>
+                        </div>
+                      </div>
+
+                      {/* Help & Support Group */}
+                      <div style={{ marginBottom: 24 }}>
+                        <h3
+                          style={{
+                            fontSize: 'var(--font-section-label)',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.12em',
+                            color: 'var(--c-text-secondary)',
+                            opacity: 0.8,
+                            paddingLeft: 4,
+                            marginBottom: 8,
+                            fontFamily: 'Manrope',
+                          }}
+                        >
+                          HELP & SUPPORT
+                        </h3>
+                        <div
+                          style={{
+                            background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
+                            borderRadius: 16,
+                            padding: '6px 8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                            border: '1px solid rgba(128,128,128,0.06)',
+                          }}
+                        >
+                          <motion.div
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate('help-center')}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
@@ -6978,7 +6975,7 @@ User Agent: [Automatically Generated]
                               }}
                             >
                               <AnimatedIcon
-                                name="terminal"
+                                name="circle-help"
                                 size={18}
                                 color="var(--c-text-secondary)"
                               />
@@ -6994,7 +6991,7 @@ User Agent: [Automatically Generated]
                                   fontFamily: 'Inter',
                                 }}
                               >
-                                Developer Options
+                                Help & Support
                               </span>
                               <span
                                 style={{
@@ -7003,7 +7000,7 @@ User Agent: [Automatically Generated]
                                   opacity: 0.7,
                                 }}
                               >
-                                Advanced configurations
+                                Documentation and FAQ
                               </span>
                             </div>
                             <span
@@ -7017,11 +7014,327 @@ User Agent: [Automatically Generated]
                               chevron_right
                             </span>
                           </motion.div>
-                        )}
+
+                          <motion.div
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate('bug-report')}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 14,
+                              padding: 12,
+                              borderRadius: 10,
+                              cursor: 'pointer',
+                            }}
+                            className="hover:bg-white/5 transition-colors"
+                          >
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                              >
+                                bug_report
+                              </span>
+                            </div>
+                            <div
+                              style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: 'var(--c-text-primary)',
+                                  fontFamily: 'Inter',
+                                }}
+                              >
+                                Report a Bug
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 'var(--font-section-label)',
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.7,
+                                }}
+                              >
+                                Help us improve the workspace
+                              </span>
+                            </div>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{
+                                color: 'var(--c-text-secondary)',
+                                opacity: 0.4,
+                                fontSize: 16,
+                              }}
+                            >
+                              chevron_right
+                            </span>
+                          </motion.div>
+                        </div>
+                      </div>
+
+                      {/* System & About Group */}
+                      <div style={{ marginBottom: 'var(--space-6)' }}>
+                        <h3
+                          style={{
+                            fontSize: 'var(--font-section-label)',
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.12em',
+                            color: 'var(--c-text-secondary)',
+                            opacity: 0.8,
+                            paddingLeft: 4,
+                            marginBottom: 8,
+                            fontFamily: 'Manrope',
+                          }}
+                        >
+                          SYSTEM & ABOUT
+                        </h3>
+                        <div
+                          style={{
+                            background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
+                            borderRadius: 16,
+                            padding: '6px 8px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                            border: '1px solid rgba(128,128,128,0.06)',
+                          }}
+                        >
+                          <motion.div
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate('updater')}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 14,
+                              padding: 12,
+                              borderRadius: 10,
+                              cursor: 'pointer',
+                            }}
+                            className="hover:bg-white/5 transition-colors"
+                          >
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                              >
+                                system_update
+                              </span>
+                            </div>
+                            <div
+                              style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: 'var(--c-text-primary)',
+                                  fontFamily: 'Inter',
+                                }}
+                              >
+                                {lang === 'es' ? 'Actualizador' : 'Updater'}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 'var(--font-section-label)',
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.7,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 6,
+                                }}
+                              >
+                                {getUpdaterStatusText(updater, lang)}
+                                {updater.updateAvailable && (
+                                  <span
+                                    style={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: '50%',
+                                      background: '#ef4444',
+                                      display: 'inline-block',
+                                    }}
+                                  />
+                                )}
+                              </span>
+                            </div>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{
+                                color: 'var(--c-text-secondary)',
+                                opacity: 0.4,
+                                fontSize: 16,
+                              }}
+                            >
+                              chevron_right
+                            </span>
+                          </motion.div>
+
+                          <motion.div
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => navigate('about')}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 14,
+                              padding: 12,
+                              borderRadius: 10,
+                              cursor: 'pointer',
+                            }}
+                            className="hover:bg-white/5 transition-colors"
+                          >
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: 'rgba(255,255,255,0.03)',
+                                border: '1px solid rgba(255,255,255,0.05)',
+                              }}
+                            >
+                              <AnimatedIcon
+                                name="badge-alert"
+                                size={18}
+                                color="var(--c-text-secondary)"
+                              />
+                            </div>
+                            <div
+                              style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 14,
+                                  fontWeight: 600,
+                                  color: 'var(--c-text-primary)',
+                                  fontFamily: 'Inter',
+                                }}
+                              >
+                                About
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: 'var(--font-section-label)',
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.7,
+                                }}
+                              >
+                                Version {APP_VERSION}
+                              </span>
+                            </div>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{
+                                color: 'var(--c-text-secondary)',
+                                opacity: 0.4,
+                                fontSize: 16,
+                              }}
+                            >
+                              chevron_right
+                            </span>
+                          </motion.div>
+
+                          {settings.developerMode && (
+                            <motion.div
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => navigate('developer')}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 14,
+                                padding: 12,
+                                borderRadius: 10,
+                                cursor: 'pointer',
+                              }}
+                              className="hover:bg-white/5 transition-colors"
+                            >
+                              <div
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: '50%',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: 'rgba(255,255,255,0.03)',
+                                  border: '1px solid rgba(255,255,255,0.05)',
+                                }}
+                              >
+                                <AnimatedIcon
+                                  name="terminal"
+                                  size={18}
+                                  color="var(--c-text-secondary)"
+                                />
+                              </div>
+                              <div
+                                style={{
+                                  flex: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 2,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: 14,
+                                    fontWeight: 600,
+                                    color: 'var(--c-text-primary)',
+                                    fontFamily: 'Inter',
+                                  }}
+                                >
+                                  Developer Options
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: 'var(--font-section-label)',
+                                    color: 'var(--c-text-secondary)',
+                                    opacity: 0.7,
+                                  }}
+                                >
+                                  Advanced configurations
+                                </span>
+                              </div>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.4,
+                                  fontSize: 16,
+                                }}
+                              >
+                                chevron_right
+                              </span>
+                            </motion.div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
                 </div>
               );
             }
@@ -7213,7 +7526,9 @@ User Agent: [Automatically Generated]
                         color={isActive ? accent.from : 'var(--c-text-secondary)'}
                         state={isActive ? 'active' : 'inactive'}
                       />
-                      <span className="truncate" style={{ flex: 1 }}>{item.label}</span>
+                      <span className="truncate" style={{ flex: 1 }}>
+                        {item.label}
+                      </span>
                       {item.id === 'updater' && updater.updateAvailable && (
                         <span
                           style={{
@@ -7436,7 +7751,14 @@ function HubHelp({
   function renderReleaseNotesContent() {
     const changelogSections = getChangelogSections(lang) || [];
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-5)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         <div
           style={{
             display: 'flex',
@@ -7532,7 +7854,14 @@ function HubHelp({
     }
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-6)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         <div
           style={{
             padding: 20,
@@ -7732,7 +8061,14 @@ function HubHelp({
     ];
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-6)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         {categories.map((cat, i) => (
           <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <h3
@@ -7932,7 +8268,14 @@ Date: ${new Date().toISOString()}
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', paddingBottom: 'var(--space-6)' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-4)',
+          paddingBottom: 'var(--space-6)',
+        }}
+      >
         <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
           {Capacitor.isNativePlatform() ? t.help.bugReport.nativeDesc : t.help.bugReport.webDesc}
         </p>
@@ -8480,7 +8823,7 @@ function parseMarkdownToSections(body: string | null | undefined) {
   const lines = body.split('\n');
   const sections: { heading: string; items: string[] }[] = [];
   let currentSec: { heading: string; items: string[] } | null = null;
-  let defaultItems: string[] = [];
+  const defaultItems: string[] = [];
 
   for (let line of lines) {
     line = line.trim();
@@ -8498,7 +8841,12 @@ function parseMarkdownToSections(body: string | null | undefined) {
         friendlyHeading = 'Bug Fixes';
       } else if (lower.includes('perf') || lower.includes('speed') || lower.includes('optimis')) {
         friendlyHeading = 'Performance';
-      } else if (lower.includes('ui') || lower.includes('ux') || lower.includes('appear') || lower.includes('style')) {
+      } else if (
+        lower.includes('ui') ||
+        lower.includes('ux') ||
+        lower.includes('appear') ||
+        lower.includes('style')
+      ) {
         friendlyHeading = 'UI / UX';
       } else if (lower.includes('break') || lower.includes('chang')) {
         friendlyHeading = 'Breaking Changes';
@@ -8574,13 +8922,15 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
         const res = await fetch('https://api.github.com/repos/MAGEXE1000/Studio/releases');
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        
+
         if (Array.isArray(data) && data.length > 0) {
           const parsedList: ParsedRelease[] = data.map((rel: any, idx: number) => {
             const vRaw = rel.tag_name ? rel.tag_name.replace(/^v/, '') : '0.0.0';
-            const dateStr = rel.published_at 
+            const dateStr = rel.published_at
               ? new Date(rel.published_at).toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
-                  year: 'numeric', month: 'long', day: 'numeric'
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
                 })
               : 'N/A';
             const sections = parseMarkdownToSections(rel.body);
@@ -8590,7 +8940,7 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
               date: dateStr,
               isLatest: idx === 0,
               isCurrent: vRaw === APP_VERSION,
-              sections
+              sections,
             };
           });
 
@@ -8620,17 +8970,19 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
             date: lang === 'es' ? '1 de agosto de 2026' : 'August 1, 2026',
             isLatest: true,
             isCurrent: true,
-            sections: defaultSections.map(s => ({
+            sections: defaultSections.map((s) => ({
               heading: s.heading === 'Added' ? 'New Features' : s.heading,
-              items: s.items
-            }))
+              items: s.items,
+            })),
           },
-          ...RELEASE_HISTORY.map(item => {
+          ...RELEASE_HISTORY.map((item) => {
             const dateObj = new Date(item.date);
             const dateStr = isNaN(dateObj.getTime())
               ? item.date
               : dateObj.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
-                  year: 'numeric', month: 'long', day: 'numeric'
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
                 });
 
             return {
@@ -8638,9 +8990,9 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
               date: dateStr,
               isLatest: false,
               isCurrent: item.version === APP_VERSION,
-              sections: [{ heading: 'General Updates', items: item.highlights }]
+              sections: [{ heading: 'General Updates', items: item.highlights }],
             };
-          })
+          }),
         ];
 
         setReleases(fallbackList);
@@ -8658,9 +9010,9 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
   }, [lang]);
 
   const toggleExpand = (version: string) => {
-    setExpandedVersions(prev => ({
+    setExpandedVersions((prev) => ({
       ...prev,
-      [version]: !prev[version]
+      [version]: !prev[version],
     }));
   };
 
@@ -8689,8 +9041,26 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'var(--space-10) 0', gap: 12 }}>
-        <div style={{ width: 32, height: 32, border: `3px solid rgba(128,128,128,0.1)`, borderTopColor: accent.from, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 'var(--space-10) 0',
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            border: `3px solid rgba(128,128,128,0.1)`,
+            borderTopColor: accent.from,
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+          }}
+        />
         <span style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}>
           {lang === 'es' ? 'Cargando historial de cambios...' : 'Loading changelog history...'}
         </span>
@@ -8704,7 +9074,9 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: 16 }}>
+    <div
+      style={{ display: 'flex', flexDirection: 'column', position: 'relative', paddingLeft: 16 }}
+    >
       <div
         style={{
           position: 'absolute',
@@ -8722,7 +9094,15 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
           id: rel.version,
           title: (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope', letterSpacing: '-0.02em' }}>
+              <span
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope',
+                  letterSpacing: '-0.02em',
+                }}
+              >
                 v{rel.version}
               </span>
               {rel.isCurrent && (
@@ -8759,15 +9139,33 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
                   {lang === 'es' ? 'Más Reciente' : 'Latest'}
                 </span>
               )}
-              <span style={{ fontSize: 'var(--font-section-label)', color: 'var(--c-text-secondary)', fontFamily: 'Inter', opacity: 0.8, marginLeft: 'auto' }}>
+              <span
+                style={{
+                  fontSize: 'var(--font-section-label)',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                  opacity: 0.8,
+                  marginLeft: 'auto',
+                }}
+              >
                 {rel.date}
               </span>
             </div>
           ),
-          description: (
+          description:
             rel.sections.length === 0 ? (
-              <div style={{ fontSize: 13, color: 'var(--c-text-secondary)', fontFamily: 'Inter', fontStyle: 'italic', paddingLeft: 4 }}>
-                {lang === 'es' ? 'No hay detalles de cambios disponibles.' : 'No detailed changes available.'}
+              <div
+                style={{
+                  fontSize: 13,
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                  fontStyle: 'italic',
+                  paddingLeft: 4,
+                }}
+              >
+                {lang === 'es'
+                  ? 'No hay detalles de cambios disponibles.'
+                  : 'No detailed changes available.'}
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -8792,7 +9190,15 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
                           {sec.heading}
                         </span>
                       </div>
-                      <ul style={{ margin: 0, paddingLeft: 16, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                      <ul
+                        style={{
+                          margin: 0,
+                          paddingLeft: 16,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 4,
+                        }}
+                      >
                         {sec.items.map((item, iIdx) => (
                           <li
                             key={iIdx}
@@ -8811,8 +9217,7 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
                   );
                 })}
               </div>
-            )
-          ),
+            ),
         }))}
         value={Object.keys(expandedVersions).find((v) => expandedVersions[v]) || null}
         onValueChange={(val) => setExpandedVersions(val ? { [val]: true } : {})}

@@ -89,6 +89,8 @@ const NavigationItem = React.memo(
     isLight = false,
     isSwitcherOpen,
     activeIdxSpring,
+    scrollOffsetSpring,
+    activeIndex,
     onMeasureGeometry,
     innerWrapperRef,
     animationEpoch,
@@ -100,6 +102,8 @@ const NavigationItem = React.memo(
     isLight?: boolean;
     isSwitcherOpen?: boolean;
     activeIdxSpring: any;
+    scrollOffsetSpring?: any;
+    activeIndex?: number;
     onMeasureGeometry?: (index: number, width: number, leftOffset: number) => void;
     innerWrapperRef?: React.RefObject<HTMLDivElement | null>;
     animationEpoch?: number;
@@ -111,7 +115,33 @@ const NavigationItem = React.memo(
     const distance = useTransform(activeIdxSpring, (val: number) => Math.abs(val - index));
     const labelOpacity = useTransform(distance, [0, 0.45], [1, 0]);
     const labelScale = useTransform(distance, [0, 0.45], [1, 0.85]);
-    const iconScale = useTransform(distance, [0, 0.45], [1.08, 0.98]);
+
+    // Scroll collapse: non-active items fade, scale down, and shift inward toward active item
+    const itemOpacity = useTransform(scrollOffsetSpring || activeIdxSpring, (s: number) => {
+      if (!scrollOffsetSpring) return 1;
+      if (isActive) return 1;
+      return Math.max(0, 1 - (s as number) * 2.2);
+    });
+
+    const itemScale = useTransform(scrollOffsetSpring || activeIdxSpring, (s: number) => {
+      if (!scrollOffsetSpring) return 1;
+      if (isActive) return 1;
+      return Math.max(0.72, 1 - (s as number) * 0.32);
+    });
+
+    const itemX = useTransform(scrollOffsetSpring || activeIdxSpring, (s: number) => {
+      if (!scrollOffsetSpring || typeof activeIndex !== 'number') return 0;
+      if (isActive) return 0;
+      return (activeIndex - index) * (s as number) * 16;
+    });
+
+    const finalLabelOpacity = useTransform(
+      [labelOpacity, scrollOffsetSpring || activeIdxSpring],
+      ([lo, so]) => {
+        if (!scrollOffsetSpring) return lo as number;
+        return (lo as number) * Math.max(0, 1 - (so as number) * 2.8);
+      }
+    );
 
     const handleMeasure = useCallback(() => {
       if (contentRef.current && onMeasureGeometry) {
@@ -167,6 +197,9 @@ const NavigationItem = React.memo(
           padding: '0 6px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
+          opacity: itemOpacity,
+          scale: itemScale,
+          x: itemX,
         }}
       >
         <motion.div
@@ -212,7 +245,7 @@ const NavigationItem = React.memo(
                 letterSpacing: '-0.01em',
                 display: 'inline-block',
                 lineHeight: 1,
-                opacity: labelOpacity,
+                opacity: finalLabelOpacity,
                 scale: labelScale,
                 maxWidth: isActive ? '120px' : '0px',
                 overflow: 'hidden',
@@ -703,6 +736,27 @@ export function SharedNavigationBar({
     return -6;
   }, [hasRightBubble]);
 
+  // Dynamic bar width morphing on scroll down
+  const collapsedBarWidth = isSwitcherOpen ? 52 : 72;
+  const barWidthVal = useTransform(
+    scrollOffsetSpring,
+    [0, 1],
+    [`${barWidth}px`, `${collapsedBarWidth}px`]
+  );
+
+  const switcherOpacity = useTransform(
+    [scrollOffsetSpring, searchOpenSpring],
+    ([offset, search]) => {
+      if ((search as number) > 0.1) return 1.0;
+      return 1.0 - (offset as number) * 0.65;
+    }
+  );
+
+  const switcherScale = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
+    if ((search as number) > 0.1) return 1.0;
+    return 1.0 - (offset as number) * 0.12;
+  });
+
   // Subtle inward horizontal translation towards screen center composition on scroll down
   const navX = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
     if ((search as number) > 0.1) return 0;
@@ -744,6 +798,13 @@ export function SharedNavigationBar({
       return Math.max(minX, Math.min(maxX, rawX));
     }
   );
+
+  const animatedPillX = useTransform([pillX, scrollOffsetSpring], ([expandedX, s]) => {
+    const so = s as number;
+    if (so <= 0.001) return expandedX as number;
+    const compactX = 4;
+    return (expandedX as number) * (1 - so) + compactX * so;
+  });
 
   const pillWidthVal = useTransform([activeIdxRaw, activeIdxSpring], ([rawIdx, springIdx]) => {
     const idxVal = isScrubbingRef.current ? (rawIdx as number) : (springIdx as number);
@@ -1374,19 +1435,21 @@ export function SharedNavigationBar({
               style={{
                 pointerEvents: 'auto',
                 justifySelf: 'center',
-                width: `${barWidth}px`,
+                width: barWidthVal,
                 maxWidth: `${barWidth}px`,
                 height: '64px',
                 borderRadius: '9999px',
                 border: isLight
-                  ? '1px solid rgba(0, 0, 0, 0.08)'
-                  : '1px solid rgba(255, 255, 255, 0.08)',
-                background: 'var(--surface-float-bg)',
+                  ? '1px solid rgba(255, 255, 255, 0.85)'
+                  : '1px solid rgba(255, 255, 255, 0.15)',
+                background: isLight
+                  ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 248, 255, 0.70) 100%)'
+                  : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
                 boxShadow: isLight
-                  ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                  : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-                backdropFilter: 'var(--surface-float-blur)',
-                WebkitBackdropFilter: 'var(--surface-float-blur)',
+                  ? '0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03)'
+                  : '0 24px 48px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1.2px 1.8px rgba(255, 255, 255, 0.30), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
+                backdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
+                WebkitBackdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
@@ -1397,8 +1460,8 @@ export function SharedNavigationBar({
                 transformOrigin: 'center center',
                 scale: containerScale,
                 x: navX,
-                transition:
-                  'width 250ms cubic-bezier(0.16, 1, 0.3, 1), border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+                overflow: 'hidden',
+                transition: 'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               <div
@@ -1424,18 +1487,18 @@ export function SharedNavigationBar({
                       top: 4,
                       bottom: 4,
                       left: 0,
-                      x: pillX,
+                      x: animatedPillX,
                       width: pillWidthVal,
                       borderRadius: '9999px',
                       background: isLight
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(245, 248, 255, 0.55) 50%, rgba(255, 255, 255, 0.45) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(200, 220, 255, 0.10) 50%, rgba(255, 255, 255, 0.05) 100%)',
+                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(245, 248, 255, 0.70) 50%, rgba(255, 255, 255, 0.60) 100%)'
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(220, 235, 255, 0.14) 50%, rgba(255, 255, 255, 0.08) 100%)',
                       border: isLight
-                        ? '1px solid rgba(255, 255, 255, 0.9)'
-                        : '1.2px solid rgba(255, 255, 255, 0.28)',
+                        ? '1.2px solid rgba(255, 255, 255, 0.98)'
+                        : '1.2px solid rgba(255, 255, 255, 0.34)',
                       boxShadow: isLight
-                        ? 'inset 0 1px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03), 0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(0, 0, 0, 0.04)'
-                        : 'inset 0 1px 2px rgba(255, 255, 255, 0.35), inset 0 -0.5px 1px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.25), 0 0 0 0.5px rgba(255, 255, 255, 0.08)',
+                        ? 'inset 0 1.5px 2.5px rgba(255, 255, 255, 0.98), inset 0 -0.5px 1px rgba(0, 0, 0, 0.04), 0 3px 14px rgba(0, 0, 0, 0.07)'
+                        : 'inset 0 1.2px 2px rgba(255, 255, 255, 0.40), inset 0 -0.5px 1px rgba(0, 0, 0, 0.15), 0 4px 18px rgba(0, 0, 0, 0.30)',
                       backdropFilter: 'var(--surface-float-blur)',
                       WebkitBackdropFilter: 'var(--surface-float-blur)',
                       pointerEvents: 'none',
@@ -1475,6 +1538,8 @@ export function SharedNavigationBar({
                           isLight={isLight}
                           isSwitcherOpen={isSwitcherOpen}
                           activeIdxSpring={activeIdxSpring}
+                          scrollOffsetSpring={scrollOffsetSpring}
+                          activeIndex={activeIndex}
                           onMeasureGeometry={handleMeasureGeometry}
                           innerWrapperRef={innerWrapperRef}
                           animationEpoch={navigationEpoch}
@@ -1574,24 +1639,27 @@ export function SharedNavigationBar({
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: 'var(--surface-float-bg)',
+                    background: isLight
+                      ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 248, 255, 0.70) 100%)'
+                      : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
                     border: isLight
-                      ? '1px solid rgba(0, 0, 0, 0.08)'
-                      : '1px solid rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'var(--surface-float-blur)',
-                    WebkitBackdropFilter: 'var(--surface-float-blur)',
+                      ? '1px solid rgba(255, 255, 255, 0.85)'
+                      : '1px solid rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
+                    WebkitBackdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
                     boxShadow: isLight
-                      ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                      : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                      ? '0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03)'
+                      : '0 24px 48px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1.2px 1.8px rgba(255, 255, 255, 0.30), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: isLight ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.60)',
+                    color: isLight ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.65)',
                     cursor: 'pointer',
                     outline: 'none',
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
-                    scale: containerScale,
+                    scale: switcherScale,
+                    opacity: switcherOpacity,
                     x: switcherX,
                   }}
                 >
@@ -1609,15 +1677,17 @@ export function SharedNavigationBar({
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: 'var(--surface-float-bg)',
+                    background: isLight
+                      ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(245, 248, 255, 0.70) 100%)'
+                      : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
                     border: isLight
-                      ? '1px solid rgba(0, 0, 0, 0.08)'
-                      : '1px solid rgba(255, 255, 255, 0.08)',
-                    backdropFilter: 'var(--surface-float-blur)',
-                    WebkitBackdropFilter: 'var(--surface-float-blur)',
+                      ? '1px solid rgba(255, 255, 255, 0.85)'
+                      : '1px solid rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
+                    WebkitBackdropFilter: 'blur(28px) saturate(200%) brightness(1.04)',
                     boxShadow: isLight
-                      ? '0 16px 40px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 4px 12px rgba(0, 0, 0, 0.04)'
-                      : '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+                      ? '0 16px 40px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px rgba(0, 0, 0, 0.03)'
+                      : '0 24px 48px rgba(0, 0, 0, 0.45), 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1.2px 1.8px rgba(255, 255, 255, 0.30), inset 0 -1px 1px rgba(0, 0, 0, 0.25)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1627,12 +1697,13 @@ export function SharedNavigationBar({
                         : 'rgba(15, 23, 42, 0.75)'
                       : isSwitcherOpen
                         ? '#ffffff'
-                        : 'rgba(255, 255, 255, 0.60)',
+                        : 'rgba(255, 255, 255, 0.65)',
                     cursor: 'pointer',
                     outline: 'none',
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
-                    scale: containerScale,
+                    scale: switcherScale,
+                    opacity: switcherOpacity,
                     x: switcherX,
                   }}
                 >

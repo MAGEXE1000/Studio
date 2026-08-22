@@ -1468,15 +1468,9 @@ export function SharedNavigationBar({
                       x: animatedPillX,
                       width: pillWidthVal,
                       borderRadius: '9999px',
-                      background: isLight
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 248, 255, 0.78) 50%, rgba(255, 255, 255, 0.65) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(215, 235, 255, 0.16) 45%, rgba(255, 255, 255, 0.10) 100%)',
-                      border: isLight
-                        ? '1.2px solid rgba(255, 255, 255, 0.98)'
-                        : '1.2px solid rgba(255, 255, 255, 0.42)',
-                      boxShadow: isLight
-                        ? 'inset 0 1.5px 2.5px rgba(255, 255, 255, 1.0), inset 0 -0.5px 1px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(0, 0, 0, 0.09)'
-                        : 'inset 0 1.5px 2.5px rgba(255, 255, 255, 0.55), inset 0 -0.5px 1px rgba(0, 0, 0, 0.20), 0 6px 20px rgba(0, 0, 0, 0.35)',
+                      background: 'var(--surface-glass-lens-bg)',
+                      border: 'var(--surface-glass-lens-border)',
+                      boxShadow: 'var(--surface-glass-lens-shadow)',
                       backdropFilter: 'var(--surface-float-blur)',
                       WebkitBackdropFilter: 'var(--surface-float-blur)',
                       pointerEvents: 'none',

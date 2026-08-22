@@ -336,9 +336,8 @@ function createShader(host: HTMLElement): Shader {
   regenerateMap(shader, Math.round(r0.width) || 200, Math.round(r0.height) || 60);
 
   // Apply the combined backdrop-filter.
-  // url() displacement works in Safari; Chrome applies only the standard filter fns.
-  // No extra blur — keep the lens effect clear; tint alone provides readability.
-  const value = `url(#${filterId}) saturate(1.8) brightness(1.05) contrast(1.06)`;
+  // url() displacement works in Safari; Chrome applies the standard filter fns.
+  const value = `url(#${filterId}) blur(28px) saturate(210%) brightness(1.06) contrast(1.02)`;
   host.style.setProperty('backdrop-filter', value, 'important');
   host.style.setProperty('-webkit-backdrop-filter', value, 'important');
 

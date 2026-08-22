@@ -284,8 +284,22 @@ export function SharedFloatingHeader({
             outline: 'none',
             WebkitTapHighlightColor: 'transparent',
             opacity: titleOpacity,
+            overflow: 'hidden',
           }}
         >
+          {/* Top Specular Rim */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: '4px',
+              right: '4px',
+              height: '1px',
+              background: 'var(--surface-glass-rim)',
+              pointerEvents: 'none',
+              opacity: 0.9,
+            }}
+          />
           <span className="material-symbols-rounded" style={{ fontSize: 18, lineHeight: 1 }}>
             arrow_back
           </span>

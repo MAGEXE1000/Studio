@@ -225,9 +225,9 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
           if (Math.abs(dy) < 1.5) return;
 
           // Asymmetric gesture responsiveness:
-          // Downward scrolling progressively collapses (dy / 70)
-          // Upward scrolling expands with snappy, immediate response (dy / 45)
-          const deltaRatio = dy > 0 ? dy / 70 : dy / 45;
+          // Downward scrolling progressively compresses/recedes (dy / 65)
+          // Upward scrolling expands with instantaneous supple response (dy / 35)
+          const deltaRatio = dy > 0 ? dy / 65 : dy / 35;
           setNavScrollOffset(_scrollOffset + deltaRatio);
           _elementLastY.set(el, y);
         };

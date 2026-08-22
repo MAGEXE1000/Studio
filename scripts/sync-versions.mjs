@@ -342,5 +342,19 @@ if (fs.existsSync(releaseManifestPath)) {
   }
 }
 
+// Ensure production Capacitor assets are clean of development server.url
+const capAssetConfigPath = path.join(repoRoot, 'apps/studio-android/android/app/src/main/assets/capacitor.config.json');
+if (fs.existsSync(capAssetConfigPath) && !process.env.CAPACITOR_SERVER_URL) {
+  try {
+    const cap = JSON.parse(fs.readFileSync(capAssetConfigPath, 'utf8'));
+    if (cap.server?.url || cap.server?.cleartext) {
+      delete cap.server.url;
+      delete cap.server.cleartext;
+      fs.writeFileSync(capAssetConfigPath, JSON.stringify(cap, null, '\t') + '\n', 'utf8');
+      console.log(`sync-versions: ✓ Sanitized production Capacitor asset configuration (removed dev server.url)`);
+    }
+  } catch (_) {}
+}
+
 console.log(`\n\x1b[32m=== SSOT VERSION SYNCHRONIZATION COMPLETE ===\x1b[0m\n`);
 process.exit(0);

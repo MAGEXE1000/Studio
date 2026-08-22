@@ -62,43 +62,49 @@ Every major directory has its own **README.md** explaining its purpose, structur
 
 Studio contains 6 sub-applications, all rendered inside a single SPA:
 
-| Mode | Description |
-|------|-------------|
-| **Hub** | Main navigation shell and app switcher |
-| **Chordex** | Chord library, diagrams, progressions, song practice |
-| **Drumex** | Step sequencer, drum kits, pattern library, FX chain |
-| **Stagex** | Stage plot editor (iframe-based) |
-| **Groovex** | Multi-stem song practice mixer |
+| Mode        | Description                                           |
+| ----------- | ----------------------------------------------------- |
+| **Hub**     | Main navigation shell and app switcher                |
+| **Chordex** | Chord library, diagrams, progressions, song practice  |
+| **Drumex**  | Step sequencer, drum kits, pattern library, FX chain  |
+| **Stagex**  | Stage plot editor (iframe-based)                      |
+| **Groovex** | Multi-stem song practice mixer                        |
 | **Vocalex** | Vocal training: pitch detection, exercises, recording |
 
 ## Platform Separation
 
-| Scope | Owned Paths |
-|-------|-------------|
-| **WEB** | `apps/studio-web/`, `packages/ui-web/` |
-| **APK** | `apps/studio-android/`, `packages/ui-android/` |
+| Scope      | Owned Paths                                    |
+| ---------- | ---------------------------------------------- |
+| **WEB**    | `apps/studio-web/`, `packages/ui-web/`         |
+| **APK**    | `apps/studio-android/`, `packages/ui-android/` |
 | **SHARED** | `packages/studio-core/`, `packages/ui-shared/` |
 
 Cross-scope import rules: WEB must not import from APK. APK must not import from WEB. Validate with: `pnpm scope:check`
 
-## Quick Start
+## Quick Start & Local Preview
 
 ```bash
-# Install dependencies
-pnpm install
+# 1. Start Web Preview (Vite HMR on port 5173)
+pnpm dev:web
+# URL: http://localhost:5173 (Antigravity & browser ready)
 
-# Start web dev server
-cd apps/studio-web && pnpm dev
+# 2. Start Android / Capacitor Live Reload Preview (Port 5174)
+pnpm dev:android
+# • USB Device: Uses `adb reverse tcp:5174 tcp:5174` (loads http://localhost:5174)
+# • Emulator:   Uses loopback alias (http://10.0.2.2:5174)
+# • Wi-Fi LAN:  Uses host LAN address (http://<HOST_IP>:5174)
 
-# Start Android dev server
-cd apps/studio-android && pnpm dev
+# 3. Start Dual Preview Simultaneously (Web + Mobile Live Reload)
+pnpm dev:preview
 
-# Run tests
-pnpm test:android
+# Compile Android Debug APK
+pnpm preview:android
 
-# Check types
+# Run quality guards & tests
+pnpm check:tokens
+pnpm check:hook-order
+pnpm test
 pnpm typecheck:web
-pnpm typecheck:android
 ```
 
 ## User Preferences

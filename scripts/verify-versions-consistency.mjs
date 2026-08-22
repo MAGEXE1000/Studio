@@ -149,5 +149,18 @@ if (fs.existsSync(paths.releaseManifest)) {
   assertVersion(paths.releaseManifest, rm.releaseVersion || rm.versionName || rm.version, 'release-manifest.json');
 }
 
+// 12. Production Capacitor Config Isolation Guard (Fail-Closed)
+const capAssetConfigPath = path.join(repoRoot, 'apps/studio-android/android/app/src/main/assets/capacitor.config.json');
+if (fs.existsSync(capAssetConfigPath)) {
+  const capConfig = JSON.parse(fs.readFileSync(capAssetConfigPath, 'utf8'));
+  if (capConfig.server?.url) {
+    console.error(`::error::PRODUCTION ISOLATION FAILURE: Development server.url detected in production Capacitor assets: ${capConfig.server.url}`);
+    console.error(`  Source: ${capAssetConfigPath}`);
+    console.error(`  \x1b[33mFix: Run \`pnpm --filter @workspace/studio-android exec cap copy android\` without CAPACITOR_SERVER_URL set.\x1b[0m`);
+    process.exit(1);
+  }
+  console.log(`✓ Production Capacitor assets clean (no dev server.url present).`);
+}
+
 console.log('\x1b[32m=== MULTI-MANIFEST VERSION CONSISTENCY PASSED CLEANLY ===\x1b[0m');
 process.exit(0);

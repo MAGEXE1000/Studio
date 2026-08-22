@@ -3995,11 +3995,8 @@ function HubSettings({
 
   function renderTermsContent() {
     return (
-      <div
+      <SettingsContentContainer
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
@@ -4055,17 +4052,14 @@ function HubSettings({
           aim to protect project data using reliable local storage and cloud sync mechanisms, we
           cannot guarantee data will not be lost. We recommend periodic manual backups.
         </p>
-      </div>
+      </SettingsContentContainer>
     );
   }
 
   function renderPrivacyPolicyContent() {
     return (
-      <div
+      <SettingsContentContainer
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
@@ -4120,7 +4114,7 @@ function HubSettings({
           Studio does not use telemetry, advertising trackers, or external behavioral analytics.
           Your interaction with the app remains entirely private.
         </p>
-      </div>
+      </SettingsContentContainer>
     );
   }
 
@@ -4255,15 +4249,7 @@ User Agent: [Automatically Generated]
     const sSets = t.hub.studioSettings;
 
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
-          width: '100%',
-          paddingBottom: 'var(--space-6)',
-        }}
-      >
+      <SettingsContentContainer style={{ paddingBottom: 'var(--space-6)' }}>
         <SettingsSectionLabel>{sSets.sidebarBehavior}</SettingsSectionLabel>
         <div style={cardStyle}>
           <SettingRow label={sSets.hideSidebar} desc={sSets.hideSidebarDesc}>
@@ -4338,10 +4324,11 @@ User Agent: [Automatically Generated]
                 fontSize: '11px',
                 color: 'var(--c-text-muted)',
                 fontFamily: 'Inter',
+                lineHeight: 1.3,
                 margin: 0,
               }}
             >
-              {sSets.dockAlwaysEnabled}
+              {sSets.dockDescription}
             </p>
           </div>
 
@@ -4354,19 +4341,9 @@ User Agent: [Automatically Generated]
             />
           </SettingRow>
 
-          <SettingRow
-            label={t.settings.rows.swipeBackBehavior || 'Swipe back behavior'}
-            desc={
-              t.settings.rows.swipeBackBehaviorDesc ||
-              'Configure swipe back gesture behavior on app root screens.'
-            }
-          >
-            <SegmentedControl<'exit-to-hub' | 'manual-only'>
-              value={settings.swipeBackBehavior || 'exit-to-hub'}
-              options={[
-                { value: 'exit-to-hub', label: t.settings.rows.swipeBackExit || 'Swipe to Hub' },
-                { value: 'manual-only', label: t.settings.rows.swipeBackManual || 'Manual Only' },
-              ]}
+          <SettingRow label={sSets.swipeBack} desc={sSets.swipeBackDesc}>
+            <Toggle
+              value={settings.swipeBackBehavior ?? 'both'}
               onChange={(v) => settingsController.updateSettings({ swipeBackBehavior: v })}
               accentFrom={accent.from}
               accentTo={accent.to}
@@ -4427,21 +4404,13 @@ User Agent: [Automatically Generated]
             />
           </SettingRow>
         </div>
-      </div>
+      </SettingsContentContainer>
     );
   }
 
   function renderPrivacyContent() {
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
-          width: '100%',
-          paddingBottom: 'var(--space-6)',
-        }}
-      >
+      <SettingsContentContainer style={{ paddingBottom: 'var(--space-6)' }}>
         <SettingsSectionLabel>
           {(t.hub as { studioSettings?: { accountControls?: string } }).studioSettings
             ?.accountControls ?? 'Account Controls'}
@@ -4449,7 +4418,7 @@ User Agent: [Automatically Generated]
         <Suspense fallback={null}>
           <AccountDangerZone accent={accent} cardStyle={cardStyle} />
         </Suspense>
-      </div>
+      </SettingsContentContainer>
     );
   }
 
@@ -5968,15 +5937,7 @@ User Agent: [Automatically Generated]
       { name: 'Lucide React', license: 'ISC', desc: 'Beautiful & consistent icon toolkit.' },
     ];
     return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
-          width: '100%',
-          paddingBottom: 'var(--space-6)',
-        }}
-      >
+      <SettingsContentContainer style={{ paddingBottom: 'var(--space-6)' }}>
         <div style={cardStyle}>
           {licenses.map((item, idx) => (
             <div
@@ -6030,7 +5991,7 @@ User Agent: [Automatically Generated]
             </div>
           ))}
         </div>
-      </div>
+      </SettingsContentContainer>
     );
   }
 
@@ -8135,11 +8096,8 @@ function HubHelp({
 
   function renderTermsContent() {
     return (
-      <div
+      <SettingsContentContainer
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
@@ -8180,17 +8138,14 @@ function HubHelp({
           {t.help.terms.h3}
         </h4>
         <p style={{ margin: 0 }}>{t.help.terms.p3}</p>
-      </div>
+      </SettingsContentContainer>
     );
   }
 
   function renderPrivacyPolicyContent() {
     return (
-      <div
+      <SettingsContentContainer
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 16,
           fontSize: 13,
           color: 'var(--c-text-secondary)',
           lineHeight: 1.6,
@@ -8231,7 +8186,7 @@ function HubHelp({
           {t.help.privacy.h3}
         </h4>
         <p style={{ margin: 0 }}>{t.help.privacy.p3}</p>
-      </div>
+      </SettingsContentContainer>
     );
   }
 

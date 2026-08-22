@@ -197,9 +197,12 @@ export function SharedFloatingHeader({
         padding: '0 16px',
       }}
     >
-      {/* Floating rounded capsule header card with production liquid-glass material */}
+      {/* Floating rounded capsule header card with production liquid-glass material and fluid entrance */}
       <motion.div
         ref={headerBgRef}
+        initial={{ opacity: 0, y: -10, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1], delay: 0.02 }}
         style={{
           position: 'absolute',
           top: 0,
@@ -257,7 +260,11 @@ export function SharedFloatingHeader({
         <motion.button
           onClick={onBack}
           aria-label="Go back"
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.92 }}
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: 'spring', stiffness: 440, damping: 26 }}
+          initial={{ opacity: 0, scale: 0.85 }}
+          animate={{ opacity: 1, scale: 1 }}
           style={{
             position: 'absolute',
             left: `calc(${sideMargin} + 8px)`,
@@ -309,6 +316,9 @@ export function SharedFloatingHeader({
       {/* Absolute Centered Section Title Layer (Centered against capsule bounds) */}
       <motion.div
         ref={titleRef}
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1], delay: 0.03 }}
         style={{
           position: 'absolute',
           left: sideMargin,
@@ -354,6 +364,9 @@ export function SharedFloatingHeader({
       {/* Right Toolbar Actions Layer */}
       {toolbarActions && (
         <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.04 }}
           style={{
             position: 'absolute',
             right: `calc(${sideMargin} + 12px)`,
@@ -454,6 +467,9 @@ export function SettingsScaffold({
           {showLargeTitle && (
             <motion.div
               ref={largeTitleRef}
+              initial={{ opacity: 0, y: 12, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.02 }}
               style={{
                 opacity: largeTitleOpacity,
                 y: largeTitleY,
@@ -475,18 +491,67 @@ export function SettingsScaffold({
   );
 }
 
+export const STAGGER_CONTAINER_VARIANTS = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.045,
+      delayChildren: 0.03,
+    },
+  },
+};
+
+export const STAGGER_ITEM_VARIANTS = {
+  hidden: { opacity: 0, y: 14, scale: 0.985 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.38,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  },
+};
+
 export interface SettingsContentContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  disableStagger?: boolean;
 }
 
 export function SettingsContentContainer({
   children,
   style,
   className = '',
+  disableStagger = false,
   ...props
 }: SettingsContentContainerProps) {
+  if (disableStagger) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--density-section-gap, 16px)',
+          width: '100%',
+          boxSizing: 'border-box',
+          background: 'transparent',
+          ...style,
+        }}
+        className={`studio-settings-content-container ${className}`}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+
   return (
-    <div
+    <motion.div
+      variants={STAGGER_CONTAINER_VARIANTS}
+      initial="hidden"
+      animate="visible"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -499,8 +564,19 @@ export function SettingsContentContainer({
       className={`studio-settings-content-container ${className}`}
       {...props}
     >
-      {children}
-    </div>
+      {React.Children.map(children, (child, idx) => {
+        if (!child) return null;
+        return (
+          <motion.div
+            key={idx}
+            variants={STAGGER_ITEM_VARIANTS}
+            style={{ width: '100%', willChange: 'transform, opacity' }}
+          >
+            {child}
+          </motion.div>
+        );
+      })}
+    </motion.div>
   );
 }
 

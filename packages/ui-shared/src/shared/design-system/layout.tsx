@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
+import React, { forwardRef } from 'react';
+import { motion } from 'motion/react';
+import { SpringPresets } from '@workspace/studio-core';
 import { StudioHeader as AnimatedAppHeader } from '../layout/StudioHeader';
 import { ProgressiveBlur } from './ProgressiveBlur';
+
 // ── 5. Toolbar ─────────────────────────────────────────────────────────────
 export interface ToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
@@ -25,7 +26,7 @@ export function Toolbar({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderBottom: `1px solid var(--c-border)`,
+        borderBottom: `1px solid rgba(255, 255, 255, 0.08)`,
         backgroundColor: 'transparent',
         flexShrink: 0,
         ...style,
@@ -36,9 +37,10 @@ export function Toolbar({
       {title && (
         <span
           style={{
-            fontSize: '15px',
+            fontSize: '16px',
             fontWeight: 800,
-            fontFamily: 'var(--font-headline)',
+            fontFamily: 'Manrope, sans-serif',
+            letterSpacing: '-0.02em',
             color: 'var(--c-text-primary)',
           }}
         >
@@ -151,7 +153,7 @@ export interface BottomNavigationProps extends React.HTMLAttributes<HTMLElement>
   children: React.ReactNode;
 }
 
-export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationProps>(
+export const BottomNavigation = forwardRef<HTMLElement, BottomNavigationProps>(
   ({ children, style, className = '', ...props }, ref) => {
     return (
       <nav
@@ -165,9 +167,9 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
           maxWidth: '448px',
           height: '60px',
           borderRadius: '2rem',
-          border: `1px solid var(--c-border)`,
+          border: `1px solid rgba(255, 255, 255, 0.08)`,
           background: 'transparent',
-          boxShadow: 'var(--elevation-high)',
+          boxShadow: 'var(--elevation-high, 0 12px 40px rgba(0, 0, 0, 0.35))',
           zIndex: 50,
           overflow: 'hidden',
           transition: 'background-color 200ms ease, border-color 200ms ease',
@@ -196,3 +198,177 @@ export const BottomNavigation = React.forwardRef<HTMLElement, BottomNavigationPr
 
 BottomNavigation.displayName = 'BottomNavigation';
 
+// ── 12. ListRow ─────────────────────────────────────────────────────────────
+export interface ListRowProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  icon?: string | React.ReactNode;
+  iconColor?: string;
+  iconBg?: string;
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  trailing?: React.ReactNode;
+  showChevron?: boolean;
+  last?: boolean;
+}
+
+export const ListRow = forwardRef<HTMLButtonElement, ListRowProps>(
+  (
+    {
+      icon,
+      iconColor,
+      iconBg,
+      title,
+      subtitle,
+      badge,
+      trailing,
+      showChevron = true,
+      last = false,
+      onClick,
+      disabled,
+      style,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    const isInteractive = !!onClick;
+    const Component = (isInteractive ? motion.button : 'div') as any;
+    const motionProps = isInteractive
+      ? {
+          whileTap: disabled ? undefined : { scale: 0.985 },
+          whileHover: disabled ? undefined : { scale: 1.006 },
+          transition: SpringPresets.soft,
+        }
+      : {};
+
+    return (
+      <Component
+        ref={ref}
+        type={isInteractive ? 'button' : undefined}
+        onClick={onClick}
+        disabled={disabled}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 14,
+          width: '100%',
+          padding: '14px 16px',
+          background: 'transparent',
+          border: 'none',
+          outline: 'none',
+          borderBottom: last ? 'none' : '1px solid rgba(255, 255, 255, 0.05)',
+          cursor: isInteractive && !disabled ? 'pointer' : 'default',
+          textAlign: 'left',
+          boxSizing: 'border-box',
+          WebkitTapHighlightColor: 'transparent',
+          userSelect: 'none',
+          opacity: disabled ? 0.5 : 1,
+          ...style,
+        }}
+        className={`studio-list-row ${isInteractive ? 'hover:bg-white/5 transition-colors' : ''} ${className}`}
+        {...motionProps}
+        {...props}
+      >
+        {icon && (
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              background: iconBg || 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              color: iconColor || 'var(--c-text-primary)',
+              boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+            }}
+          >
+            {typeof icon === 'string' ? (
+              <span className="material-symbols-outlined" style={{ fontSize: 20, opacity: 0.85 }}>
+                {icon}
+              </span>
+            ) : (
+              icon
+            )}
+          </div>
+        )}
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span
+            style={{
+              fontFamily: 'Manrope, sans-serif',
+              fontWeight: 750,
+              fontSize: 14.5,
+              letterSpacing: '-0.015em',
+              color: 'var(--c-text-primary)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {title}
+          </span>
+          {subtitle && (
+            <span
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12,
+                color: 'var(--c-text-secondary)',
+                opacity: 0.8,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {subtitle}
+            </span>
+          )}
+        </div>
+        {badge && (
+          <span
+            style={{
+              fontFamily: 'Manrope, sans-serif',
+              fontWeight: 800,
+              fontSize: 9.5,
+              color: 'var(--c-text-secondary)',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.10)',
+              borderRadius: 6,
+              padding: '2px 8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              flexShrink: 0,
+            }}
+          >
+            {badge}
+          </span>
+        )}
+        {trailing}
+        {showChevron && isInteractive && (
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.04)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <span
+              className="material-symbols-outlined"
+              style={{ fontSize: 15, color: 'var(--c-text-secondary)', opacity: 0.6 }}
+            >
+              chevron_right
+            </span>
+          </div>
+        )}
+      </Component>
+    );
+  }
+);
+
+ListRow.displayName = 'ListRow';

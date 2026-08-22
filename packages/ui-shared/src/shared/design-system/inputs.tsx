@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
+import React, { forwardRef, useState } from 'react';
+import { motion } from 'motion/react';
+import { SpringPresets } from '@workspace/studio-core';
+
 // ── 6. Input ───────────────────────────────────────────────────────────────
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,19 +9,21 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, desc, error, style, className = '', ...props }, ref) => {
+export const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, desc, error, style, className = '', onFocus, onBlur, ...props }, ref) => {
+    const [focused, setFocused] = useState(false);
+
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
         {label && (
           <span
             style={{
-              fontSize: '11px',
+              fontSize: '10px',
               fontWeight: 800,
               textTransform: 'uppercase',
-              letterSpacing: '0.04em',
+              letterSpacing: '0.08em',
               color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-headline)',
+              fontFamily: 'Manrope, sans-serif',
             }}
           >
             {label}
@@ -28,16 +31,34 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
+          onFocus={(e) => {
+            setFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            onBlur?.(e);
+          }}
           style={{
-            padding: '10px 14px',
-            borderRadius: 'var(--radius-md)',
-            fontSize: '13px',
-            fontFamily: 'var(--font-body)',
-            backgroundColor: 'var(--c-surface-lowest)',
-            border: `1.5px solid ${error ? 'var(--c-error)' : 'var(--c-border)'}`,
+            padding: '11px 14px',
+            borderRadius: '14px',
+            fontSize: '13.5px',
+            fontFamily: 'Inter, sans-serif',
+            backgroundColor: 'var(--c-surface-lowest, rgba(255, 255, 255, 0.03))',
+            border: error
+              ? '1px solid var(--c-error, #ef4444)'
+              : focused
+                ? '1px solid var(--c-accent-from, #7c3aed)'
+                : '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow: error
+              ? '0 0 0 3px rgba(239, 68, 68, 0.20)'
+              : focused
+                ? '0 0 0 3px var(--c-accent-from, rgba(124, 58, 237, 0.25)), inset 0 1px 1px rgba(255, 255, 255, 0.08)'
+                : 'inset 0 1px 1px rgba(0, 0, 0, 0.20)',
             color: 'var(--c-text-primary)',
             outline: 'none',
-            transition: 'border-color 180ms ease, background-color 180ms ease, color 180ms ease',
+            transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
+            boxSizing: 'border-box',
             ...style,
           }}
           className={`studio-input ${className}`}
@@ -46,9 +67,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {desc && !error && (
           <span
             style={{
-              fontSize: '10px',
+              fontSize: '11px',
               color: 'var(--c-text-secondary)',
-              fontFamily: 'var(--font-body)',
+              fontFamily: 'Inter, sans-serif',
+              opacity: 0.8,
             }}
           >
             {desc}
@@ -57,10 +79,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {error && (
           <span
             style={{
-              fontSize: '10px',
-              color: 'var(--c-error)',
+              fontSize: '11px',
+              color: 'var(--c-error, #ef4444)',
               fontWeight: 600,
-              fontFamily: 'var(--font-body)',
+              fontFamily: 'Inter, sans-serif',
             }}
           >
             {error}
@@ -79,9 +101,25 @@ export interface SearchBarProps extends React.InputHTMLAttributes<HTMLInputEleme
   accent?: { from: string; to: string; mid: string };
 }
 
-export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
-  ({ onClear, accent, value, onChange, style, className = '', placeholder, ...props }, ref) => {
+export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
+  (
+    {
+      onClear,
+      accent,
+      value,
+      onChange,
+      style,
+      className = '',
+      placeholder,
+      onFocus,
+      onBlur,
+      ...props
+    },
+    ref
+  ) => {
+    const [focused, setFocused] = useState(false);
     const showClear = value && value.toString().length > 0 && onClear;
+    const activeAccent = accent?.from || 'var(--c-accent-from, #7c3aed)';
 
     return (
       <div
@@ -89,14 +127,32 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
         style={{
           display: 'flex',
           alignItems: 'center',
+          position: 'relative',
         }}
       >
+        {/* Top Specular Rim */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 14,
+            right: 14,
+            height: '1px',
+            background:
+              'var(--surface-glass-rim, linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent))',
+            pointerEvents: 'none',
+            opacity: focused ? 0.9 : 0.5,
+            zIndex: 6,
+          }}
+        />
+
         <span
           className="material-symbols-outlined absolute left-4 pointer-events-none"
           style={{
-            color: 'var(--c-text-secondary, #acabaa)',
+            color: focused ? activeAccent : 'var(--c-text-secondary, #acabaa)',
             fontSize: '20px',
             zIndex: 5,
+            transition: 'color 200ms ease',
           }}
         >
           search
@@ -106,49 +162,49 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          style={{
-            width: '100%',
-            height: '48px',
-            padding: '10px 48px 10px 48px',
-            borderRadius: '9999px',
-            backgroundColor: 'var(--app-surface-high, rgba(128,128,128,0.06))',
-            border: '1px solid var(--c-border, rgba(128,128,128,0.12))',
-            color: 'var(--c-text-primary, #e7e5e4)',
-            fontSize: '14px',
-            fontFamily: 'var(--font-body, Inter, sans-serif)',
-            outline: 'none',
-            transition: 'all 240ms cubic-bezier(0.2, 0, 0, 1)',
-            boxShadow: 'none',
-            boxSizing: 'border-box',
-            ...style,
-          }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = accent
-              ? accent.from
-              : 'var(--c-accent-from, #007aff)';
-            e.currentTarget.style.backgroundColor =
-              'var(--app-surface-highest, rgba(128,128,128,0.12))';
-            e.currentTarget.style.boxShadow = 'var(--elevation-low, 0 1px 4px rgba(0,0,0,0.15))';
+            setFocused(true);
+            onFocus?.(e);
           }}
           onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--c-border, rgba(128,128,128,0.12))';
-            e.currentTarget.style.backgroundColor =
-              'var(--app-surface-high, rgba(128,128,128,0.06))';
-            e.currentTarget.style.boxShadow = 'none';
+            setFocused(false);
+            onBlur?.(e);
+          }}
+          style={{
+            width: '100%',
+            height: '46px',
+            padding: '10px 44px 10px 46px',
+            borderRadius: '9999px',
+            backgroundColor: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+            border: focused ? `1px solid ${activeAccent}` : '1px solid rgba(255, 255, 255, 0.08)',
+            color: 'var(--c-text-primary, #ffffff)',
+            fontSize: '13.5px',
+            fontFamily: 'Inter, sans-serif',
+            outline: 'none',
+            transition: 'all 240ms cubic-bezier(0.2, 0, 0, 1)',
+            boxShadow: focused
+              ? `0 0 0 3px ${activeAccent}25, 0 4px 16px rgba(0, 0, 0, 0.16)`
+              : '0 4px 16px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            boxSizing: 'border-box',
+            ...style,
           }}
           {...props}
         />
         {showClear && (
-          <button
+          <motion.button
             onClick={onClear}
             type="button"
-            className="absolute right-3 btn-smooth outline-none cursor-pointer flex items-center justify-center"
+            whileTap={{ scale: 0.9 }}
+            transition={SpringPresets.soft}
+            className="absolute right-3.5 outline-none cursor-pointer flex items-center justify-center"
             style={{
-              width: '28px',
-              height: '28px',
+              width: '26px',
+              height: '26px',
               borderRadius: '50%',
-              backgroundColor: 'transparent',
-              border: 'none',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
               color: 'var(--c-text-secondary, #acabaa)',
               display: 'flex',
               alignItems: 'center',
@@ -156,10 +212,10 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
               zIndex: 5,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
               close
             </span>
-          </button>
+          </motion.button>
         )}
       </div>
     );
@@ -167,4 +223,3 @@ export const SearchBar = React.forwardRef<HTMLInputElement, SearchBarProps>(
 );
 
 SearchBar.displayName = 'SearchBar';
-

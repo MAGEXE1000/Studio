@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
+import {
+  NavigationDispatcher,
+  useSettingsStore,
+  ACCENT_COLORS,
+  AppKey,
+  SpringPresets,
+} from '@workspace/studio-core';
 import { AnimatedIcon } from '../icons/AnimatedIcon';
 import { EASE_OUT, SPRING_PRESS } from '../../lib/ease';
 import { useHoverCapable } from '../../lib/hooks/use-hover-capable';
@@ -62,16 +68,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const getColors = () => {
       if (variant === 'primary') {
         return {
-          bg: 'var(--c-accent-from)',
+          bg: 'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
           text: '#ffffff',
-          border: 'transparent',
+          border: 'rgba(255, 255, 255, 0.20)',
+          shadow:
+            '0 4px 16px var(--c-accent-from, rgba(124, 58, 237, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
         };
       }
       if (variant === 'danger') {
         return {
-          bg: 'var(--c-error-container)',
-          text: 'var(--c-error)',
-          border: 'var(--c-error-container)',
+          bg: 'rgba(239, 68, 68, 0.12)',
+          text: '#ef4444',
+          border: 'rgba(239, 68, 68, 0.25)',
+          shadow: '0 2px 10px rgba(239, 68, 68, 0.15)',
         };
       }
       if (variant === 'ghost') {
@@ -79,41 +88,44 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           bg: 'transparent',
           text: 'var(--c-text-primary)',
           border: 'transparent',
+          shadow: 'none',
         };
       }
       if (variant === 'outline') {
         return {
-          bg: 'transparent',
+          bg: 'rgba(255, 255, 255, 0.02)',
           text: 'var(--c-text-primary)',
-          border: 'var(--c-border)',
+          border: 'rgba(255, 255, 255, 0.12)',
+          shadow: 'none',
         };
       }
       return {
-        bg: 'var(--c-surface-high)',
+        bg: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.05))',
         text: 'var(--c-text-primary)',
-        border: 'var(--c-border)',
+        border: 'rgba(255, 255, 255, 0.08)',
+        shadow: '0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
       };
     };
 
     const colors = getColors();
 
-    // Size mappings matching BeUI standards
+    // Size mappings matching modern mobile standards
     const getPaddingAndHeight = () => {
       if (size === 'icon') {
         return {
-          height: '32px',
-          width: '32px',
+          height: '36px',
+          width: '36px',
           padding: '0',
           fontSize: '12px',
-          borderRadius: '8px',
+          borderRadius: '12px',
         };
       }
       if (size === 'sm') {
         return {
           height: '32px',
           padding: '0 14px',
-          fontSize: '11px',
-          borderRadius: '24px',
+          fontSize: '12px',
+          borderRadius: '16px',
         };
       }
       if (size === 'lg') {
@@ -127,8 +139,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       return {
         height: '40px',
         padding: '0 18px',
-        fontSize: '13px',
-        borderRadius: '24px',
+        fontSize: '13.5px',
+        borderRadius: '20px',
       };
     };
 
@@ -138,9 +150,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         type="button"
-        whileTap={disabled || loading || reduce ? undefined : { scale: 0.93 }}
-        whileHover={disabled || loading || reduce || !canHover ? undefined : { scale: 1.02 }}
-        transition={SPRING_PRESS}
+        whileTap={disabled || loading || reduce ? undefined : { scale: 0.96 }}
+        whileHover={disabled || loading || reduce || !canHover ? undefined : { scale: 1.015 }}
+        transition={SpringPresets.soft}
         onPointerDown={handlePointerDown}
         style={{
           height: dims.height,
@@ -148,11 +160,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           padding: dims.padding,
           fontSize: dims.fontSize,
           borderRadius: dims.borderRadius,
-          fontFamily: 'var(--font-headline, Manrope, sans-serif)',
-          fontWeight: 700,
-          backgroundColor: colors.bg,
+          fontFamily: 'Manrope, sans-serif',
+          fontWeight: 750,
+          letterSpacing: '-0.01em',
+          background: colors.bg,
           color: colors.text,
-          border: `1.5px solid ${colors.border}`,
+          border: `1px solid ${colors.border}`,
+          boxShadow: colors.shadow,
+          backdropFilter: variant === 'secondary' ? 'blur(12px)' : undefined,
+          WebkitBackdropFilter: variant === 'secondary' ? 'blur(12px)' : undefined,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -213,6 +229,123 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
+// ── 1.5. IconButton ────────────────────────────────────────────────────────
+export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  icon: string | React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+  shape?: 'squircle' | 'circle';
+  loading?: boolean;
+}
+
+export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
+  (
+    {
+      icon,
+      variant = 'secondary',
+      size = 'md',
+      shape = 'squircle',
+      loading = false,
+      disabled,
+      style,
+      className = '',
+      ...props
+    },
+    ref
+  ) => {
+    const reduce = useReducedMotion();
+    const canHover = useHoverCapable();
+
+    const getDim = () => {
+      if (size === 'sm') return { box: 32, icon: 16, radius: shape === 'circle' ? '50%' : '10px' };
+      if (size === 'lg') return { box: 46, icon: 22, radius: shape === 'circle' ? '50%' : '16px' };
+      return { box: 38, icon: 18, radius: shape === 'circle' ? '50%' : '12px' };
+    };
+
+    const dim = getDim();
+
+    const getStyles = () => {
+      if (variant === 'primary') {
+        return {
+          bg: 'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
+          color: '#ffffff',
+          border: '1px solid rgba(255, 255, 255, 0.20)',
+          shadow:
+            '0 4px 16px var(--c-accent-from, rgba(124, 58, 237, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
+        };
+      }
+      if (variant === 'danger') {
+        return {
+          bg: 'rgba(239, 68, 68, 0.12)',
+          color: '#ef4444',
+          border: '1px solid rgba(239, 68, 68, 0.25)',
+          shadow: '0 2px 8px rgba(239, 68, 68, 0.15)',
+        };
+      }
+      if (variant === 'ghost') {
+        return {
+          bg: 'transparent',
+          color: 'var(--c-text-primary)',
+          border: '1px solid transparent',
+          shadow: 'none',
+        };
+      }
+      return {
+        bg: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.05))',
+        color: 'var(--c-text-primary)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        shadow: '0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+      };
+    };
+
+    const s = getStyles();
+
+    return (
+      <motion.button
+        ref={ref}
+        type="button"
+        whileTap={disabled || loading || reduce ? undefined : { scale: 0.93 }}
+        whileHover={disabled || loading || reduce || !canHover ? undefined : { scale: 1.03 }}
+        transition={SpringPresets.soft}
+        disabled={disabled || loading}
+        style={{
+          width: dim.box,
+          height: dim.box,
+          borderRadius: dim.radius,
+          background: s.bg,
+          color: s.color,
+          border: s.border,
+          boxShadow: s.shadow,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: disabled || loading ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.5 : 1,
+          outline: 'none',
+          userSelect: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          boxSizing: 'border-box',
+          ...style,
+        }}
+        className={`btn-smooth ${className}`}
+        {...(props as any)}
+      >
+        {loading ? (
+          <AnimatedIcon name="loader-circle" state="loading" size={dim.icon} />
+        ) : typeof icon === 'string' ? (
+          <span className="material-symbols-outlined" style={{ fontSize: dim.icon }}>
+            {icon}
+          </span>
+        ) : (
+          icon
+        )}
+      </motion.button>
+    );
+  }
+);
+
+IconButton.displayName = 'IconButton';
+
 // ── 2. Floating Button ────────────────────────────────────────────────────
 export interface FloatingButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: string;
@@ -224,20 +357,22 @@ export function FloatingButton({ icon, style, className = '', ...props }: Floati
 
   return (
     <motion.button
-      whileHover={reduce || !canHover ? undefined : { scale: 1.02, y: -1 }}
-      whileTap={reduce ? undefined : { scale: 0.93, y: 0 }}
-      transition={SPRING_PRESS}
+      whileHover={reduce || !canHover ? undefined : { scale: 1.03, y: -2 }}
+      whileTap={reduce ? undefined : { scale: 0.94, y: 0 }}
+      transition={SpringPresets.soft}
       style={{
         width: '56px',
         height: '56px',
-        borderRadius: 'var(--radius-3xl, 24px)',
-        backgroundColor: 'var(--c-accent-from)',
+        borderRadius: '20px',
+        background:
+          'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
         color: '#ffffff',
-        border: 'none',
+        border: '1px solid rgba(255, 255, 255, 0.25)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: 'var(--elevation-high, 0 8px 32px rgba(0, 0, 0, 0.25))',
+        boxShadow:
+          '0 8px 28px rgba(0, 0, 0, 0.35), 0 0 20px var(--c-accent-from, rgba(124, 58, 237, 0.35)), inset 0 1px 1.5px rgba(255, 255, 255, 0.40)',
         cursor: 'pointer',
         outline: 'none',
         boxSizing: 'border-box',
@@ -477,8 +612,8 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
           ? undefined
           : { scale: 1.02, boxShadow: '0 6px 16px rgba(0,0,0,0.25)', y: -1 }
       }
-      whileTap={isButtonDisabled || reduce ? undefined : { scale: 0.93 }}
-      transition={SPRING_PRESS}
+      whileTap={isButtonDisabled || reduce ? undefined : { scale: 0.96 }}
+      transition={SpringPresets.soft}
       style={{
         position: 'relative',
         display: 'inline-flex',
@@ -487,14 +622,14 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
         background: bg,
         border: border,
         color: color,
-        borderRadius: '12px',
-        padding: '8px 12px',
+        borderRadius: '14px',
+        padding: '8px 14px',
         cursor: isButtonDisabled ? 'not-allowed' : 'pointer',
         outline: 'none',
         overflow: 'hidden',
         boxShadow: shadow,
-        fontFamily: 'Inter, sans-serif',
-        fontWeight: 600,
+        fontFamily: 'Manrope, sans-serif',
+        fontWeight: 700,
         fontSize: '13px',
         userSelect: 'none',
         WebkitTapHighlightColor: 'transparent',
@@ -565,15 +700,7 @@ export interface ButtonLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorEl
 
 export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
   (
-    {
-      variant = 'secondary',
-      size = 'md',
-      icon,
-      children,
-      style,
-      className = '',
-      ...props
-    },
+    { variant = 'secondary', size = 'md', icon, children, style, className = '', ...props },
     ref
   ) => {
     const reduce = useReducedMotion();
@@ -582,16 +709,19 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
     const getColors = () => {
       if (variant === 'primary') {
         return {
-          bg: 'var(--c-accent-from)',
+          bg: 'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
           text: '#ffffff',
-          border: 'transparent',
+          border: 'rgba(255, 255, 255, 0.20)',
+          shadow:
+            '0 4px 16px var(--c-accent-from, rgba(124, 58, 237, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
         };
       }
       if (variant === 'danger') {
         return {
-          bg: 'var(--c-error-container)',
-          text: 'var(--c-error)',
-          border: 'var(--c-error-container)',
+          bg: 'rgba(239, 68, 68, 0.12)',
+          text: '#ef4444',
+          border: 'rgba(239, 68, 68, 0.25)',
+          shadow: '0 2px 10px rgba(239, 68, 68, 0.15)',
         };
       }
       if (variant === 'ghost') {
@@ -599,19 +729,22 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
           bg: 'transparent',
           text: 'var(--c-text-primary)',
           border: 'transparent',
+          shadow: 'none',
         };
       }
       if (variant === 'outline') {
         return {
-          bg: 'transparent',
+          bg: 'rgba(255, 255, 255, 0.02)',
           text: 'var(--c-text-primary)',
-          border: 'var(--c-border)',
+          border: 'rgba(255, 255, 255, 0.12)',
+          shadow: 'none',
         };
       }
       return {
-        bg: 'var(--c-surface-high)',
+        bg: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.05))',
         text: 'var(--c-text-primary)',
-        border: 'var(--c-border)',
+        border: 'rgba(255, 255, 255, 0.08)',
+        shadow: '0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
       };
     };
 
@@ -620,19 +753,19 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
     const getPaddingAndHeight = () => {
       if (size === 'icon') {
         return {
-          height: '32px',
-          width: '32px',
+          height: '36px',
+          width: '36px',
           padding: '0',
           fontSize: '12px',
-          borderRadius: '8px',
+          borderRadius: '12px',
         };
       }
       if (size === 'sm') {
         return {
           height: '32px',
           padding: '0 14px',
-          fontSize: '11px',
-          borderRadius: '24px',
+          fontSize: '12px',
+          borderRadius: '16px',
         };
       }
       if (size === 'lg') {
@@ -646,8 +779,8 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       return {
         height: '40px',
         padding: '0 18px',
-        fontSize: '13px',
-        borderRadius: '24px',
+        fontSize: '13.5px',
+        borderRadius: '20px',
       };
     };
 
@@ -656,20 +789,22 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
     return (
       <motion.a
         ref={ref}
-        whileTap={reduce ? undefined : { scale: 0.93 }}
-        whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
-        transition={SPRING_PRESS}
+        whileTap={reduce ? undefined : { scale: 0.96 }}
+        whileHover={reduce || !canHover ? undefined : { scale: 1.015 }}
+        transition={SpringPresets.soft}
         style={{
           height: dims.height,
           width: (dims as any).width,
           padding: dims.padding,
           fontSize: dims.fontSize,
           borderRadius: dims.borderRadius,
-          fontFamily: 'var(--font-headline, Manrope, sans-serif)',
-          fontWeight: 700,
-          backgroundColor: colors.bg,
+          fontFamily: 'Manrope, sans-serif',
+          fontWeight: 750,
+          letterSpacing: '-0.01em',
+          background: colors.bg,
           color: colors.text,
-          border: `1.5px solid ${colors.border}`,
+          border: `1px solid ${colors.border}`,
+          boxShadow: colors.shadow,
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -748,5 +883,3 @@ export const StatefulButton = forwardRef<HTMLButtonElement, StatefulButtonProps>
 );
 
 StatefulButton.displayName = 'StatefulButton';
-
-

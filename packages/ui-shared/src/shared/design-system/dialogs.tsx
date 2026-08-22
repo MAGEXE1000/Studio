@@ -59,9 +59,9 @@ export function Dialog({ open, onClose, title, children, footer, className }: Di
       {title && (
         <div
           style={{
-            paddingBottom: '12px',
-            marginBottom: '12px',
-            borderBottom: '1px solid var(--c-border, rgba(128,128,128,0.15))',
+            paddingBottom: '14px',
+            marginBottom: '14px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -70,9 +70,10 @@ export function Dialog({ open, onClose, title, children, footer, className }: Di
           <h3
             style={{
               margin: 0,
-              fontSize: '16px',
-              fontWeight: 800,
-              fontFamily: 'var(--font-headline)',
+              fontSize: '17px',
+              fontWeight: 850,
+              fontFamily: 'Manrope, sans-serif',
+              letterSpacing: '-0.025em',
               color: 'var(--c-text-primary)',
             }}
           >
@@ -82,15 +83,20 @@ export function Dialog({ open, onClose, title, children, footer, className }: Di
             onClick={onClose}
             type="button"
             style={{
-              background: 'none',
-              border: 'none',
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               cursor: 'pointer',
-              padding: 4,
+              padding: 0,
               display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               color: 'var(--c-text-secondary)',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               close
             </span>
           </button>
@@ -101,10 +107,10 @@ export function Dialog({ open, onClose, title, children, footer, className }: Di
         style={{
           overflowY: 'auto',
           maxHeight: '65vh',
-          fontSize: '13px',
+          fontSize: '13.5px',
           lineHeight: 1.5,
           color: 'var(--c-text-secondary)',
-          fontFamily: 'var(--font-body)',
+          fontFamily: 'Inter, sans-serif',
         }}
       >
         {children}
@@ -112,12 +118,12 @@ export function Dialog({ open, onClose, title, children, footer, className }: Di
       {footer && (
         <div
           style={{
-            paddingTop: '12px',
-            marginTop: '12px',
-            borderTop: '1px solid var(--c-border, rgba(128,128,128,0.15))',
+            paddingTop: '14px',
+            marginTop: '14px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
             justifyContent: 'flex-end',
-            gap: '8px',
+            gap: '10px',
           }}
         >
           {footer}
@@ -156,23 +162,23 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
       className={className}
     >
       <div
-        style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingBottom: '8px' }}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingBottom: '10px' }}
       >
         <div
           style={{
-            width: '40px',
+            width: '36px',
             height: '4px',
-            borderRadius: '2px',
-            backgroundColor: 'var(--c-border, rgba(128,128,128,0.2))',
+            borderRadius: '9999px',
+            backgroundColor: 'rgba(255, 255, 255, 0.25)',
           }}
         />
       </div>
       {title && (
         <div
           style={{
-            paddingBottom: '12px',
-            marginBottom: '12px',
-            borderBottom: '1px solid var(--c-border, rgba(128,128,128,0.15))',
+            paddingBottom: '14px',
+            marginBottom: '14px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -181,9 +187,10 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
           <h3
             style={{
               margin: 0,
-              fontSize: '15px',
-              fontWeight: 800,
-              fontFamily: 'var(--font-headline)',
+              fontSize: '16px',
+              fontWeight: 850,
+              fontFamily: 'Manrope, sans-serif',
+              letterSpacing: '-0.02em',
               color: 'var(--c-text-primary)',
             }}
           >
@@ -193,15 +200,20 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
             onClick={onClose}
             type="button"
             style={{
-              background: 'none',
-              border: 'none',
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
               cursor: 'pointer',
-              padding: 4,
+              padding: 0,
               display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               color: 'var(--c-text-secondary)',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               close
             </span>
           </button>
@@ -212,10 +224,10 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
         style={{
           overflowY: 'auto',
           maxHeight: '65vh',
-          fontSize: '13px',
+          fontSize: '13.5px',
           lineHeight: 1.5,
           color: 'var(--c-text-secondary)',
-          fontFamily: 'var(--font-body)',
+          fontFamily: 'Inter, sans-serif',
         }}
       >
         {children}

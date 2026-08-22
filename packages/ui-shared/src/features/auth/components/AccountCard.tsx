@@ -1,7 +1,31 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
-import { subscribeSyncStatus, getSyncStatus, syncNow, settingsController, type SyncStatus, subscribeDevices, deviceId, revokeDeviceSession, resolveMigration, registerDevice, registerCurrentDevice, useT, useChordStore, useBackHandler, useIsWebDesktop, logActivity, getActivityEmoji, APP_VERSION, APP_COMMIT_SHA, APP_BUILD_TIMESTAMP, useSettingsStore, userRepository } from "@workspace/studio-core";
+import {
+  subscribeSyncStatus,
+  getSyncStatus,
+  syncNow,
+  settingsController,
+  type SyncStatus,
+  subscribeDevices,
+  deviceId,
+  revokeDeviceSession,
+  resolveMigration,
+  registerDevice,
+  registerCurrentDevice,
+  useT,
+  useChordStore,
+  useBackHandler,
+  useIsWebDesktop,
+  logActivity,
+  getActivityEmoji,
+  APP_VERSION,
+  APP_COMMIT_SHA,
+  APP_BUILD_TIMESTAMP,
+  useSettingsStore,
+  userRepository,
+  SpringPresets,
+} from '@workspace/studio-core';
 import { useEffect, useRef, useState } from 'react';
-;
+import { motion } from 'motion/react';
 import { Button, StatefulButton } from '../../../shared/design-system/StudioDesignSystem';
 import { createPortal } from 'react-dom';
 import AppSpinner from '../../../shared/loading/AppSpinner';
@@ -10,12 +34,17 @@ import StudioSpinner from '../../../shared/animata/progress/spinner';
 import { Loader } from '../../../components/motion/loader';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import StudioAuthCard from './StudioAuthCard';
-import { isFirebaseConfigured, type AuthUser, authRepository } from "@workspace/studio-core";
-import { AVATAR_ICONS, getUserAvatar, setUserAvatar, subscribeUserAvatar, type AvatarIcon } from "@workspace/studio-core";
+import { isFirebaseConfigured, type AuthUser, authRepository } from '@workspace/studio-core';
+import {
+  AVATAR_ICONS,
+  getUserAvatar,
+  setUserAvatar,
+  subscribeUserAvatar,
+  type AvatarIcon,
+} from '@workspace/studio-core';
 import StudioPricingSection from './StudioPricingSection';
 import { AccountProfileHeader } from './sections/AccountProfileHeader';
 import { AccountSyncSection } from './sections/AccountSyncSection';
-
 
 function compressAndResizeImage(file: File, maxWidth = 256, maxHeight = 256): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -74,7 +103,15 @@ async function selectAvatarIcon(user: AuthUser | null, icon: AvatarIcon | null) 
 }
 import { Capacitor } from '@capacitor/core';
 import { Toggle } from '../../../shared/settings/SettingControls';
-import { subscribeUserProfile, isAdminUser, isBetaTesterUser, hasCoreAccessUser, hasProAccessUser, type UserProfile, type UserRole } from "@workspace/studio-core";
+import {
+  subscribeUserProfile,
+  isAdminUser,
+  isBetaTesterUser,
+  hasCoreAccessUser,
+  hasProAccessUser,
+  type UserProfile,
+  type UserRole,
+} from '@workspace/studio-core';
 
 const CLOUD_SYNC_FEATURE_ENABLED = false;
 
@@ -626,7 +663,8 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
     setBusy(true);
     setErr(null);
     try {
-      if (submitMode === 'email-signin') await authRepository.signInEmail(submitEmail, submitPassword);
+      if (submitMode === 'email-signin')
+        await authRepository.signInEmail(submitEmail, submitPassword);
       else await authRepository.registerEmail(submitEmail, submitPassword, submitName || '');
     } catch (e) {
       setErr(prettyErr(e, lang));
@@ -826,12 +864,7 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
             )}
           </div>
           {isError ? (
-            <StatefulButton
-              state="error"
-              onClick={doRetry}
-              disabled={busy}
-              size="sm"
-            >
+            <StatefulButton state="error" onClick={doRetry} disabled={busy} size="sm">
               {t.retry}
             </StatefulButton>
           ) : (
@@ -1150,11 +1183,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
                 {t.signOutConfirmBody}
               </p>
               <div style={{ display: 'flex', gap: 10, padding: '0 16px' }}>
-                <Button
-                  variant="secondary"
-                  onClick={closeSheet}
-                  style={{ flex: 1 }}
-                >
+                <Button variant="secondary" onClick={closeSheet} style={{ flex: 1 }}>
                   {t.cancel}
                 </Button>
                 <Button
@@ -1988,7 +2017,7 @@ export function AccountSettingsPage({
   const effectivePhoto = customPhoto || (user.photoURL && !photoFailed ? user.photoURL : null);
   const providers = authRepository.getSignInProviders();
   const isEmailUser = providers.includes('password');
-  const isGoogleUser = providers.some(p => p === 'google.com');
+  const isGoogleUser = providers.some((p) => p === 'google.com');
   const emailVerified = authRepository.isEmailVerified();
   const emailToConfirm = (user.email ?? '').trim().toLowerCase();
 
@@ -2333,44 +2362,59 @@ export function AccountSettingsPage({
     onPress: () => void;
     last?: boolean;
   }) {
-    const [pressed, setPressed] = useState(false);
     return (
-      <button
+      <motion.button
+        type="button"
         onClick={onPress}
-        onPointerDown={() => setPressed(true)}
-        onPointerUp={() => setPressed(false)}
-        onPointerLeave={() => setPressed(false)}
-        onPointerCancel={() => setPressed(false)}
+        whileTap={{ scale: 0.985 }}
+        whileHover={{ scale: 1.006 }}
+        transition={SpringPresets.soft}
+        className="outline-none hover:bg-white/5 transition-colors"
         style={{
           display: 'flex',
           alignItems: 'center',
           gap: 14,
           width: '100%',
-          padding: '15px 16px',
-          background: pressed ? 'rgba(128,128,128,0.06)' : 'transparent',
+          padding: '14px 16px',
+          background: 'transparent',
           border: 'none',
           outline: 'none',
-          borderBottom: last ? 'none' : '1px solid rgba(128,128,128,0.07)',
+          borderBottom: last ? 'none' : '1px solid rgba(255, 255, 255, 0.05)',
           cursor: 'pointer',
           textAlign: 'left' as const,
-          transform: pressed ? 'scale(0.99)' : 'scale(1)',
-          transition: 'background 100ms ease, transform 140ms ease',
           boxSizing: 'border-box' as const,
           WebkitTapHighlightColor: 'transparent',
         }}
       >
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: 20, color: 'var(--c-text-primary)', opacity: 0.7, flexShrink: 0 }}
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 12,
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            color: 'var(--c-text-primary)',
+            boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+          }}
         >
-          {icon}
-        </span>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 20, color: 'var(--c-text-primary)', opacity: 0.85 }}
+          >
+            {icon}
+          </span>
+        </div>
         <span
           style={{
             flex: 1,
-            fontFamily: 'Manrope',
-            fontWeight: 600,
-            fontSize: 15,
+            fontFamily: 'Manrope, sans-serif',
+            fontWeight: 750,
+            fontSize: 14.5,
+            letterSpacing: '-0.015em',
             color: 'var(--c-text-primary)',
           }}
         >
@@ -2379,28 +2423,40 @@ export function AccountSettingsPage({
         {badge && (
           <span
             style={{
-              fontFamily: 'Manrope',
-              fontWeight: 700,
-              fontSize: 9,
+              fontFamily: 'Manrope, sans-serif',
+              fontWeight: 800,
+              fontSize: 9.5,
               color: 'var(--c-text-secondary)',
-              background: 'rgba(128,128,128,0.12)',
-              border: '1px solid rgba(128,128,128,0.15)',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.10)',
               borderRadius: 6,
-              padding: '3px 8px',
+              padding: '2px 8px',
               textTransform: 'uppercase' as const,
-              letterSpacing: '0.04em',
+              letterSpacing: '0.05em',
             }}
           >
             {badge}
           </span>
         )}
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: 18, color: 'var(--c-text-secondary)', opacity: 0.35, flexShrink: 0 }}
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          chevron_right
-        </span>
-      </button>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 15, color: 'var(--c-text-secondary)', opacity: 0.6, flexShrink: 0 }}
+          >
+            chevron_right
+          </span>
+        </div>
+      </motion.button>
     );
   }
 
@@ -2454,21 +2510,25 @@ export function AccountSettingsPage({
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '22px 20px 24px',
+          padding: '20px 20px 24px',
           animation: 'hub-row-fade 350ms ease both',
+          position: 'relative',
         }}
       >
         {/* Avatar — tap to open Personal Information */}
-        <button
+        <motion.button
           type="button"
+          whileTap={{ scale: 0.94 }}
+          whileHover={{ scale: 1.03 }}
+          transition={SpringPresets.soft}
           onClick={() => openSheet('personal-info')}
           aria-label="Edit profile"
           style={{
-            width: 84,
-            height: 84,
+            width: 88,
+            height: 88,
             borderRadius: '50%',
             padding: 0,
-            border: `3px solid ${accent.from}50`,
+            border: `3px solid rgba(255, 255, 255, 0.20)`,
             cursor: 'pointer',
             background:
               effectivePhoto && !avatarIcon
@@ -2478,42 +2538,77 @@ export function AccountSettingsPage({
             alignItems: 'center',
             justifyContent: 'center',
             color: '#fff',
-            fontWeight: 800,
+            fontWeight: 850,
             fontSize: 34,
-            overflow: 'hidden',
-            boxShadow: `0 8px 28px ${accent.to}55`,
+            overflow: 'visible',
+            boxShadow: `0 8px 32px ${accent.to}55, inset 0 1px 1.5px rgba(255, 255, 255, 0.40)`,
             position: 'relative',
           }}
         >
-          {avatarIcon ? (
-            <span className="material-symbols-outlined" style={{ fontSize: 44, color: '#fff' }}>
-              {avatarIcon}
+          <div
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {avatarIcon ? (
+              <span className="material-symbols-outlined" style={{ fontSize: 44, color: '#fff' }}>
+                {avatarIcon}
+              </span>
+            ) : effectivePhoto ? (
+              <img
+                src={effectivePhoto}
+                alt=""
+                referrerPolicy="no-referrer"
+                onError={() => {
+                  if (effectivePhoto === user.photoURL) setPhotoFailed(true);
+                }}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <span style={{ fontFamily: 'Manrope, sans-serif' }}>{initial}</span>
+            )}
+          </div>
+
+          {/* Edit Badge Pod */}
+          <div
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: 28,
+              height: 28,
+              borderRadius: '50%',
+              background: 'var(--c-surface-container, #1e1e24)',
+              border: '2px solid rgba(255, 255, 255, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
+              color: '#ffffff',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 15 }}>
+              edit
             </span>
-          ) : effectivePhoto ? (
-            <img
-              src={effectivePhoto}
-              alt=""
-              referrerPolicy="no-referrer"
-              onError={() => {
-                if (effectivePhoto === user.photoURL) setPhotoFailed(true);
-              }}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-          ) : (
-            <span>{initial}</span>
-          )}
-        </button>
+          </div>
+        </motion.button>
 
         {/* Identity */}
         <div style={{ textAlign: 'center', marginTop: 14 }}>
           <p
             style={{
-              fontFamily: 'Manrope',
-              fontWeight: 800,
-              fontSize: 20,
+              fontFamily: 'Manrope, sans-serif',
+              fontWeight: 850,
+              fontSize: 22,
               color: 'var(--c-text-primary)',
               margin: 0,
-              letterSpacing: '-0.025em',
+              letterSpacing: '-0.03em',
             }}
           >
             {user.displayName || user.email}
@@ -2521,17 +2616,19 @@ export function AccountSettingsPage({
           {user.displayName && (
             <p
               style={{
-                fontFamily: 'Inter',
+                fontFamily: 'Inter, sans-serif',
                 fontSize: 13,
                 color: 'var(--c-text-secondary)',
-                margin: '4px 0 0',
+                margin: '3px 0 0',
+                fontWeight: 500,
+                opacity: 0.85,
               }}
             >
               {user.email}
             </p>
           )}
           {/* Dynamic Role Badge */}
-          <div style={{ marginTop: 10 }}>{renderRoleBadge(profile?.role, lang, accent)}</div>
+          <div style={{ marginTop: 8 }}>{renderRoleBadge(profile?.role, lang, accent)}</div>
         </div>
 
         {/* Bento Grid */}
@@ -2546,48 +2643,81 @@ export function AccountSettingsPage({
           }}
         >
           {/* Bento Card 1: Favorites */}
-          <div
+          <motion.div
+            whileHover={{ scale: 1.015 }}
+            transition={SpringPresets.soft}
             style={{
-              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
-              border: '1px solid rgba(128,128,128,0.08)',
-              borderRadius: '20px',
-              padding: '16px 14px',
+              background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 20,
+              padding: '16px 16px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              minHeight: 90,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              minHeight: 96,
+              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              boxShadow:
+                '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
               overflow: 'hidden',
             }}
           >
+            {/* Top Specular Rim */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
+              }}
+            />
+            {/* Accent Glow */}
             <div
               style={{
                 position: 'absolute',
                 top: -20,
                 right: -20,
-                width: 60,
-                height: 60,
+                width: 70,
+                height: 70,
                 borderRadius: '50%',
-                background: `${accent.from}12`,
-                filter: 'blur(15px)',
+                background: 'rgba(244, 63, 94, 0.15)',
+                filter: 'blur(16px)',
               }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 18, color: accent.from, fontVariationSettings: "'FILL' 1" }}
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'rgba(244, 63, 94, 0.15)',
+                  border: '1px solid rgba(244, 63, 94, 0.30)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(244, 63, 94, 0.25)',
+                }}
               >
-                favorite
-              </span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, color: '#f43f5e', fontVariationSettings: "'FILL' 1" }}
+                >
+                  favorite
+                </span>
+              </div>
               <span
                 style={{
-                  fontFamily: 'Inter',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  color: 'var(--c-text-tertiary, #808080)',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.08em',
                 }}
               >
                 {lang === 'es' ? 'Favoritos' : 'Favorites'}
@@ -2595,30 +2725,36 @@ export function AccountSettingsPage({
             </div>
             <p
               style={{
-                fontFamily: 'Manrope',
-                fontWeight: 800,
-                fontSize: 26,
+                fontFamily: 'Manrope, sans-serif',
+                fontWeight: 850,
+                fontSize: 28,
                 color: 'var(--c-text-primary)',
                 margin: '12px 0 0',
                 lineHeight: 1,
+                letterSpacing: '-0.03em',
               }}
             >
               {favCount}
             </p>
-          </div>
+          </motion.div>
 
           {/* Bento Card 2: Progressions */}
-          <div
+          <motion.div
+            whileHover={{ scale: 1.015 }}
+            transition={SpringPresets.soft}
             style={{
-              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
-              border: '1px solid rgba(128,128,128,0.08)',
-              borderRadius: '20px',
-              padding: '16px 14px',
+              background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 20,
+              padding: '16px 16px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              minHeight: 90,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              minHeight: 96,
+              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              boxShadow:
+                '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
               overflow: 'hidden',
             }}
@@ -2626,30 +2762,56 @@ export function AccountSettingsPage({
             <div
               style={{
                 position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
                 top: -20,
                 right: -20,
-                width: 60,
-                height: 60,
+                width: 70,
+                height: 70,
                 borderRadius: '50%',
-                background: 'rgba(16, 185, 129, 0.08)',
-                filter: 'blur(15px)',
+                background: 'rgba(16, 185, 129, 0.15)',
+                filter: 'blur(16px)',
               }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 18, color: '#10b981', fontVariationSettings: "'FILL' 1" }}
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  border: '1px solid rgba(16, 185, 129, 0.30)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
+                }}
               >
-                queue_music
-              </span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, color: '#10b981', fontVariationSettings: "'FILL' 1" }}
+                >
+                  queue_music
+                </span>
+              </div>
               <span
                 style={{
-                  fontFamily: 'Inter',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  color: 'var(--c-text-tertiary, #808080)',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.08em',
                 }}
               >
                 {lang === 'es' ? 'Progres.' : 'Progressions'}
@@ -2657,30 +2819,36 @@ export function AccountSettingsPage({
             </div>
             <p
               style={{
-                fontFamily: 'Manrope',
-                fontWeight: 800,
-                fontSize: 26,
+                fontFamily: 'Manrope, sans-serif',
+                fontWeight: 850,
+                fontSize: 28,
                 color: 'var(--c-text-primary)',
                 margin: '12px 0 0',
                 lineHeight: 1,
+                letterSpacing: '-0.03em',
               }}
             >
               {progCount}
             </p>
-          </div>
+          </motion.div>
 
           {/* Bento Card 3: Presets */}
-          <div
+          <motion.div
+            whileHover={{ scale: 1.015 }}
+            transition={SpringPresets.soft}
             style={{
-              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
-              border: '1px solid rgba(128,128,128,0.08)',
-              borderRadius: '20px',
-              padding: '16px 14px',
+              background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 20,
+              padding: '16px 16px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              minHeight: 90,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              minHeight: 96,
+              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              boxShadow:
+                '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
               overflow: 'hidden',
             }}
@@ -2688,30 +2856,56 @@ export function AccountSettingsPage({
             <div
               style={{
                 position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
                 top: -20,
                 right: -20,
-                width: 60,
-                height: 60,
+                width: 70,
+                height: 70,
                 borderRadius: '50%',
-                background: 'rgba(245, 158, 11, 0.08)',
-                filter: 'blur(15px)',
+                background: 'rgba(245, 158, 11, 0.15)',
+                filter: 'blur(16px)',
               }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 18, color: '#f59e0b', fontVariationSettings: "'FILL' 1" }}
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid rgba(245, 158, 11, 0.30)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.25)',
+                }}
               >
-                grid_view
-              </span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, color: '#f59e0b', fontVariationSettings: "'FILL' 1" }}
+                >
+                  grid_view
+                </span>
+              </div>
               <span
                 style={{
-                  fontFamily: 'Inter',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  color: 'var(--c-text-tertiary, #808080)',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.08em',
                 }}
               >
                 {lang === 'es' ? 'Presets' : 'Presets'}
@@ -2719,33 +2913,40 @@ export function AccountSettingsPage({
             </div>
             <p
               style={{
-                fontFamily: 'Manrope',
-                fontWeight: 800,
-                fontSize: 26,
+                fontFamily: 'Manrope, sans-serif',
+                fontWeight: 850,
+                fontSize: 28,
                 color: 'var(--c-text-primary)',
                 margin: '12px 0 0',
                 lineHeight: 1,
+                letterSpacing: '-0.03em',
               }}
             >
               {presetCount}
             </p>
-          </div>
+          </motion.div>
 
-          {/* Bento Card 4: Cloud Sync & Backup (Interactive!) */}
-          <button
+          {/* Bento Card 4: Cloud Sync & Backup */}
+          <motion.button
             type="button"
             onClick={doSyncNow}
             disabled={busy || !settings.syncAcrossDevices}
+            whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.015 }}
+            transition={SpringPresets.soft}
             style={{
-              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
-              border: '1px solid rgba(128,128,128,0.08)',
-              borderRadius: '20px',
-              padding: '16px 14px',
+              background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 20,
+              padding: '16px 16px',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
-              minHeight: 90,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              minHeight: 96,
+              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              boxShadow:
+                '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               cursor: settings.syncAcrossDevices ? 'pointer' : 'default',
               position: 'relative',
               overflow: 'hidden',
@@ -2753,64 +2954,106 @@ export function AccountSettingsPage({
               width: '100%',
               boxSizing: 'border-box',
               outline: 'none',
-              borderStyle: 'solid',
             }}
           >
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
+              }}
+            />
             {/* Sync Status Glow */}
             <div
               style={{
                 position: 'absolute',
                 top: -20,
                 right: -20,
-                width: 60,
-                height: 60,
+                width: 70,
+                height: 70,
                 borderRadius: '50%',
                 background: `${
                   isSyncing
                     ? accent.from
                     : sync.phase === 'error'
                       ? '#ff6b6b'
-                      : settings.syncAcrossDevices && (sync.phase === 'success' || sync.lastSyncedMs != null)
+                      : settings.syncAcrossDevices &&
+                          (sync.phase === 'success' || sync.lastSyncedMs != null)
                         ? '#10b981'
                         : 'var(--c-text-secondary)'
-                }15`,
-                filter: 'blur(15px)',
+                }20`,
+                filter: 'blur(16px)',
               }}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-              {isSyncing ? (
-                <Loader variant="comet" size={18} />
-              ) : (
-                <span
-                  className={`material-symbols-outlined sync-icon ${justSynced ? 'sync-pop' : ''}`}
-                  style={{
-                    fontSize: 18,
-                    color:
-                      sync.phase === 'error'
-                        ? '#ff6b6b'
-                        : settings.syncAcrossDevices && (justSynced || sync.lastSyncedMs != null)
-                          ? '#10b981'
-                          : 'var(--c-text-secondary)',
-                    transition: 'color 250ms ease',
-                  }}
-                >
-                  {isSyncing
-                    ? 'sync'
-                    : sync.phase === 'error'
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: `${
+                    sync.phase === 'error'
+                      ? '#ff6b6b'
+                      : settings.syncAcrossDevices && (justSynced || sync.lastSyncedMs != null)
+                        ? '#10b981'
+                        : 'var(--c-text-secondary)'
+                  }18`,
+                  border: `1px solid ${
+                    sync.phase === 'error'
+                      ? '#ff6b6b'
+                      : settings.syncAcrossDevices && (justSynced || sync.lastSyncedMs != null)
+                        ? '#10b981'
+                        : 'rgba(255, 255, 255, 0.12)'
+                  }40`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {isSyncing ? (
+                  <Loader variant="comet" size={18} />
+                ) : (
+                  <span
+                    className={`material-symbols-outlined sync-icon ${justSynced ? 'sync-pop' : ''}`}
+                    style={{
+                      fontSize: 18,
+                      color:
+                        sync.phase === 'error'
+                          ? '#ff6b6b'
+                          : settings.syncAcrossDevices && (justSynced || sync.lastSyncedMs != null)
+                            ? '#10b981'
+                            : 'var(--c-text-secondary)',
+                      transition: 'color 250ms ease',
+                    }}
+                  >
+                    {sync.phase === 'error'
                       ? 'sync_problem'
                       : settings.syncAcrossDevices && (justSynced || sync.lastSyncedMs != null)
                         ? 'check_circle'
                         : 'cloud_off'}
-                </span>
-              )}
+                  </span>
+                )}
+              </div>
               <span
                 style={{
-                  fontFamily: 'Inter',
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  color: 'var(--c-text-tertiary, #808080)',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  letterSpacing: '0.08em',
                 }}
               >
                 {lang === 'es' ? 'Sincro' : 'Sync'}
@@ -2819,9 +3062,9 @@ export function AccountSettingsPage({
             <div style={{ marginTop: 8 }}>
               <p
                 style={{
-                  fontFamily: 'Manrope',
-                  fontWeight: 700,
-                  fontSize: 12,
+                  fontFamily: 'Manrope, sans-serif',
+                  fontWeight: 800,
+                  fontSize: 13,
                   color: 'var(--c-text-primary)',
                   margin: 0,
                   lineHeight: 1.2,
@@ -2845,10 +3088,10 @@ export function AccountSettingsPage({
               </p>
               <p
                 style={{
-                  fontFamily: 'Inter',
-                  fontSize: 8.5,
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: 11,
                   color: 'var(--c-text-secondary)',
-                  margin: '2px 0 0',
+                  margin: '3px 0 0',
                   lineHeight: 1.2,
                   opacity: 0.8,
                 }}
@@ -2860,40 +3103,69 @@ export function AccountSettingsPage({
                     : 'Not saved'}
               </p>
             </div>
-          </button>
+          </motion.button>
 
           {/* Bento Card 5: Activity Timeline (Spans both columns) */}
-          <div
+          <motion.div
             style={{
               gridColumn: 'span 2',
-              background: 'var(--app-surface-high, rgba(128,128,128,0.05))',
-              border: '1px solid rgba(128,128,128,0.08)',
-              borderRadius: '20px',
-              padding: '16px 20px',
+              background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 20,
+              padding: '18px 20px',
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              boxShadow:
+                '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
               overflow: 'hidden',
               boxSizing: 'border-box',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 18, color: 'var(--c-text-secondary)', opacity: 0.8 }}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 14,
+                right: 14,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
+              }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--c-text-secondary)',
+                }}
               >
-                history
-              </span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, color: 'var(--c-text-primary)', opacity: 0.8 }}
+                >
+                  history
+                </span>
+              </div>
               <p
                 style={{
-                  fontFamily: 'Manrope',
+                  fontFamily: 'Manrope, sans-serif',
                   fontWeight: 800,
-                  fontSize: 14,
+                  fontSize: 14.5,
                   color: 'var(--c-text-primary)',
                   margin: 0,
-                  letterSpacing: '-0.01em',
+                  letterSpacing: '-0.015em',
                 }}
               >
                 {lang === 'es' ? 'Actividad Reciente' : 'Recent Activity'}
@@ -2905,17 +3177,14 @@ export function AccountSettingsPage({
                 {activityLog.slice(0, 3).map((event: any) => {
                   const emoji = getActivityEmoji(event.type, event.subtitle);
                   return (
-                    <div
-                      key={event.id}
-                      style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}
-                    >
-                      <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{emoji}</span>
+                    <div key={event.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <span style={{ fontSize: 16, width: 22, textAlign: 'center' }}>{emoji}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p
                           style={{
-                            fontFamily: 'Manrope',
+                            fontFamily: 'Manrope, sans-serif',
                             fontWeight: 750,
-                            fontSize: 12.5,
+                            fontSize: 13,
                             color: 'var(--c-text-primary)',
                             margin: 0,
                             overflow: 'hidden',
@@ -2928,10 +3197,10 @@ export function AccountSettingsPage({
                         {event.subtitle && (
                           <p
                             style={{
-                              fontFamily: 'Inter',
-                              fontSize: 11,
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: 11.5,
                               color: 'var(--c-text-secondary)',
-                              margin: '1px 0 0',
+                              margin: '2px 0 0',
                               opacity: 0.8,
                             }}
                           >
@@ -2941,8 +3210,9 @@ export function AccountSettingsPage({
                       </div>
                       <span
                         style={{
-                          fontFamily: 'Inter',
+                          fontFamily: 'Inter, sans-serif',
                           fontSize: 11,
+                          fontWeight: 600,
                           color: 'var(--c-text-secondary)',
                           whiteSpace: 'nowrap',
                           opacity: 0.6,
@@ -2967,8 +3237,8 @@ export function AccountSettingsPage({
               >
                 <p
                   style={{
-                    fontFamily: 'Inter',
-                    fontSize: 12,
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 12.5,
                     color: 'var(--c-text-secondary)',
                     margin: 0,
                     opacity: 0.7,
@@ -2978,7 +3248,7 @@ export function AccountSettingsPage({
                 </p>
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -2987,21 +3257,44 @@ export function AccountSettingsPage({
         {/* Section label */}
         <p
           style={{
-            fontFamily: 'Manrope',
-            fontWeight: 700,
-            fontSize: 11,
-            color: 'var(--c-text-secondary)',
-            letterSpacing: '0.18em',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 800,
+            fontSize: '9.5px',
+            color: 'var(--c-text-tertiary, #808080)',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
-            margin: '0 0 10px',
-            animation: 'hub-row-fade 380ms ease 50ms both',
+            margin: '20px 0 10px 4px',
           }}
         >
           {lang === 'es' ? 'Preferencias y cuenta' : 'Preferences & Account'}
         </p>
 
-        {/* Grouped settings card — all 5 options in one rectangle */}
-        <div style={{ ...cardStyle, animation: 'hub-row-fade 380ms ease 70ms both' }}>
+        {/* Grouped settings card — Liquid Glass Container */}
+        <div
+          style={{
+            background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.03))',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: 20,
+            overflow: 'hidden',
+            position: 'relative',
+            backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+            WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+          }}
+        >
+          {/* Top Specular Rim */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 12,
+              right: 12,
+              height: '1px',
+              background: 'var(--surface-glass-rim)',
+              pointerEvents: 'none',
+              opacity: 0.6,
+            }}
+          />
           <SettingsRow
             icon="person"
             label={lang === 'es' ? 'Información personal' : 'Personal Information'}
@@ -3040,41 +3333,59 @@ export function AccountSettingsPage({
 
         {/* Developer / Account Details Card */}
         {user && (
-          <div style={{ marginTop: 24, animation: 'hub-row-fade 380ms ease 100ms both' }}>
+          <div style={{ marginTop: 24 }}>
             <p
               style={{
-                fontFamily: 'Manrope',
-                fontWeight: 700,
-                fontSize: 11,
-                color: 'var(--c-text-secondary)',
-                letterSpacing: '0.18em',
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 800,
+                fontSize: '9.5px',
+                color: 'var(--c-text-tertiary, #808080)',
+                letterSpacing: '0.14em',
                 textTransform: 'uppercase',
-                margin: '0 0 10px',
+                margin: '0 0 10px 4px',
               }}
             >
               {lang === 'es' ? 'Detalles de Desarrollador / Cuenta' : 'Developer / Account Details'}
             </p>
             <div
               style={{
-                ...cardStyle,
-                padding: '16px 20px',
+                background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.03))',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                borderRadius: 20,
+                padding: '18px 20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 14,
-                background: 'var(--app-surface-high, rgba(128,128,128,0.06))',
-                border: '1px solid rgba(128,128,128,0.12)',
+                gap: 16,
+                position: 'relative',
+                overflow: 'hidden',
+                backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+                WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+                boxShadow:
+                  '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               }}
             >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 12,
+                  right: 12,
+                  height: '1px',
+                  background: 'var(--surface-glass-rim)',
+                  pointerEvents: 'none',
+                  opacity: 0.6,
+                }}
+              />
               {/* UID Row */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <span
                   style={{
-                    fontFamily: 'Inter',
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: 'var(--c-text-tertiary, #808080)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
+                    letterSpacing: '0.08em',
                   }}
                 >
                   {lang === 'es' ? 'Identificador de Usuario (UID)' : 'User Identifier (UID)'}
@@ -3085,18 +3396,22 @@ export function AccountSettingsPage({
                       fontFamily: 'monospace',
                       fontSize: 12,
                       color: 'var(--c-text-primary)',
-                      background: 'var(--app-surface-lowest, rgba(128,128,128,0.04))',
-                      padding: '4px 8px',
-                      borderRadius: 6,
+                      background: 'rgba(0, 0, 0, 0.30)',
+                      padding: '6px 10px',
+                      borderRadius: 8,
                       wordBreak: 'break-all',
                       flex: 1,
-                      border: '1px solid rgba(128,128,128,0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
                     }}
                   >
                     {user.uid}
                   </code>
-                  <button
+                  <motion.button
                     type="button"
+                    whileTap={{ scale: 0.92 }}
+                    whileHover={{ scale: 1.08 }}
+                    transition={SpringPresets.soft}
                     onClick={() => {
                       navigator.clipboard.writeText(user.uid);
                       showToast(
@@ -3104,24 +3419,23 @@ export function AccountSettingsPage({
                       );
                     }}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      padding: 6,
-                      borderRadius: 8,
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      padding: 8,
+                      borderRadius: 10,
                       cursor: 'pointer',
                       color: accent.from,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      transition: 'background-color 200ms',
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
                     }}
-                    className="hover-bg-surface-lowest"
                     title={lang === 'es' ? 'Copiar UID' : 'Copy UID'}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                       content_copy
                     </span>
-                  </button>
+                  </motion.button>
                 </div>
               </div>
 
@@ -3132,22 +3446,22 @@ export function AccountSettingsPage({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   <span
                     style={{
-                      fontFamily: 'Inter',
-                      fontSize: 10.5,
-                      fontWeight: 600,
-                      color: 'var(--c-text-secondary)',
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: 'var(--c-text-tertiary, #808080)',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
+                      letterSpacing: '0.08em',
                     }}
                   >
                     {lang === 'es' ? 'Rol y Privilegios' : 'Entitlement Role'}
                   </span>
                   <span
                     style={{
-                      fontFamily: 'Inter',
-                      fontSize: 13,
+                      fontFamily: 'Manrope, sans-serif',
+                      fontSize: 14,
                       color: 'var(--c-text-primary)',
-                      fontWeight: 500,
+                      fontWeight: 750,
                     }}
                   >
                     {profile?.role ? profile.role.toUpperCase() : 'FREE'}
@@ -3160,18 +3474,18 @@ export function AccountSettingsPage({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span
                   style={{
-                    fontFamily: 'Inter',
-                    fontSize: 10.5,
-                    fontWeight: 600,
-                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: 'var(--c-text-tertiary, #808080)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
+                    letterSpacing: '0.08em',
                   }}
                 >
                   {lang === 'es' ? 'Proveedor de Autenticación' : 'Authentication Provider'}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {authRepository.getSignInProviders().some(p => p === 'google.com') ? (
+                  {authRepository.getSignInProviders().some((p) => p === 'google.com') ? (
                     <GoogleIconSVG />
                   ) : (
                     <span
@@ -3183,7 +3497,7 @@ export function AccountSettingsPage({
                   )}
                   <span
                     style={{
-                      fontFamily: 'Inter',
+                      fontFamily: 'Inter, sans-serif',
                       fontSize: 13,
                       color: 'var(--c-text-primary)',
                       fontWeight: 500,
@@ -3191,7 +3505,8 @@ export function AccountSettingsPage({
                     }}
                   >
                     {authRepository.getSignInProviders().length > 0
-                      ? authRepository.getSignInProviders()
+                      ? authRepository
+                          .getSignInProviders()
                           .map((p) => p.replace('.com', ''))
                           .join(', ')
                       : 'Email & Password'}
@@ -3202,35 +3517,38 @@ export function AccountSettingsPage({
           </div>
         )}
 
-        {/* Sign Out — prominent red button */}
-        <button
+        {/* Sign Out — prominent red glass button */}
+        <motion.button
           type="button"
           onClick={() => openSheet('signout')}
+          whileTap={{ scale: 0.975 }}
+          whileHover={{ scale: 1.01 }}
+          transition={SpringPresets.soft}
           style={{
             width: '100%',
             marginTop: 24,
-            padding: '15px 0',
-            borderRadius: '1.25rem',
-            background: 'rgba(255,107,107,0.07)',
-            border: '1px solid rgba(255,107,107,0.18)',
+            padding: '14px 0',
+            borderRadius: 16,
+            background: 'rgba(239, 68, 68, 0.08)',
+            border: '1px solid rgba(239, 68, 68, 0.22)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 8,
-            color: '#ff6b6b',
-            fontFamily: 'Manrope',
-            fontWeight: 700,
-            fontSize: 15,
+            color: '#ef4444',
+            fontFamily: 'Manrope, sans-serif',
+            fontWeight: 800,
+            fontSize: 14.5,
             cursor: 'pointer',
             WebkitTapHighlightColor: 'transparent',
-            animation: 'hub-row-fade 380ms ease 160ms both',
+            boxShadow: '0 4px 16px rgba(239, 68, 68, 0.12)',
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 19 }}>
             logout
           </span>
           {L.signOut}
-        </button>
+        </motion.button>
       </div>
       {/* end settings list */}
 
@@ -7203,16 +7521,28 @@ export function AccountSettingsPage({
                               </div>
                             </div>
                             <StatefulButton
-                              state={sync.phase === 'syncing' ? 'loading' : sync.phase === 'error' ? 'error' : 'idle'}
+                              state={
+                                sync.phase === 'syncing'
+                                  ? 'loading'
+                                  : sync.phase === 'error'
+                                    ? 'error'
+                                    : 'idle'
+                              }
                               onClick={sync.phase === 'error' ? doRetry : doSyncNow}
                               disabled={busy}
                               style={{ width: '100%', borderRadius: 10 }}
                             >
                               {sync.phase === 'syncing'
-                                ? (lang === 'es' ? 'Sincronizando...' : 'Syncing...')
+                                ? lang === 'es'
+                                  ? 'Sincronizando...'
+                                  : 'Syncing...'
                                 : sync.phase === 'error'
-                                  ? (lang === 'es' ? 'Reintentar' : 'Retry')
-                                  : (lang === 'es' ? 'Sincronizar ahora' : 'Sync Now')}
+                                  ? lang === 'es'
+                                    ? 'Reintentar'
+                                    : 'Retry'
+                                  : lang === 'es'
+                                    ? 'Sincronizar ahora'
+                                    : 'Sync Now'}
                             </StatefulButton>
                           </div>
                         )}

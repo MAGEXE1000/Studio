@@ -49,16 +49,30 @@ export default function StudioAuthCard({
 
   return (
     <div
-      className="w-full max-w-md mx-auto overflow-hidden transition-all duration-300"
+      className="w-full max-w-md mx-auto overflow-hidden transition-all duration-300 relative"
       style={{
         borderRadius: 24,
-        background: 'var(--app-surface, rgba(20, 20, 24, 0.75))',
-        border: '1px solid rgba(128, 128, 128, 0.12)',
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25)',
+        background: 'var(--surface-topbar-bg, rgba(20, 20, 24, 0.75))',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+        WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
       }}
     >
+      {/* Top Specular Rim */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 14,
+          right: 14,
+          height: '1px',
+          background: 'var(--surface-glass-rim)',
+          pointerEvents: 'none',
+          opacity: 0.7,
+        }}
+      />
+
       {/* Header section with brand decoration */}
       <div className="relative p-6 pb-4 flex flex-col gap-1.5 overflow-hidden">
         {/* Subtle decorative mesh background glow behind title */}
@@ -69,13 +83,13 @@ export default function StudioAuthCard({
 
         <p
           className="font-extrabold text-xl tracking-tight m-0"
-          style={{ color: 'var(--c-text-primary)' }}
+          style={{ fontFamily: 'Manrope, sans-serif', color: 'var(--c-text-primary)' }}
         >
           {mode === 'idle' ? t.title : mode === 'email-signin' ? t.signIn : t.register}
         </p>
         <p
           className="text-xs m-0 leading-relaxed opacity-75 font-medium"
-          style={{ color: 'var(--c-text-secondary)' }}
+          style={{ fontFamily: 'Inter, sans-serif', color: 'var(--c-text-secondary)' }}
         >
           {mode === 'idle'
             ? t.subtitle
@@ -282,7 +296,7 @@ export default function StudioAuthCard({
               />
             </div>
 
-             {/* Buttons Row */}
+            {/* Buttons Row */}
             <div className="flex gap-3 mt-1.5 w-full">
               <Button
                 onClick={() => handleModeChange('idle')}

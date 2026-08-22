@@ -6361,44 +6361,66 @@ User Agent: [Automatically Generated]
 
   function renderMobileProfileCard() {
     const name = authUser?.displayName || 'Guest User';
-    const email = authUser?.email || 'Sign in to back up settings';
+    const email =
+      authUser?.email ||
+      (lang === 'es'
+        ? 'Inicia sesión para respaldar tu música'
+        : 'Sign in to back up your music & settings');
     const photo = customPhoto || authUser?.photoURL;
     const initial = (name[0] ?? 'S').toUpperCase();
     const hasUser = !!authUser;
+
     return (
-      <button
+      <motion.button
         type="button"
         onClick={() => onProfile?.()}
-        className="btn-smooth"
+        whileTap={{ scale: 0.985 }}
+        whileHover={{ scale: 1.008 }}
+        transition={SpringPresets.soft}
+        className="outline-none"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           width: '100%',
-          padding: '20px',
-          background: 'var(--app-surface-high)',
-          border: '1px solid rgba(128, 128, 128, 0.08)',
-          borderRadius: '16px',
+          padding: '16px 18px',
+          background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: 22,
           cursor: 'pointer',
           outline: 'none',
           position: 'relative',
           overflow: 'hidden',
           textAlign: 'left',
           boxSizing: 'border-box',
-          animation: 'hub-row-fade 320ms 30ms ease both',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          boxShadow: '0 8px 28px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
         }}
       >
-        {/* Subtle Accent Glow */}
+        {/* Top Specular Rim */}
         <div
           style={{
             position: 'absolute',
-            top: -20,
-            right: -20,
-            width: 100,
-            height: 100,
-            background: `${accent.from}0e`,
-            filter: 'blur(20px)', // token-guard-ignore
+            top: 0,
+            left: 14,
+            right: 14,
+            height: '1px',
+            background: 'var(--surface-glass-rim)',
+            pointerEvents: 'none',
+            opacity: 0.7,
+          }}
+        />
+
+        {/* Ambient Gradient Glow */}
+        <div
+          style={{
+            position: 'absolute',
+            top: -24,
+            right: -24,
+            width: 120,
+            height: 120,
+            background: `radial-gradient(circle, ${accent.from}22 0%, transparent 70%)`,
             borderRadius: '50%',
             pointerEvents: 'none',
           }}
@@ -6415,19 +6437,21 @@ User Agent: [Automatically Generated]
             flex: 1,
           }}
         >
+          {/* Avatar Squircle / Circle Pod */}
           <div
             style={{
-              width: 64,
-              height: 64,
+              width: 58,
+              height: 58,
               borderRadius: '50%',
               overflow: 'hidden',
-              border: '2px solid var(--app-surface-bright, #2c2c2c)',
-              background: 'var(--app-surface-highest)',
+              border: `2px solid rgba(255, 255, 255, 0.15)`,
+              background: `linear-gradient(135deg, ${accent.from}30, ${accent.to}20)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              boxShadow: `0 0 0 3px ${accent.from}15`,
+              boxShadow: `0 4px 16px ${accent.from}30, inset 0 1px 1.5px rgba(255, 255, 255, 0.35)`,
+              position: 'relative',
             }}
           >
             {photo ? (
@@ -6440,9 +6464,11 @@ User Agent: [Automatically Generated]
             ) : hasUser ? (
               <span
                 style={{
-                  fontSize: 'var(--font-display-sm)',
-                  fontWeight: 800,
-                  color: 'var(--c-text-primary)',
+                  fontSize: 22,
+                  fontWeight: 850,
+                  fontFamily: 'Manrope, sans-serif',
+                  color: '#ffffff',
+                  textShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 }}
               >
                 {initial}
@@ -6450,7 +6476,7 @@ User Agent: [Automatically Generated]
             ) : (
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: 32, color: 'var(--c-text-secondary)' }}
+                style={{ fontSize: 28, color: 'var(--c-text-secondary)', opacity: 0.9 }}
               >
                 account_circle
               </span>
@@ -6461,32 +6487,33 @@ User Agent: [Automatically Generated]
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <h2
                 style={{
-                  fontSize: 'var(--font-page-title)',
-                  fontWeight: 800,
+                  fontSize: 17,
+                  fontWeight: 850,
                   color: 'var(--c-text-primary)',
                   margin: 0,
-                  letterSpacing: '-0.02em',
-                  fontFamily: 'Manrope',
+                  letterSpacing: '-0.025em',
+                  fontFamily: 'Manrope, sans-serif',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                 }}
               >
-                {hasUser ? name : 'Sign In'}
+                {hasUser ? name : lang === 'es' ? 'Iniciar Sesión' : 'Sign In'}
               </h2>
               {hasUser && (
                 <span
                   style={{
-                    fontSize: 9,
+                    fontSize: 9.5,
                     fontWeight: 800,
-                    fontFamily: 'Manrope',
-                    padding: '2px 6px',
-                    borderRadius: 4,
-                    background: `${accent.from}22`,
-                    color: accent.from,
-                    border: `1px solid ${accent.from}33`,
+                    fontFamily: 'Manrope, sans-serif',
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    background: `linear-gradient(135deg, ${accent.from}30, ${accent.to}25)`,
+                    color: '#ffffff',
+                    border: `1px solid ${accent.from}50`,
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
+                    boxShadow: `0 2px 8px ${accent.from}25`,
                   }}
                 >
                   Pro
@@ -6495,36 +6522,50 @@ User Agent: [Automatically Generated]
             </div>
             <p
               style={{
-                fontFamily: 'Inter',
-                fontSize: 13,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12.5,
                 color: 'var(--c-text-secondary)',
-                margin: '3px 0 0',
+                margin: '2px 0 0',
                 fontWeight: 500,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                opacity: 0.8,
+                opacity: 0.82,
               }}
             >
-              {hasUser ? email : 'Sync your settings with Studio Cloud'}
+              {email}
             </p>
           </div>
         </div>
 
-        <span
-          className="material-symbols-outlined"
+        {/* Chevron Pod */}
+        <div
           style={{
-            fontSize: 20,
-            color: 'var(--c-text-secondary)',
-            opacity: 0.5,
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             zIndex: 2,
-            marginLeft: 8,
+            marginLeft: 10,
             flexShrink: 0,
           }}
         >
-          chevron_right
-        </span>
-      </button>
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: 16,
+              color: 'var(--c-text-secondary)',
+              opacity: 0.7,
+            }}
+          >
+            chevron_right
+          </span>
+        </div>
+      </motion.button>
     );
   }
 
@@ -6539,11 +6580,13 @@ User Agent: [Automatically Generated]
           padding: '0px',
         }
       : {
-          background: 'var(--app-surface)',
-          borderRadius: '1.25rem',
+          background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.03))',
+          borderRadius: 20,
           overflow: 'hidden',
-          border: '1px solid rgba(128,128,128,0.07)',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
+          backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
           padding: '20px',
         };
 
@@ -6557,11 +6600,13 @@ User Agent: [Automatically Generated]
           marginBottom: 20,
         }
       : {
-          background: 'var(--app-surface)',
-          borderRadius: '1.25rem',
+          background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.03))',
+          borderRadius: 20,
           overflow: 'hidden',
-          border: '1px solid rgba(128,128,128,0.07)',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
+          backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
           marginBottom: 20,
         };
 

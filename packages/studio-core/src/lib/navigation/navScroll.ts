@@ -125,13 +125,24 @@ export function setNavScrollOffset(offset: number) {
   }
 }
 
+export function subscribeNavScrollOffset(listener: (offset: number) => void): () => void {
+  _scrollOffsetListeners.add(listener);
+  return () => {
+    _scrollOffsetListeners.delete(listener);
+  };
+}
+
+export function subscribeNavCollapsed(listener: (collapsed: boolean) => void): () => void {
+  _collapsedListeners.add(listener);
+  return () => {
+    _collapsedListeners.delete(listener);
+  };
+}
+
 export function useNavScrollOffset(): number {
   const [offset, setOffset] = useState(_scrollOffset);
   useEffect(() => {
-    _scrollOffsetListeners.add(setOffset);
-    return () => {
-      _scrollOffsetListeners.delete(setOffset);
-    };
+    return subscribeNavScrollOffset(setOffset);
   }, []);
   return offset;
 }
@@ -202,7 +213,7 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
           if (maxScroll <= 2) return;
           if (y < 0 || y > maxScroll) return;
 
-          if (y < 30) {
+          if (y < 24) {
             setNavScrollOffset(0);
             _elementLastY.set(el, y);
             return;
@@ -211,9 +222,12 @@ export function useScrollHide(ref: React.RefObject<HTMLElement | null>, dependen
           const prevY = _elementLastY.get(el) ?? y;
           const dy = y - prevY;
 
-          if (Math.abs(dy) < 2) return;
+          if (Math.abs(dy) < 1.5) return;
 
-          const deltaRatio = dy / 60;
+          // Asymmetric gesture responsiveness:
+          // Downward scrolling progressively collapses (dy / 70)
+          // Upward scrolling expands with snappy, immediate response (dy / 45)
+          const deltaRatio = dy > 0 ? dy / 70 : dy / 45;
           setNavScrollOffset(_scrollOffset + deltaRatio);
           _elementLastY.set(el, y);
         };
@@ -267,7 +281,9 @@ function scheduleWatchdogRetry(delayMs: number) {
   if (_watchdogRetryTimer) clearTimeout(_watchdogRetryTimer);
   _watchdogRetryTimer = setTimeout(() => {
     _watchdogRetryTimer = null;
-    console.log(`[navScroll Watchdog] Executing scheduled watchdog check after interaction settled`);
+    console.log(
+      `[navScroll Watchdog] Executing scheduled watchdog check after interaction settled`
+    );
     const tempLastInteraction = _lastInteractionTime;
     _lastInteractionTime = 0;
     resetNav();
@@ -282,7 +298,9 @@ function runWatchdogCheck() {
   // Bypasses watchdog resets during active user scrolling/interaction
   if (timeSinceLastInteraction < 1000) {
     const remaining = 1000 - timeSinceLastInteraction;
-    console.log(`[navScroll Watchdog] Gated by interaction lockout: ${remaining}ms remaining. Scheduling retry.`);
+    console.log(
+      `[navScroll Watchdog] Gated by interaction lockout: ${remaining}ms remaining. Scheduling retry.`
+    );
     scheduleWatchdogRetry(remaining + 50);
     return;
   }
@@ -344,7 +362,9 @@ if (typeof window !== 'undefined') {
       if (document.visibilityState === 'visible') {
         const timeSinceLastInteraction = Date.now() - _lastInteractionTime;
         if (timeSinceLastInteraction < 1000) {
-          console.log(`[navScroll visibilitychange] Gated by interaction lockout, scheduling watchdog retry`);
+          console.log(
+            `[navScroll visibilitychange] Gated by interaction lockout, scheduling watchdog retry`
+          );
           scheduleWatchdogRetry(1000 - timeSinceLastInteraction + 50);
           return;
         }
@@ -373,7 +393,7 @@ if (typeof window !== 'undefined') {
           const style = window.getComputedStyle(el);
           const overflowY = style.overflowY || style.overflow || '';
           const isScrollableStyle = overflowY === 'auto' || overflowY === 'scroll';
-          
+
           if (isScrollableStyle) {
             const scrollableDist = el.scrollHeight - el.clientHeight;
             if (scrollableDist > 2) {
@@ -390,7 +410,7 @@ if (typeof window !== 'undefined') {
         }
         el = el.parentElement;
       }
-      
+
       try {
         const winScrollableDist = document.documentElement.scrollHeight - window.innerHeight;
         if (winScrollableDist > 2) {

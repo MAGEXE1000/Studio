@@ -183,14 +183,14 @@
   --c-border-dashed: 1px dashed rgba(255, 255, 255, 0.16);
   --c-surface-glass-bg: rgba(20, 20, 25, 0.65);
   --c-surface-glass-blur: blur(16px);
-  
+
   --c-error: #ef4444;
   --c-error-dim: #f87171;
   --c-error-container: rgba(239, 68, 68, 0.15);
 
   --elevation-low: none;
   --elevation-mid: none;
-  --elevation-high: 0 8px 32px rgba(0,0,0,0.4);
+  --elevation-high: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   --c-accent-from: #679cff;
   --c-accent-to: #007aff;
@@ -256,14 +256,14 @@
   --app-surface: #080808;
   --app-surface-high: #0d0d0d;
   --app-surface-highest: #121212;
-  
+
   --c-background: #000000;
   --c-surface-lowest: #000000;
   --c-surface-low: #030303;
   --c-surface-mid: #080808;
   --c-surface-high: #0d0d0d;
   --c-surface-highest: #121212;
-  
+
   --c-surface-glass-bg: rgba(4, 4, 4, 0.88);
   --sidebar-bg: rgba(0, 0, 0, 0.7);
   --sidebar-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
@@ -286,7 +286,7 @@
   --app-surface: #f7f7f7;
   --app-surface-high: #fafafa;
   --app-surface-highest: #ffffff;
-  
+
   --c-background: #ffffff;
   --c-surface-lowest: #f0f0f0;
   --c-surface-low: #f4f4f4;
@@ -334,12 +334,12 @@
   --c-border: rgba(0, 0, 0, 0.08);
   --c-border-dashed: 1px dashed rgba(0, 0, 0, 0.16);
   --c-surface-glass-bg: rgba(255, 255, 255, 0.65);
-  
+
   --c-error-container: rgba(239, 68, 68, 0.05);
 
-  --elevation-low: 0 1px 3px rgba(0,0,0,0.06);
-  --elevation-mid: 0 4px 12px rgba(0,0,0,0.04);
-  --elevation-high: 0 12px 32px rgba(0,0,0,0.08);
+  --elevation-low: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --elevation-mid: 0 4px 12px rgba(0, 0, 0, 0.04);
+  --elevation-high: 0 12px 32px rgba(0, 0, 0, 0.08);
 
   --add-bar-border: 1px dashed rgba(0, 0, 0, 0.22);
 
@@ -571,9 +571,8 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
   /* ===== Glassmorphism Nav ===== */
   .glass-nav {
-    /* 20px blur is ~9x cheaper than 60px (cost scales quadratically) yet still looks liquid glass */
-    backdrop-filter: blur(20px) saturate(180%) brightness(1.04);
-    -webkit-backdrop-filter: blur(20px) saturate(180%) brightness(1.04);
+    backdrop-filter: var(--surface-float-blur);
+    -webkit-backdrop-filter: var(--surface-float-blur);
     /* Keep the nav on its own compositor layer — it animates every scroll event */
     will-change: transform, opacity;
     /* Prevent the blur from leaking into parent stacking contexts */
@@ -1268,20 +1267,28 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --font-display-lg: 36px; /* full-hero titles (player, lab)      */
 
   /* ── Floating-surface tokens — dark (default) ───────────── */
-  --surface-float-bg: rgba(12, 12, 14, 0.25); /* bottom nav / pill bar    */
+  --surface-float-bg: rgba(14, 15, 20, 0.35); /* bottom nav / pill bar    */
   --surface-topbar-bg: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.12) 0%,
-    rgba(20, 21, 26, 0.65) 50%,
-    rgba(12, 13, 16, 0.75) 100%
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(28, 30, 38, 0.52) 25%,
+    rgba(14, 15, 20, 0.7) 70%,
+    rgba(22, 24, 32, 0.55) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.16);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.18);
   --surface-topbar-shadow:
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28), inset 0 -0.5px 1px 0 rgba(0, 0, 0, 0.25),
-    0 8px 32px -4px rgba(0, 0, 0, 0.4);
-  --surface-topbar-blur: blur(20px) saturate(160%) brightness(1.04) contrast(1.02);
-  --surface-topbar-fallback: rgba(16, 17, 22, 0.94);
-  --surface-float-blur: blur(24px) saturate(190%) brightness(1.02); /* shared backdrop-filter   */
+    inset 0 1.2px 1.5px 0 rgba(255, 255, 255, 0.42),
+    inset 0 0.5px 0.5px 0 rgba(255, 255, 255, 0.65), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.5),
+    0 16px 40px -6px rgba(0, 0, 0, 0.55), 0 4px 14px -2px rgba(0, 0, 0, 0.35);
+  --surface-topbar-blur: blur(28px) saturate(210%) brightness(1.06) contrast(1.02);
+  --surface-topbar-fallback: rgba(14, 15, 20, 0.94);
+  --surface-float-blur: blur(28px) saturate(210%) brightness(1.06) contrast(1.02); /* shared backdrop-filter */
+  --surface-glass-rim: linear-gradient(
+    90deg,
+    rgba(180, 215, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    rgba(255, 210, 240, 0.15) 100%
+  );
   --surface-modal-bg: rgba(0, 0, 0, 0.6); /* sheet / modal scrim      */
 
   /* ── Semantic surface aliases ───────────────────────────────
@@ -1294,37 +1301,43 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
 /* Light-theme overrides */
 :root.light {
-  --surface-float-bg: rgba(255, 255, 255, 0.38);
+  --surface-float-bg: rgba(255, 255, 255, 0.45);
   --surface-topbar-bg: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.85) 0%,
-    rgba(245, 248, 255, 0.68) 50%,
-    rgba(255, 255, 255, 0.55) 100%
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(245, 248, 255, 0.65) 45%,
+    rgba(235, 240, 252, 0.52) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.95);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.92);
   --surface-topbar-shadow:
-    inset 0 1px 2px 0 rgba(255, 255, 255, 0.95), inset 0 -0.5px 1px 0 rgba(0, 0, 0, 0.04),
-    0 6px 24px -2px rgba(0, 0, 0, 0.08);
-  --surface-topbar-blur: blur(20px) saturate(160%) brightness(1.04) contrast(1.02);
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 1), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.05),
+    0 12px 32px -4px rgba(0, 0, 0, 0.1), 0 3px 10px -1px rgba(0, 0, 0, 0.05);
+  --surface-topbar-blur: blur(28px) saturate(200%) brightness(1.04) contrast(1.02);
   --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
+  --surface-glass-rim: linear-gradient(
+    90deg,
+    rgba(210, 230, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 220, 245, 0.3) 100%
+  );
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
 }
 
 /* AMOLED overrides — slightly higher alpha so bars stay
    visible against pure-black (#000) backgrounds.           */
 :root.amoled {
-  --surface-float-bg: rgba(0, 0, 0, 0.32);
+  --surface-float-bg: rgba(0, 0, 0, 0.4);
   --surface-topbar-bg: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(10, 10, 12, 0.7) 50%,
-    rgba(0, 0, 0, 0.85) 100%
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(16, 16, 20, 0.65) 35%,
+    rgba(0, 0, 0, 0.84) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.2);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.22);
   --surface-topbar-shadow:
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.32), inset 0 -0.5px 1px 0 rgba(0, 0, 0, 0.4),
-    0 8px 32px -4px rgba(0, 0, 0, 0.6);
-  --surface-topbar-blur: blur(20px) saturate(160%) brightness(1.04) contrast(1.02);
+    inset 0 1.2px 1.5px 0 rgba(255, 255, 255, 0.45), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.75),
+    0 16px 48px -6px rgba(0, 0, 0, 0.75), 0 4px 16px -2px rgba(0, 0, 0, 0.5);
+  --surface-topbar-blur: blur(28px) saturate(210%) brightness(1.06) contrast(1.02);
   --surface-topbar-fallback: rgba(0, 0, 0, 0.96);
   --surface-modal-bg: rgba(0, 0, 0, 0.75);
 }

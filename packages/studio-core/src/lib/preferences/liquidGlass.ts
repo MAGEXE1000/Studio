@@ -399,36 +399,10 @@ function injectStyles(): void {
   // the tint stops the nav from being fully transparent on busy backgrounds.
   style.textContent = `
 .${TARGET_CLASS} {
-  background: rgba(14,14,18,0.45) !important;
-  border: 1px solid rgba(255,255,255,0.48) !important;
-  box-shadow:
-    0 16px 56px rgba(0,0,0,0.52),
-    0 2px 12px rgba(0,0,0,0.30),
-    inset 0 2px 0 rgba(255,255,255,0.78),
-    inset 0 -1px 0 rgba(255,255,255,0.12) !important;
+  background: var(--surface-topbar-bg) !important;
+  border: var(--surface-topbar-border) !important;
+  box-shadow: var(--surface-topbar-shadow) !important;
   isolation: isolate;
-}
-@media (prefers-color-scheme: light) {
-  .${TARGET_CLASS} {
-    background: rgba(255,255,255,0.40) !important;
-    border: 1px solid rgba(0,0,0,0.12) !important;
-    box-shadow:
-      0 16px 56px rgba(0,0,0,0.18),
-      0 2px 10px rgba(0,0,0,0.10),
-      inset 0 2px 0 rgba(255,255,255,0.96),
-      inset 0 -1px 0 rgba(0,0,0,0.05) !important;
-  }
-}
-html.light .${TARGET_CLASS},
-:root.light .${TARGET_CLASS},
-.light .${TARGET_CLASS} {
-  background: rgba(255,255,255,0.40) !important;
-  border: 1px solid rgba(0,0,0,0.12) !important;
-  box-shadow:
-    0 16px 56px rgba(0,0,0,0.18),
-    0 2px 10px rgba(0,0,0,0.10),
-    inset 0 2px 0 rgba(255,255,255,0.96),
-    inset 0 -1px 0 rgba(0,0,0,0.05) !important;
 }`;
   document.head.appendChild(style);
 }

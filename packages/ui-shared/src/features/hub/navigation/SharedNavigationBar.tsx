@@ -8,7 +8,8 @@ import {
   AnimatePresence,
 } from 'motion/react';
 import {
-  useNavScrollOffset,
+  subscribeNavScrollOffset,
+  getNavScrollOffset,
   NavigationDispatcher,
   SpringPresets,
   useBottomNavigationStore,
@@ -247,7 +248,6 @@ export function SharedNavigationBar({
   profileIcon,
 }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const scrollOffset = useNavScrollOffset();
   const startupComplete = useStartupComplete();
 
   const lang = useSettingsStore((s) => s.settings?.language ?? 'en');
@@ -648,7 +648,7 @@ export function SharedNavigationBar({
 
   // Root MotionValues
   const activeIdxRaw = useMotionValue(activeIndex);
-  const scrollOffsetRaw = useMotionValue(scrollOffset);
+  const scrollOffsetRaw = useMotionValue(getNavScrollOffset());
   const searchOpenRaw = useMotionValue(searchOpen ? 1 : 0);
   const profileOpenRaw = useMotionValue(isProfileMenuOpen ? 1 : 0);
   const switcherOpenRaw = useMotionValue(isSwitcherOpen ? 1 : 0);
@@ -658,9 +658,9 @@ export function SharedNavigationBar({
   const pressPressureRaw = useMotionValue(0);
 
   // Synchronized Apple-grade spring physics
-  // scrollOffsetSpring: stiffness/damping tuned for settled, premium one-piece collapse feel
+  // scrollOffsetSpring: stiffness/damping tuned for responsive, supple Safari-style collapse feel
   const activeIdxSpring = useSpring(activeIdxRaw, { stiffness: 360, damping: 30, mass: 0.8 });
-  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 340, damping: 28, mass: 0.9 });
+  const scrollOffsetSpring = useSpring(scrollOffsetRaw, { stiffness: 380, damping: 30, mass: 0.7 });
   const searchOpenSpring = useSpring(searchOpenRaw, { stiffness: 380, damping: 30, mass: 0.9 });
   const profileOpenSpring = useSpring(profileOpenRaw, { stiffness: 420, damping: 28, mass: 0.8 });
 
@@ -669,9 +669,12 @@ export function SharedNavigationBar({
     activeIdxRaw.set(activeIndex);
   }, [activeIndex, activeIdxRaw]);
 
+  // Connect scroll listener directly without causing React component re-renders
   useEffect(() => {
-    scrollOffsetRaw.set(scrollOffset);
-  }, [scrollOffset, scrollOffsetRaw]);
+    return subscribeNavScrollOffset((offset) => {
+      scrollOffsetRaw.set(offset);
+    });
+  }, [scrollOffsetRaw]);
 
   useEffect(() => {
     searchOpenRaw.set(searchOpen ? 1 : 0);
@@ -686,36 +689,51 @@ export function SharedNavigationBar({
     scrollOffsetSpring.jump(0);
   }, [currentApp, items, scrollOffsetRaw, scrollOffsetSpring]);
 
-  // Scale navigation bar as ONE physical object toward its own geometric center (1.00 → 0.85).
-  // No width/height animation — purely compositor-friendly transform.
+  // Safari-style physical compression towards center:
+  // Container scales down smoothly (1.00 → 0.88) with subtle 4px bottom tuck
   const containerScale = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
-      if ((search as number) > 0.1) return 1.0;
-      return 1.0 - (offset as number) * 0.15;
+      if ((search as number) > 0.05) return 1.0;
+      return 1.0 - (offset as number) * 0.12;
     }
   );
 
-  // Mild composition centering: glass-nav shifts subtly toward screen center on collapse.
-  // Removed the switcherX shift — Search/App Changer now fades in-place (opacity-only).
+  const containerY = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
+    if ((search as number) > 0.05) return 0;
+    return (offset as number) * 4;
+  });
+
+  // Optical centering: When right bubble fades on collapse, glass-nav shifts towards screen center.
   const targetDockShift = useMemo(() => {
     if (!hasRightBubble) return 0;
-    return 10;
+    return 36;
   }, [hasRightBubble]);
 
-  // Search/App Changer: opacity-only fade on scroll. No scale, no translation.
+  // Search/App Changer: smooth Safari-style progressive fade-out and subtle scale-down.
   const switcherOpacity = useTransform(
     [scrollOffsetSpring, searchOpenSpring],
     ([offset, search]) => {
-      if ((search as number) > 0.1) return 1.0;
-      return 1.0 - (offset as number) * 0.65;
+      if ((search as number) > 0.05) return 1.0;
+      const off = offset as number;
+      if (off <= 0) return 1.0;
+      if (off >= 0.7) return 0;
+      return 1.0 - off / 0.7;
     }
   );
 
-  // Subtle inward horizontal translation of glass-nav towards screen center composition on scroll down.
-  // Only the navbar itself shifts; the floating right bubble stays in place (fades in-place).
+  const switcherScale = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
+    if ((search as number) > 0.05) return 1.0;
+    return 1.0 - (offset as number) * 0.18;
+  });
+
+  const switcherPointerEvents = useTransform(scrollOffsetSpring, (offset) =>
+    offset > 0.4 ? 'none' : 'auto'
+  );
+
+  // Inward horizontal translation of glass-nav towards screen center on scroll down.
   const navX = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
-    if ((search as number) > 0.1) return 0;
+    if ((search as number) > 0.05) return 0;
     return (offset as number) * targetDockShift;
   });
 
@@ -750,12 +768,7 @@ export function SharedNavigationBar({
     }
   );
 
-  const animatedPillX = useTransform([pillX, scrollOffsetSpring], ([expandedX, s]) => {
-    const so = s as number;
-    if (so <= 0.001) return expandedX as number;
-    const compactX = 4;
-    return (expandedX as number) * (1 - so) + compactX * so;
-  });
+  const animatedPillX = pillX;
 
   const pillWidthVal = useTransform([activeIdxRaw, activeIdxSpring], ([rawIdx, springIdx]) => {
     const idxVal = isScrubbingRef.current ? (rawIdx as number) : (springIdx as number);
@@ -1387,7 +1400,7 @@ export function SharedNavigationBar({
                 pointerEvents: 'auto',
                 justifySelf: 'center',
                 // Bar renders at its natural computed width. Visual collapse comes from
-                // containerScale (transform only — no layout reflow) so the collapse looks
+                // containerScale + containerY (transforms only — no layout reflow) so the collapse looks
                 // like ONE physical object scaling toward its center.
                 width: barWidth,
                 maxWidth: `${barWidth}px`,
@@ -1408,11 +1421,27 @@ export function SharedNavigationBar({
                 userSelect: 'none',
                 transformOrigin: 'center center',
                 scale: containerScale,
+                y: containerY,
                 x: navX,
                 overflow: 'hidden',
                 transition: 'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
+              {/* Chromatic Top Specular Highlight Rim */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: '20px',
+                  right: '20px',
+                  height: '1px',
+                  background: 'var(--surface-glass-rim)',
+                  pointerEvents: 'none',
+                  zIndex: 1,
+                  opacity: 0.95,
+                }}
+              />
+
               <div
                 ref={innerWrapperRef}
                 onPointerDown={handlePointerDown}
@@ -1440,14 +1469,14 @@ export function SharedNavigationBar({
                       width: pillWidthVal,
                       borderRadius: '9999px',
                       background: isLight
-                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.90) 0%, rgba(245, 248, 255, 0.70) 50%, rgba(255, 255, 255, 0.60) 100%)'
-                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(220, 235, 255, 0.14) 50%, rgba(255, 255, 255, 0.08) 100%)',
+                        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 248, 255, 0.78) 50%, rgba(255, 255, 255, 0.65) 100%)'
+                        : 'linear-gradient(135deg, rgba(255, 255, 255, 0.32) 0%, rgba(215, 235, 255, 0.16) 45%, rgba(255, 255, 255, 0.10) 100%)',
                       border: isLight
                         ? '1.2px solid rgba(255, 255, 255, 0.98)'
-                        : '1.2px solid rgba(255, 255, 255, 0.34)',
+                        : '1.2px solid rgba(255, 255, 255, 0.42)',
                       boxShadow: isLight
-                        ? 'inset 0 1.5px 2.5px rgba(255, 255, 255, 0.98), inset 0 -0.5px 1px rgba(0, 0, 0, 0.04), 0 3px 14px rgba(0, 0, 0, 0.07)'
-                        : 'inset 0 1.2px 2px rgba(255, 255, 255, 0.40), inset 0 -0.5px 1px rgba(0, 0, 0, 0.15), 0 4px 18px rgba(0, 0, 0, 0.30)',
+                        ? 'inset 0 1.5px 2.5px rgba(255, 255, 255, 1.0), inset 0 -0.5px 1px rgba(0, 0, 0, 0.05), 0 4px 16px rgba(0, 0, 0, 0.09)'
+                        : 'inset 0 1.5px 2.5px rgba(255, 255, 255, 0.55), inset 0 -0.5px 1px rgba(0, 0, 0, 0.20), 0 6px 20px rgba(0, 0, 0, 0.35)',
                       backdropFilter: 'var(--surface-float-blur)',
                       WebkitBackdropFilter: 'var(--surface-float-blur)',
                       pointerEvents: 'none',
@@ -1456,7 +1485,21 @@ export function SharedNavigationBar({
                       scale: pillPressScale,
                       willChange: 'transform, width',
                     }}
-                  />
+                  >
+                    {/* Inner Lens Specular Reflection */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: '8px',
+                        right: '8px',
+                        height: '1px',
+                        background: 'var(--surface-glass-rim)',
+                        pointerEvents: 'none',
+                        opacity: 0.9,
+                      }}
+                    />
+                  </motion.div>
                 )}
                 {!searchOpen ? (
                   <div
@@ -1601,10 +1644,26 @@ export function SharedNavigationBar({
                     outline: 'none',
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
-                    // Opacity-only fade on scroll — no scale, no translation (spec requirement).
+                    position: 'relative',
+                    overflow: 'hidden',
                     opacity: switcherOpacity,
+                    scale: switcherScale,
+                    pointerEvents: switcherPointerEvents,
                   }}
                 >
+                  {/* Top Specular Rim */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: '8px',
+                      right: '8px',
+                      height: '1px',
+                      background: 'var(--surface-glass-rim)',
+                      pointerEvents: 'none',
+                      opacity: 0.9,
+                    }}
+                  />
                   <span className="material-symbols-outlined text-[20px]">search</span>
                 </motion.button>
               )}
@@ -1639,10 +1698,26 @@ export function SharedNavigationBar({
                     outline: 'none',
                     WebkitTapHighlightColor: 'transparent',
                     transformOrigin: 'center center',
-                    // Opacity-only fade on scroll — no scale, no translation (spec requirement).
+                    position: 'relative',
+                    overflow: 'hidden',
                     opacity: switcherOpacity,
+                    scale: switcherScale,
+                    pointerEvents: switcherPointerEvents,
                   }}
                 >
+                  {/* Top Specular Rim */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: '8px',
+                      right: '8px',
+                      height: '1px',
+                      background: 'var(--surface-glass-rim)',
+                      pointerEvents: 'none',
+                      opacity: 0.9,
+                    }}
+                  />
                   <motion.span
                     className="material-symbols-outlined text-[20px]"
                     animate={{ rotate: isSwitcherOpen ? 90 : 0 }}

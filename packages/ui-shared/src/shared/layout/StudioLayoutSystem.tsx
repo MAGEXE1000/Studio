@@ -222,6 +222,19 @@ export function SharedFloatingHeader({
           overflow: 'hidden',
         }}
       >
+        {/* Chromatic Top Specular Highlight Rim */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: '16px',
+            right: '16px',
+            height: '1px',
+            background: 'var(--surface-glass-rim)',
+            pointerEvents: 'none',
+            opacity: 0.9,
+          }}
+        />
         {/* Upper Fresnel Specular Highlight Rim */}
         <div
           style={{
@@ -257,10 +270,13 @@ export function SharedFloatingHeader({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.10)',
             border: isLight
-              ? '1px solid rgba(0, 0, 0, 0.06)'
-              : '1px solid rgba(255, 255, 255, 0.12)',
+              ? '1px solid rgba(0, 0, 0, 0.08)'
+              : '1px solid rgba(255, 255, 255, 0.20)',
+            boxShadow: isLight
+              ? 'inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.04)'
+              : 'inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.25)',
             color: 'var(--c-text-primary)',
             cursor: 'pointer',
             zIndex: 2,

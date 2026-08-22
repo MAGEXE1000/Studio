@@ -24,7 +24,6 @@ import {
   type PerAppVisuals,
   useNavHidden,
   useNavCollapsed,
-  useNavScrollOffset,
   useScrollHide,
   setNavHidden,
   useT,
@@ -812,7 +811,6 @@ export default function StudioHub() {
           : helpScrollRef;
 
   useScrollHide(activeScrollRef, tab);
-  const navScrollOffset = useNavScrollOffset();
 
   const isFirstAuthRun = useRef(true);
 
@@ -1256,15 +1254,12 @@ export default function StudioHub() {
                       className="flex flex-col gap-6 w-full"
                     >
                       {/* Greetings Section & Logo Header Row */}
-                      <motion.div
+                      <div
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'flex-start',
                           width: '100%',
-                          transform: `translateY(${navScrollOffset * -8}px)`,
-                          opacity: Math.max(0.7, 1 - navScrollOffset * 0.3),
-                          transition: 'transform 150ms ease-out, opacity 150ms ease-out',
                         }}
                       >
                         <section className="space-y-1" style={{ flex: 1, minWidth: 0 }}>
@@ -1301,18 +1296,14 @@ export default function StudioHub() {
                         >
                           <StudioLogo size={32} />
                         </div>
-                      </motion.div>
+                      </div>
 
                       {/* Pinned Quick Actions Section */}
-                      <motion.section
+                      <section
                         style={{
                           display: 'flex',
                           flexDirection: 'column',
                           gap: 12,
-                          transform: `scale(${1 - navScrollOffset * 0.03})`,
-                          opacity: Math.max(0.85, 1 - navScrollOffset * 0.15),
-                          transformOrigin: 'top center',
-                          transition: 'transform 150ms ease-out, opacity 150ms ease-out',
                         }}
                       >
                         <div
@@ -1584,7 +1575,7 @@ export default function StudioHub() {
                             )}
                           </Reorder.Group>
                         </div>
-                      </motion.section>
+                      </section>
 
                       {/* Studio Modules grid columns */}
                       <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

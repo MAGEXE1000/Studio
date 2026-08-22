@@ -1,21 +1,22 @@
 {
   "platform": "android",
-  "version": "4.5.34",
-  "versionName": "4.5.34",
-  "versionCode": 40534,
-  "version_code": 40534,
-  "commit": "032ccc9d",
-  "releasedAt": "8/19/2026, 8:04:50 PM CST",
-  "buildTimestamp": "8/19/2026, 8:04:50 PM CST",
+  "version": "4.5.35",
+  "versionName": "4.5.35",
+  "versionCode": 40535,
+  "version_code": 40535,
+  "commit": "8be346a7",
+  "releasedAt": "8/22/2026, 4:42:44 PM CST",
+  "buildTimestamp": "8/22/2026, 4:42:44 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Redesigned mobile bottom navigation with unified-object center-anchor collapse scaling (`containerScale`), eliminating internal item layout reflow.\n• Replaced multi-transform Search / App Changer bubble animation with in-place opacity-only fade during downward scroll.\n• Migrated bottom navigation dock and floating bubble materials to canonical CSS design tokens (`--surface-topbar-*`, `--surface-float-blur`) with full Dark, Light, and AMOLED compatibility.\n• Retuned navigation spring physics to critically damped curves (`stiffness: 340, damping: 28, mass: 0.9`) for a smooth, physical, native feel.",
-  "whatsNew": "• Redesigned mobile bottom navigation with unified-object center-anchor collapse scaling (`containerScale`), eliminating internal item layout reflow.\n• Replaced multi-transform Search / App Changer bubble animation with in-place opacity-only fade during downward scroll.\n• Migrated bottom navigation dock and floating bubble materials to canonical CSS design tokens (`--surface-topbar-*`, `--surface-float-blur`) with full Dark, Light, and AMOLED compatibility.\n• Retuned navigation spring physics to critically damped curves (`stiffness: 340, damping: 28, mass: 0.9`) for a smooth, physical, native feel.",
+  "changelog": "• Audited and refined Shared Interactive Design System primitives: tactile spring compression on buttons (`Button`, `IconButton`, `FloatingButton`, `ActionButton`), modular `BentoCard` Liquid Glass containers, squircle inputs and search bars, interactive `ListRow` list items, squircle filter chips, and polished feedback skeletons.\n• Modernized mobile Profile experience with glowing chromatic avatar ring, dynamic entitlement role badge, 4 modular Liquid Glass Bento metric cards (Favorites, Progressions, Presets, Cloud Sync), and copyable developer UID code pill.\n• Enhanced mobile Settings experience with GPU-accelerated spring `StudioToggle`, tactile `SettingRow` and `BentoSettingCard` containers, and polished language selection sheet.\n• Synchronized mobile motion system tokens (`SpringPresets`, `EasingPresets`, `DurationPresets`, `--motion-ease-*` CSS variables) around critically damped physics for smooth velocity continuity and zero oscillation.\n• Upgraded Studio Hub layout hierarchy with modular Liquid Glass Bento cards, specular highlight reflections, and tactile spring microinteractions.",
+  "whatsNew": "• Audited and refined Shared Interactive Design System primitives: tactile spring compression on buttons (`Button`, `IconButton`, `FloatingButton`, `ActionButton`), modular `BentoCard` Liquid Glass containers, squircle inputs and search bars, interactive `ListRow` list items, squircle filter chips, and polished feedback skeletons.\n• Modernized mobile Profile experience with glowing chromatic avatar ring, dynamic entitlement role badge, 4 modular Liquid Glass Bento metric cards (Favorites, Progressions, Presets, Cloud Sync), and copyable developer UID code pill.\n• Enhanced mobile Settings experience with GPU-accelerated spring `StudioToggle`, tactile `SettingRow` and `BentoSettingCard` containers, and polished language selection sheet.\n• Synchronized mobile motion system tokens (`SpringPresets`, `EasingPresets`, `DurationPresets`, `--motion-ease-*` CSS variables) around critically damped physics for smooth velocity continuity and zero oscillation.\n• Upgraded Studio Hub layout hierarchy with modular Liquid Glass Bento cards, specular highlight reflections, and tactile spring microinteractions.",
   "releaseNotes": {
     "added": [
-      "Redesigned mobile bottom navigation with unified-object center-anchor collapse scaling (`containerScale`), eliminating internal item layout reflow.",
-      "Replaced multi-transform Search / App Changer bubble animation with in-place opacity-only fade during downward scroll.",
-      "Migrated bottom navigation dock and floating bubble materials to canonical CSS design tokens (`--surface-topbar-*`, `--surface-float-blur`) with full Dark, Light, and AMOLED compatibility.",
-      "Retuned navigation spring physics to critically damped curves (`stiffness: 340, damping: 28, mass: 0.9`) for a smooth, physical, native feel."
+      "Audited and refined Shared Interactive Design System primitives: tactile spring compression on buttons (`Button`, `IconButton`, `FloatingButton`, `ActionButton`), modular `BentoCard` Liquid Glass containers, squircle inputs and search bars, interactive `ListRow` list items, squircle filter chips, and polished feedback skeletons.",
+      "Modernized mobile Profile experience with glowing chromatic avatar ring, dynamic entitlement role badge, 4 modular Liquid Glass Bento metric cards (Favorites, Progressions, Presets, Cloud Sync), and copyable developer UID code pill.",
+      "Enhanced mobile Settings experience with GPU-accelerated spring `StudioToggle`, tactile `SettingRow` and `BentoSettingCard` containers, and polished language selection sheet.",
+      "Synchronized mobile motion system tokens (`SpringPresets`, `EasingPresets`, `DurationPresets`, `--motion-ease-*` CSS variables) around critically damped physics for smooth velocity continuity and zero oscillation.",
+      "Upgraded Studio Hub layout hierarchy with modular Liquid Glass Bento cards, specular highlight reflections, and tactile spring microinteractions."
     ]
   },
   "mandatory": false

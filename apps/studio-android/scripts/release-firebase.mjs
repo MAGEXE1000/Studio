@@ -608,9 +608,12 @@ if (!skipBuild) {
   const gradleArgs = ['assembleRelease', '-x', 'lint', '-x', 'lintVitalRelease', '--parallel', '--build-cache', '--max-workers=4', '--stacktrace'];
   const gradleEnv = { ...process.env };
   if (process.platform === 'win32') {
-    const jdk21Path = 'C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.11.10-hotspot';
-    if (existsSync(jdk21Path)) {
-      gradleEnv.JAVA_HOME = jdk21Path;
+    const adoptiumDir = 'C:\\Program Files\\Eclipse Adoptium';
+    if (existsSync(adoptiumDir)) {
+      const jdkDirs = readdirSync(adoptiumDir).filter((d) => d.startsWith('jdk-21') && statSync(path.join(adoptiumDir, d)).isDirectory());
+      if (jdkDirs.length > 0) {
+        gradleEnv.JAVA_HOME = path.join(adoptiumDir, jdkDirs[0]);
+      }
     }
   }
   if (gradleEnv.GITHUB_TOKEN === 'github_pat_antigravitydummytoken') {

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.34';
-export const NATIVE_VERSION_CODE = 40534;
-export const WEB_VERSION = '4.5.34';
+export const NATIVE_VERSION = '4.5.35';
+export const NATIVE_VERSION_CODE = 40535;
+export const WEB_VERSION = '4.5.35';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '032ccc9d';
+export const APP_COMMIT_SHA = '8be346a7';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/19/2026, 8:04:50 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/22/2026, 4:42:44 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Redesigned mobile bottom navigation with unified-object center-anchor collapse scaling (`containerScale`), eliminating internal item layout reflow.',
-      'Replaced multi-transform Search / App Changer bubble animation with in-place opacity-only fade during downward scroll.',
-      'Migrated bottom navigation dock and floating bubble materials to canonical CSS design tokens (`--surface-topbar-*`, `--surface-float-blur`) with full Dark, Light, and AMOLED compatibility.',
-      'Retuned navigation spring physics to critically damped curves (`stiffness: 340, damping: 28, mass: 0.9`) for a smooth, physical, native feel.',
+      'Audited and refined Shared Interactive Design System primitives: tactile spring compression on buttons (`Button`, `IconButton`, `FloatingButton`, `ActionButton`), modular `BentoCard` Liquid Glass containers, squircle inputs and search bars, interactive `ListRow` list items, squircle filter chips, and polished feedback skeletons.',
+      'Modernized mobile Profile experience with glowing chromatic avatar ring, dynamic entitlement role badge, 4 modular Liquid Glass Bento metric cards (Favorites, Progressions, Presets, Cloud Sync), and copyable developer UID code pill.',
+      'Enhanced mobile Settings experience with GPU-accelerated spring `StudioToggle`, tactile `SettingRow` and `BentoSettingCard` containers, and polished language selection sheet.',
+      'Synchronized mobile motion system tokens (`SpringPresets`, `EasingPresets`, `DurationPresets`, `--motion-ease-*` CSS variables) around critically damped physics for smooth velocity continuity and zero oscillation.',
+      'Upgraded Studio Hub layout hierarchy with modular Liquid Glass Bento cards, specular highlight reflections, and tactile spring microinteractions.',
     ],
   },
 ];

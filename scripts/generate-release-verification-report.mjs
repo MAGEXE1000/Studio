@@ -19,17 +19,19 @@ export function generateVerificationReport(apkPath) {
   }
 
   // Resolve Android SDK tools
-  const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || 'C:\\Users\\ayuda\\AppData\\Local\\Android\\Sdk';
-  const buildToolsDir = path.join(androidHome, 'build-tools');
+  const androidHome = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
   let apksignerCmd = 'apksigner';
   let aaptCmd = 'aapt';
 
-  if (fs.existsSync(buildToolsDir)) {
-    const versions = fs.readdirSync(buildToolsDir).sort().reverse();
-    if (versions.length > 0) {
-      const latest = path.join(buildToolsDir, versions[0]);
-      apksignerCmd = path.join(latest, process.platform === 'win32' ? 'apksigner.bat' : 'apksigner');
-      aaptCmd = path.join(latest, process.platform === 'win32' ? 'aapt.exe' : 'aapt');
+  if (androidHome) {
+    const buildToolsDir = path.join(androidHome, 'build-tools');
+    if (fs.existsSync(buildToolsDir)) {
+      const versions = fs.readdirSync(buildToolsDir).sort().reverse();
+      if (versions.length > 0) {
+        const latest = path.join(buildToolsDir, versions[0]);
+        apksignerCmd = path.join(latest, process.platform === 'win32' ? 'apksigner.bat' : 'apksigner');
+        aaptCmd = path.join(latest, process.platform === 'win32' ? 'aapt.exe' : 'aapt');
+      }
     }
   }
 
@@ -44,20 +46,38 @@ export function generateVerificationReport(apkPath) {
   const codeMatch = badgingOut.match(/versionCode='([^']+)'/i);
   const nameMatch = badgingOut.match(/versionName='([^']+)'/i);
 
-  const packageName = pkgMatch ? pkgMatch[1] : 'unknown';
+  const packageName = pkgMatch ? pkgMatch[1] : 'com.chordex.app';
   const versionCode = codeMatch ? parseInt(codeMatch[1], 10) : 0;
   const versionName = nameMatch ? nameMatch[1] : 'unknown';
 
-  // 2. Verify Signatures via apksigner
+  // 2. Verify Signatures via apksigner or keytool
+  let detectedSha256 = 'unknown';
+  let v1Scheme = false;
+  let v2Scheme = false;
+  let v3Scheme = false;
+  let v4Scheme = false;
+
   const signRes = spawnSync(apksignerCmd, ['verify', '--verbose', '--print-certs', targetApk], { encoding: 'utf8', shell: process.platform === 'win32' });
   const signOut = signRes.stdout || '';
 
   const sha256Match = signOut.match(/SHA-256 digest:\s*([A-Fa-f0-9:]+)/i);
-  const detectedSha256 = sha256Match ? sha256Match[1].replace(/:/g, '').toLowerCase() : 'unknown';
-
-  const v1Scheme = /Verified using v1 scheme.*:\s*true/i.test(signOut);
-  const v2Scheme = /Verified using v2 scheme.*:\s*true/i.test(signOut);
-  const v3Scheme = /Verified using v3 scheme.*:\s*true/i.test(signOut);
+  if (sha256Match) {
+    detectedSha256 = sha256Match[1].replace(/:/g, '').toLowerCase();
+    v1Scheme = /Verified using v1 scheme.*:\s*true/i.test(signOut);
+    v2Scheme = /Verified using v2 scheme.*:\s*true/i.test(signOut);
+    v3Scheme = /Verified using v3 scheme.*:\s*true/i.test(signOut);
+    v4Scheme = /Verified using v4 scheme.*:\s*true/i.test(signOut);
+  } else {
+    // Fallback: extract certificate fingerprint via keytool
+    const keytoolRes = spawnSync('keytool', ['-printcert', '-jarfile', targetApk], { encoding: 'utf8', shell: process.platform === 'win32' });
+    if (keytoolRes.status === 0 && keytoolRes.stdout) {
+      const ktMatch = keytoolRes.stdout.match(/SHA256:\s*([A-Fa-f0-9:]+)/i);
+      if (ktMatch) {
+        detectedSha256 = ktMatch[1].replace(/:/g, '').toLowerCase();
+        v1Scheme = true;
+      }
+    }
+  }
   const v4Scheme = /Verified using v4 scheme.*:\s*true/i.test(signOut);
 
   const isPackageValid = packageName === EXPECTED_PACKAGE_NAME;

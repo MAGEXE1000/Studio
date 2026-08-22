@@ -45,6 +45,7 @@ export default defineConfig(async ({ command, mode }) => {
 
   envDefines['import.meta.env.VITE_GIT_COMMIT_SHA'] = JSON.stringify(gitCommitSha);
   envDefines['import.meta.env.VITE_BUILD_TIMESTAMP'] = JSON.stringify(buildTimestamp);
+  envDefines['import.meta.env.VITE_APP_TARGET'] = JSON.stringify('web');
 
   if (command === 'build') {
     console.log(`\x1b[32mVite Build (Web): Bundling Git Commit SHA: ${gitCommitSha}\x1b[0m`);

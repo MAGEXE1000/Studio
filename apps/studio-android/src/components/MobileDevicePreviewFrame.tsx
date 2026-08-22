@@ -366,7 +366,8 @@ export function MobileDevicePreviewFrame({ children }: { children: React.ReactNo
 
           {/* Application Content Inside Viewport — strictly bounded containing block */}
           <main
-            className="w-full h-full relative overflow-hidden flex-1 flex flex-col"
+            data-mobile-preview="true"
+            className="w-full h-full relative overflow-hidden flex-1 flex flex-col studio-mobile-shell"
             style={
               {
                 position: 'absolute',

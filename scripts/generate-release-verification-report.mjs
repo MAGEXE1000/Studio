@@ -78,7 +78,6 @@ export function generateVerificationReport(apkPath) {
       }
     }
   }
-  const v4Scheme = /Verified using v4 scheme.*:\s*true/i.test(signOut);
 
   const isPackageValid = packageName === EXPECTED_PACKAGE_NAME;
   const isSignatureValid = detectedSha256 === EXPECTED_PROD_SHA256;

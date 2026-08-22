@@ -197,3 +197,65 @@ Evaluate the impact on:
 - Vocalex
 
 The optimization is complete only if no subsystem regresses.
+
+## Permanent Mobile UI Architecture Rule (Mobile Web Preview = Android Mobile UI)
+
+The Mobile Web Preview (`pnpm dev:mobile`) is NOT a separate UI implementation.
+It is the browser-based development and visual-preview representation of the SAME mobile experience that runs inside the Android/Capacitor APK.
+
+1. **Single Source of Truth**:
+   - Mobile UI must have one canonical implementation in shared packages (`packages/ui-shared`, `packages/studio-core`).
+   - Prefer shared components, shared styles, shared design tokens, shared animation systems, shared navigation logic, and shared interaction logic.
+   - Do not duplicate mobile UI implementations between Mobile Web Preview and Android.
+   - Do not create one implementation "for preview" and another "for APK" when the same shared implementation can be used.
+
+2. **Visual Parity Is Required**:
+   - Any mobile UI change must produce the same visual result in Mobile Web Preview (`pnpm dev:mobile`) and Android/Capacitor APK.
+   - Includes layout, spacing, typography, colors, Liquid Glass materials, blur, translucency, shadows, borders, gradients, icons, navigation, transitions, animations, gestures, scrolling behavior, component states, loading states, and interaction feedback.
+   - Do not accept "close enough" implementations between the two environments.
+
+3. **Behavioral Parity Is Required**:
+   - Interactions must behave consistently between Mobile Web Preview and Android.
+   - If an interaction behaves differently because of a genuine native Android limitation, isolate only the platform-specific mechanism while keeping UX, visual result, timing, and state behavior equivalent.
+   - Do not use platform differences as an excuse to create unrelated UI behavior.
+
+4. **Mobile Web Preview Is the Primary UI Iteration Environment**:
+   - For normal mobile UI/UX work, develop and iterate using Mobile Web Preview first (`pnpm dev:mobile`).
+   - Use its Vite HMR workflow for rapid visual iteration.
+   - Validate the final result against the Android runtime architecture before considering the work complete.
+   - Do NOT require a physical Android phone for ordinary UI iteration.
+
+5. **Android Is the Production Target**:
+   - The Android APK remains the production target.
+   - The Mobile Web Preview must represent the same production mobile UI, not an approximation or mockup.
+   - When a change is approved in Mobile Web Preview, the same canonical implementation must be what is packaged into the Android APK.
+
+6. **No Platform-Specific Duplication**:
+   - Do NOT create separate mobile CSS solely for preview, separate mobile components solely for preview, duplicate navigation implementations, duplicate animation implementations, duplicate Liquid Glass implementations, browser-only visual substitutes, or Android-only visual variants unless technically unavoidable.
+   - If separation is unavoidable, keep the shared visual/UX contract identical and document the exact native reason.
+
+7. **Shared Components Take Priority**:
+   - Before creating a new component, animation, style, or effect, inspect the existing shared architecture, reuse the canonical component/system, and extend or refactor it when appropriate.
+
+8. **Design System Consistency**:
+   - All mobile visual systems must remain centralized in the shared design system (`tokens.css`, shared motion constants, etc.).
+
+9. **Verification Requirement**:
+   - Verify Mobile Web Preview visually and behaviorally.
+   - Verify that the implementation path used by Mobile Web Preview is also consumed by Android/Capacitor.
+   - Verify that no Android-only duplicate implementation was introduced.
+   - Verify production build isolation (development preview tooling is not shipped in APK).
+
+10. **Regression Rule**:
+    - If a future change modifies a shared mobile component, re-verify the Mobile Web Preview ↔ Android parity.
+
+11. **Desktop Web Remains Separate**:
+    - Desktop Web (`apps/studio-web`) retains its own responsive layout and desktop-specific UX where appropriate.
+    - Architecture:
+      - Desktop Web → Desktop-specific responsive experience
+      - Mobile Web Preview → Canonical Mobile UI → Android / Capacitor APK
+
+12. **Agent Responsibility**:
+    - Every agent working on Studio/Livex must treat this as a permanent architectural constraint.
+    - Definition of Done for mobile UI work:
+      "Implemented once through the canonical mobile UI architecture, visually and behaviorally verified in Mobile Web Preview, and confirmed to be the same implementation consumed by the Android/Capacitor APK."

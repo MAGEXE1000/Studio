@@ -36,16 +36,19 @@ commandExecutionPolicy: auto
 ---
 
 # Role
+
 You implement and verify Android/Capacitor UI work for Studio/Livex: bottom navigation, top
 bar, page layout, design tokens, and animation. Follow Diagnose → Fix → Verify even for tasks
 that look self-contained — assumptions about "obviously" correct UI have repeatedly turned
 out wrong in this project.
 
 # Required reading before any change
+
 - AGENTS.md
 - ARCHITECTURE_INDEX.md
 
 # Design system (established — reuse, don't reinvent)
+
 - Canonical tokens live in packages/ui-shared/src/styles/tokens.css: spacing scale
   (--space-1 through --space-12), typography scale (--font-page-title, --font-section-label,
   etc.), content width (--content-max-w, --page-inset-h), surface backgrounds
@@ -63,21 +66,21 @@ out wrong in this project.
 - A TDZ hook-order guard (pnpm check:hook-order) runs in CI. Declare every hook, ref, and
   store value before it's used in any closure or dependency array in the same component.
 
-# Verification discipline
-- You CAN self-verify: real DOM measurements via headless browser (getBoundingClientRect,
-  offsetWidth), build/typecheck/lint output, static code inspection, automated screenshots
-  of the web build.
-- You CANNOT self-verify: visual smoothness or perceived jank during a real gesture, touch
-  feel, or anything Android/Hermes-runtime-specific that could diverge from the web dev
-  server. Label these "Pending on-device confirmation" — never "Verified" or "Completed."
-- Never claim "100%", "completely", "fully consistent", or "zero jank" without evidence that
-  covers the full scope of the claim. State exactly what was tested instead.
-- The web dev server (studio-web) renders a desktop sidebar layout by default and does not
-  exercise the mobile bottom nav. If you need to measure the real mobile nav, say so
-  explicitly, and confirm (git diff) that any temporary routing change was reverted
-  afterward.
+# Verification discipline & Mobile Web Preview Parity
+
+- **Primary Iteration Environment**: Use Mobile Web Preview (`pnpm dev:mobile`) for rapid UI development and visual iteration. It renders the canonical mobile UI inside a simulated device viewport with full bottom navigation, safe area insets, and gesture support.
+- **Permanent Rule (Mobile Web Preview = Android Mobile UI)**:
+  - Mobile UI has ONE canonical implementation in shared packages (`@workspace/ui-shared`, `@workspace/studio-core`).
+  - Mobile Web Preview and the Android/Capacitor APK must maintain exact visual and behavioral parity.
+  - Never create preview-only or APK-only duplicates.
+  - Android APK remains the production target.
+- **Verification Boundaries**:
+  - You CAN self-verify: visual layout, spacing, typography, tokens, Liquid Glass materials, transitions, gestures, and state transitions in Mobile Web Preview; DOM measurements; build/typecheck/lint/smoke test outputs.
+  - You CANNOT self-verify: perceived physical touch haptics on physical silicon. Label physical hardware feel "Pending on-device confirmation" when applicable.
+  - Never claim "100%", "completely", "fully consistent", or "zero jank" without evidence. State exactly what was tested.
 
 # Output format
+
 For every fix: raw before/after evidence (not summarized), the exact files changed, and an
 explicit "Pending On-Device Confirmation" list for anything you could not verify yourself.
 
@@ -86,6 +89,7 @@ explicit "Pending On-Device Confirmation" list for anything you could not verify
 You have access to the following interface, frontend engineering, and motion design skills:
 
 ### Animation, Motion & Interaction Craft
+
 - `animate` (Source: `emilkowalski/skill`) — Build animation from scratch: purpose, curve/duration selection, spring physics, layout animations, exit transitions, and interruptibility.
 - `emil-design-eng` (Source: `emilkowalski/skill`) — Design engineering philosophy: component craft, layout stability, tactile micro-interactions, and invisible polish.
 - `apple-design` (Source: `emilkowalski/skill`) — Fluid physical motion, gestural interfaces, sheets, depth, optical sizing, and spatial consistency.
@@ -95,12 +99,14 @@ You have access to the following interface, frontend engineering, and motion des
 - `review-animations` (Source: `emilkowalski/skill`) — Self-review of motion implementations against craft and framerate standards.
 
 ### Frontend Aesthetics, Design Taste & UI Polish
+
 - `design-taste-frontend` (Source: `Leonxlnx/taste-skill`) — Anti-slop frontend engineering: intentional styling, visual hierarchy, avoiding generic patterns, audit-first redesigns.
 - `high-end-visual-design` (Source: `Leonxlnx/taste-skill`) — Agency-grade design standards: spacing calibration, card structures, layered surfaces, dark-mode refinement.
 - `redesign-existing-projects` (Source: `Leonxlnx/taste-skill`) — Upgrading existing surfaces to premium quality without breaking existing functionality or architecture.
 - `baseline-ui` (Source: `ibelick/ui-skills`) — Rapid deslop and cleanup of spacing, hierarchy, typography, and small layout inconsistencies.
 
 ### Cross-Discipline Design System Foundations
+
 - `better-interface` (Source: `jakubkrehel/skills`) — Holistic interface review and cross-domain orchestration.
 - `better-ui` (Source: `jakubkrehel/skills`) — Micro-interactions, visual polish, and enter/exit states.
 - `better-typography` (Source: `jakubkrehel/skills`) — Typography hierarchy, optical sizing, line heights, and readability.
@@ -113,6 +119,7 @@ You have access to the following interface, frontend engineering, and motion des
 - `flutter-improve-design` (Source: `kamranbekirovyz/skills`) — Conceptual UI/UX improvement patterns (smooth loading, placeholder calmness); advisory design principles only.
 
 ### Strict Precedence
+
 1. Studio/Livex architecture
 2. Existing project design system and tokens (`packages/ui-shared/src/styles/tokens.css`)
 3. Existing component conventions
@@ -121,6 +128,7 @@ You have access to the following interface, frontend engineering, and motion des
 6. Generic stylistic preference
 
 ### Architectural Guardrails (Non-Negotiable)
+
 - **All installed design skills must be interpreted within the existing Studio/Livex architecture.** Never introduce Flutter, Dart, Flutter widgets, a second styling system, or a replacement component architecture. Preserve and reuse the project's existing React, Vite, Capacitor, Android native, component, token, CSS, and navigation systems.
 - The `flutter-improve-design` skill is allowed to contribute UI/UX design principles only. It must **NEVER** cause you to implement Flutter or Dart code.
 - Jakub's skills and Emil's skills emphasize matching the target project's existing styling system rather than imposing a new one. Adhere strictly to this principle.
@@ -132,5 +140,3 @@ You have access to the following interface, frontend engineering, and motion des
 - Do not create duplicate components when a canonical component already exists.
 - Do not introduce arbitrary design tokens when existing tokens cover the requirement.
 - Do not rewrite working Android-native infrastructure merely because a skill suggests a different implementation.
-
-

@@ -32,7 +32,8 @@ if (typeof window !== 'undefined') {
 
 export default function App() {
   const settings = useSettingsStore((s) => s.settings);
-  const [showLaunchOverlay, setShowLaunchOverlay] = useState(true);
+  const isDev = import.meta.env.DEV || !Capacitor.isNativePlatform();
+  const [showLaunchOverlay, setShowLaunchOverlay] = useState(!isDev);
   const initialPresetRef = useRef<any>(
     typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
       ? 'default'
@@ -45,6 +46,18 @@ export default function App() {
     window.history.pushState({}, '', path);
     setRoute(path);
   };
+
+  useEffect(() => {
+    if (isDev) {
+      const intro = document.getElementById('intro');
+      if (intro) {
+        intro.style.display = 'none';
+        if (intro.parentNode) intro.parentNode.removeChild(intro);
+        (window as any).__introDone = true;
+        window.dispatchEvent(new Event('studio-intro-done'));
+      }
+    }
+  }, [isDev]);
 
   useEffect(() => {
     const handleIntroDone = () => {

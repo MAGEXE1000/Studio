@@ -167,7 +167,11 @@
             path === '/app' || path.startsWith('/app/') || path === '/' || path === '/index.html';
           var alreadyShown = false;
           try {
-            alreadyShown = !!sessionStorage.getItem('studio-intro-shown');
+            var isLocalDev =
+              window.location.hostname === 'localhost' ||
+              window.location.hostname === '127.0.0.1' ||
+              window.location.port === '5174';
+            alreadyShown = isLocalDev || !!sessionStorage.getItem('studio-intro-shown');
           } catch (e) {}
 
           if (isApp && !alreadyShown && appMode === 'hub') {

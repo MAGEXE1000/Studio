@@ -1245,12 +1245,15 @@ export default function StudioHub() {
                       flexDirection: 'column',
                       alignItems: 'center',
                       padding: '0 20px',
-                      paddingBottom: 'var(--content-bottom-pad)',
+                      paddingTop:
+                        'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 36px)',
+                      paddingBottom:
+                        'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 110px)',
                     }}
                   >
                     {/* Dashboard Contents Scroll Area */}
                     <div
-                      style={{ width: '100%', maxWidth: '380px', marginTop: '24px' }}
+                      style={{ width: '100%', maxWidth: '380px' }}
                       className="flex flex-col gap-6 w-full"
                     >
                       {/* Greetings Section & Logo Header Row */}

@@ -310,8 +310,6 @@ export function SharedAppShell({
   const isSubAppActive = appMode !== 'hub' || launchingApp !== null;
   const stableKey = launchingApp || appMode;
 
-
-
   // Watchdog
   useEffect(() => {
     let watchdogTimer: ReturnType<typeof setTimeout>;
@@ -411,7 +409,7 @@ export function SharedAppShell({
               />
             )}
           </AnimatePresence>
-          {!renderLaunchOverlay && renderBottomNav?.()}
+          {renderBottomNav?.()}
         </Suspense>
       </ErrorBoundary>
       {renderLaunchOverlay?.()}

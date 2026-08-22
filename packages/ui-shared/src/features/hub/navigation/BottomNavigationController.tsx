@@ -49,8 +49,7 @@ export function BottomNavigationController() {
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
 
-  const { setCollapsed, setVisible, setMotionState, setIsLight } =
-    useBottomNavigationStore();
+  const { setCollapsed, setVisible, setMotionState, setIsLight } = useBottomNavigationStore();
 
   const isSwitcherOpen = useBottomNavigationStore((s) => s.isSwitcherOpen);
   const setIsSwitcherOpen = useCallback((open: boolean) => {
@@ -90,27 +89,31 @@ export function BottomNavigationController() {
   const activePage = currentRoute?.page || 'main';
 
   const t = useT() as any;
-  const getTranslation = useCallback((key: string) => {
-    if (!t) return key;
-    if (key === 'songs') return t.navigation?.songs || 'Songs';
-    if (key === 'library') return t.navigation?.library || 'Library';
-    if (key === 'settings') return t.navigation?.settings || 'Preferences';
-    if (key === 'preferences') return t.navigation?.preferences || 'Preferences';
-    if (key === 'chords') return t.navigation?.chords || 'Chords';
-    if (key === 'drumSongs' || key === 'drumBeats') return t.navigation?.drumBeats || 'Beats';
-    if (key === 'drumPatterns') return t.navigation?.drumPatterns || 'Patterns';
-    if (key === 'drumPreferences') return t.navigation?.drumPreferences || 'Preferences';
-    if (key === 'groovexLibrary' || key === 'groovexRhythms') return t.navigation?.groovexRhythms || 'Rhythms';
-    if (key === 'groovexPreferences') return t.navigation?.groovexPreferences || 'Preferences';
-    if (key === 'vocalexCoach') return t.navigation?.vocalexCoach || 'Coach';
-    if (key === 'vocalexRecorder') return t.navigation?.vocalexRecorder || 'Recorder';
-    if (key === 'vocalexTakes') return t.navigation?.vocalexTakes || 'Takes';
-    if (key === 'vocalexPreferences') return t.navigation?.vocalexPreferences || 'Preferences';
-    if (key === 'stagexStage') return t.navigation?.stagexStage || 'Stage';
-    if (key === 'stagexSetup') return t.navigation?.stagexSetup || 'Setup';
-    if (key === 'stagexPreferences') return t.navigation?.stagexPreferences || 'Preferences';
-    return key;
-  }, [t]);
+  const getTranslation = useCallback(
+    (key: string) => {
+      if (!t) return key;
+      if (key === 'songs') return t.navigation?.songs || 'Songs';
+      if (key === 'library') return t.navigation?.library || 'Library';
+      if (key === 'settings') return t.navigation?.settings || 'Preferences';
+      if (key === 'preferences') return t.navigation?.preferences || 'Preferences';
+      if (key === 'chords') return t.navigation?.chords || 'Chords';
+      if (key === 'drumSongs' || key === 'drumBeats') return t.navigation?.drumBeats || 'Beats';
+      if (key === 'drumPatterns') return t.navigation?.drumPatterns || 'Patterns';
+      if (key === 'drumPreferences') return t.navigation?.drumPreferences || 'Preferences';
+      if (key === 'groovexLibrary' || key === 'groovexRhythms')
+        return t.navigation?.groovexRhythms || 'Rhythms';
+      if (key === 'groovexPreferences') return t.navigation?.groovexPreferences || 'Preferences';
+      if (key === 'vocalexCoach') return t.navigation?.vocalexCoach || 'Coach';
+      if (key === 'vocalexRecorder') return t.navigation?.vocalexRecorder || 'Recorder';
+      if (key === 'vocalexTakes') return t.navigation?.vocalexTakes || 'Takes';
+      if (key === 'vocalexPreferences') return t.navigation?.vocalexPreferences || 'Preferences';
+      if (key === 'stagexStage') return t.navigation?.stagexStage || 'Stage';
+      if (key === 'stagexSetup') return t.navigation?.stagexSetup || 'Setup';
+      if (key === 'stagexPreferences') return t.navigation?.stagexPreferences || 'Preferences';
+      return key;
+    },
+    [t]
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -164,7 +167,10 @@ export function BottomNavigationController() {
     const effectivePhoto = customPhoto || user?.photoURL;
     if (avatarIcon) {
       return (
-        <span className="material-symbols-outlined" style={{ fontSize: 22, fontVariationSettings: "'FILL' 1", display: 'block' }}>
+        <span
+          className="material-symbols-outlined"
+          style={{ fontSize: 22, fontVariationSettings: "'FILL' 1", display: 'block' }}
+        >
           {avatarIcon}
         </span>
       );
@@ -174,7 +180,13 @@ export function BottomNavigationController() {
         <img
           src={effectivePhoto}
           alt=""
-          style={{ width: 22, height: 22, borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+          style={{
+            width: 22,
+            height: 22,
+            borderRadius: '50%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
           referrerPolicy="no-referrer"
         />
       );
@@ -224,9 +236,9 @@ export function BottomNavigationController() {
         const isSearchInput = activeEl.id === 'global-search-input';
         setIsKeyboardFocused(
           (!isSearchInput && tagName === 'input') ||
-          tagName === 'textarea' ||
-          activeEl.hasAttribute('contenteditable') ||
-          (activeEl as HTMLElement).isContentEditable
+            tagName === 'textarea' ||
+            activeEl.hasAttribute('contenteditable') ||
+            (activeEl as HTMLElement).isContentEditable
         );
       } else {
         setIsKeyboardFocused(false);
@@ -266,7 +278,9 @@ export function BottomNavigationController() {
       const hasHideClass =
         document.querySelector('.hide-bottom-nav') !== null ||
         document.querySelector('.hide-global-nav') !== null;
-      setHasDOMHiddenIndicator(isFullscreen || isModalOpen || hasHideClass || (isStage && isLandscape));
+      setHasDOMHiddenIndicator(
+        isFullscreen || isModalOpen || hasHideClass || (isStage && isLandscape)
+      );
     };
 
     checkDOM();
@@ -373,12 +387,16 @@ export function BottomNavigationController() {
       let isActive = activeTab === sec.id || activePage === sec.id;
       if (currentApp === 'stagex') {
         if (sec.id === 'Editor') {
-          isActive = ['Editor', 'Export'].includes(activeTab) || ['Editor', 'Export'].includes(activePage);
+          isActive =
+            ['Editor', 'Export'].includes(activeTab) || ['Editor', 'Export'].includes(activePage);
         } else if (sec.id === 'Setup') {
-          isActive = ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activeTab) ||
-                     ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activePage);
+          isActive =
+            ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activeTab) ||
+            ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activePage);
         } else if (sec.id === 'Preferences') {
-          isActive = ['Preferences', 'Assistant'].includes(activeTab) || ['Preferences', 'Assistant'].includes(activePage);
+          isActive =
+            ['Preferences', 'Assistant'].includes(activeTab) ||
+            ['Preferences', 'Assistant'].includes(activePage);
         }
       }
       return {
@@ -387,18 +405,24 @@ export function BottomNavigationController() {
         label: getTranslation(sec.labelKey),
         isActive,
         onClick: () => {
-          NavigationDispatcher.push({ app: currentApp as any, page: sec.id as any, tab: sec.id as any });
+          NavigationDispatcher.push({
+            app: currentApp as any,
+            page: sec.id as any,
+            tab: sec.id as any,
+          });
           setProfileMenuOpen(false);
         },
       };
     });
-  }, [currentApp, activeTab, activePage, getTranslation, profileIcon, setProfileMenuOpen, toggleProfileMenu]);
-
-  // Filter out rendering on Desktop web views
-  const isWeb = typeof window !== 'undefined' && !(window as any).Capacitor?.isNativePlatform?.();
-  if (isWeb && typeof window !== 'undefined' && window.innerWidth > 768) {
-    return null;
-  }
+  }, [
+    currentApp,
+    activeTab,
+    activePage,
+    getTranslation,
+    profileIcon,
+    setProfileMenuOpen,
+    toggleProfileMenu,
+  ]);
 
   const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible;
 
@@ -421,4 +445,3 @@ export function BottomNavigationController() {
     </NavigationAnimationProvider>
   );
 }
-

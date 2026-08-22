@@ -1138,9 +1138,9 @@ export function SharedNavigationBar({
           className="shared-bottom-navbar-wrapper"
           style={{
             position: 'fixed',
-            bottom: 'max(14px, env(safe-area-inset-bottom))',
-            left: '16px',
-            right: '16px',
+            bottom: 'max(14px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 14px)))',
+            left: 0,
+            right: 0,
             zIndex: 9999,
             display: 'flex',
             flexDirection: 'column',

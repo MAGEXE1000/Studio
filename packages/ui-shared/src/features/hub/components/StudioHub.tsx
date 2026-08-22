@@ -1253,7 +1253,7 @@ export default function StudioHub() {
                   >
                     {/* Dashboard Contents Scroll Area */}
                     <div
-                      style={{ width: '100%', maxWidth: '380px' }}
+                      style={{ width: '100%', maxWidth: 'var(--content-max-w, 420px)' }}
                       className="flex flex-col gap-6 w-full"
                     >
                       {/* Greetings Section & Logo Header Row */}
@@ -1261,44 +1261,84 @@ export default function StudioHub() {
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
-                          alignItems: 'flex-start',
+                          alignItems: 'center',
                           width: '100%',
+                          padding: '0 2px',
                         }}
                       >
-                        <section className="space-y-1" style={{ flex: 1, minWidth: 0 }}>
+                        <section
+                          style={{
+                            flex: 1,
+                            minWidth: 0,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 4,
+                          }}
+                        >
                           <h2
                             style={{
-                              fontFamily: 'Manrope',
-                              fontWeight: 800,
+                              fontFamily: 'Manrope, sans-serif',
+                              fontWeight: 850,
                               color: 'var(--c-text-primary)',
+                              letterSpacing: '-0.035em',
+                              fontSize: '28px',
+                              lineHeight: 1.15,
+                              margin: 0,
                             }}
-                            className="text-3xl leading-tight"
                           >
                             {greeting}
                           </h2>
                           <p
                             style={{
-                              fontFamily: 'Inter',
+                              fontFamily: 'Inter, sans-serif',
                               color: 'var(--c-text-secondary)',
-                              opacity: 0.85,
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              letterSpacing: '-0.01em',
+                              margin: 0,
+                              opacity: 0.82,
                             }}
-                            className="text-sm"
                           >
                             {subtitle}
                           </p>
                         </section>
-                        <div
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.94 }}
+                          transition={{ type: 'spring', stiffness: 420, damping: 25 }}
                           style={{
-                            color: 'var(--c-text-primary)',
-                            marginLeft: 16,
-                            marginTop: 4,
+                            width: 44,
+                            height: 44,
+                            borderRadius: 14,
+                            background: 'var(--surface-topbar-bg)',
+                            border: 'var(--surface-topbar-border)',
+                            backdropFilter: 'var(--surface-topbar-blur)',
+                            WebkitBackdropFilter: 'var(--surface-topbar-blur)',
+                            boxShadow: 'var(--surface-topbar-shadow)',
                             display: 'flex',
                             alignItems: 'center',
+                            justifyContent: 'center',
                             flexShrink: 0,
+                            marginLeft: 16,
+                            position: 'relative',
+                            overflow: 'hidden',
                           }}
                         >
-                          <StudioLogo size={32} />
-                        </div>
+                          {/* Chromatic Top Specular Highlight Rim */}
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 4,
+                              right: 4,
+                              height: '1px',
+                              background: 'var(--surface-glass-rim)',
+                              pointerEvents: 'none',
+                              opacity: 0.85,
+                            }}
+                          />
+                          <StudioLogo size={26} />
+                        </motion.div>
                       </div>
 
                       {/* Pinned Quick Actions Section */}
@@ -1314,62 +1354,77 @@ export default function StudioHub() {
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
+                            padding: '0 2px',
                           }}
                         >
                           <h3
                             style={{
-                              fontFamily: 'Inter',
-                              fontSize: '10px',
+                              fontFamily: 'Inter, sans-serif',
+                              fontSize: '9.5px',
                               textTransform: 'uppercase',
-                              letterSpacing: '0.12em',
-                              fontWeight: 700,
-                              color: 'var(--c-text-secondary)',
-                              opacity: 0.6,
+                              letterSpacing: '0.14em',
+                              fontWeight: 800,
+                              color: 'var(--c-text-tertiary, #808080)',
+                              margin: 0,
                             }}
-                            className="px-1"
                           >
                             {lang === 'es' ? 'Acciones Fijadas' : 'Pinned Actions'}
                           </h3>
                           {isEditMode ? (
-                            <button
+                            <motion.button
+                              whileTap={{ scale: 0.92 }}
                               onClick={() => setIsEditMode(false)}
                               style={{
                                 background: accent.from,
                                 border: 'none',
                                 color: '#000',
-                                fontFamily: 'Inter',
+                                fontFamily: 'Inter, sans-serif',
                                 fontSize: '11px',
-                                fontWeight: 700,
-                                borderRadius: 12,
-                                padding: '4px 10px',
+                                fontWeight: 750,
+                                borderRadius: 9999,
+                                padding: '3px 12px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 2,
+                                gap: 3,
+                                boxShadow: `0 2px 8px ${accent.from}40`,
                               }}
                             >
-                              <span className="material-symbols-outlined text-[14px]">check</span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 13, lineHeight: 1 }}
+                              >
+                                check
+                              </span>
                               {lang === 'es' ? 'Listo' : 'Done'}
-                            </button>
+                            </motion.button>
                           ) : (
-                            <button
+                            <motion.button
+                              whileTap={{ scale: 0.92 }}
                               onClick={() => setShortcutPickerOpen(true)}
                               style={{
-                                background: 'transparent',
-                                border: 'none',
+                                background: 'rgba(255, 255, 255, 0.05)',
+                                border: '1px solid rgba(255, 255, 255, 0.10)',
                                 color: accent.from,
-                                fontFamily: 'Inter',
+                                fontFamily: 'Inter, sans-serif',
                                 fontSize: '11px',
-                                fontWeight: 600,
+                                fontWeight: 650,
+                                borderRadius: 9999,
+                                padding: '3px 10px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: 2,
+                                gap: 3,
                               }}
                             >
-                              <span className="material-symbols-outlined text-[14px]">add</span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 13, lineHeight: 1 }}
+                              >
+                                add
+                              </span>
                               {lang === 'es' ? 'Fijar' : 'Pin'}
-                            </button>
+                            </motion.button>
                           )}
                         </div>
 
@@ -1387,8 +1442,8 @@ export default function StudioHub() {
                             style={{
                               display: 'grid',
                               gridTemplateColumns: 'repeat(5, 1fr)',
-                              gap: '12px',
-                              padding: '4px 0 12px',
+                              gap: '10px',
+                              padding: '2px 0 6px',
                               listStyle: 'none',
                               margin: 0,
                             }}
@@ -1428,12 +1483,15 @@ export default function StudioHub() {
                                   }}
                                 >
                                   <motion.div
+                                    whileTap={isEditMode ? undefined : { scale: 0.9 }}
+                                    whileHover={isEditMode ? undefined : { scale: 1.06, y: -2 }}
+                                    transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                                     animate={
                                       isEditMode
                                         ? {
-                                            rotate: [0, -1.2, 0, 1.2, 0],
+                                            rotate: [0, -1.5, 0, 1.5, 0],
                                             transition: {
-                                              duration: 0.28,
+                                              duration: 0.26,
                                               repeat: Infinity,
                                               ease: 'easeInOut',
                                             },
@@ -1441,31 +1499,45 @@ export default function StudioHub() {
                                         : { rotate: 0 }
                                     }
                                     style={{
-                                      width: '48px',
-                                      height: '48px',
-                                      borderRadius: '50%',
+                                      width: '52px',
+                                      height: '52px',
+                                      borderRadius: '16px',
                                       background: isLight
-                                        ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 248, 255, 0.70) 100%)'
-                                        : 'linear-gradient(180deg, rgba(28, 28, 34, 0.72) 0%, rgba(14, 14, 18, 0.60) 100%)',
+                                        ? 'linear-gradient(160deg, rgba(255, 255, 255, 0.90) 0%, rgba(240, 244, 255, 0.75) 100%)'
+                                        : 'linear-gradient(160deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)',
                                       border: isLight
-                                        ? '1px solid rgba(255, 255, 255, 0.90)'
-                                        : '1px solid rgba(255, 255, 255, 0.14)',
+                                        ? '1px solid rgba(255, 255, 255, 0.95)'
+                                        : '1px solid rgba(255, 255, 255, 0.12)',
                                       backdropFilter: 'blur(24px) saturate(180%)',
                                       WebkitBackdropFilter: 'blur(24px) saturate(180%)',
                                       boxShadow: isLight
                                         ? '0 6px 20px rgba(0, 0, 0, 0.06), inset 0 1.5px 2px rgba(255, 255, 255, 0.95), 0 2px 6px rgba(0, 0, 0, 0.03)'
-                                        : '0 8px 24px rgba(0, 0, 0, 0.30), inset 0 1px 1.5px rgba(255, 255, 255, 0.22), 0 2px 8px rgba(0, 0, 0, 0.20)',
+                                        : '0 8px 24px rgba(0, 0, 0, 0.28), inset 0 1px 1.5px rgba(255, 255, 255, 0.20), 0 2px 8px rgba(0, 0, 0, 0.18)',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
                                       position: 'relative',
+                                      overflow: 'hidden',
                                     }}
                                   >
+                                    {/* Top Specular Rim */}
+                                    <div
+                                      style={{
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 4,
+                                        right: 4,
+                                        height: '1px',
+                                        background: 'var(--surface-glass-rim)',
+                                        pointerEvents: 'none',
+                                        opacity: 0.8,
+                                      }}
+                                    />
                                     <span
                                       className="material-symbols-outlined"
                                       style={{
                                         color: accent.from,
-                                        fontSize: '20px',
+                                        fontSize: '22px',
                                       }}
                                     >
                                       {opt.icon}
@@ -1484,25 +1556,30 @@ export default function StudioHub() {
                                         }}
                                         style={{
                                           position: 'absolute',
-                                          top: -2,
-                                          right: -2,
-                                          background: '#f87171',
+                                          top: 2,
+                                          right: 2,
+                                          background: '#ef4444',
                                           color: '#fff',
                                           border: 'none',
                                           borderRadius: '50%',
-                                          width: 16,
-                                          height: 16,
+                                          width: 18,
+                                          height: 18,
                                           display: 'flex',
                                           alignItems: 'center',
                                           justifyContent: 'center',
                                           cursor: 'pointer',
                                           padding: 0,
                                           zIndex: 20,
+                                          boxShadow: '0 2px 6px rgba(239, 68, 68, 0.4)',
                                         }}
                                       >
                                         <span
                                           className="material-symbols-outlined"
-                                          style={{ fontSize: 10, fontWeight: 'bold' }}
+                                          style={{
+                                            fontSize: 12,
+                                            fontWeight: 'bold',
+                                            lineHeight: 1,
+                                          }}
                                         >
                                           close
                                         </span>
@@ -1511,8 +1588,8 @@ export default function StudioHub() {
                                   </motion.div>
                                   <span
                                     style={{
-                                      fontSize: '11px',
-                                      fontWeight: 600,
+                                      fontSize: '10.5px',
+                                      fontWeight: 650,
                                       color: 'var(--c-text-secondary)',
                                       marginTop: '6px',
                                       textAlign: 'center',
@@ -1520,6 +1597,8 @@ export default function StudioHub() {
                                       overflow: 'hidden',
                                       textOverflow: 'ellipsis',
                                       whiteSpace: 'nowrap',
+                                      letterSpacing: '-0.015em',
+                                      fontFamily: 'Inter, sans-serif',
                                     }}
                                   >
                                     {displayLabel}
@@ -1539,13 +1618,15 @@ export default function StudioHub() {
                                 onClick={() => setShortcutPickerOpen(true)}
                               >
                                 <motion.div
-                                  whileTap={{ scale: 0.92 }}
+                                  whileTap={{ scale: 0.9 }}
+                                  whileHover={{ scale: 1.06, y: -2 }}
+                                  transition={{ type: 'spring', stiffness: 420, damping: 24 }}
                                   style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    borderRadius: '50%',
-                                    background: 'transparent',
-                                    border: '1px dashed rgba(255, 255, 255, 0.25)',
+                                    width: '52px',
+                                    height: '52px',
+                                    borderRadius: '16px',
+                                    background: 'rgba(255, 255, 255, 0.02)',
+                                    border: '1.5px dashed rgba(255, 255, 255, 0.20)',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -1564,12 +1645,14 @@ export default function StudioHub() {
                                 </motion.div>
                                 <span
                                   style={{
-                                    fontSize: '11px',
-                                    fontWeight: 600,
+                                    fontSize: '10.5px',
+                                    fontWeight: 650,
                                     color: 'var(--c-text-secondary)',
                                     marginTop: '6px',
                                     textAlign: 'center',
                                     opacity: 0.7,
+                                    letterSpacing: '-0.015em',
+                                    fontFamily: 'Inter, sans-serif',
                                   }}
                                 >
                                   {lang === 'es' ? 'Añadir' : 'Add'}
@@ -1581,18 +1664,18 @@ export default function StudioHub() {
                       </section>
 
                       {/* Studio Modules grid columns */}
-                      <section style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                      <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         <h3
                           style={{
-                            fontFamily: 'Inter',
-                            fontSize: '10px',
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '9.5px',
                             textTransform: 'uppercase',
-                            letterSpacing: '0.12em',
-                            fontWeight: 700,
-                            color: 'var(--c-text-secondary)',
-                            opacity: 0.6,
+                            letterSpacing: '0.14em',
+                            fontWeight: 800,
+                            color: 'var(--c-text-tertiary, #808080)',
+                            margin: 0,
+                            padding: '0 2px',
                           }}
-                          className="px-1"
                         >
                           {lang === 'es' ? 'Módulos del Ecosistema' : 'Livex Modules'}
                         </h3>
@@ -1654,36 +1737,84 @@ export default function StudioHub() {
                             <motion.button
                               key={app}
                               onClick={() => launchApp(app)}
-                              whileTap={{ scale: 0.96 }}
+                              whileTap={{ scale: 0.975 }}
+                              whileHover={{ scale: 1.015, y: -1 }}
                               transition={SpringPresets.soft}
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 width: '100%',
                                 padding: '14px 16px',
-                                background: 'var(--app-surface-high, rgba(128,128,128,0.06))',
+                                background: isLight
+                                  ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.70))'
+                                  : 'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%)',
                                 border: active
                                   ? `1.5px solid ${color}`
-                                  : '1px solid rgba(128,128,128,0.08)',
-                                borderRadius: '16px',
+                                  : isLight
+                                    ? '1px solid rgba(0, 0, 0, 0.06)'
+                                    : '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '20px',
                                 cursor: 'pointer',
                                 textAlign: 'left',
                                 boxSizing: 'border-box',
                                 outline: 'none',
                                 position: 'relative',
                                 justifyContent: 'space-between',
+                                backdropFilter: 'blur(20px) saturate(180%)',
+                                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                                boxShadow: isLight
+                                  ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                                  : '0 8px 24px rgba(0, 0, 0, 0.20), inset 0 1px 1px rgba(255, 255, 255, 0.10)',
+                                overflow: 'hidden',
                               }}
                               className="sc-module-card group"
                             >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                              {/* Chromatic Top Specular Highlight Rim */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: 0,
+                                  left: 16,
+                                  right: 16,
+                                  height: '1px',
+                                  background: 'var(--surface-glass-rim)',
+                                  pointerEvents: 'none',
+                                  opacity: 0.6,
+                                }}
+                              />
+
+                              {/* Ambient colored soft glow */}
+                              <div
+                                style={{
+                                  position: 'absolute',
+                                  top: -24,
+                                  right: -24,
+                                  width: 90,
+                                  height: 90,
+                                  borderRadius: '50%',
+                                  background: color,
+                                  opacity: isLight ? 0.06 : 0.1,
+                                  filter: 'blur(20px)',
+                                  pointerEvents: 'none',
+                                }}
+                              />
+
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 14,
+                                  minWidth: 0,
+                                }}
+                              >
                                 <div
                                   style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    borderRadius: '12px',
-                                    backgroundColor: active
-                                      ? `${color}15`
-                                      : 'var(--app-surface-highest, rgba(128,128,128,0.12))',
+                                    width: '44px',
+                                    height: '44px',
+                                    borderRadius: '14px',
+                                    background: `linear-gradient(135deg, ${color}24 0%, ${color}0c 100%)`,
+                                    border: `1px solid ${color}40`,
+                                    boxShadow: `0 4px 14px ${color}22, inset 0 1px 1px rgba(255, 255, 255, 0.35)`,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -1691,16 +1822,19 @@ export default function StudioHub() {
                                     flexShrink: 0,
                                   }}
                                 >
-                                  <Logo size={20} />
+                                  <Logo size={22} />
                                 </div>
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <div
+                                  style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}
+                                >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                     <span
                                       style={{
-                                        fontSize: '15px',
+                                        fontSize: '15.5px',
                                         fontWeight: 800,
                                         color: 'var(--c-text-primary)',
-                                        fontFamily: 'Manrope',
+                                        fontFamily: 'Manrope, sans-serif',
+                                        letterSpacing: '-0.02em',
                                       }}
                                     >
                                       {name}
@@ -1708,35 +1842,82 @@ export default function StudioHub() {
                                     {active && (
                                       <span
                                         style={{
-                                          fontSize: '8px',
-                                          padding: '2px 4px',
-                                          borderRadius: '4px',
-                                          backgroundColor: `${color}20`,
+                                          fontSize: '8.5px',
+                                          padding: '2px 6px',
+                                          borderRadius: '9999px',
+                                          backgroundColor: `${color}22`,
+                                          border: `1px solid ${color}40`,
                                           color: color,
-                                          fontWeight: 'bold',
-                                          fontFamily: 'Inter',
+                                          fontWeight: 800,
+                                          fontFamily: 'Inter, sans-serif',
                                           textTransform: 'uppercase',
+                                          letterSpacing: '0.04em',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: 3,
                                         }}
                                       >
+                                        <span
+                                          style={{
+                                            width: 4,
+                                            height: 4,
+                                            borderRadius: '50%',
+                                            background: color,
+                                          }}
+                                        />
                                         {lang === 'es' ? 'En Vivo' : 'Live'}
                                       </span>
                                     )}
                                   </div>
                                   <span
                                     style={{
-                                      fontSize: '11px',
+                                      fontSize: '12px',
                                       color: 'var(--c-text-secondary)',
-                                      fontFamily: 'Inter',
+                                      fontFamily: 'Inter, sans-serif',
+                                      fontWeight: 500,
                                       marginTop: '2px',
+                                      lineHeight: 1.3,
+                                      opacity: 0.82,
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
                                     }}
                                   >
                                     {desc}
                                   </span>
                                 </div>
                               </div>
-                              <span className="material-symbols-outlined text-on-surface-variant/40 text-lg group-hover:text-tertiary transition-colors flex items-center">
-                                chevron_right
-                              </span>
+
+                              <div
+                                style={{
+                                  width: 28,
+                                  height: 28,
+                                  borderRadius: '50%',
+                                  background: isLight
+                                    ? 'rgba(0,0,0,0.03)'
+                                    : 'rgba(255,255,255,0.04)',
+                                  border: isLight
+                                    ? '1px solid rgba(0,0,0,0.05)'
+                                    : '1px solid rgba(255,255,255,0.06)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                  marginLeft: 8,
+                                }}
+                              >
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{
+                                    fontSize: 16,
+                                    color: 'var(--c-text-secondary)',
+                                    opacity: 0.6,
+                                    lineHeight: 1,
+                                  }}
+                                >
+                                  chevron_right
+                                </span>
+                              </div>
                             </motion.button>
                           ))}
                         </div>
@@ -6695,32 +6876,49 @@ User Agent: [Automatically Generated]
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           style={{
-                            background: `linear-gradient(135deg, ${accent.from}15, ${accent.to}10)`,
-                            border: `1px solid ${accent.from}30`,
-                            borderRadius: 16,
+                            background: `linear-gradient(135deg, ${accent.from}18, ${accent.to}10)`,
+                            border: `1px solid ${accent.from}35`,
+                            borderRadius: 20,
                             padding: 16,
                             marginBottom: 20,
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 12,
-                            boxShadow: `0 4px 20px ${accent.from}08`,
+                            boxShadow: `0 6px 24px ${accent.from}14, inset 0 1px 1px rgba(255, 255, 255, 0.20)`,
+                            backdropFilter: 'blur(20px) saturate(180%)',
+                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                           }}
                         >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: accent.from, fontSize: 'var(--font-display-sm)' }}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div
+                              style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 12,
+                                background: `${accent.from}22`,
+                                border: `1px solid ${accent.from}40`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: accent.from,
+                              }}
                             >
-                              system_update
-                            </span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 22, lineHeight: 1 }}
+                              >
+                                system_update
+                              </span>
+                            </div>
                             <div style={{ flex: 1 }}>
                               <p
                                 style={{
                                   margin: 0,
                                   fontSize: 15,
-                                  fontWeight: 700,
+                                  fontWeight: 800,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Manrope',
+                                  fontFamily: 'Manrope, sans-serif',
+                                  letterSpacing: '-0.02em',
                                 }}
                               >
                                 Update available
@@ -6731,7 +6929,7 @@ User Agent: [Automatically Generated]
                                   fontSize: 12,
                                   color: 'var(--c-text-secondary)',
                                   opacity: 0.8,
-                                  fontFamily: 'Inter',
+                                  fontFamily: 'Inter, sans-serif',
                                 }}
                               >
                                 Version {updater.remoteVersion}
@@ -6740,7 +6938,7 @@ User Agent: [Automatically Generated]
                           </div>
                           <div style={{ display: 'flex', gap: 8 }}>
                             <motion.button
-                              whileTap={{ scale: 0.98 }}
+                              whileTap={{ scale: 0.96 }}
                               onClick={() => navigate('updater')}
                               style={{
                                 flex: 1,
@@ -6750,26 +6948,32 @@ User Agent: [Automatically Generated]
                                 color: '#ffffff',
                                 border: 'none',
                                 fontSize: 13,
-                                fontWeight: 700,
+                                fontWeight: 750,
+                                fontFamily: 'Inter, sans-serif',
                                 cursor: 'pointer',
-                                boxShadow: `0 4px 12px ${accent.from}30`,
+                                boxShadow: `0 4px 14px ${accent.from}35`,
                               }}
                             >
                               Update
                             </motion.button>
                             <motion.button
-                              whileTap={{ scale: 0.98 }}
+                              whileTap={{ scale: 0.96 }}
                               onClick={() => {
                                 updater.dismissUpdate();
                               }}
                               style={{
                                 padding: '10px 16px',
                                 borderRadius: 12,
-                                background: 'rgba(255, 255, 255, 0.04)',
-                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                background: isLight
+                                  ? 'rgba(0, 0, 0, 0.05)'
+                                  : 'rgba(255, 255, 255, 0.06)',
+                                border: isLight
+                                  ? '1px solid rgba(0, 0, 0, 0.08)'
+                                  : '1px solid rgba(255, 255, 255, 0.10)',
                                 color: 'var(--c-text-secondary)',
                                 fontSize: 13,
-                                fontWeight: 600,
+                                fontWeight: 650,
+                                fontFamily: 'Inter, sans-serif',
                                 cursor: 'pointer',
                               }}
                             >
@@ -6780,42 +6984,53 @@ User Agent: [Automatically Generated]
                       )}
 
                       {/* Preferences Group */}
-                      <div style={{ marginBottom: 24 }}>
+                      <div style={{ marginBottom: 20 }}>
                         <h3
                           style={{
-                            fontSize: 'var(--font-section-label)',
-                            fontWeight: 700,
+                            fontSize: '9.5px',
+                            fontWeight: 800,
                             textTransform: 'uppercase',
-                            letterSpacing: '0.12em',
-                            color: 'var(--c-text-secondary)',
-                            opacity: 0.8,
+                            letterSpacing: '0.14em',
+                            color: 'var(--c-text-tertiary, #808080)',
                             paddingLeft: 4,
                             marginBottom: 8,
-                            fontFamily: 'Manrope',
+                            fontFamily: 'Inter, sans-serif',
                           }}
                         >
                           PREFERENCES
                         </h3>
                         <div
                           style={{
-                            background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
-                            borderRadius: 16,
-                            padding: '6px 8px',
+                            background: isLight
+                              ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.70))'
+                              : 'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%)',
+                            borderRadius: 20,
+                            padding: '4px',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 2,
-                            border: '1px solid rgba(128,128,128,0.06)',
+                            border: isLight
+                              ? '1px solid rgba(0, 0, 0, 0.06)'
+                              : '1px solid rgba(255, 255, 255, 0.08)',
+                            backdropFilter: 'blur(20px) saturate(180%)',
+                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                            boxShadow: isLight
+                              ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                              : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+                            overflow: 'hidden',
                           }}
                         >
                           <motion.div
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.985 }}
+                            whileHover={{ scale: 1.008 }}
+                            transition={SpringPresets.soft}
                             onClick={() => navigate('appearance')}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: 14,
-                              padding: 12,
-                              borderRadius: 10,
+                              padding: '12px 14px',
+                              borderRadius: 16,
                               cursor: 'pointer',
                             }}
                             className="hover:bg-white/5 transition-colors"
@@ -6824,12 +7039,17 @@ User Agent: [Automatically Generated]
                               style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: '50%',
+                                borderRadius: 12,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                                border: isLight
+                                  ? '1px solid rgba(0,0,0,0.06)'
+                                  : '1px solid rgba(255,255,255,0.10)',
+                                boxShadow: isLight
+                                  ? 'inset 0 1px 1px rgba(255,255,255,0.8)'
+                                  : 'inset 0 1px 1px rgba(255,255,255,0.15)',
                               }}
                             >
                               <span
@@ -6844,75 +7064,100 @@ User Agent: [Automatically Generated]
                             >
                               <span
                                 style={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
+                                  fontSize: 14.5,
+                                  fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Inter',
+                                  fontFamily: 'Manrope, sans-serif',
+                                  letterSpacing: '-0.015em',
                                 }}
                               >
                                 Appearance
                               </span>
                               <span
                                 style={{
-                                  fontSize: 'var(--font-section-label)',
+                                  fontSize: '12px',
                                   color: 'var(--c-text-secondary)',
-                                  opacity: 0.7,
+                                  fontFamily: 'Inter, sans-serif',
+                                  opacity: 0.75,
                                 }}
                               >
                                 Theme, dynamic colors, accent
                               </span>
                             </div>
-                            <span
-                              className="material-symbols-outlined"
+                            <div
                               style={{
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.4,
-                                fontSize: 16,
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                               }}
                             >
-                              chevron_right
-                            </span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.6,
+                                  fontSize: 15,
+                                }}
+                              >
+                                chevron_right
+                              </span>
+                            </div>
                           </motion.div>
                         </div>
                       </div>
 
                       {/* Help & Support Group */}
-                      <div style={{ marginBottom: 24 }}>
+                      <div style={{ marginBottom: 20 }}>
                         <h3
                           style={{
-                            fontSize: 'var(--font-section-label)',
-                            fontWeight: 700,
+                            fontSize: '9.5px',
+                            fontWeight: 800,
                             textTransform: 'uppercase',
-                            letterSpacing: '0.12em',
-                            color: 'var(--c-text-secondary)',
-                            opacity: 0.8,
+                            letterSpacing: '0.14em',
+                            color: 'var(--c-text-tertiary, #808080)',
                             paddingLeft: 4,
                             marginBottom: 8,
-                            fontFamily: 'Manrope',
+                            fontFamily: 'Inter, sans-serif',
                           }}
                         >
                           HELP & SUPPORT
                         </h3>
                         <div
                           style={{
-                            background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
-                            borderRadius: 16,
-                            padding: '6px 8px',
+                            background: isLight
+                              ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.70))'
+                              : 'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%)',
+                            borderRadius: 20,
+                            padding: '4px',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 2,
-                            border: '1px solid rgba(128,128,128,0.06)',
+                            border: isLight
+                              ? '1px solid rgba(0, 0, 0, 0.06)'
+                              : '1px solid rgba(255, 255, 255, 0.08)',
+                            backdropFilter: 'blur(20px) saturate(180%)',
+                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                            boxShadow: isLight
+                              ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                              : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+                            overflow: 'hidden',
                           }}
                         >
                           <motion.div
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.985 }}
+                            whileHover={{ scale: 1.008 }}
+                            transition={SpringPresets.soft}
                             onClick={() => navigate('help-center')}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: 14,
-                              padding: 12,
-                              borderRadius: 10,
+                              padding: '12px 14px',
+                              borderRadius: 16,
                               cursor: 'pointer',
                             }}
                             className="hover:bg-white/5 transition-colors"
@@ -6921,12 +7166,17 @@ User Agent: [Automatically Generated]
                               style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: '50%',
+                                borderRadius: 12,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                                border: isLight
+                                  ? '1px solid rgba(0,0,0,0.06)'
+                                  : '1px solid rgba(255,255,255,0.10)',
+                                boxShadow: isLight
+                                  ? 'inset 0 1px 1px rgba(255,255,255,0.8)'
+                                  : 'inset 0 1px 1px rgba(255,255,255,0.15)',
                               }}
                             >
                               <AnimatedIcon
@@ -6940,45 +7190,61 @@ User Agent: [Automatically Generated]
                             >
                               <span
                                 style={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
+                                  fontSize: 14.5,
+                                  fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Inter',
+                                  fontFamily: 'Manrope, sans-serif',
+                                  letterSpacing: '-0.015em',
                                 }}
                               >
                                 Help & Support
                               </span>
                               <span
                                 style={{
-                                  fontSize: 'var(--font-section-label)',
+                                  fontSize: '12px',
                                   color: 'var(--c-text-secondary)',
-                                  opacity: 0.7,
+                                  fontFamily: 'Inter, sans-serif',
+                                  opacity: 0.75,
                                 }}
                               >
                                 Documentation and FAQ
                               </span>
                             </div>
-                            <span
-                              className="material-symbols-outlined"
+                            <div
                               style={{
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.4,
-                                fontSize: 16,
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                               }}
                             >
-                              chevron_right
-                            </span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.6,
+                                  fontSize: 15,
+                                }}
+                              >
+                                chevron_right
+                              </span>
+                            </div>
                           </motion.div>
 
                           <motion.div
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.985 }}
+                            whileHover={{ scale: 1.008 }}
+                            transition={SpringPresets.soft}
                             onClick={() => navigate('bug-report')}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: 14,
-                              padding: 12,
-                              borderRadius: 10,
+                              padding: '12px 14px',
+                              borderRadius: 16,
                               cursor: 'pointer',
                             }}
                             className="hover:bg-white/5 transition-colors"
@@ -6987,12 +7253,17 @@ User Agent: [Automatically Generated]
                               style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: '50%',
+                                borderRadius: 12,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                                border: isLight
+                                  ? '1px solid rgba(0,0,0,0.06)'
+                                  : '1px solid rgba(255,255,255,0.10)',
+                                boxShadow: isLight
+                                  ? 'inset 0 1px 1px rgba(255,255,255,0.8)'
+                                  : 'inset 0 1px 1px rgba(255,255,255,0.15)',
                               }}
                             >
                               <span
@@ -7007,34 +7278,48 @@ User Agent: [Automatically Generated]
                             >
                               <span
                                 style={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
+                                  fontSize: 14.5,
+                                  fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Inter',
+                                  fontFamily: 'Manrope, sans-serif',
+                                  letterSpacing: '-0.015em',
                                 }}
                               >
                                 Report a Bug
                               </span>
                               <span
                                 style={{
-                                  fontSize: 'var(--font-section-label)',
+                                  fontSize: '12px',
                                   color: 'var(--c-text-secondary)',
-                                  opacity: 0.7,
+                                  fontFamily: 'Inter, sans-serif',
+                                  opacity: 0.75,
                                 }}
                               >
                                 Help us improve the workspace
                               </span>
                             </div>
-                            <span
-                              className="material-symbols-outlined"
+                            <div
                               style={{
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.4,
-                                fontSize: 16,
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                               }}
                             >
-                              chevron_right
-                            </span>
+                              <span
+                                className="material-symbols-outlined"
+                                style={{
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.6,
+                                  fontSize: 15,
+                                }}
+                              >
+                                chevron_right
+                              </span>
+                            </div>
                           </motion.div>
                         </div>
                       </div>
@@ -7043,39 +7328,50 @@ User Agent: [Automatically Generated]
                       <div style={{ marginBottom: 'var(--space-6)' }}>
                         <h3
                           style={{
-                            fontSize: 'var(--font-section-label)',
-                            fontWeight: 700,
+                            fontSize: '9.5px',
+                            fontWeight: 800,
                             textTransform: 'uppercase',
-                            letterSpacing: '0.12em',
-                            color: 'var(--c-text-secondary)',
-                            opacity: 0.8,
+                            letterSpacing: '0.14em',
+                            color: 'var(--c-text-tertiary, #808080)',
                             paddingLeft: 4,
                             marginBottom: 8,
-                            fontFamily: 'Manrope',
+                            fontFamily: 'Inter, sans-serif',
                           }}
                         >
                           SYSTEM & ABOUT
                         </h3>
                         <div
                           style={{
-                            background: 'var(--app-surface-low, rgba(128,128,128,0.02))',
-                            borderRadius: 16,
-                            padding: '6px 8px',
+                            background: isLight
+                              ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.70))'
+                              : 'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%)',
+                            borderRadius: 20,
+                            padding: '4px',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: 2,
-                            border: '1px solid rgba(128,128,128,0.06)',
+                            border: isLight
+                              ? '1px solid rgba(0, 0, 0, 0.06)'
+                              : '1px solid rgba(255, 255, 255, 0.08)',
+                            backdropFilter: 'blur(20px) saturate(180%)',
+                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                            boxShadow: isLight
+                              ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                              : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+                            overflow: 'hidden',
                           }}
                         >
                           <motion.div
-                            whileTap={{ scale: 0.98 }}
+                            whileTap={{ scale: 0.985 }}
+                            whileHover={{ scale: 1.008 }}
+                            transition={SpringPresets.soft}
                             onClick={() => navigate('updater')}
                             style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: 14,
-                              padding: 12,
-                              borderRadius: 10,
+                              padding: '12px 14px',
+                              borderRadius: 16,
                               cursor: 'pointer',
                             }}
                             className="hover:bg-white/5 transition-colors"
@@ -7084,12 +7380,17 @@ User Agent: [Automatically Generated]
                               style={{
                                 width: 36,
                                 height: 36,
-                                borderRadius: '50%',
+                                borderRadius: 12,
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.05)',
+                                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                                border: isLight
+                                  ? '1px solid rgba(0,0,0,0.06)'
+                                  : '1px solid rgba(255,255,255,0.10)',
+                                boxShadow: isLight
+                                  ? 'inset 0 1px 1px rgba(255,255,255,0.8)'
+                                  : 'inset 0 1px 1px rgba(255,255,255,0.15)',
                               }}
                             >
                               <span
@@ -7104,19 +7405,21 @@ User Agent: [Automatically Generated]
                             >
                               <span
                                 style={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
+                                  fontSize: 14.5,
+                                  fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Inter',
+                                  fontFamily: 'Manrope, sans-serif',
+                                  letterSpacing: '-0.015em',
                                 }}
                               >
                                 {lang === 'es' ? 'Actualizador' : 'Updater'}
                               </span>
                               <span
                                 style={{
-                                  fontSize: 'var(--font-section-label)',
+                                  fontSize: '12px',
                                   color: 'var(--c-text-secondary)',
-                                  opacity: 0.7,
+                                  fontFamily: 'Inter, sans-serif',
+                                  opacity: 0.75,
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: 6,
@@ -7136,156 +7439,29 @@ User Agent: [Automatically Generated]
                                 )}
                               </span>
                             </div>
-                            <span
-                              className="material-symbols-outlined"
-                              style={{
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.4,
-                                fontSize: 16,
-                              }}
-                            >
-                              chevron_right
-                            </span>
-                          </motion.div>
-
-                          <motion.div
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => navigate('about')}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 14,
-                              padding: 12,
-                              borderRadius: 10,
-                              cursor: 'pointer',
-                            }}
-                            className="hover:bg-white/5 transition-colors"
-                          >
                             <div
                               style={{
-                                width: 36,
-                                height: 36,
+                                width: 24,
+                                height: 24,
                                 borderRadius: '50%',
+                                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                background: 'rgba(255,255,255,0.03)',
-                                border: '1px solid rgba(255,255,255,0.05)',
                               }}
                             >
-                              <AnimatedIcon
-                                name="badge-alert"
-                                size={18}
-                                color="var(--c-text-secondary)"
-                              />
-                            </div>
-                            <div
-                              style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: 14,
-                                  fontWeight: 600,
-                                  color: 'var(--c-text-primary)',
-                                  fontFamily: 'Inter',
-                                }}
-                              >
-                                About
-                              </span>
-                              <span
-                                style={{
-                                  fontSize: 'var(--font-section-label)',
-                                  color: 'var(--c-text-secondary)',
-                                  opacity: 0.7,
-                                }}
-                              >
-                                Version {APP_VERSION}
-                              </span>
-                            </div>
-                            <span
-                              className="material-symbols-outlined"
-                              style={{
-                                color: 'var(--c-text-secondary)',
-                                opacity: 0.4,
-                                fontSize: 16,
-                              }}
-                            >
-                              chevron_right
-                            </span>
-                          </motion.div>
-
-                          {settings.developerMode && (
-                            <motion.div
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => navigate('developer')}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 14,
-                                padding: 12,
-                                borderRadius: 10,
-                                cursor: 'pointer',
-                              }}
-                              className="hover:bg-white/5 transition-colors"
-                            >
-                              <div
-                                style={{
-                                  width: 36,
-                                  height: 36,
-                                  borderRadius: '50%',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: 'rgba(255,255,255,0.03)',
-                                  border: '1px solid rgba(255,255,255,0.05)',
-                                }}
-                              >
-                                <AnimatedIcon
-                                  name="terminal"
-                                  size={18}
-                                  color="var(--c-text-secondary)"
-                                />
-                              </div>
-                              <div
-                                style={{
-                                  flex: 1,
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  gap: 2,
-                                }}
-                              >
-                                <span
-                                  style={{
-                                    fontSize: 14,
-                                    fontWeight: 600,
-                                    color: 'var(--c-text-primary)',
-                                    fontFamily: 'Inter',
-                                  }}
-                                >
-                                  Developer Options
-                                </span>
-                                <span
-                                  style={{
-                                    fontSize: 'var(--font-section-label)',
-                                    color: 'var(--c-text-secondary)',
-                                    opacity: 0.7,
-                                  }}
-                                >
-                                  Advanced configurations
-                                </span>
-                              </div>
                               <span
                                 className="material-symbols-outlined"
                                 style={{
                                   color: 'var(--c-text-secondary)',
-                                  opacity: 0.4,
-                                  fontSize: 16,
+                                  opacity: 0.6,
+                                  fontSize: 15,
                                 }}
                               >
                                 chevron_right
                               </span>
-                            </motion.div>
-                          )}
+                            </div>
+                          </motion.div>
                         </div>
                       </div>
                     </div>

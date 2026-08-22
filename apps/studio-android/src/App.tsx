@@ -19,6 +19,8 @@ import {
   StageCorePanel,
   DevToolsApp,
 } from '@workspace/ui-shared';
+import { Capacitor } from '@capacitor/core';
+import { MobileDevicePreviewFrame } from './components/MobileDevicePreviewFrame';
 import './index.css';
 
 if (typeof window !== 'undefined') {
@@ -54,7 +56,7 @@ export default function App() {
 
   /* Note: safe-area-inset-top is handled by ScreenScaffold */
 
-  return (
+  const appShell = (
     <SharedAppShell
       isWeb={false}
       wrapProviders={(children) => (
@@ -98,4 +100,11 @@ export default function App() {
       }}
     />
   );
+
+  // In development browser preview (outside native Android), wrap in phone viewport frame
+  if (import.meta.env.DEV && !Capacitor.isNativePlatform()) {
+    return <MobileDevicePreviewFrame>{appShell}</MobileDevicePreviewFrame>;
+  }
+
+  return appShell;
 }

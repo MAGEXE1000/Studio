@@ -11,6 +11,7 @@
     "check:references": "node scripts/verify-all-references.mjs",
     "check:circular": "node scripts/verify-circular-deps.mjs",
     "dev:web": "pnpm --filter @workspace/studio-web dev",
+    "dev:mobile": "node scripts/dev-mobile.mjs",
     "dev:android": "node scripts/dev-android.mjs",
     "dev:preview": "node scripts/dev-preview.mjs",
     "build:web": "pnpm --filter @workspace/studio-web build",

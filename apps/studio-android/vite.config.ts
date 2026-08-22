@@ -5,7 +5,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import fs from 'fs';
 
-const rawPort = process.env.PORT ?? '5173';
+const rawPort = process.env.PORT ?? '5174';
 const port = Number(rawPort);
 const basePath = process.env.BASE_PATH ?? '/';
 
@@ -41,7 +41,6 @@ export default defineConfig(async ({ command, mode }) => {
   } catch (e: any) {
     console.warn('Vite Config: ⚠ Could not get git commit SHA:', e.message);
   }
-
 
   const buildTimestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short' });
 

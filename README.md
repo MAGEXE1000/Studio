@@ -81,26 +81,43 @@ Studio contains 6 sub-applications, all rendered inside a single SPA:
 
 Cross-scope import rules: WEB must not import from APK. APK must not import from WEB. Validate with: `pnpm scope:check`
 
-## Quick Start & Local Preview
+## Quick Start & Local Preview Workflows
+
+### 1. Daily UI Development (Fast Mobile Web Preview — Recommended)
 
 ```bash
-# 1. Start Web Preview (Vite HMR on port 5173)
-pnpm dev:web
-# URL: http://localhost:5173 (Antigravity & browser ready)
+pnpm dev:mobile
+# URL: http://localhost:5174 (Antigravity & browser ready)
+# • Realistic phone viewport frame with device presets (iPhone 15, Pixel 8, Compact)
+# • Zero Android SDK / ADB / Gradle / device required
+# • Instant Vite HMR across all shared UI packages (@workspace/ui-shared)
+```
 
-# 2. Start Android / Capacitor Live Reload Preview (Port 5174)
+### 2. Desktop Web Preview
+
+```bash
+pnpm dev:web
+# URL: http://localhost:5173 (Desktop sidebar layout)
+```
+
+### 3. Native Android Live Reload (Secondary Native Validation)
+
+```bash
 pnpm dev:android
 # • USB Device: Uses `adb reverse tcp:5174 tcp:5174` (loads http://localhost:5174)
 # • Emulator:   Uses loopback alias (http://10.0.2.2:5174)
 # • Wi-Fi LAN:  Uses host LAN address (http://<HOST_IP>:5174)
+```
 
-# 3. Start Dual Preview Simultaneously (Web + Mobile Live Reload)
+### 4. Dual Preview (Web + Android Live Reload Simultaneously)
+
+```bash
 pnpm dev:preview
+```
 
-# Compile Android Debug APK
-pnpm preview:android
+### 5. Quality Guards & Validation
 
-# Run quality guards & tests
+```bash
 pnpm check:tokens
 pnpm check:hook-order
 pnpm test

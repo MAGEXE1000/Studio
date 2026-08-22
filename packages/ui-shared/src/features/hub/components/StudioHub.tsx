@@ -3729,12 +3729,17 @@ function HubSettings({
         border: 'none',
       }
     : {
-        background: 'var(--app-surface)',
-        borderRadius: '1.25rem',
+        background: isLight
+          ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.70))'
+          : 'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.015) 100%)',
+        borderRadius: '20px',
         overflow: 'hidden',
-        transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
-        border: '1px solid rgba(128,128,128,0.07)',
-        boxShadow: '0 1px 4px rgba(0,0,0,0.10)',
+        border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+        WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+        boxShadow: isLight
+          ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+          : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
       };
 
   const slideAnim = slideDir === 'forward' ? 'hub-slide-in' : 'hub-slide-back';
@@ -4184,55 +4189,114 @@ function HubSettings({
           paddingBottom: 'var(--space-6)',
         }}
       >
-        <p style={{ margin: 0 }}>
-          Welcome to Studio. By accessing or using our application, you agree to comply with and be
-          bound by the following Terms of Service. Please read them carefully.
-        </p>
-        <h4
+        <div
           style={{
-            color: 'var(--c-text-primary)',
-            margin: '8px 0 4px 0',
-            fontSize: 14,
-            fontWeight: 700,
+            ...cardStyle,
+            padding: '18px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
           }}
         >
-          1. Ownership of Content
-        </h4>
-        <p style={{ margin: 0 }}>
-          All musical patterns, drum sequences, settings, and other project data created by you
-          using Studio's tools (Chordex, Drumex, Stagex, Groovex, Vocalex) remain entirely your
-          property. We lay no claim of copyright, trademark, or ownership over your creative output.
-        </p>
-        <h4
-          style={{
-            color: 'var(--c-text-primary)',
-            margin: '8px 0 4px 0',
-            fontSize: 14,
-            fontWeight: 700,
-          }}
-        >
-          2. Use of Service
-        </h4>
-        <p style={{ margin: 0 }}>
-          Studio is provided on a local-first basis. Data sync features are provided for your
-          personal backup convenience. You agree not to abuse or attempt to overload the sync
-          servers.
-        </p>
-        <h4
-          style={{
-            color: 'var(--c-text-primary)',
-            margin: '8px 0 4px 0',
-            fontSize: 14,
-            fontWeight: 700,
-          }}
-        >
-          3. Disclaimer of Warranties
-        </h4>
-        <p style={{ margin: 0 }}>
-          Studio is provided "as is" and "as available" without any warranties of any kind. While we
-          aim to protect project data using reliable local storage and cloud sync mechanisms, we
-          cannot guarantee data will not be lost. We recommend periodic manual backups.
-        </p>
+          <p
+            style={{
+              margin: 0,
+              fontFamily: 'Inter, sans-serif',
+              color: 'var(--c-text-secondary)',
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            Welcome to Studio. By accessing or using our application, you agree to comply with and
+            be bound by the following Terms of Service. Please read them carefully.
+          </p>
+          <div>
+            <h4
+              style={{
+                color: 'var(--c-text-primary)',
+                margin: '0 0 4px 0',
+                fontSize: 14.5,
+                fontWeight: 800,
+                fontFamily: 'Manrope, sans-serif',
+                letterSpacing: '-0.015em',
+              }}
+            >
+              1. Ownership of Content
+            </h4>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: 'var(--c-text-secondary)',
+                opacity: 0.85,
+              }}
+            >
+              All musical patterns, drum sequences, settings, and other project data created by you
+              using Studio's tools (Chordex, Drumex, Stagex, Groovex, Vocalex) remain entirely your
+              property. We lay no claim of copyright, trademark, or ownership over your creative
+              output.
+            </p>
+          </div>
+          <div>
+            <h4
+              style={{
+                color: 'var(--c-text-primary)',
+                margin: '0 0 4px 0',
+                fontSize: 14.5,
+                fontWeight: 800,
+                fontFamily: 'Manrope, sans-serif',
+                letterSpacing: '-0.015em',
+              }}
+            >
+              2. Use of Service
+            </h4>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: 'var(--c-text-secondary)',
+                opacity: 0.85,
+              }}
+            >
+              Studio is provided on a local-first basis. Data sync features are provided for your
+              personal backup convenience. You agree not to abuse or attempt to overload the sync
+              servers.
+            </p>
+          </div>
+          <div>
+            <h4
+              style={{
+                color: 'var(--c-text-primary)',
+                margin: '0 0 4px 0',
+                fontSize: 14.5,
+                fontWeight: 800,
+                fontFamily: 'Manrope, sans-serif',
+                letterSpacing: '-0.015em',
+              }}
+            >
+              3. Disclaimer of Warranties
+            </h4>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: 'var(--c-text-secondary)',
+                opacity: 0.85,
+              }}
+            >
+              Studio is provided "as is" and "as available" without any warranties of any kind.
+              While we aim to protect project data using reliable local storage and cloud sync
+              mechanisms, we cannot guarantee data will not be lost. We recommend periodic manual
+              backups.
+            </p>
+          </div>
+        </div>
       </SettingsContentContainer>
     );
   }
@@ -4247,54 +4311,111 @@ function HubSettings({
           paddingBottom: 'var(--space-6)',
         }}
       >
-        <p style={{ margin: 0 }}>
-          Your privacy is extremely important to us. This Privacy Policy details how Studio
-          collects, uses, and safeguards your data.
-        </p>
-        <h4
+        <div
           style={{
-            color: 'var(--c-text-primary)',
-            margin: '8px 0 4px 0',
-            fontSize: 14,
-            fontWeight: 700,
+            ...cardStyle,
+            padding: '18px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
           }}
         >
-          1. Local-First Storage
-        </h4>
-        <p style={{ margin: 0 }}>
-          By default, all your project settings, drum sequences, and songs are stored locally on
-          your device using IndexedDB and localStorage. None of this creative work leaves your
-          device unless you explicitly enable Cloud Sync.
-        </p>
-        <h4
-          style={{
-            color: 'var(--c-text-primary)',
-            margin: '8px 0 4px 0',
-            fontSize: 14,
-            fontWeight: 700,
-          }}
-        >
-          2. Cloud Backup & Authentication
-        </h4>
-        <p style={{ margin: 0 }}>
-          If you create a Studio Account, we use Firebase to manage your login credentials. Your
-          project backups are stored securely in Firestore databases. We only use this data to
-          perform cross-device syncing at your request.
-        </p>
-        <h4
-          style={{
-            color: 'var(--c-text-primary)',
-            margin: '8px 0 4px 0',
-            fontSize: 14,
-            fontWeight: 700,
-          }}
-        >
-          3. No Third-Party Tracking
-        </h4>
-        <p style={{ margin: 0 }}>
-          Studio does not use telemetry, advertising trackers, or external behavioral analytics.
-          Your interaction with the app remains entirely private.
-        </p>
+          <p
+            style={{
+              margin: 0,
+              fontFamily: 'Inter, sans-serif',
+              color: 'var(--c-text-secondary)',
+              fontSize: 13,
+              lineHeight: 1.6,
+            }}
+          >
+            Your privacy is extremely important to us. This Privacy Policy details how Studio
+            collects, uses, and safeguards your data.
+          </p>
+          <div>
+            <h4
+              style={{
+                color: 'var(--c-text-primary)',
+                margin: '0 0 4px 0',
+                fontSize: 14.5,
+                fontWeight: 800,
+                fontFamily: 'Manrope, sans-serif',
+                letterSpacing: '-0.015em',
+              }}
+            >
+              1. Local-First Storage
+            </h4>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: 'var(--c-text-secondary)',
+                opacity: 0.85,
+              }}
+            >
+              By default, all your project settings, drum sequences, and songs are stored locally on
+              your device using IndexedDB and localStorage. None of this creative work leaves your
+              device unless you explicitly enable Cloud Sync.
+            </p>
+          </div>
+          <div>
+            <h4
+              style={{
+                color: 'var(--c-text-primary)',
+                margin: '0 0 4px 0',
+                fontSize: 14.5,
+                fontWeight: 800,
+                fontFamily: 'Manrope, sans-serif',
+                letterSpacing: '-0.015em',
+              }}
+            >
+              2. Cloud Backup & Authentication
+            </h4>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: 'var(--c-text-secondary)',
+                opacity: 0.85,
+              }}
+            >
+              If you create a Studio Account, we use Firebase to manage your login credentials. Your
+              project backups are stored securely in Firestore databases. We only use this data to
+              perform cross-device syncing at your request.
+            </p>
+          </div>
+          <div>
+            <h4
+              style={{
+                color: 'var(--c-text-primary)',
+                margin: '0 0 4px 0',
+                fontSize: 14.5,
+                fontWeight: 800,
+                fontFamily: 'Manrope, sans-serif',
+                letterSpacing: '-0.015em',
+              }}
+            >
+              3. No Third-Party Tracking
+            </h4>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 13,
+                lineHeight: 1.5,
+                color: 'var(--c-text-secondary)',
+                opacity: 0.85,
+              }}
+            >
+              Studio does not use telemetry, advertising trackers, or external behavioral analytics.
+              Your interaction with the app remains entirely private.
+            </p>
+          </div>
+        </div>
       </SettingsContentContainer>
     );
   }
@@ -4334,46 +4455,60 @@ Date: ${new Date().toISOString()}
           paddingBottom: 'var(--space-6)',
         }}
       >
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 13,
+            color: 'var(--c-text-secondary)',
+            lineHeight: 1.5,
+            fontFamily: 'Inter, sans-serif',
+          }}
+        >
           {Capacitor.isNativePlatform()
             ? 'If you encounter an issue or unexpected behavior in Studio, please report it! Tap below to send us a support email with pre-filled diagnostic information.'
             : 'If you encounter an issue or unexpected behavior in Studio, please report it! Copy the template below and submit it on our GitHub repository.'}
         </p>
 
-        <button
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.02 }}
+          transition={SpringPresets.soft}
           onClick={handleCopyTemplate}
           style={{
             alignSelf: 'flex-start',
             padding: '10px 16px',
-            background: accent.from,
+            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
             color: '#fff',
             fontSize: 13,
-            fontWeight: 700,
+            fontWeight: 750,
+            fontFamily: 'Inter, sans-serif',
             border: 'none',
-            borderRadius: 8,
+            borderRadius: 12,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
+            boxShadow: `0 4px 14px ${accent.from}35`,
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
             {copiedBugTemplate ? 'check' : 'content_copy'}
           </span>
           {copiedBugTemplate ? 'Copied to Clipboard!' : 'Copy Bug Template'}
-        </button>
+        </motion.button>
 
         <div
           style={{
             padding: 14,
-            background: 'rgba(255,255,255,0.01)',
-            border: '1px solid rgba(128,128,128,0.08)',
-            borderRadius: 8,
+            background: 'rgba(0, 0, 0, 0.30)',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            borderRadius: 14,
             fontFamily: 'monospace',
             fontSize: 12,
             color: 'var(--c-text-secondary)',
             whiteSpace: 'pre-wrap',
             lineHeight: 1.5,
+            boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
           }}
         >
           {`[STUDIO BUG REPORT]
@@ -4382,12 +4517,11 @@ User Agent: [Automatically Generated]
 ...`}
         </div>
 
-        <div
-          style={{ height: 1, borderTop: '1px solid rgba(128, 128, 128, 0.08)', margin: '8px 0' }}
-        />
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <a
+        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+          <motion.a
+            whileTap={{ scale: 0.96 }}
+            whileHover={{ scale: 1.02 }}
+            transition={SpringPresets.soft}
             href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent('Bug: [Enter short title]')}&body=${encodeURIComponent(
               `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
                 `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android/Native' : 'Web'})\n\n` +
@@ -4403,22 +4537,24 @@ User Agent: [Automatically Generated]
             style={{
               textDecoration: 'none',
               padding: '10px 16px',
-              background: accent.from,
+              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
               color: '#fff',
               fontSize: 13,
-              fontWeight: 700,
-              borderRadius: 8,
+              fontWeight: 750,
+              fontFamily: 'Inter, sans-serif',
+              borderRadius: 12,
               border: 'none',
               display: 'flex',
               alignItems: 'center',
               gap: 8,
+              boxShadow: `0 4px 14px ${accent.from}35`,
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
               open_in_new
             </span>
             Report a Bug on GitHub
-          </a>
+          </motion.a>
         </div>
       </div>
     );
@@ -5942,102 +6078,108 @@ User Agent: [Automatically Generated]
         </div>
 
         <div style={cardStyle}>
-          <button
-            onClick={() => navigate('terms')}
-            className="btn-smooth"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              padding: '12px 20px',
-              borderBottom: '1px solid rgba(128,128,128,0.08)',
-              background: 'transparent',
-              borderTop: 'none',
-              borderLeft: 'none',
-              borderRight: 'none',
-              color: 'var(--c-text-primary)',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
-          >
-            <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>
-              {lang === 'es' ? 'Condiciones de Servicio' : 'Terms of Service'}
-            </span>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}
+          {[
+            {
+              title: lang === 'es' ? 'Condiciones de Servicio' : 'Terms of Service',
+              icon: 'gavel',
+              page: 'terms' as SettingsPageId,
+            },
+            {
+              title: lang === 'es' ? 'Política de Privacidad' : 'Privacy Policy',
+              icon: 'security',
+              page: 'privacy-policy' as SettingsPageId,
+            },
+            {
+              title: lang === 'es' ? 'Licencias de Software' : 'Software Licenses',
+              icon: 'receipt_long',
+              page: 'licenses' as SettingsPageId,
+            },
+          ].map(({ title, icon, page }) => (
+            <motion.button
+              key={page}
+              onClick={() => navigate(page)}
+              whileTap={{ scale: 0.985 }}
+              whileHover={{ scale: 1.006 }}
+              transition={SpringPresets.soft}
+              className="hover:bg-white/5 transition-colors"
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                width: '100%',
+                padding: '14px 16px',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                background: 'transparent',
+                borderTop: 'none',
+                borderLeft: 'none',
+                borderRight: 'none',
+                color: 'var(--c-text-primary)',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
             >
-              chevron_right
-            </span>
-          </button>
-          <button
-            onClick={() => navigate('privacy-policy')}
-            className="btn-smooth"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              padding: '12px 20px',
-              borderBottom: '1px solid rgba(128,128,128,0.08)',
-              background: 'transparent',
-              borderTop: 'none',
-              borderLeft: 'none',
-              borderRight: 'none',
-              color: 'var(--c-text-primary)',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
-          >
-            <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>
-              {lang === 'es' ? 'Política de Privacidad' : 'Privacy Policy'}
-            </span>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}
-            >
-              chevron_right
-            </span>
-          </button>
-          <button
-            onClick={() => navigate('licenses')}
-            className="btn-smooth"
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%',
-              padding: '12px 20px',
-              borderBottom: '1px solid rgba(128,128,128,0.08)',
-              background: 'transparent',
-              borderTop: 'none',
-              borderLeft: 'none',
-              borderRight: 'none',
-              color: 'var(--c-text-primary)',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
-          >
-            <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>
-              {lang === 'es' ? 'Licencias de Software' : 'Software Licenses'}
-            </span>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}
-            >
-              chevron_right
-            </span>
-          </button>
-          <button
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--c-text-secondary)',
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                    {icon}
+                  </span>
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'Manrope, sans-serif',
+                    fontWeight: 750,
+                    fontSize: 14,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {title}
+                </span>
+              </div>
+              <div
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 15, color: 'var(--c-text-secondary)', opacity: 0.6 }}
+                >
+                  chevron_right
+                </span>
+              </div>
+            </motion.button>
+          ))}
+
+          <motion.button
             onClick={() => window.open('https://github.com/MAGEXE1000/Studio', '_system')}
-            className="btn-smooth"
+            whileTap={{ scale: 0.985 }}
+            whileHover={{ scale: 1.006 }}
+            transition={SpringPresets.soft}
+            className="hover:bg-white/5 transition-colors"
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               width: '100%',
-              padding: '12px 20px',
+              padding: '14px 16px',
               background: 'transparent',
               border: 'none',
               color: 'var(--c-text-primary)',
@@ -6045,16 +6187,54 @@ User Agent: [Automatically Generated]
               textAlign: 'left',
             }}
           >
-            <span style={{ fontFamily: 'Manrope', fontWeight: 700, fontSize: 13.5 }}>
-              {lang === 'es' ? 'Créditos y Repositorio' : 'Credits & GitHub'}
-            </span>
-            <span
-              className="material-symbols-outlined"
-              style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--c-text-secondary)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                  code
+                </span>
+              </div>
+              <span
+                style={{
+                  fontFamily: 'Manrope, sans-serif',
+                  fontWeight: 750,
+                  fontSize: 14,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {lang === 'es' ? 'Créditos y Repositorio' : 'Credits & GitHub'}
+              </span>
+            </div>
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.04)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              open_in_new
-            </span>
-          </button>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 15, color: 'var(--c-text-secondary)', opacity: 0.6 }}
+              >
+                open_in_new
+              </span>
+            </div>
+          </motion.button>
         </div>
 
         <div
@@ -6078,7 +6258,7 @@ User Agent: [Automatically Generated]
           <p
             style={{
               color: 'var(--c-text-muted)',
-              fontFamily: 'Manrope',
+              fontFamily: 'Manrope, sans-serif',
               fontWeight: 700,
               fontSize: 'var(--font-xs)',
               textTransform: 'uppercase',
@@ -6124,9 +6304,9 @@ User Agent: [Automatically Generated]
             <div
               key={idx}
               style={{
-                padding: 'var(--density-row-pad)',
+                padding: '14px 16px',
                 borderBottom:
-                  idx === licenses.length - 1 ? 'none' : '1px solid rgba(128,128,128,0.08)',
+                  idx === licenses.length - 1 ? 'none' : '1px solid rgba(255, 255, 255, 0.05)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 4,
@@ -6137,21 +6317,23 @@ User Agent: [Automatically Generated]
               >
                 <span
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'Manrope, sans-serif',
                     fontWeight: 800,
-                    fontSize: 13.5,
+                    fontSize: 14,
                     color: 'var(--c-text-primary)',
+                    letterSpacing: '-0.015em',
                   }}
                 >
                   {item.name}
                 </span>
                 <span
                   style={{
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: 700,
-                    padding: '3px 8px',
+                    padding: '2px 8px',
                     borderRadius: 6,
-                    background: 'rgba(128,128,128,0.1)',
+                    background: 'rgba(255, 255, 255, 0.06)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
                     color: 'var(--c-text-secondary)',
                     fontFamily: 'monospace',
                   }}
@@ -6161,10 +6343,11 @@ User Agent: [Automatically Generated]
               </div>
               <span
                 style={{
-                  fontFamily: 'Inter',
+                  fontFamily: 'Inter, sans-serif',
                   fontSize: 12,
                   color: 'var(--c-text-secondary)',
-                  lineHeight: 1.4,
+                  lineHeight: 1.35,
+                  opacity: 0.8,
                 }}
               >
                 {item.desc}

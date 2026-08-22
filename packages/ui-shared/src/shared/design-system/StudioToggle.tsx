@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 
 export interface ToggleProps {
   checked?: boolean;
@@ -15,7 +16,8 @@ export interface ToggleProps {
 }
 
 /**
- * Studio Toggle — GPU-accelerated toggle switch component.
+ * Studio Toggle — GPU-accelerated physical toggle switch component.
+ * Features spring damping, tactile active glow, and optical specular highlights.
  * Maintains the existing Toggle API (value/checked + onChange(boolean)).
  */
 export const Toggle: React.FC<ToggleProps> = ({
@@ -27,8 +29,11 @@ export const Toggle: React.FC<ToggleProps> = ({
   ariaLabel,
   className = '',
   style,
+  accentFrom,
+  accentTo,
 }) => {
   const isChecked = checked !== undefined ? checked : (value ?? false);
+  const activeColor = accentFrom || 'var(--c-accent-from, #7c3aed)';
 
   return (
     <label
@@ -44,36 +49,57 @@ export const Toggle: React.FC<ToggleProps> = ({
       }}
       className={className}
     >
-      <div
+      <motion.div
+        whileTap={disabled ? undefined : { scale: 0.92 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 28 }}
         onClick={(e) => {
           if (disabled) return;
           e.preventDefault();
           onChange(!isChecked);
         }}
         style={{
-          width: 40,
-          height: 22,
-          borderRadius: 11,
-          backgroundColor: isChecked ? 'var(--c-accent-from, #7c3aed)' : 'var(--c-surface-highest, #2a2a2e)',
+          width: 44,
+          height: 26,
+          borderRadius: 13,
+          backgroundColor: isChecked ? activeColor : 'rgba(128, 128, 128, 0.16)',
+          border: isChecked
+            ? '1px solid rgba(255, 255, 255, 0.20)'
+            : '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: isChecked
+            ? `0 2px 10px ${activeColor}40, inset 0 1px 1px rgba(255, 255, 255, 0.25)`
+            : 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
           position: 'relative',
-          transition: 'background-color 200ms ease',
+          transition: 'background-color 220ms ease, box-shadow 220ms ease, border-color 220ms ease',
           padding: 2,
           boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
         }}
       >
-        <div
+        <motion.div
+          animate={{ x: isChecked ? 18 : 0 }}
+          transition={{ type: 'spring', stiffness: 520, damping: 30 }}
           style={{
-            width: 18,
-            height: 18,
-            borderRadius: 9,
+            width: 20,
+            height: 20,
+            borderRadius: 10,
             backgroundColor: '#ffffff',
-            transform: isChecked ? 'translateX(18px)' : 'translateX(0px)',
-            transition: 'transform 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.8)',
           }}
         />
-      </div>
-      {label && <span style={{ fontSize: 13, color: 'var(--c-text-primary)' }}>{label}</span>}
+      </motion.div>
+      {label && (
+        <span
+          style={{
+            fontSize: 13,
+            color: 'var(--c-text-primary)',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 500,
+          }}
+        >
+          {label}
+        </span>
+      )}
     </label>
   );
 };

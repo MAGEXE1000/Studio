@@ -77,15 +77,24 @@ export default function StudioHubSettingsPanel() {
         {/* Language Section */}
         <SettingSection title="Language">
           <SettingRow label="App Language" desc="Change the display language for Studio">
-            <Button
-              variant="secondary"
-              size="sm"
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
               onClick={() => setIsLanguageOpen(true)}
               style={{
-                border: '1.5px solid var(--c-outline-variant, rgba(128,128,128,0.18))',
-                background: 'var(--c-surface-container, rgba(255,255,255,0.04))',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '7px 12px',
+                borderRadius: 12,
+                border: '1px solid rgba(255, 255, 255, 0.10)',
+                background: 'rgba(255, 255, 255, 0.05)',
                 color: 'var(--c-text-primary, #ffffff)',
-                borderRadius: 10,
+                boxShadow: 'inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+                cursor: 'pointer',
+                fontFamily: 'Manrope, sans-serif',
+                fontSize: 13,
+                fontWeight: 700,
               }}
             >
               <span>
@@ -98,7 +107,7 @@ export default function StudioHubSettingsPanel() {
               >
                 expand_more
               </span>
-            </Button>
+            </motion.button>
           </SettingRow>
         </SettingSection>
 

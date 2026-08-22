@@ -1,6 +1,6 @@
 import { SpringPresets } from '@workspace/studio-core';
 import React, { memo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 export { Toggle, type ToggleProps } from '../design-system/StudioToggle';
 
 export const SectionHeader = memo(function SectionHeader({
@@ -13,22 +13,23 @@ export const SectionHeader = memo(function SectionHeader({
   rightElement?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between mb-3 mt-6 spring-in">
+    <div className="flex items-center justify-between mb-2 mt-5">
       <div className="flex items-center gap-2">
         <span
           className="material-symbols-outlined"
-          style={{ fontSize: '16px', color: 'var(--c-text-secondary)' }}
+          style={{ fontSize: '15px', color: 'var(--c-text-tertiary, #808080)' }}
         >
           {icon}
         </span>
         <p
           style={{
-            color: 'var(--c-text-secondary)',
-            fontFamily: 'Manrope',
-            fontWeight: 700,
-            fontSize: 'var(--font-xs)',
-            letterSpacing: '0.2em',
+            color: 'var(--c-text-tertiary, #808080)',
+            fontFamily: 'Inter, sans-serif',
+            fontWeight: 800,
+            fontSize: '9.5px',
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
+            margin: 0,
           }}
         >
           {title}
@@ -44,28 +45,45 @@ export function SettingRow({
   desc,
   children,
   indent,
+  onClick,
 }: {
   label: string;
   desc?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   indent?: boolean;
+  onClick?: () => void;
 }) {
+  const isInteractive = Boolean(onClick);
+  const RowWrapper = isInteractive ? motion.div : 'div';
+  const motionProps = isInteractive
+    ? {
+        whileTap: { scale: 0.985 },
+        whileHover: { scale: 1.006 },
+        transition: SpringPresets.soft,
+      }
+    : {};
+
   return (
-    <div
-      className="flex items-center justify-between gap-4"
+    <RowWrapper
+      {...(motionProps as any)}
+      onClick={onClick}
+      className={`flex items-center justify-between gap-4 ${isInteractive ? 'cursor-pointer hover:bg-white/5 transition-colors' : ''}`}
       style={{
-        padding: 'var(--density-row-pad, 14px 20px)',
-        paddingLeft: indent ? 'calc(var(--spacing-md, 16px) * 1.75)' : 'var(--spacing-md, 16px)',
-        borderBottom: '1px solid rgba(128,128,128,0.08)',
+        padding: '14px 16px',
+        paddingLeft: indent ? 'calc(16px * 1.75)' : '16px',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+        boxSizing: 'border-box',
       }}
     >
       <div className="flex-1 min-w-0">
         <p
           style={{
-            fontSize: indent ? 'var(--font-sm)' : 'var(--font-base)',
-            fontWeight: 600,
+            fontSize: indent ? '13px' : '14.5px',
+            fontWeight: 750,
             color: indent ? 'var(--c-text-secondary)' : 'var(--c-text-primary)',
-            fontFamily: 'Manrope',
+            fontFamily: 'Manrope, sans-serif',
+            letterSpacing: '-0.015em',
+            margin: 0,
           }}
         >
           {label}
@@ -73,20 +91,22 @@ export function SettingRow({
         {desc && (
           <p
             style={{
-              fontSize: 'var(--font-sm)',
+              fontSize: '12px',
               marginTop: '2px',
-              lineHeight: 1.3,
+              lineHeight: 1.35,
               color: 'var(--c-text-secondary)',
-              fontFamily: 'Inter',
-              opacity: indent ? 0.75 : 1,
+              fontFamily: 'Inter, sans-serif',
+              fontWeight: 500,
+              opacity: indent ? 0.75 : 0.82,
+              margin: '2px 0 0',
             }}
           >
             {desc}
           </p>
         )}
       </div>
-      <div className="flex-none">{children}</div>
-    </div>
+      {children && <div className="flex-none">{children}</div>}
+    </RowWrapper>
   );
 }
 
@@ -108,26 +128,28 @@ export function SegmentedControl<T extends string>({
   return (
     <div
       style={{
-        background: 'var(--app-surface-lowest, #000000)',
+        background: 'rgba(0, 0, 0, 0.28)',
         borderRadius: '9999px',
         padding: '3px',
         display: 'flex',
         position: 'relative',
-        border: '1px solid rgba(128,128,128,0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
       }}
     >
       {options.map((opt) => {
         const active = value === opt.value;
         return (
-          <button
+          <motion.button
             key={opt.value}
+            whileTap={{ scale: 0.94 }}
             onClick={() => onChange(opt.value)}
-            className="btn-smooth relative outline-none cursor-pointer"
+            className="relative outline-none cursor-pointer"
             style={{
-              padding: 'var(--density-button-padding, 6px 14px)',
+              padding: '6px 14px',
               borderRadius: '9999px',
-              fontFamily: 'var(--font-headline, Manrope)',
-              fontSize: 'var(--density-button-font-size, 11px)',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '11.5px',
               fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
@@ -144,8 +166,8 @@ export function SegmentedControl<T extends string>({
                 layoutId={layoutId}
                 transition={{
                   type: 'spring',
-                  stiffness: 380,
-                  damping: 30,
+                  stiffness: 420,
+                  damping: 28,
                 }}
                 style={{
                   position: 'absolute',
@@ -153,12 +175,13 @@ export function SegmentedControl<T extends string>({
                   borderRadius: '9999px',
                   background: `linear-gradient(135deg, ${accentFrom}, ${accentTo})`,
                   zIndex: -1,
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  boxShadow:
+                    '0 2px 8px rgba(0, 0, 0, 0.22), inset 0 1px 1px rgba(255, 255, 255, 0.40)',
                 }}
               />
             )}
             <span style={{ position: 'relative', zIndex: 11 }}>{opt.label}</span>
-          </button>
+          </motion.button>
         );
       })}
     </div>
@@ -187,51 +210,71 @@ export function BentoSettingCard({
   return (
     <motion.button
       onClick={onPress}
-      whileTap={{ scale: 0.975 }}
+      whileTap={{ scale: 0.98 }}
+      whileHover={{ scale: 1.008 }}
       transition={SpringPresets.soft}
-      className="btn-smooth bento-card outline-none"
+      className="outline-none"
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
-        padding: 'var(--density-row-pad, 16px)',
-        background: 'var(--app-surface-high)',
-        border: '1px solid rgba(128, 128, 128, 0.06)',
-        borderRadius: 'var(--density-card-radius, var(--radius-xl))',
+        padding: '14px 16px',
+        background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.03))',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        borderRadius: 20,
         cursor: 'pointer',
         textAlign: 'left',
         boxSizing: 'border-box',
-        animation: `settings-content-fade-in 300ms ease both`,
-        animationDelay: `${delay}ms`,
+        backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+        WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      {/* Top Specular Rim */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 12,
+          right: 12,
+          height: '1px',
+          background: 'var(--surface-glass-rim)',
+          pointerEvents: 'none',
+          opacity: 0.6,
+        }}
+      />
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'var(--density-list-item-gap, 16px)',
+          gap: 14,
           minWidth: 0,
           flex: 1,
         }}
       >
         <div
           style={{
-            width: 'calc(var(--density-icon-size, 22px) * 2)',
-            height: 'calc(var(--density-icon-size, 22px) * 2)',
-            borderRadius: 'var(--density-card-radius, 12px)',
-            background: 'var(--app-surface-highest)',
+            width: 36,
+            height: 36,
+            borderRadius: 12,
+            background: iconColor ? `${iconColor}22` : 'rgba(255, 255, 255, 0.06)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            border: '1px solid rgba(128, 128, 128, 0.08)',
+            border: iconColor ? `1px solid ${iconColor}40` : '1px solid rgba(255, 255, 255, 0.10)',
+            boxShadow: iconColor
+              ? `0 2px 8px ${iconColor}25, inset 0 1px 1px rgba(255, 255, 255, 0.35)`
+              : 'inset 0 1px 1px rgba(255, 255, 255, 0.15)',
           }}
         >
           <span
             className="material-symbols-outlined"
             style={{
-              fontSize: 'var(--density-icon-size, 22px)',
+              fontSize: 20,
               color: iconColor || 'var(--studio-accent-from, #679cff)',
               fontVariationSettings: "'FILL' 1",
             }}
@@ -242,12 +285,12 @@ export function BentoSettingCard({
         <div style={{ flex: 1, minWidth: 0 }}>
           <h4
             style={{
-              fontSize: 15,
-              fontWeight: 700,
+              fontSize: 14.5,
+              fontWeight: 750,
               color: 'var(--c-text-primary)',
               margin: 0,
-              letterSpacing: '-0.01em',
-              fontFamily: 'Manrope',
+              letterSpacing: '-0.015em',
+              fontFamily: 'Manrope, sans-serif',
             }}
           >
             {title}
@@ -259,8 +302,9 @@ export function BentoSettingCard({
                 color: 'var(--c-text-secondary)',
                 margin: '2px 0 0',
                 fontWeight: 500,
-                fontFamily: 'Inter',
-                lineHeight: 1.3,
+                fontFamily: 'Inter, sans-serif',
+                lineHeight: 1.35,
+                opacity: 0.8,
               }}
             >
               {desc}
@@ -275,8 +319,8 @@ export function BentoSettingCard({
               fontSize: 11,
               fontWeight: 700,
               color: 'var(--studio-accent-from, #679cff)',
-              fontFamily: 'Inter',
-              opacity: 0.8,
+              fontFamily: 'Inter, sans-serif',
+              opacity: 0.85,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
@@ -287,14 +331,14 @@ export function BentoSettingCard({
         {badge && (
           <span
             style={{
-              fontSize: 10,
+              fontSize: 9.5,
               fontWeight: 800,
-              fontFamily: 'Manrope',
+              fontFamily: 'Manrope, sans-serif',
               padding: '2px 8px',
               borderRadius: 6,
-              background: 'var(--app-surface-bright)',
-              color: 'var(--c-text-secondary)',
-              border: '1px solid rgba(128, 128, 128, 0.12)',
+              background: 'rgba(255, 255, 255, 0.08)',
+              color: 'var(--c-text-primary)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
@@ -302,12 +346,24 @@ export function BentoSettingCard({
             {badge}
           </span>
         )}
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: 18, color: 'var(--c-text-secondary)', opacity: 0.5 }}
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          chevron_right
-        </span>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 15, color: 'var(--c-text-secondary)', opacity: 0.6 }}
+          >
+            chevron_right
+          </span>
+        </div>
       </div>
     </motion.button>
   );
@@ -336,53 +392,68 @@ export function BentoSettingRow({
     <motion.button
       onClick={onPress}
       whileTap={{ scale: 0.985 }}
+      whileHover={{ scale: 1.006 }}
       transition={SpringPresets.soft}
-      className="btn-smooth bento-card outline-none"
+      className="outline-none hover:bg-white/5 transition-colors"
       style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
-        padding: 'var(--density-row-pad, 16px)',
-        background: 'var(--app-surface-high)',
+        padding: '14px 16px',
+        background: 'transparent',
         border: 'none',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
         cursor: 'pointer',
         textAlign: 'left',
         boxSizing: 'border-box',
-        animation: `settings-content-fade-in 300ms ease both`,
-        animationDelay: `${delay}ms`,
       }}
     >
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 'var(--density-list-item-gap, 16px)',
+          gap: 14,
           minWidth: 0,
           flex: 1,
         }}
       >
-        <span
-          className="material-symbols-outlined"
+        <div
           style={{
-            fontSize: 'var(--density-icon-size, 22px)',
-            color: iconColor || 'var(--studio-accent-from, #679cff)',
-            fontVariationSettings: "'FILL' 1",
-            width: 'var(--density-icon-size, 24px)',
-            textAlign: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 12,
+            background: iconColor ? `${iconColor}22` : 'rgba(255, 255, 255, 0.06)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            border: iconColor ? `1px solid ${iconColor}40` : '1px solid rgba(255, 255, 255, 0.10)',
+            boxShadow: iconColor
+              ? `0 2px 8px ${iconColor}25, inset 0 1px 1px rgba(255, 255, 255, 0.35)`
+              : 'inset 0 1px 1px rgba(255, 255, 255, 0.15)',
           }}
         >
-          {icon}
-        </span>
+          <span
+            className="material-symbols-outlined"
+            style={{
+              fontSize: 20,
+              color: iconColor || 'var(--studio-accent-from, #679cff)',
+              fontVariationSettings: "'FILL' 1",
+            }}
+          >
+            {icon}
+          </span>
+        </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h4
             style={{
-              fontSize: 15,
-              fontWeight: 700,
+              fontSize: 14.5,
+              fontWeight: 750,
               color: 'var(--c-text-primary)',
               margin: 0,
-              letterSpacing: '-0.01em',
-              fontFamily: 'Manrope',
+              letterSpacing: '-0.015em',
+              fontFamily: 'Manrope, sans-serif',
             }}
           >
             {title}
@@ -394,8 +465,9 @@ export function BentoSettingRow({
                 color: 'var(--c-text-secondary)',
                 margin: '2px 0 0',
                 fontWeight: 500,
-                fontFamily: 'Inter',
-                lineHeight: 1.3,
+                fontFamily: 'Inter, sans-serif',
+                lineHeight: 1.35,
+                opacity: 0.8,
               }}
             >
               {desc}
@@ -410,8 +482,8 @@ export function BentoSettingRow({
               fontSize: 11,
               fontWeight: 700,
               color: 'var(--studio-accent-from, #679cff)',
-              fontFamily: 'Inter',
-              opacity: 0.8,
+              fontFamily: 'Inter, sans-serif',
+              opacity: 0.85,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
@@ -422,14 +494,14 @@ export function BentoSettingRow({
         {badge && (
           <span
             style={{
-              fontSize: 9,
+              fontSize: 9.5,
               fontWeight: 800,
-              fontFamily: 'Manrope',
-              padding: '2px 6px',
-              borderRadius: 4,
-              background: 'var(--app-surface-bright)',
-              color: 'var(--c-text-secondary)',
-              border: '1px solid rgba(128, 128, 128, 0.12)',
+              fontFamily: 'Manrope, sans-serif',
+              padding: '2px 8px',
+              borderRadius: 6,
+              background: 'rgba(255, 255, 255, 0.08)',
+              color: 'var(--c-text-primary)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
@@ -437,12 +509,24 @@ export function BentoSettingRow({
             {badge}
           </span>
         )}
-        <span
-          className="material-symbols-outlined"
-          style={{ fontSize: 18, color: 'var(--c-text-secondary)', opacity: 0.5 }}
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: 'rgba(255, 255, 255, 0.04)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          chevron_right
-        </span>
+          <span
+            className="material-symbols-outlined"
+            style={{ fontSize: 15, color: 'var(--c-text-secondary)', opacity: 0.6 }}
+          >
+            chevron_right
+          </span>
+        </div>
       </div>
     </motion.button>
   );
@@ -458,24 +542,46 @@ export function SettingSection({
   className?: string;
 }) {
   return (
-    <div className={`flex flex-col ${className}`} style={{ gap: 'var(--spacing-xs, 6px)' }}>
+    <div className={`flex flex-col ${className}`} style={{ gap: '6px', marginBottom: '20px' }}>
       <span
-        className="px-1 text-[9.5px] font-extrabold uppercase tracking-wider"
-        style={{ letterSpacing: '0.06em', color: 'var(--c-text-tertiary, #808080)' }}
+        className="px-1"
+        style={{
+          fontSize: '9.5px',
+          fontWeight: 800,
+          letterSpacing: '0.14em',
+          textTransform: 'uppercase',
+          color: 'var(--c-text-tertiary, #808080)',
+          fontFamily: 'Inter, sans-serif',
+          paddingLeft: '4px',
+        }}
       >
         {title}
       </span>
       <div
         style={{
           border: '1px solid rgba(255, 255, 255, 0.08)',
-          backgroundColor: 'var(--c-surface-glass-bg, rgba(255, 255, 255, 0.03))',
-          borderRadius: 'var(--density-card-radius, 20px)',
+          backgroundColor: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.03))',
+          borderRadius: 20,
           overflow: 'hidden',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          position: 'relative',
+          backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
         }}
       >
+        {/* Top Specular Rim */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 12,
+            right: 12,
+            height: '1px',
+            background: 'var(--surface-glass-rim)',
+            pointerEvents: 'none',
+            opacity: 0.6,
+          }}
+        />
         {children}
       </div>
     </div>

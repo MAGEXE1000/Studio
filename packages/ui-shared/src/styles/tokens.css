@@ -216,10 +216,11 @@
   --motion-duration-medium: calc(300ms * var(--motion-speed-scale));
   --motion-duration-long: calc(450ms * var(--motion-speed-scale));
 
-  --motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
-  --motion-ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
-  --motion-ease-accelerate: cubic-bezier(0.3, 0, 1, 1);
-  --motion-ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+  --motion-ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-decelerate: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-accelerate: cubic-bezier(0.32, 0, 0.67, 0);
+  --motion-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --motion-ease-sharp: cubic-bezier(0.4, 0, 0.2, 1);
 
   --motion-panel-dur: var(--motion-duration-medium);
   --motion-panel-exit-dur: var(--motion-duration-medium);

@@ -73,10 +73,12 @@ export const GlassTokens = {
 };
 
 export const DurationPresets = {
-  veryFast: 0.1, // M3 Short 1 / Short 2
-  fast: 0.2, // M3 Short 3 / Medium 1
-  normal: 0.3, // M3 Medium 2 / Long 1
-  slow: 0.4, // M3 Long 2 / Long 3
+  instant: 0,
+  veryFast: 0.12, // 120ms - buttons, toggles, microinteractions
+  fast: 0.2, // 200ms - tooltips, badges, small popovers, tab switch
+  normal: 0.3, // 300ms - modals, cards, standard sheets
+  slow: 0.38, // 380ms - section drilldown, large drawer
+  expressive: 0.45,
 
   // Legacy / Feature Specific
   hubTransition: 0.35,
@@ -84,36 +86,43 @@ export const DurationPresets = {
 };
 
 export const EasingPresets = {
-  emphasized: [0.2, 0.0, 0.0, 1.0] as any, // M3 Emphasized
-  standard: [0.2, 0.0, 0.0, 1.0] as any, // M3 Standard
-  accelerate: [0.3, 0.0, 0.8, 0.15] as any, // M3 Accelerate (ease-in)
-  decelerate: [0.0, 0.0, 0.15, 1.0] as any, // M3 Decelerate (ease-out)
-  linear: [0.0, 0.0, 1.0, 1.0] as any,
+  emphasized: [0.2, 0.0, 0.0, 1.0] as const, // M3 Emphasized
+  standard: [0.22, 1.0, 0.36, 1.0] as const, // Apple/Linear smooth ease-out curve
+  decelerate: [0.16, 1.0, 0.3, 1.0] as const, // Quintic smooth ease-out
+  accelerate: [0.32, 0.0, 0.67, 0.0] as const, // Crisp exit acceleration
+  drawer: [0.32, 0.72, 0.0, 1.0] as const, // iOS sheet/drawer curve
+  linear: [0.0, 0.0, 1.0, 1.0] as const,
 
   // Legacy / Feature Specific
-  hubTransition: 'easeOut',
-  appTransition: [0.65, 0, 0.35, 1] as any,
+  hubTransition: [0.22, 1.0, 0.36, 1.0] as const,
+  appTransition: [0.65, 0.0, 0.35, 1.0] as const,
 
   // Backward compatibility for standard motion configs
   spring: {
     type: 'spring' as const,
-    stiffness: 180,
-    damping: 20,
-    mass: 0.85,
+    stiffness: 420,
+    damping: 28,
+    mass: 0.55,
   },
 };
 
 export const SpringPresets = {
-  icon: { type: 'spring' as const, stiffness: 160, damping: 17, mass: 1 },
-  // Softer M3-style springs (formerly from AppAnimationSystem)
-  gentle: { type: 'spring' as const, stiffness: 150, damping: 25, mass: 1.0 },
-  medium: { type: 'spring' as const, stiffness: 220, damping: 22, mass: 0.85 },
-  bouncy: { type: 'spring' as const, stiffness: 320, damping: 18, mass: 0.7 },
-
-  // Stiffer structural springs (formerly native to designTokens.ts)
-  soft: { type: 'spring' as const, stiffness: 380, damping: 22, mass: 0.5 },
-  expressive: { type: 'spring' as const, stiffness: 400, damping: 20, mass: 0.35 },
-  stiff: { type: 'spring' as const, stiffness: 500, damping: 25, mass: 0.4 },
+  // Ultra-fast tactile feedback for buttons and microinteractions (critically damped)
+  snappy: { type: 'spring' as const, stiffness: 500, damping: 28, mass: 0.5 },
+  // Soft, smooth spring for cards, bento widgets, and list rows
+  soft: { type: 'spring' as const, stiffness: 420, damping: 26, mass: 0.5 },
+  // Icon rotations and playful gestures
+  icon: { type: 'spring' as const, stiffness: 360, damping: 22, mass: 0.6 },
+  // Smooth overlay panel entrances (modals, sheets)
+  panel: { type: 'spring' as const, stiffness: 400, damping: 32, mass: 0.55 },
+  // Shared layout and slider glides
+  layout: { type: 'spring' as const, stiffness: 360, damping: 30, mass: 0.6 },
+  // Gentle, relaxed motion
+  gentle: { type: 'spring' as const, stiffness: 200, damping: 24, mass: 0.8 },
+  medium: { type: 'spring' as const, stiffness: 300, damping: 26, mass: 0.7 },
+  bouncy: { type: 'spring' as const, stiffness: 340, damping: 18, mass: 0.6 },
+  expressive: { type: 'spring' as const, stiffness: 400, damping: 24, mass: 0.5 },
+  stiff: { type: 'spring' as const, stiffness: 500, damping: 28, mass: 0.5 },
 };
 
 export const HapticTokens = {

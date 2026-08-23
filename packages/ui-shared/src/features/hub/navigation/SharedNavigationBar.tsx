@@ -664,9 +664,13 @@ export function SharedNavigationBar({
     }
   );
 
+  // With transformOrigin 'center bottom' on the dock, the scale transform
+  // anchors at the bottom edge so the pill shrinks upward/inward from there.
+  // No additional Y translation is needed — adding one would push the pill
+  // below its bottom anchor and off-center vertically.
   const containerY = useTransform([scrollOffsetSpring, searchOpenSpring], ([offset, search]) => {
     if ((search as number) > 0.05) return 0;
-    return (offset as number) * 4;
+    return 0; // intentionally zero: bottom-anchored scale handles the tuck
   });
 
   // Optical centering: When right bubble fades on collapse, glass-nav shifts towards screen center.
@@ -1353,16 +1357,16 @@ export function SharedNavigationBar({
                 position: 'relative',
                 touchAction: 'none',
                 userSelect: 'none',
-                transformOrigin: 'center center',
+                // 'center bottom': scale collapses downward toward the fixed
+                // bottom anchor so the pill shrinks vertically/downward, not
+                // equally inward. This keeps the nav visually centered and
+                // prevents any drift toward the bottom-right.
+                transformOrigin: 'center bottom',
                 scale: containerScale,
                 y: containerY,
-                x: navX,
-                // NOTE: overflow:hidden intentionally removed from this element.
-                // On Android WebView, overflow:hidden on the same element as
-                // backdrop-filter creates an isolated stacking context that
-                // prevents the blur from compositing against underlying content,
-                // making the glass appear opaque. Clipping is handled by
-                // border-radius. Inner overflow is managed by the inner wrapper.
+                // x translation intentionally omitted: the 1fr/auto/1fr grid
+                // keeps the pill centered automatically. An additional x offset
+                // caused the collapsed state to drift rightward.
                 transition: 'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >

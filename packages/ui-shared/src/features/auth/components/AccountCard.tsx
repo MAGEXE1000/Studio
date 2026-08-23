@@ -2655,8 +2655,8 @@ export function AccountSettingsPage({
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: 96,
-              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
               boxShadow:
                 '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
@@ -2725,8 +2725,8 @@ export function AccountSettingsPage({
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: 96,
-              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
               boxShadow:
                 '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
@@ -2795,8 +2795,8 @@ export function AccountSettingsPage({
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: 96,
-              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
               boxShadow:
                 '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
@@ -2869,8 +2869,8 @@ export function AccountSettingsPage({
               flexDirection: 'column',
               justifyContent: 'space-between',
               minHeight: 96,
-              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
               boxShadow:
                 '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               cursor: settings.syncAcrossDevices ? 'pointer' : 'default',
@@ -3008,8 +3008,8 @@ export function AccountSettingsPage({
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
-              backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
               boxShadow:
                 '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               position: 'relative',
@@ -3169,8 +3169,8 @@ export function AccountSettingsPage({
             borderRadius: 20,
             overflow: 'hidden',
             position: 'relative',
-            backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-            WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
           }}
         >
@@ -3250,8 +3250,8 @@ export function AccountSettingsPage({
                 gap: 16,
                 position: 'relative',
                 overflow: 'hidden',
-                backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-                WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+                backdropFilter: 'var(--surface-float-blur)',
+                WebkitBackdropFilter: 'var(--surface-float-blur)',
                 boxShadow:
                   '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
               }}

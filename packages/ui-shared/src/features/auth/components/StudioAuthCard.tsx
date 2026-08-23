@@ -53,10 +53,10 @@ export default function StudioAuthCard({
       style={{
         borderRadius: 24,
         background: 'var(--surface-topbar-bg, rgba(20, 20, 24, 0.75))',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-        WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-        boxShadow: '0 12px 40px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+        border: 'var(--surface-topbar-border)',
+        backdropFilter: 'var(--surface-float-blur)',
+        WebkitBackdropFilter: 'var(--surface-float-blur)',
+        boxShadow: 'var(--surface-topbar-shadow)',
       }}
     >
       {/* Top Specular Rim */}

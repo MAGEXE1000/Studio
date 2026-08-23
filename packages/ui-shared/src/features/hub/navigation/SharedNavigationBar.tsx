@@ -89,10 +89,6 @@ const NavigationItem = React.memo(
     isActive,
     isLight = false,
     isSwitcherOpen,
-    activeIdxSpring,
-    activeIndex,
-    onMeasureGeometry,
-    innerWrapperRef,
     animationEpoch,
   }: {
     item: any;
@@ -101,55 +97,29 @@ const NavigationItem = React.memo(
     isActive: boolean;
     isLight?: boolean;
     isSwitcherOpen?: boolean;
-    activeIdxSpring: any;
+    activeIdxSpring?: any;
     activeIndex?: number;
     onMeasureGeometry?: (index: number, width: number, leftOffset: number) => void;
     innerWrapperRef?: React.RefObject<HTMLDivElement | null>;
     animationEpoch?: number;
   }) => {
     const isIconString = typeof item.icon === 'string';
-    const contentRef = useRef<HTMLDivElement | null>(null);
-
-    // Continuous motion derivation for label & icon state based on distance from activeIdxSpring.
-    // Items do NOT independently translate/fade on scroll — the container-level scale is the sole
-    // collapse driver (unified-object collapse). Only the active/inactive label expand/contract
-    // remains, which is purely active-index driven.
-    const distance = useTransform(activeIdxSpring, (val: number) => Math.abs(val - index));
-    const finalLabelOpacity = useTransform(distance, [0, 0.45], [1, 0]);
-    const labelScale = useTransform(distance, [0, 0.45], [1, 0.85]);
-
-    const handleMeasure = useCallback(() => {
-      if (contentRef.current && onMeasureGeometry) {
-        const rect = contentRef.current.getBoundingClientRect();
-        const parentRect = innerWrapperRef?.current?.getBoundingClientRect();
-        if (rect.width > 0 && parentRect) {
-          const leftOffset = rect.left - parentRect.left;
-          onMeasureGeometry(index, rect.width, leftOffset);
-        }
-      }
-    }, [index, onMeasureGeometry, innerWrapperRef]);
-
-    useEffect(() => {
-      handleMeasure();
-    }, [index, item.label, item.icon, isSwitcherOpen, isActive, handleMeasure]);
-
-    useEffect(() => {
-      if (!contentRef.current || !onMeasureGeometry || typeof ResizeObserver === 'undefined')
-        return;
-      const observer = new ResizeObserver(() => {
-        handleMeasure();
-      });
-      observer.observe(contentRef.current);
-      return () => observer.disconnect();
-    }, [handleMeasure, onMeasureGeometry]);
 
     const iconColor = isLight
       ? isActive
-        ? '#0f172a'
+        ? '#2563eb'
+        : 'rgba(15, 23, 42, 0.45)'
+      : isActive
+        ? 'var(--studio-accent-from, #60a5fa)'
+        : 'rgba(255, 255, 255, 0.45)';
+
+    const labelColor = isLight
+      ? isActive
+        ? '#2563eb'
         : 'rgba(15, 23, 42, 0.55)'
       : isActive
-        ? '#ffffff'
-        : 'rgba(255, 255, 255, 0.45)';
+        ? 'var(--studio-accent-from, #60a5fa)'
+        : 'rgba(255, 255, 255, 0.50)';
 
     return (
       <motion.button
@@ -157,77 +127,87 @@ const NavigationItem = React.memo(
         aria-label={item.label}
         title={item.label}
         data-nav-item-index={index}
+        whileTap={{ scale: 0.94 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 25 }}
         style={{
           flex: 1,
           height: '100%',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           background: 'transparent',
           border: 'none',
-          borderRadius: '9999px',
+          borderRadius: '20px',
           cursor: 'pointer',
           position: 'relative',
           zIndex: 1,
-          padding: '0 6px',
+          padding: '2px 4px',
           outline: 'none',
           WebkitTapHighlightColor: 'transparent',
+          gap: '2px',
         }}
       >
-        <motion.div
-          ref={contentRef}
+        <div
           data-nav-content="true"
-          transition={{ type: 'spring', stiffness: 420, damping: 25, mass: 0.7 }}
           style={{
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '6px',
-            position: 'relative',
-            zIndex: 1,
+            gap: '2px',
+            width: '100%',
           }}
         >
-          {isIconString ? (
-            <AnimatedNavigationIcon
-              itemKey={item.key}
-              iconName={item.icon as string}
-              size={20}
-              color={iconColor}
-              isActive={isActive}
-              animationEpoch={animationEpoch}
-            />
-          ) : (
-            <AnimatedNavigationIcon
-              itemKey={item.key}
-              iconNode={item.icon}
-              size={20}
-              color={iconColor}
-              isActive={isActive}
-              animationEpoch={animationEpoch}
-            />
-          )}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 22,
+              height: 22,
+            }}
+          >
+            {isIconString ? (
+              <AnimatedNavigationIcon
+                itemKey={item.key}
+                iconName={item.icon as string}
+                size={20}
+                color={iconColor}
+                isActive={isActive}
+                animationEpoch={animationEpoch}
+              />
+            ) : (
+              <AnimatedNavigationIcon
+                itemKey={item.key}
+                iconNode={item.icon}
+                size={20}
+                color={iconColor}
+                isActive={isActive}
+                animationEpoch={animationEpoch}
+              />
+            )}
+          </div>
 
-          {item.label && !isSwitcherOpen && (
-            <motion.span
+          {item.label && (
+            <span
               style={{
-                fontSize: '12px',
-                fontWeight: 700,
-                color: isLight ? '#0f172a' : '#ffffff',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '10.5px',
+                fontWeight: isActive ? 700 : 550,
+                color: labelColor,
                 whiteSpace: 'nowrap',
                 letterSpacing: '-0.01em',
-                display: 'inline-block',
-                lineHeight: 1,
-                opacity: finalLabelOpacity,
-                scale: labelScale,
-                maxWidth: isActive ? '120px' : '0px',
-                overflow: 'hidden',
-                transition: 'max-width 220ms cubic-bezier(0.16, 1, 0.3, 1), opacity 200ms ease',
+                lineHeight: 1.1,
+                textAlign: 'center',
+                userSelect: 'none',
+                transition: 'color 180ms ease, font-weight 180ms ease',
               }}
             >
               {item.label}
-            </motion.span>
+            </span>
           )}
-        </motion.div>
+        </div>
       </motion.button>
     );
   }
@@ -597,20 +577,12 @@ export function SharedNavigationBar({
     [isSwitcherOpen, measuredContentGeometry]
   );
 
-  const itemPillWidths = useMemo(() => {
-    return currentItems.map((item, index) => getItemPillWidth(item, index));
-  }, [currentItems, getItemPillWidth]);
-
-  // Single dynamic sizing algorithm used across all screens & modes (Hub, App Switcher, Preferences, etc.)
-  const maxPillWidth = isSwitcherOpen ? 44 : Math.max(...itemPillWidths, 72);
-  const calculatedSlotWidth = isSwitcherOpen ? 52 : Math.max(76, maxPillWidth + 12);
-  const slotWidth = isSwitcherOpen ? 52 : Math.min(isHub ? 130 : 160, calculatedSlotWidth);
-  const paddingX = 8;
-  const insetX = isSwitcherOpen ? 4 : 2;
+  const slotWidth = isSwitcherOpen ? 56 : isHub ? 74 : 66;
+  const paddingX = 6;
 
   const hasRightBubble = showSwitcherButton || (isHub && !searchOpen);
-  const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 80 : 0);
-  const minBarW = windowWidth < 480 ? 200 : 280;
+  const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 76 : 0);
+  const minBarW = windowWidth < 480 ? 180 : 220;
   const barWidth = Math.max(minBarW, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
@@ -618,20 +590,13 @@ export function SharedNavigationBar({
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = isSwitcherOpen ? 44 : itemPillWidths[index] || 72;
-      const geom = measuredContentGeometry[index];
-      let rawX: number;
-      if (geom && geom.centerLeft > 0) {
-        rawX = geom.centerLeft - pillW / 2;
-      } else {
-        const centerX = (index + 0.5) * itemWidth;
-        rawX = centerX - pillW / 2;
-      }
-      const minX = 4;
-      const maxX = Math.max(minX, usableWidth - pillW - 4);
+      const pillW = Math.max(40, itemWidth - 4);
+      const rawX = index * itemWidth + 2;
+      const minX = 2;
+      const maxX = Math.max(minX, usableWidth - pillW - 2);
       return Math.max(minX, Math.min(maxX, rawX));
     },
-    [isSwitcherOpen, itemWidth, itemPillWidths, measuredContentGeometry, usableWidth]
+    [itemWidth, usableWidth]
   );
 
   const activeIndex = useMemo(() => {
@@ -737,51 +702,23 @@ export function SharedNavigationBar({
     return (offset as number) * targetDockShift;
   });
 
-  // Derived continuous pill movement (zero snapping, zero layout jumps, dynamic content wrapping)
-  // Derived continuous pill movement (direct 1:1 synchronization during drag, spring interpolation after drag)
+  // Derived continuous pill movement with zero layout jumps
   const pillX = useTransform(
     [activeIdxRaw, activeIdxSpring, dragXRaw],
     ([rawIdx, springIdx, dragVal]) => {
       const isScrubbingActive = isScrubbingRef.current;
       const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
       const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
-      const lowerIdx = Math.floor(idx);
-      const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
-      const frac = idx - lowerIdx;
-
-      const lowerPillW = isSwitcherOpen ? 44 : itemPillWidths[lowerIdx] || 72;
-      const upperPillW = isSwitcherOpen ? 44 : itemPillWidths[upperIdx] || 72;
-
-      const lowerGeom = measuredContentGeometry[lowerIdx];
-      const upperGeom = measuredContentGeometry[upperIdx];
-
-      const lowerCenterX = lowerGeom?.centerLeft ?? (lowerIdx + 0.5) * itemWidth;
-      const upperCenterX = upperGeom?.centerLeft ?? (upperIdx + 0.5) * itemWidth;
-
-      const currentCenterX = lowerCenterX + frac * (upperCenterX - lowerCenterX);
-      const currentPillW = lowerPillW + frac * (upperPillW - lowerPillW);
-
-      const rawX = currentCenterX - currentPillW / 2 + (dragVal as number);
-      const minX = 4;
-      const maxX = Math.max(minX, usableWidth - currentPillW - 4);
+      const pillW = Math.max(40, itemWidth - 4);
+      const rawX = idx * itemWidth + 2 + (dragVal as number);
+      const minX = 2;
+      const maxX = Math.max(minX, usableWidth - pillW - 2);
       return Math.max(minX, Math.min(maxX, rawX));
     }
   );
 
   const animatedPillX = pillX;
-
-  const pillWidthVal = useTransform([activeIdxRaw, activeIdxSpring], ([rawIdx, springIdx]) => {
-    const idxVal = isScrubbingRef.current ? (rawIdx as number) : (springIdx as number);
-    const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
-    const lowerIdx = Math.floor(idx);
-    const upperIdx = Math.min(totalSlots - 1, lowerIdx + 1);
-    const frac = idx - lowerIdx;
-
-    const lowerPillW = isSwitcherOpen ? 44 : itemPillWidths[lowerIdx] || 72;
-    const upperPillW = isSwitcherOpen ? 44 : itemPillWidths[upperIdx] || 72;
-
-    return lowerPillW + frac * (upperPillW - lowerPillW);
-  });
+  const pillWidthVal = Math.max(40, itemWidth - 4);
 
   const pillPressScale = useTransform(pressPressureRaw, [0, 5], [1, 0.96]);
 
@@ -1399,14 +1336,10 @@ export function SharedNavigationBar({
               style={{
                 pointerEvents: 'auto',
                 justifySelf: 'center',
-                // Bar renders at its natural computed width. Visual collapse comes from
-                // containerScale + containerY (transforms only — no layout reflow) so the collapse looks
-                // like ONE physical object scaling toward its center.
                 width: barWidth,
                 maxWidth: `${barWidth}px`,
-                height: '64px',
-                borderRadius: '9999px',
-                // Design tokens handle dark / light / AMOLED / system theme variants automatically.
+                height: '58px',
+                borderRadius: '26px',
                 border: 'var(--surface-topbar-border)',
                 background: 'var(--surface-topbar-bg)',
                 boxShadow: 'var(--surface-topbar-shadow)',
@@ -1415,7 +1348,7 @@ export function SharedNavigationBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
-                padding: '6px 8px',
+                padding: '4px 6px',
                 position: 'relative',
                 touchAction: 'none',
                 userSelect: 'none',
@@ -1432,10 +1365,10 @@ export function SharedNavigationBar({
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  borderRadius: '9999px',
+                  borderRadius: '26px',
                   background: isLight
-                    ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.25) 0%, transparent 100%)'
-                    : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 100%)',
+                    ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.20) 0%, transparent 100%)'
+                    : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 100%)',
                   pointerEvents: 'none',
                   zIndex: 0,
                 }}
@@ -1466,17 +1399,23 @@ export function SharedNavigationBar({
                       left: 0,
                       x: animatedPillX,
                       width: pillWidthVal,
-                      borderRadius: '9999px',
-                      background: 'var(--surface-glass-lens-bg)',
-                      border: 'var(--surface-glass-lens-border)',
-                      boxShadow: 'var(--surface-glass-lens-shadow)',
+                      borderRadius: '20px',
+                      background: isLight
+                        ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 255, 0.85) 100%)'
+                        : 'var(--surface-glass-lens-bg)',
+                      border: isLight
+                        ? '1px solid rgba(0, 0, 0, 0.05)'
+                        : 'var(--surface-glass-lens-border)',
+                      boxShadow: isLight
+                        ? '0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1)'
+                        : 'var(--surface-glass-lens-shadow)',
                       backdropFilter: 'var(--surface-float-blur)',
                       WebkitBackdropFilter: 'var(--surface-float-blur)',
                       pointerEvents: 'none',
                       zIndex: 0,
                       skewX: dragSkewRaw,
                       scale: pillPressScale,
-                      willChange: 'transform, width',
+                      willChange: 'transform',
                     }}
                   >
                     {/* Inner Lens — Radial Center Glow (specular center highlight) */}
@@ -1484,9 +1423,10 @@ export function SharedNavigationBar({
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        borderRadius: '9999px',
-                        background:
-                          'radial-gradient(ellipse 65% 50% at 50% 8%, rgba(255,255,255,0.18) 0%, transparent 100%)',
+                        borderRadius: '20px',
+                        background: isLight
+                          ? 'radial-gradient(ellipse 65% 50% at 50% 8%, rgba(255,255,255,0.40) 0%, transparent 100%)'
+                          : 'radial-gradient(ellipse 65% 50% at 50% 8%, rgba(255,255,255,0.12) 0%, transparent 100%)',
                         pointerEvents: 'none',
                       }}
                     />
@@ -1520,10 +1460,6 @@ export function SharedNavigationBar({
                           isActive={isActive}
                           isLight={isLight}
                           isSwitcherOpen={isSwitcherOpen}
-                          activeIdxSpring={activeIdxSpring}
-                          activeIndex={activeIndex}
-                          onMeasureGeometry={handleMeasureGeometry}
-                          innerWrapperRef={innerWrapperRef}
                           animationEpoch={navigationEpoch}
                         />
                       );
@@ -1618,10 +1554,9 @@ export function SharedNavigationBar({
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
                   style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    // Same material family as the glass nav — design tokens handle all themes.
+                    width: '58px',
+                    height: '58px',
+                    borderRadius: '26px',
                     background: 'var(--surface-topbar-bg)',
                     border: 'var(--surface-topbar-border)',
                     backdropFilter: 'var(--surface-float-blur)',
@@ -1647,9 +1582,9 @@ export function SharedNavigationBar({
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      borderRadius: '50%',
+                      borderRadius: '26px',
                       background:
-                        'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.1) 0%, transparent 100%)',
+                        'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.08) 0%, transparent 100%)',
                       pointerEvents: 'none',
                     }}
                   />
@@ -1664,10 +1599,9 @@ export function SharedNavigationBar({
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
                   style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    // Same material family as the glass nav — design tokens handle all themes.
+                    width: '58px',
+                    height: '58px',
+                    borderRadius: '26px',
                     background: 'var(--surface-topbar-bg)',
                     border: 'var(--surface-topbar-border)',
                     backdropFilter: 'var(--surface-float-blur)',
@@ -1699,9 +1633,9 @@ export function SharedNavigationBar({
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      borderRadius: '50%',
+                      borderRadius: '26px',
                       background:
-                        'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.1) 0%, transparent 100%)',
+                        'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.08) 0%, transparent 100%)',
                       pointerEvents: 'none',
                     }}
                   />

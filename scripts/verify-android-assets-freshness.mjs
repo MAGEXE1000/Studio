@@ -90,7 +90,7 @@ if (jsFiles.length === 0) {
 // Key signatures that MUST be present in the compiled code
 const requiredSignatures = [
   { name: 'Support Email', pattern: 'stagecore.contact@gmail.com' },
-  { name: 'Floating Header safe-area top inset', pattern: 'calc(env(safe-area-inset-top, 0px) + 52px)' },
+  { name: 'Floating Header safe-area top inset', pattern: 'calc(env(safe-area-inset-top, 0px) + 10px)' },
   { name: 'Scene delete confirm notification', pattern: 'stage-core:confirm' }
 ];
 

@@ -173,147 +173,156 @@ export function SharedFloatingHeader({
   const isLight = settings.theme === 'light';
 
   return (
-    <header
-      ref={headerBgRef}
+    <div
       style={{
         position: 'absolute',
-        top: 0,
+        top: 'calc(env(safe-area-inset-top, 0px) + 10px)',
         left: 0,
         right: 0,
-        height: 'calc(env(safe-area-inset-top, 0px) + 52px)',
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-        paddingLeft: '16px',
-        paddingRight: '16px',
         display: 'flex',
-        alignItems: 'center',
         justifyContent: 'center',
+        alignItems: 'center',
+        padding: '0 16px',
         zIndex: 110,
-        background: 'var(--surface-topbar-bg)',
-        borderBottom: 'var(--surface-topbar-border)',
-        backdropFilter: 'var(--surface-topbar-blur)',
-        WebkitBackdropFilter: 'var(--surface-topbar-blur)',
-        boxShadow: 'var(--surface-topbar-shadow)',
+        pointerEvents: 'none',
         boxSizing: 'border-box',
-        pointerEvents: 'auto',
       }}
     >
-      {/* Subtle Specular Top Curvature Response */}
-      <div
+      <header
+        ref={headerBgRef}
         style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '40%',
-          background: isLight
-            ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0) 100%)'
-            : 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* Left Back Action Button Layer */}
-      {onBack && !hideBack && (
-        <motion.button
-          type="button"
-          onClick={onBack}
-          aria-label="Go back"
-          whileTap={{ scale: 0.92 }}
-          whileHover={{ scale: 1.05 }}
-          transition={SpringPresets.soft}
-          style={{
-            position: 'absolute',
-            left: 16,
-            top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)',
-            border: isLight
-              ? '1px solid rgba(0, 0, 0, 0.06)'
-              : '1px solid rgba(255, 255, 255, 0.12)',
-            boxShadow: isLight
-              ? 'inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(0, 0, 0, 0.03)'
-              : 'inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 6px rgba(0, 0, 0, 0.20)',
-            color: 'var(--c-text-primary)',
-            cursor: 'pointer',
-            zIndex: 2,
-            pointerEvents: 'auto',
-            outline: 'none',
-            WebkitTapHighlightColor: 'transparent',
-          }}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ display: 'block' }}
-          >
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-        </motion.button>
-      )}
-
-      {/* Absolute Centered Section Title */}
-      <div
-        ref={titleRef}
-        style={{
-          position: 'absolute',
-          left: onBack && !hideBack ? 56 : 16,
-          right: toolbarActions ? 56 : 16,
-          top: 'env(safe-area-inset-top, 0px)',
-          bottom: 0,
+          width: '100%',
+          maxWidth: 'calc(var(--content-max-w) - 32px)',
+          height: '52px',
+          borderRadius: '9999px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'none',
-          zIndex: 1,
+          justifyContent: 'space-between',
+          padding: '0 8px',
+          position: 'relative',
+          background: 'var(--surface-topbar-bg)',
+          border: 'var(--surface-topbar-border)',
+          backdropFilter: 'var(--surface-topbar-blur)',
+          WebkitBackdropFilter: 'var(--surface-topbar-blur)',
+          boxShadow: 'var(--surface-topbar-shadow)',
+          boxSizing: 'border-box',
+          pointerEvents: 'auto',
+          userSelect: 'none',
         }}
       >
-        <span
-          style={{
-            fontSize: '16px',
-            fontWeight: 750,
-            color: 'var(--c-text-primary)',
-            letterSpacing: '-0.015em',
-            fontFamily: 'Manrope, sans-serif',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            textAlign: 'center',
-            maxWidth: '100%',
-          }}
-        >
-          {title}
-        </span>
-      </div>
-
-      {/* Right Toolbar Actions Layer */}
-      {toolbarActions && (
+        {/* Subtle Specular Top Curvature Response */}
         <div
           style={{
             position: 'absolute',
-            right: 16,
-            top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+            inset: 0,
+            borderRadius: '9999px',
+            background: isLight
+              ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.25) 0%, transparent 100%)'
+              : 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 100%)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Left Back Action Button */}
+        {onBack && !hideBack ? (
+          <motion.button
+            type="button"
+            onClick={onBack}
+            aria-label="Go back"
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            transition={SpringPresets.soft}
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+              border: isLight
+                ? '1px solid rgba(0, 0, 0, 0.05)'
+                : '1px solid rgba(255, 255, 255, 0.08)',
+              color: 'var(--c-text-primary)',
+              cursor: 'pointer',
+              zIndex: 2,
+              pointerEvents: 'auto',
+              outline: 'none',
+              WebkitTapHighlightColor: 'transparent',
+              flexShrink: 0,
+            }}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ display: 'block' }}
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </motion.button>
+        ) : (
+          <div style={{ width: 38, height: 38, flexShrink: 0 }} />
+        )}
+
+        {/* Mathematically Centered Section Title */}
+        <div
+          ref={titleRef}
+          style={{
+            position: 'absolute',
+            left: 48,
+            right: 48,
+            top: 0,
+            bottom: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
-            zIndex: 2,
-            pointerEvents: 'auto',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 1,
           }}
         >
-          {toolbarActions}
+          <span
+            style={{
+              fontSize: '15.5px',
+              fontWeight: 750,
+              color: 'var(--c-text-primary)',
+              letterSpacing: '-0.015em',
+              fontFamily: 'Manrope, sans-serif',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              textAlign: 'center',
+              maxWidth: '100%',
+            }}
+          >
+            {title}
+          </span>
         </div>
-      )}
-    </header>
+
+        {/* Right Toolbar Actions Layer */}
+        {toolbarActions ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              zIndex: 2,
+              pointerEvents: 'auto',
+              flexShrink: 0,
+            }}
+          >
+            {toolbarActions}
+          </div>
+        ) : (
+          <div style={{ width: 38, height: 38, flexShrink: 0 }} />
+        )}
+      </header>
+    </div>
   );
 }
 
@@ -365,7 +374,7 @@ export function SettingsScaffold({
           WebkitOverflowScrolling: 'touch',
           boxSizing: 'border-box',
           padding: '0',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 64px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 72px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
         }}
         className="no-scrollbar"

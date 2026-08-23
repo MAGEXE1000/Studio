@@ -116,10 +116,10 @@ const NavigationItem = React.memo(
     const labelColor = isLight
       ? isActive
         ? '#2563eb'
-        : 'rgba(15, 23, 42, 0.55)'
+        : 'rgba(15, 23, 42, 0.50)'
       : isActive
         ? 'var(--studio-accent-from, #60a5fa)'
-        : 'rgba(255, 255, 255, 0.50)';
+        : 'rgba(255, 255, 255, 0.45)';
 
     return (
       <motion.button
@@ -138,7 +138,7 @@ const NavigationItem = React.memo(
           justifyContent: 'center',
           background: 'transparent',
           border: 'none',
-          borderRadius: '20px',
+          borderRadius: '22px',
           cursor: 'pointer',
           position: 'relative',
           zIndex: 1,
@@ -164,15 +164,15 @@ const NavigationItem = React.memo(
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 22,
-              height: 22,
+              width: 24,
+              height: 24,
             }}
           >
             {isIconString ? (
               <AnimatedNavigationIcon
                 itemKey={item.key}
                 iconName={item.icon as string}
-                size={20}
+                size={21}
                 color={iconColor}
                 isActive={isActive}
                 animationEpoch={animationEpoch}
@@ -181,7 +181,7 @@ const NavigationItem = React.memo(
               <AnimatedNavigationIcon
                 itemKey={item.key}
                 iconNode={item.icon}
-                size={20}
+                size={21}
                 color={iconColor}
                 isActive={isActive}
                 animationEpoch={animationEpoch}
@@ -193,12 +193,12 @@ const NavigationItem = React.memo(
             <span
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: '10.5px',
+                fontSize: '11px',
                 fontWeight: isActive ? 700 : 550,
                 color: labelColor,
                 whiteSpace: 'nowrap',
                 letterSpacing: '-0.01em',
-                lineHeight: 1.1,
+                lineHeight: 1.15,
                 textAlign: 'center',
                 userSelect: 'none',
                 transition: 'color 180ms ease, font-weight 180ms ease',
@@ -577,12 +577,12 @@ export function SharedNavigationBar({
     [isSwitcherOpen, measuredContentGeometry]
   );
 
-  const slotWidth = isSwitcherOpen ? 56 : isHub ? 74 : 66;
-  const paddingX = 6;
+  const slotWidth = isSwitcherOpen ? 60 : isHub ? 80 : 70;
+  const paddingX = 8;
 
   const hasRightBubble = showSwitcherButton || (isHub && !searchOpen);
-  const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 76 : 0);
-  const minBarW = windowWidth < 480 ? 180 : 220;
+  const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 80 : 0);
+  const minBarW = windowWidth < 480 ? 190 : 230;
   const barWidth = Math.max(minBarW, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
@@ -590,10 +590,10 @@ export function SharedNavigationBar({
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = Math.max(40, itemWidth - 4);
-      const rawX = index * itemWidth + 2;
-      const minX = 2;
-      const maxX = Math.max(minX, usableWidth - pillW - 2);
+      const pillW = Math.max(44, itemWidth - 6);
+      const rawX = index * itemWidth + 3;
+      const minX = 3;
+      const maxX = Math.max(minX, usableWidth - pillW - 3);
       return Math.max(minX, Math.min(maxX, rawX));
     },
     [itemWidth, usableWidth]
@@ -1338,8 +1338,8 @@ export function SharedNavigationBar({
                 justifySelf: 'center',
                 width: barWidth,
                 maxWidth: `${barWidth}px`,
-                height: '58px',
-                borderRadius: '26px',
+                height: '64px',
+                borderRadius: '28px',
                 border: 'var(--surface-topbar-border)',
                 background: 'var(--surface-topbar-bg)',
                 boxShadow: 'var(--surface-topbar-shadow)',
@@ -1348,7 +1348,7 @@ export function SharedNavigationBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
-                padding: '4px 6px',
+                padding: '4px 8px',
                 position: 'relative',
                 touchAction: 'none',
                 userSelect: 'none',
@@ -1365,7 +1365,7 @@ export function SharedNavigationBar({
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  borderRadius: '26px',
+                  borderRadius: '28px',
                   background: isLight
                     ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.20) 0%, transparent 100%)'
                     : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 100%)',
@@ -1394,12 +1394,12 @@ export function SharedNavigationBar({
                   <motion.div
                     style={{
                       position: 'absolute',
-                      top: 4,
-                      bottom: 4,
+                      top: 5,
+                      bottom: 5,
                       left: 0,
                       x: animatedPillX,
                       width: pillWidthVal,
-                      borderRadius: '20px',
+                      borderRadius: '23px',
                       background: isLight
                         ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 255, 0.85) 100%)'
                         : 'var(--surface-glass-lens-bg)',
@@ -1423,7 +1423,7 @@ export function SharedNavigationBar({
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        borderRadius: '20px',
+                        borderRadius: '23px',
                         background: isLight
                           ? 'radial-gradient(ellipse 65% 50% at 50% 8%, rgba(255,255,255,0.40) 0%, transparent 100%)'
                           : 'radial-gradient(ellipse 65% 50% at 50% 8%, rgba(255,255,255,0.12) 0%, transparent 100%)',
@@ -1554,9 +1554,9 @@ export function SharedNavigationBar({
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
                   style={{
-                    width: '58px',
-                    height: '58px',
-                    borderRadius: '26px',
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '28px',
                     background: 'var(--surface-topbar-bg)',
                     border: 'var(--surface-topbar-border)',
                     backdropFilter: 'var(--surface-float-blur)',
@@ -1582,7 +1582,7 @@ export function SharedNavigationBar({
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      borderRadius: '26px',
+                      borderRadius: '28px',
                       background:
                         'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.08) 0%, transparent 100%)',
                       pointerEvents: 'none',
@@ -1599,9 +1599,9 @@ export function SharedNavigationBar({
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
                   style={{
-                    width: '58px',
-                    height: '58px',
-                    borderRadius: '26px',
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '28px',
                     background: 'var(--surface-topbar-bg)',
                     border: 'var(--surface-topbar-border)',
                     backdropFilter: 'var(--surface-float-blur)',
@@ -1633,7 +1633,7 @@ export function SharedNavigationBar({
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      borderRadius: '26px',
+                      borderRadius: '28px',
                       background:
                         'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.08) 0%, transparent 100%)',
                       pointerEvents: 'none',

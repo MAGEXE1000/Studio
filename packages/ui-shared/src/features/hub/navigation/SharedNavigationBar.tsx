@@ -1108,14 +1108,15 @@ export function SharedNavigationBar({
             style={{
               width: '100%',
               maxWidth: '480px',
-              background: 'rgba(20, 20, 24, 0.65)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'rgba(20, 20, 24, 0.42)',
+              border: '1px solid rgba(255, 255, 255, 0.10)',
               borderRadius: '24px',
               boxShadow:
-                '0 24px 48px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12)',
+                '0 16px 36px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.10)',
               backdropFilter: 'var(--surface-float-blur)',
               WebkitBackdropFilter: 'var(--surface-float-blur)',
-              overflow: 'hidden',
+              // overflow:hidden intentionally on inner wrapper, not here,
+              // to preserve Android backdrop-filter compositing.
               display: 'flex',
               flexDirection: 'column',
               marginBottom: '8px',
@@ -1356,7 +1357,12 @@ export function SharedNavigationBar({
                 scale: containerScale,
                 y: containerY,
                 x: navX,
-                overflow: 'hidden',
+                // NOTE: overflow:hidden intentionally removed from this element.
+                // On Android WebView, overflow:hidden on the same element as
+                // backdrop-filter creates an isolated stacking context that
+                // prevents the blur from compositing against underlying content,
+                // making the glass appear opaque. Clipping is handled by
+                // border-radius. Inner overflow is managed by the inner wrapper.
                 transition: 'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
@@ -1387,6 +1393,11 @@ export function SharedNavigationBar({
                   alignItems: 'center',
                   position: 'relative',
                   touchAction: 'none',
+                  // overflow:hidden here (not on the outer backdrop-filter element)
+                  // keeps nav items clipped to pill shape without breaking
+                  // Android WebView's compositing of the parent's backdrop-filter.
+                  overflow: 'hidden',
+                  borderRadius: '28px',
                 }}
               >
                 {/* Standard Navigation Items */}

@@ -1427,45 +1427,15 @@ export function SharedNavigationBar({
                 transition: 'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
-              {/* Chromatic Top Specular Highlight Rim */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: '20px',
-                  right: '20px',
-                  height: '1px',
-                  background: 'var(--surface-glass-rim)',
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                  opacity: 0.95,
-                }}
-              />
-
-              {/* Bottom Edge Shadow Rim — simulates glass underside / thickness */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: '24px',
-                  right: '24px',
-                  height: '1px',
-                  background:
-                    'var(--surface-glass-bottom-rim, linear-gradient(90deg, transparent, rgba(0,0,0,0.35) 30%, rgba(0,0,0,0.48) 50%, rgba(0,0,0,0.35) 70%, transparent))',
-                  pointerEvents: 'none',
-                  zIndex: 1,
-                  opacity: 0.85,
-                }}
-              />
-
-              {/* Inner Radial Vignette — environmental depth / color scattering */}
+              {/* Inner Radial Vignette — realistic optical depth / gentle fresnel reflection */}
               <div
                 style={{
                   position: 'absolute',
                   inset: 0,
                   borderRadius: '9999px',
-                  background:
-                    'radial-gradient(ellipse 70% 55% at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 100%)',
+                  background: isLight
+                    ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.25) 0%, transparent 100%)'
+                    : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 100%)',
                   pointerEvents: 'none',
                   zIndex: 0,
                 }}
@@ -1509,33 +1479,6 @@ export function SharedNavigationBar({
                       willChange: 'transform, width',
                     }}
                   >
-                    {/* Inner Lens — Top Specular Rim */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: '8px',
-                        right: '8px',
-                        height: '1px',
-                        background: 'var(--surface-glass-rim)',
-                        pointerEvents: 'none',
-                        opacity: 0.9,
-                      }}
-                    />
-                    {/* Inner Lens — Bottom Edge Shadow */}
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: '10px',
-                        right: '10px',
-                        height: '1px',
-                        background:
-                          'var(--surface-glass-bottom-rim, linear-gradient(90deg, transparent, rgba(0,0,0,0.28) 30%, rgba(0,0,0,0.38) 50%, rgba(0,0,0,0.28) 70%, transparent))',
-                        pointerEvents: 'none',
-                        opacity: 0.7,
-                      }}
-                    />
                     {/* Inner Lens — Radial Center Glow (specular center highlight) */}
                     <div
                       style={{
@@ -1699,33 +1642,6 @@ export function SharedNavigationBar({
                     pointerEvents: switcherPointerEvents,
                   }}
                 >
-                  {/* Top Specular Rim */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: '8px',
-                      right: '8px',
-                      height: '1px',
-                      background: 'var(--surface-glass-rim)',
-                      pointerEvents: 'none',
-                      opacity: 0.9,
-                    }}
-                  />
-                  {/* Bottom Edge Rim */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '8px',
-                      right: '8px',
-                      height: '1px',
-                      background:
-                        'var(--surface-glass-bottom-rim, linear-gradient(90deg, transparent, rgba(0,0,0,0.35) 30%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.35) 70%, transparent))',
-                      pointerEvents: 'none',
-                      opacity: 0.75,
-                    }}
-                  />
                   {/* Radial Center Glow */}
                   <div
                     style={{
@@ -1778,33 +1694,6 @@ export function SharedNavigationBar({
                     pointerEvents: switcherPointerEvents,
                   }}
                 >
-                  {/* Top Specular Rim */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: '8px',
-                      right: '8px',
-                      height: '1px',
-                      background: 'var(--surface-glass-rim)',
-                      pointerEvents: 'none',
-                      opacity: 0.9,
-                    }}
-                  />
-                  {/* Bottom Edge Rim */}
-                  <div
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '8px',
-                      right: '8px',
-                      height: '1px',
-                      background:
-                        'var(--surface-glass-bottom-rim, linear-gradient(90deg, transparent, rgba(0,0,0,0.35) 30%, rgba(0,0,0,0.45) 50%, rgba(0,0,0,0.35) 70%, transparent))',
-                      pointerEvents: 'none',
-                      opacity: 0.75,
-                    }}
-                  />
                   {/* Radial Center Glow */}
                   <div
                     style={{

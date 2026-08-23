@@ -1,11 +1,15 @@
-# Version 4.5.35
+# Version 4.5.36
 
 Release Date: 2026-08-22
 
+### Fixed
+
+- Resolved critical section-entry runtime exception (`ReferenceError: isLight is not defined`) in `HubSettings` by declaring `isLight` derived from active settings and media queries.
+
 ### Added
 
-- Audited and refined Shared Interactive Design System primitives: tactile spring compression on buttons (`Button`, `IconButton`, `FloatingButton`, `ActionButton`), modular `BentoCard` Liquid Glass containers, squircle inputs and search bars, interactive `ListRow` list items, squircle filter chips, and polished feedback skeletons.
-- Modernized mobile Profile experience with glowing chromatic avatar ring, dynamic entitlement role badge, 4 modular Liquid Glass Bento metric cards (Favorites, Progressions, Presets, Cloud Sync), and copyable developer UID code pill.
-- Enhanced mobile Settings experience with GPU-accelerated spring `StudioToggle`, tactile `SettingRow` and `BentoSettingCard` containers, and polished language selection sheet.
-- Synchronized mobile motion system tokens (`SpringPresets`, `EasingPresets`, `DurationPresets`, `--motion-ease-*` CSS variables) around critically damped physics for smooth velocity continuity and zero oscillation.
-- Upgraded Studio Hub layout hierarchy with modular Liquid Glass Bento cards, specular highlight reflections, and tactile spring microinteractions.
+- Refactored shared Liquid Glass design tokens with realistic optical transparency, live backdrop blur, and soft micro-specular responses across Dark, Light, and AMOLED themes.
+- Upgraded mobile bottom navigation dock with natural environmental transparency, soft radial depth vignetting, and clean optical boundaries.
+- Modernized top bar material system with soft curvature-aware specular highlights, removing hard 1px artificial white rim lines.
+- Cleaned Hub module launcher cards by eliminating colored right-side circular highlight blobs and hard rim lines for a premium, unified aesthetic.
+- Removed capsule container surrounding the Livex logo in Hub header for clean, native visual alignment.

@@ -1309,66 +1309,55 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --font-display-lg: 36px; /* full-hero titles (player, lab)      */
 
   /* ── Floating-surface tokens — dark (default) ───────────── */
-  --surface-float-bg: rgba(
-    14,
-    15,
-    20,
-    0.28
-  ); /* bottom nav / pill bar — slightly more transparent for glass feel */
+  --surface-float-bg: rgba(18, 20, 28, 0.35); /* bottom nav / pill bar — realistic optical glass */
   --surface-topbar-bg: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.22) 0%,
-    rgba(200, 218, 255, 0.06) 18%,
-    rgba(14, 15, 22, 0.62) 52%,
-    rgba(22, 24, 36, 0.44) 80%,
-    rgba(255, 255, 255, 0.08) 100%
+    165deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(12, 14, 20, 0.38) 60%,
+    rgba(18, 20, 28, 0.28) 100%
   );
-  /* Outer border: shows the glass edge (slightly iridescent on dark) */
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.22);
-  /* Layered shadows:
-     1. Inset top — primary specular highlight (glass top face)
-     2. Inset top thin — crisp hot-spot center
-     3. Inset bottom — cavity / thickness illusion (underside of glass)
-     4. Outer ambient — wide soft lift
-     5. Outer contact — tight shadow close to surface */
+  /* Outer border: soft micro-specular rim */
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.12);
+  /* Layered physical glass shadows:
+     1. Inset top — soft subtle specular highlight
+     2. Inset bottom — subtle depth underside
+     3. Outer ambient — wide soft elevation lift
+     4. Outer contact — close surface depth */
   --surface-topbar-shadow:
-    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.55), inset 0 0.5px 0 0 rgba(255, 255, 255, 0.82),
-    inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.55), inset 0 -0.5px 0 0 rgba(0, 0, 0, 0.35),
-    0 20px 48px -8px rgba(0, 0, 0, 0.62), 0 6px 16px -3px rgba(0, 0, 0, 0.42),
-    0 1px 3px 0 rgba(0, 0, 0, 0.28);
-  --surface-topbar-blur: blur(32px) saturate(220%) brightness(1.08) contrast(1.03);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.25),
+    0 16px 40px -8px rgba(0, 0, 0, 0.45), 0 4px 12px -2px rgba(0, 0, 0, 0.25);
+  --surface-topbar-blur: blur(28px) saturate(190%) brightness(1.04) contrast(1.02);
   --surface-topbar-fallback: rgba(14, 15, 20, 0.96);
-  --surface-float-blur: blur(32px) saturate(220%) brightness(1.08) contrast(1.03); /* shared backdrop-filter */
-  /* Chromatic top rim — subtle RGB edge split (cool left, warm right) */
+  --surface-float-blur: blur(28px) saturate(190%) brightness(1.04) contrast(1.02); /* shared backdrop-filter */
+  /* Subtle chromatic top rim — restrained RGB dispersion */
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(160, 210, 255, 0.28) 0%,
-    rgba(220, 235, 255, 0.55) 30%,
-    rgba(255, 255, 255, 0.72) 50%,
-    rgba(255, 225, 250, 0.55) 70%,
-    rgba(255, 195, 240, 0.28) 100%
+    rgba(180, 215, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 215, 245, 0.12) 100%
   );
-  /* Bottom edge — dark rim (simulates the glass thickness / bottom face) */
+  /* Bottom edge — soft underside refraction shadow */
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.32) 20%,
-    rgba(0, 0, 0, 0.45) 50%,
-    rgba(0, 0, 0, 0.32) 80%,
+    rgba(0, 0, 0, 0.18) 25%,
+    rgba(0, 0, 0, 0.28) 50%,
+    rgba(0, 0, 0, 0.18) 75%,
     transparent 100%
   );
   /* Active lens pill — inner surface of a smaller glass object */
   --surface-glass-lens-bg: linear-gradient(
     150deg,
-    rgba(255, 255, 255, 0.38) 0%,
-    rgba(200, 225, 255, 0.18) 40%,
-    rgba(14, 15, 20, 0.08) 75%,
-    rgba(255, 255, 255, 0.12) 100%
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.06) 40%,
+    rgba(15, 17, 24, 0.12) 80%,
+    rgba(255, 255, 255, 0.08) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.48);
+  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.2);
   --surface-glass-lens-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.65), inset 0 0.5px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.28), 0 4px 12px rgba(0, 0, 0, 0.32);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.25);
   --surface-modal-bg: rgba(0, 0, 0, 0.6); /* sheet / modal scrim      */
 
   /* ── Semantic surface aliases ───────────────────────────────
@@ -1381,149 +1370,134 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
 /* Light-theme overrides */
 :root.light {
-  --surface-float-bg: rgba(255, 255, 255, 0.45);
+  --surface-float-bg: rgba(255, 255, 255, 0.55);
   --surface-topbar-bg: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.96) 0%,
-    rgba(248, 251, 255, 0.78) 30%,
-    rgba(238, 244, 255, 0.62) 65%,
-    rgba(255, 255, 255, 0.88) 100%
+    165deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.6) 40%,
+    rgba(242, 246, 252, 0.5) 80%,
+    rgba(255, 255, 255, 0.75) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.96);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.65);
   --surface-topbar-shadow:
-    inset 0 1.5px 0 0 rgba(255, 255, 255, 1), inset 0 0.5px 0 0 rgba(255, 255, 255, 1),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.06), inset 0 -0.5px 0 0 rgba(0, 0, 0, 0.04),
-    0 14px 36px -5px rgba(0, 0, 0, 0.13), 0 4px 12px -2px rgba(0, 0, 0, 0.07),
-    0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  --surface-topbar-blur: blur(32px) saturate(200%) brightness(1.05) contrast(1.02);
-  --surface-topbar-fallback: rgba(250, 250, 252, 0.98);
-  /* Chromatic top rim — white hot-spot with cool/warm fringes */
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
+    0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --surface-topbar-blur: blur(28px) saturate(180%) brightness(1.02) contrast(1.01);
+  --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
+  /* Chromatic top rim — soft diffuse edge */
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(195, 220, 255, 0.45) 0%,
-    rgba(230, 240, 255, 0.72) 30%,
-    rgba(255, 255, 255, 0.98) 50%,
-    rgba(255, 235, 252, 0.72) 70%,
-    rgba(255, 210, 248, 0.45) 100%
+    rgba(200, 225, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 225, 250, 0.2) 100%
   );
   /* Bottom edge — subtle warm shadow underside */
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.06) 20%,
-    rgba(0, 0, 0, 0.09) 50%,
-    rgba(0, 0, 0, 0.06) 80%,
+    rgba(0, 0, 0, 0.03) 25%,
+    rgba(0, 0, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0.03) 75%,
     transparent 100%
   );
   --surface-glass-lens-bg: linear-gradient(
     150deg,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(248, 251, 255, 0.9) 40%,
-    rgba(240, 245, 255, 0.78) 75%,
-    rgba(255, 255, 255, 0.92) 100%
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(245, 248, 255, 0.75) 50%,
+    rgba(255, 255, 255, 0.85) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 1);
+  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.9);
   --surface-glass-lens-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 1), inset 0 0.5px 0 rgba(255, 255, 255, 1),
-    inset 0 -1px 1.5px rgba(0, 0, 0, 0.06), 0 3px 10px rgba(0, 0, 0, 0.08);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
+    0 3px 10px rgba(0, 0, 0, 0.06);
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
 }
 
 /* AMOLED overrides — slightly higher alpha so bars stay
    visible against pure-black (#000) backgrounds.           */
 :root.amoled {
-  --surface-float-bg: rgba(0, 0, 0, 0.38);
+  --surface-float-bg: rgba(0, 0, 0, 0.45);
   --surface-topbar-bg: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(190, 210, 255, 0.05) 20%,
-    rgba(0, 0, 0, 0.82) 55%,
-    rgba(10, 10, 18, 0.65) 85%,
-    rgba(255, 255, 255, 0.07) 100%
+    165deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 25%,
+    rgba(0, 0, 0, 0.55) 60%,
+    rgba(8, 8, 12, 0.42) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.28);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.14);
   --surface-topbar-shadow:
-    inset 0 1.5px 0 0 rgba(255, 255, 255, 0.58), inset 0 0.5px 0 0 rgba(255, 255, 255, 0.85),
-    inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.72), inset 0 -0.5px 0 0 rgba(0, 0, 0, 0.5),
-    0 22px 56px -8px rgba(0, 0, 0, 0.82), 0 6px 18px -3px rgba(0, 0, 0, 0.55),
-    0 1px 4px 0 rgba(0, 0, 0, 0.38);
-  --surface-topbar-blur: blur(32px) saturate(220%) brightness(1.08) contrast(1.03);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4),
+    0 18px 48px -8px rgba(0, 0, 0, 0.7), 0 4px 14px -2px rgba(0, 0, 0, 0.4);
+  --surface-topbar-blur: blur(28px) saturate(190%) brightness(1.04) contrast(1.02);
   --surface-topbar-fallback: rgba(0, 0, 0, 0.98);
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(155, 205, 255, 0.32) 0%,
-    rgba(215, 230, 255, 0.58) 30%,
-    rgba(255, 255, 255, 0.78) 50%,
-    rgba(255, 220, 248, 0.58) 70%,
-    rgba(255, 190, 238, 0.32) 100%
+    rgba(180, 215, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.32) 50%,
+    rgba(255, 215, 245, 0.12) 100%
   );
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.42) 20%,
-    rgba(0, 0, 0, 0.58) 50%,
-    rgba(0, 0, 0, 0.42) 80%,
+    rgba(0, 0, 0, 0.25) 25%,
+    rgba(0, 0, 0, 0.4) 50%,
+    rgba(0, 0, 0, 0.25) 75%,
     transparent 100%
   );
   --surface-glass-lens-bg: linear-gradient(
     150deg,
-    rgba(255, 255, 255, 0.34) 0%,
-    rgba(190, 218, 255, 0.15) 40%,
-    rgba(0, 0, 0, 0.06) 75%,
-    rgba(255, 255, 255, 0.1) 100%
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(0, 0, 0, 0.15) 80%,
+    rgba(255, 255, 255, 0.07) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.44);
+  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.2);
   --surface-glass-lens-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.68), inset 0 0.5px 0 rgba(255, 255, 255, 0.92),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.38), 0 4px 14px rgba(0, 0, 0, 0.48);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.3),
+    0 4px 14px rgba(0, 0, 0, 0.35);
   --surface-modal-bg: rgba(0, 0, 0, 0.75);
 }
 
 /* Light + AMOLED (pure-white) — inherits from :root.light, just ensure bottom-rim */
 :root.light.amoled {
-  --surface-float-bg: rgba(255, 255, 255, 0.45);
+  --surface-float-bg: rgba(255, 255, 255, 0.55);
   --surface-topbar-bg: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.96) 0%,
-    rgba(248, 251, 255, 0.78) 30%,
-    rgba(238, 244, 255, 0.62) 65%,
-    rgba(255, 255, 255, 0.88) 100%
+    165deg,
+    rgba(255, 255, 255, 0.85) 0%,
+    rgba(255, 255, 255, 0.6) 40%,
+    rgba(242, 246, 252, 0.5) 80%,
+    rgba(255, 255, 255, 0.75) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.96);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.65);
   --surface-topbar-shadow:
-    inset 0 1.5px 0 0 rgba(255, 255, 255, 1), inset 0 0.5px 0 0 rgba(255, 255, 255, 1),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.06), inset 0 -0.5px 0 0 rgba(0, 0, 0, 0.04),
-    0 14px 36px -5px rgba(0, 0, 0, 0.13), 0 4px 12px -2px rgba(0, 0, 0, 0.07),
-    0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  --surface-topbar-blur: blur(32px) saturate(200%) brightness(1.05) contrast(1.02);
-  --surface-topbar-fallback: rgba(250, 250, 252, 0.98);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
+    0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
+  --surface-topbar-blur: blur(28px) saturate(180%) brightness(1.02) contrast(1.01);
+  --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(195, 220, 255, 0.45) 0%,
-    rgba(230, 240, 255, 0.72) 30%,
-    rgba(255, 255, 255, 0.98) 50%,
-    rgba(255, 235, 252, 0.72) 70%,
-    rgba(255, 210, 248, 0.45) 100%
+    rgba(200, 225, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 225, 250, 0.2) 100%
   );
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.06) 20%,
-    rgba(0, 0, 0, 0.09) 50%,
-    rgba(0, 0, 0, 0.06) 80%,
+    rgba(0, 0, 0, 0.03) 25%,
+    rgba(0, 0, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0.03) 75%,
     transparent 100%
   );
   --surface-glass-lens-bg: linear-gradient(
     150deg,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(248, 251, 255, 0.9) 40%,
-    rgba(240, 245, 255, 0.78) 75%,
-    rgba(255, 255, 255, 0.92) 100%
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(245, 248, 255, 0.75) 50%,
+    rgba(255, 255, 255, 0.85) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 1);
+  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.9);
   --surface-glass-lens-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 1), inset 0 0.5px 0 rgba(255, 255, 255, 1),
-    inset 0 -1px 1.5px rgba(0, 0, 0, 0.06), 0 3px 10px rgba(0, 0, 0, 0.08);
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
+    0 3px 10px rgba(0, 0, 0, 0.06);
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
 }
 

@@ -63,21 +63,6 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         {...motionProps}
         {...props}
       >
-        {rim && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 12,
-              right: 12,
-              height: '1px',
-              background:
-                'var(--surface-glass-rim, linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent))',
-              pointerEvents: 'none',
-              opacity: 0.7,
-            }}
-          />
-        )}
         {children}
       </Component>
     );
@@ -158,21 +143,6 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
         {...motionProps}
         {...props}
       >
-        {/* Top Specular Rim */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 12,
-            right: 12,
-            height: '1px',
-            background:
-              'var(--surface-glass-rim, linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent))',
-            pointerEvents: 'none',
-            opacity: 0.6,
-          }}
-        />
-
         {/* Ambient Glow */}
         {accentGlow && (
           <div

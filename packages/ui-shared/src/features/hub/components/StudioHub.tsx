@@ -1307,37 +1307,15 @@ export default function StudioHub() {
                           whileTap={{ scale: 0.94 }}
                           transition={{ type: 'spring', stiffness: 420, damping: 25 }}
                           style={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 14,
-                            background: 'var(--surface-topbar-bg)',
-                            border: 'var(--surface-topbar-border)',
-                            backdropFilter: 'var(--surface-topbar-blur)',
-                            WebkitBackdropFilter: 'var(--surface-topbar-blur)',
-                            boxShadow: 'var(--surface-topbar-shadow)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
                             marginLeft: 16,
-                            position: 'relative',
-                            overflow: 'hidden',
+                            cursor: 'pointer',
                           }}
                         >
-                          {/* Chromatic Top Specular Highlight Rim */}
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              left: 4,
-                              right: 4,
-                              height: '1px',
-                              background: 'var(--surface-glass-rim)',
-                              pointerEvents: 'none',
-                              opacity: 0.85,
-                            }}
-                          />
-                          <StudioLogo size={26} />
+                          <StudioLogo size={32} />
                         </motion.div>
                       </div>
 
@@ -1769,36 +1747,6 @@ export default function StudioHub() {
                               }}
                               className="sc-module-card group"
                             >
-                              {/* Chromatic Top Specular Highlight Rim */}
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  top: 0,
-                                  left: 16,
-                                  right: 16,
-                                  height: '1px',
-                                  background: 'var(--surface-glass-rim)',
-                                  pointerEvents: 'none',
-                                  opacity: 0.6,
-                                }}
-                              />
-
-                              {/* Ambient colored soft glow */}
-                              <div
-                                style={{
-                                  position: 'absolute',
-                                  top: -24,
-                                  right: -24,
-                                  width: 90,
-                                  height: 90,
-                                  borderRadius: '50%',
-                                  background: color,
-                                  opacity: isLight ? 0.06 : 0.1,
-                                  filter: 'blur(20px)',
-                                  pointerEvents: 'none',
-                                }}
-                              />
-
                               <div
                                 style={{
                                   display: 'flex',
@@ -3040,6 +2988,11 @@ function HubSettings({
   renderDevToast?: () => React.ReactNode;
 }) {
   const settings = useSettingsStore((state) => state.settings);
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
   const updater = useAppUpdate();
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const updatePerApp = useSettingsStore((state) => state.updatePerApp);

@@ -225,31 +225,18 @@ export function SharedFloatingHeader({
           overflow: 'hidden',
         }}
       >
-        {/* Chromatic Top Specular Highlight Rim */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: '16px',
-            right: '16px',
-            height: '1px',
-            background: 'var(--surface-glass-rim)',
-            pointerEvents: 'none',
-            opacity: 0.9,
-          }}
-        />
-        {/* Upper Fresnel Specular Highlight Rim */}
+        {/* Subtle Upper Specular Response */}
         <div
           style={{
             position: 'absolute',
             top: 0,
             left: 0,
             right: 0,
-            height: '50%',
+            height: '40%',
             borderRadius: '24px 24px 0 0',
             background: isLight
-              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%)'
-              : 'linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 100%)',
+              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0) 100%)'
+              : 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%)',
             pointerEvents: 'none',
           }}
         />
@@ -294,19 +281,6 @@ export function SharedFloatingHeader({
             overflow: 'hidden',
           }}
         >
-          {/* Top Specular Rim */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: '4px',
-              right: '4px',
-              height: '1px',
-              background: 'var(--surface-glass-rim)',
-              pointerEvents: 'none',
-              opacity: 0.9,
-            }}
-          />
           <span className="material-symbols-rounded" style={{ fontSize: 18, lineHeight: 1 }}>
             arrow_back
           </span>

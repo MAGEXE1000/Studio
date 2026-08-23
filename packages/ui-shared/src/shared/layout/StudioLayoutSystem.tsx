@@ -168,196 +168,152 @@ export function SharedFloatingHeader({
   titleRef,
   headerProgress,
 }: SharedFloatingHeaderProps) {
-  const { isLargeScreen } = useLayoutMetrics();
-  const sideMargin = isLargeScreen ? '20%' : '12%';
-
   // Read current theme to apply warm tinted translucency
   const settings = useSettingsStore((s) => s.settings);
   const isLight = settings.theme === 'light';
 
-  const defaultProgress = useMotionValue(1);
-  const progress = headerProgress ?? defaultProgress;
-
-  const bgOpacity = useTransform(progress, [0, 1], [0, 1]);
-  const titleOpacity = useTransform(progress, [0, 1], [0, 1]);
-
   return (
-    <div
+    <header
+      ref={headerBgRef}
       style={{
         position: 'absolute',
-        top: 'calc(env(safe-area-inset-top, 0px) * 0.70)',
+        top: 0,
         left: 0,
         right: 0,
-        height: 48,
+        height: 'calc(env(safe-area-inset-top, 0px) + 52px)',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        paddingLeft: '16px',
+        paddingRight: '16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 110,
-        pointerEvents: 'none',
-        padding: '0 16px',
+        background: 'var(--surface-topbar-bg)',
+        borderBottom: 'var(--surface-topbar-border)',
+        backdropFilter: 'var(--surface-topbar-blur)',
+        WebkitBackdropFilter: 'var(--surface-topbar-blur)',
+        boxShadow: 'var(--surface-topbar-shadow)',
+        boxSizing: 'border-box',
+        pointerEvents: 'auto',
       }}
     >
-      {/* Floating rounded capsule header card with production liquid-glass material and fluid entrance */}
-      <motion.div
-        ref={headerBgRef}
-        initial={{ opacity: 0, y: -10, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1], delay: 0.02 }}
+      {/* Subtle Specular Top Curvature Response */}
+      <div
         style={{
           position: 'absolute',
           top: 0,
-          left: sideMargin,
-          right: sideMargin,
-          bottom: 0,
-          background: 'var(--surface-topbar-bg)',
-          borderRadius: '24px',
-          border: 'var(--surface-topbar-border)',
-          backdropFilter: 'var(--surface-topbar-blur)',
-          WebkitBackdropFilter: 'var(--surface-topbar-blur)',
-          boxShadow: 'var(--surface-topbar-shadow)',
-          opacity: bgOpacity,
-          pointerEvents: 'auto',
-          zIndex: -1,
-          transform: 'translateZ(0)',
-          willChange: 'transform, opacity',
-          backfaceVisibility: 'hidden',
-          contain: 'layout paint',
-          overflow: 'hidden',
+          left: 0,
+          right: 0,
+          height: '40%',
+          background: isLight
+            ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0) 100%)'
+            : 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%)',
+          pointerEvents: 'none',
         }}
-      >
-        {/* Subtle Upper Specular Response */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '40%',
-            borderRadius: '24px 24px 0 0',
-            background: isLight
-              ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.20) 0%, rgba(255, 255, 255, 0) 100%)'
-              : 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 100%)',
-            pointerEvents: 'none',
-          }}
-        />
-      </motion.div>
+      />
 
       {/* Left Back Action Button Layer */}
       {onBack && !hideBack && (
         <motion.button
+          type="button"
           onClick={onBack}
           aria-label="Go back"
           whileTap={{ scale: 0.92 }}
           whileHover={{ scale: 1.05 }}
-          transition={{ type: 'spring', stiffness: 440, damping: 26 }}
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
+          transition={SpringPresets.soft}
           style={{
             position: 'absolute',
-            left: `calc(${sideMargin} + 8px)`,
-            top: 0,
-            bottom: 0,
-            margin: 'auto 0',
-            width: 32,
-            height: 32,
+            left: 16,
+            top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+            width: 36,
+            height: 36,
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.10)',
+            background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.08)',
             border: isLight
-              ? '1px solid rgba(0, 0, 0, 0.08)'
-              : '1px solid rgba(255, 255, 255, 0.20)',
+              ? '1px solid rgba(0, 0, 0, 0.06)'
+              : '1px solid rgba(255, 255, 255, 0.12)',
             boxShadow: isLight
-              ? 'inset 0 1px 1px rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.04)'
-              : 'inset 0 1px 1px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.25)',
+              ? 'inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 3px rgba(0, 0, 0, 0.03)'
+              : 'inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 2px 6px rgba(0, 0, 0, 0.20)',
             color: 'var(--c-text-primary)',
             cursor: 'pointer',
             zIndex: 2,
             pointerEvents: 'auto',
             outline: 'none',
             WebkitTapHighlightColor: 'transparent',
-            opacity: titleOpacity,
-            overflow: 'hidden',
           }}
         >
-          <span className="material-symbols-rounded" style={{ fontSize: 18, lineHeight: 1 }}>
-            arrow_back
-          </span>
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ display: 'block' }}
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
         </motion.button>
       )}
 
-      {/* Absolute Centered Section Title Layer (Centered against capsule bounds) */}
-      <motion.div
+      {/* Absolute Centered Section Title */}
+      <div
         ref={titleRef}
-        initial={{ opacity: 0, y: 4 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1], delay: 0.03 }}
         style={{
           position: 'absolute',
-          left: sideMargin,
-          right: sideMargin,
-          top: 0,
+          left: onBack && !hideBack ? 56 : 16,
+          right: toolbarActions ? 56 : 16,
+          top: 'env(safe-area-inset-top, 0px)',
           bottom: 0,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           pointerEvents: 'none',
-          padding:
-            onBack && !hideBack
-              ? toolbarActions
-                ? '0 52px'
-                : '0 16px 0 52px'
-              : toolbarActions
-                ? '0 52px 0 16px'
-                : '0 20px',
           zIndex: 1,
-          opacity: titleOpacity,
         }}
       >
         <span
           style={{
             fontSize: '16px',
-            fontWeight: 800,
+            fontWeight: 750,
             color: 'var(--c-text-primary)',
-            letterSpacing: '-0.02em',
+            letterSpacing: '-0.015em',
             fontFamily: 'Manrope, sans-serif',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             textAlign: 'center',
             maxWidth: '100%',
-            pointerEvents: 'auto',
-            textShadow: isLight ? 'none' : '0 1px 2px rgba(0, 0, 0, 0.50)',
           }}
         >
           {title}
         </span>
-      </motion.div>
+      </div>
 
       {/* Right Toolbar Actions Layer */}
       {toolbarActions && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1], delay: 0.04 }}
+        <div
           style={{
             position: 'absolute',
-            right: `calc(${sideMargin} + 12px)`,
-            top: 0,
-            bottom: 0,
+            right: 16,
+            top: 'calc(env(safe-area-inset-top, 0px) + 8px)',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
             zIndex: 2,
             pointerEvents: 'auto',
-            opacity: titleOpacity,
           }}
         >
           {toolbarActions}
-        </motion.div>
+        </div>
       )}
-    </div>
+    </header>
   );
 }
 
@@ -367,21 +323,12 @@ export function SettingsScaffold({
   toolbarActions,
   children,
   hideBack,
-  showLargeTitle = true,
+  showLargeTitle = false,
 }: SettingsScaffoldProps & { showLargeTitle?: boolean }) {
   const scrollRef = React.useRef<HTMLDivElement | null>(null);
   const headerBgRef = React.useRef<HTMLDivElement | null>(null);
   const titleRef = React.useRef<HTMLDivElement | null>(null);
   const largeTitleRef = React.useRef<HTMLHeadingElement | null>(null);
-
-  const scrollYRaw = useMotionValue(0);
-  const headerProgress = useTransform(scrollYRaw, [8, 48], [0, 1], { clamp: true });
-  const largeTitleOpacity = useTransform(headerProgress, [0, 0.7], [1, 0]);
-  const largeTitleY = useTransform(headerProgress, [0, 1], [0, -6]);
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    scrollYRaw.set(e.currentTarget.scrollTop);
-  };
 
   return (
     <div
@@ -406,13 +353,11 @@ export function SettingsScaffold({
         toolbarActions={toolbarActions}
         headerBgRef={headerBgRef}
         titleRef={titleRef}
-        headerProgress={headerProgress}
       />
 
-      {/* Continuous Scrolling View */}
+      {/* Continuous Scrolling View with safe area top and bottom insets */}
       <div
         ref={scrollRef}
-        onScroll={handleScroll}
         style={{
           flex: 1,
           overflowY: 'auto',
@@ -420,7 +365,7 @@ export function SettingsScaffold({
           WebkitOverflowScrolling: 'touch',
           boxSizing: 'border-box',
           padding: '0',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 64px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
         }}
         className="no-scrollbar"
@@ -437,24 +382,19 @@ export function SettingsScaffold({
             paddingRight: 'var(--page-inset-h)',
           }}
         >
-          {/* Large scrolling title crossfades into floating header pill on scroll */}
           {showLargeTitle && (
-            <motion.div
+            <div
               ref={largeTitleRef}
-              initial={{ opacity: 0, y: 12, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: 0.02 }}
               style={{
-                opacity: largeTitleOpacity,
-                y: largeTitleY,
                 width: '100%',
+                marginBottom: '16px',
               }}
             >
               <StudioHeader
                 title={title}
-                containerStyle={{ paddingTop: 'var(--space-6)', paddingLeft: 0, paddingRight: 0 }}
+                containerStyle={{ paddingTop: '8px', paddingLeft: 0, paddingRight: 0 }}
               />
-            </motion.div>
+            </div>
           )}
 
           {/* Content Canvas */}

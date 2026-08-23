@@ -2663,32 +2663,6 @@ export function AccountSettingsPage({
               overflow: 'hidden',
             }}
           >
-            {/* Top Specular Rim */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 12,
-                right: 12,
-                height: '1px',
-                background: 'var(--surface-glass-rim)',
-                pointerEvents: 'none',
-                opacity: 0.6,
-              }}
-            />
-            {/* Accent Glow */}
-            <div
-              style={{
-                position: 'absolute',
-                top: -20,
-                right: -20,
-                width: 70,
-                height: 70,
-                borderRadius: '50%',
-                background: 'rgba(244, 63, 94, 0.15)',
-                filter: 'blur(16px)',
-              }}
-            />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div
                 style={{
@@ -2759,30 +2733,6 @@ export function AccountSettingsPage({
               overflow: 'hidden',
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 12,
-                right: 12,
-                height: '1px',
-                background: 'var(--surface-glass-rim)',
-                pointerEvents: 'none',
-                opacity: 0.6,
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                top: -20,
-                right: -20,
-                width: 70,
-                height: 70,
-                borderRadius: '50%',
-                background: 'rgba(16, 185, 129, 0.15)',
-                filter: 'blur(16px)',
-              }}
-            />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div
                 style={{
@@ -2853,30 +2803,6 @@ export function AccountSettingsPage({
               overflow: 'hidden',
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 12,
-                right: 12,
-                height: '1px',
-                background: 'var(--surface-glass-rim)',
-                pointerEvents: 'none',
-                opacity: 0.6,
-              }}
-            />
-            <div
-              style={{
-                position: 'absolute',
-                top: -20,
-                right: -20,
-                width: 70,
-                height: 70,
-                borderRadius: '50%',
-                background: 'rgba(245, 158, 11, 0.15)',
-                filter: 'blur(16px)',
-              }}
-            />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div
                 style={{
@@ -2956,40 +2882,6 @@ export function AccountSettingsPage({
               outline: 'none',
             }}
           >
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 12,
-                right: 12,
-                height: '1px',
-                background: 'var(--surface-glass-rim)',
-                pointerEvents: 'none',
-                opacity: 0.6,
-              }}
-            />
-            {/* Sync Status Glow */}
-            <div
-              style={{
-                position: 'absolute',
-                top: -20,
-                right: -20,
-                width: 70,
-                height: 70,
-                borderRadius: '50%',
-                background: `${
-                  isSyncing
-                    ? accent.from
-                    : sync.phase === 'error'
-                      ? '#ff6b6b'
-                      : settings.syncAcrossDevices &&
-                          (sync.phase === 'success' || sync.lastSyncedMs != null)
-                        ? '#10b981'
-                        : 'var(--c-text-secondary)'
-                }20`,
-                filter: 'blur(16px)',
-              }}
-            />
             <div
               style={{
                 display: 'flex',

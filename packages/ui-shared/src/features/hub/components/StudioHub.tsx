@@ -3302,7 +3302,12 @@ function HubSettings({
     }
     snapshotScroll(page);
     pendingRestoreRef.current = 'main';
-    NavigationDispatcher.pop();
+    const store = useNavigationStore.getState();
+    if (store.history.length > 1) {
+      NavigationDispatcher.pop();
+    } else {
+      NavigationDispatcher.replace({ app: 'hub', tab: 'settings', page: 'main' });
+    }
   };
 
   const goBackRef = useRef(goBack);
@@ -7997,7 +8002,12 @@ function HubHelp({
   const goBack = () => {
     if (scrollRef.current) pageScrollPositions.current[page] = scrollRef.current.scrollTop;
     pendingRestoreRef.current = 'main';
-    NavigationDispatcher.pop();
+    const store = useNavigationStore.getState();
+    if (store.history.length > 1) {
+      NavigationDispatcher.pop();
+    } else {
+      NavigationDispatcher.replace({ app: 'hub', tab: 'settings', page: 'main' });
+    }
   };
 
   useEffect(() => {

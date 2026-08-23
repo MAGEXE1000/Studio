@@ -1309,55 +1309,42 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --font-display-lg: 36px; /* full-hero titles (player, lab)      */
 
   /* ── Floating-surface tokens — dark (default) ───────────── */
-  --surface-float-bg: rgba(18, 20, 28, 0.35); /* bottom nav / pill bar — realistic optical glass */
+  --surface-float-bg: rgba(22, 24, 34, 0.42); /* clean translucent optical glass */
   --surface-topbar-bg: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(12, 14, 20, 0.38) 60%,
-    rgba(18, 20, 28, 0.28) 100%
+    180deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(20, 22, 30, 0.35) 100%
   );
-  /* Outer border: soft micro-specular rim */
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.12);
-  /* Layered physical glass shadows:
-     1. Inset top — soft subtle specular highlight
-     2. Inset bottom — subtle depth underside
-     3. Outer ambient — wide soft elevation lift
-     4. Outer contact — close surface depth */
+  /* Outer border: soft, low-contrast translucent rim */
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.08);
+  /* Natural depth separation */
   --surface-topbar-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.18), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.25),
-    0 16px 40px -8px rgba(0, 0, 0, 0.45), 0 4px 12px -2px rgba(0, 0, 0, 0.25);
-  --surface-topbar-blur: blur(28px) saturate(190%) brightness(1.04) contrast(1.02);
+    0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 2px 8px -2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+  --surface-topbar-blur: blur(24px) saturate(180%);
   --surface-topbar-fallback: rgba(14, 15, 20, 0.96);
-  --surface-float-blur: blur(28px) saturate(190%) brightness(1.04) contrast(1.02); /* shared backdrop-filter */
-  /* Subtle chromatic top rim — restrained RGB dispersion */
+  --surface-float-blur: blur(24px) saturate(180%); /* shared backdrop-filter */
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(180, 215, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 215, 245, 0.12) 100%
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 100%
   );
-  /* Bottom edge — soft underside refraction shadow */
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.18) 25%,
-    rgba(0, 0, 0, 0.28) 50%,
-    rgba(0, 0, 0, 0.18) 75%,
+    rgba(0, 0, 0, 0.12) 50%,
     transparent 100%
   );
-  /* Active lens pill — inner surface of a smaller glass object */
+  /* Active lens pill — clean translucent inner glass */
   --surface-glass-lens-bg: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.16) 0%,
-    rgba(255, 255, 255, 0.06) 40%,
-    rgba(15, 17, 24, 0.12) 80%,
-    rgba(255, 255, 255, 0.08) 100%
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.04) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.2);
+  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.14);
   --surface-glass-lens-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.18),
-    0 4px 12px rgba(0, 0, 0, 0.25);
+    0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   --surface-modal-bg: rgba(0, 0, 0, 0.6); /* sheet / modal scrim      */
 
   /* ── Semantic surface aliases ───────────────────────────────
@@ -1370,134 +1357,111 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
 
 /* Light-theme overrides */
 :root.light {
-  --surface-float-bg: rgba(255, 255, 255, 0.55);
+  --surface-float-bg: rgba(255, 255, 255, 0.65);
   --surface-topbar-bg: linear-gradient(
-    165deg,
+    180deg,
     rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.6) 40%,
-    rgba(242, 246, 252, 0.5) 80%,
-    rgba(255, 255, 255, 0.75) 100%
+    rgba(245, 247, 252, 0.6) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.65);
+  --surface-topbar-border: 1px solid rgba(0, 0, 0, 0.06);
   --surface-topbar-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
-    0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
-  --surface-topbar-blur: blur(28px) saturate(180%) brightness(1.02) contrast(1.01);
+    0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --surface-topbar-blur: blur(24px) saturate(170%);
   --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
-  /* Chromatic top rim — soft diffuse edge */
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(200, 225, 255, 0.2) 0%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 225, 250, 0.2) 100%
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.3) 100%
   );
-  /* Bottom edge — subtle warm shadow underside */
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.03) 25%,
-    rgba(0, 0, 0, 0.05) 50%,
-    rgba(0, 0, 0, 0.03) 75%,
+    rgba(0, 0, 0, 0.03) 50%,
     transparent 100%
   );
   --surface-glass-lens-bg: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(245, 248, 255, 0.75) 50%,
-    rgba(255, 255, 255, 0.85) 100%
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(240, 244, 252, 0.75) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.9);
-  --surface-glass-lens-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
-    0 3px 10px rgba(0, 0, 0, 0.06);
+  --surface-glass-lens-border: 1px solid rgba(0, 0, 0, 0.06);
+  --surface-glass-lens-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1);
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
 }
 
 /* AMOLED overrides — slightly higher alpha so bars stay
    visible against pure-black (#000) backgrounds.           */
 :root.amoled {
-  --surface-float-bg: rgba(0, 0, 0, 0.45);
+  --surface-float-bg: rgba(12, 12, 16, 0.55);
   --surface-topbar-bg: linear-gradient(
-    165deg,
+    180deg,
     rgba(255, 255, 255, 0.08) 0%,
-    rgba(255, 255, 255, 0.02) 25%,
-    rgba(0, 0, 0, 0.55) 60%,
-    rgba(8, 8, 12, 0.42) 100%
+    rgba(8, 8, 12, 0.5) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.14);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.1);
   --surface-topbar-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4),
-    0 18px 48px -8px rgba(0, 0, 0, 0.7), 0 4px 14px -2px rgba(0, 0, 0, 0.4);
-  --surface-topbar-blur: blur(28px) saturate(190%) brightness(1.04) contrast(1.02);
+    0 12px 36px -6px rgba(0, 0, 0, 0.6), 0 3px 10px -2px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  --surface-topbar-blur: blur(24px) saturate(180%);
   --surface-topbar-fallback: rgba(0, 0, 0, 0.98);
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(180, 215, 255, 0.12) 0%,
-    rgba(255, 255, 255, 0.32) 50%,
-    rgba(255, 215, 245, 0.12) 100%
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0.04) 100%
   );
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.25) 25%,
-    rgba(0, 0, 0, 0.4) 50%,
-    rgba(0, 0, 0, 0.25) 75%,
+    rgba(0, 0, 0, 0.18) 50%,
     transparent 100%
   );
   --surface-glass-lens-bg: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.04) 40%,
-    rgba(0, 0, 0, 0.15) 80%,
-    rgba(255, 255, 255, 0.07) 100%
+    180deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(0, 0, 0, 0.2) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.2);
+  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.12);
   --surface-glass-lens-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.3),
-    0 4px 14px rgba(0, 0, 0, 0.35);
+    0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
   --surface-modal-bg: rgba(0, 0, 0, 0.75);
 }
 
 /* Light + AMOLED (pure-white) — inherits from :root.light, just ensure bottom-rim */
 :root.light.amoled {
-  --surface-float-bg: rgba(255, 255, 255, 0.55);
+  --surface-float-bg: rgba(255, 255, 255, 0.65);
   --surface-topbar-bg: linear-gradient(
-    165deg,
+    180deg,
     rgba(255, 255, 255, 0.85) 0%,
-    rgba(255, 255, 255, 0.6) 40%,
-    rgba(242, 246, 252, 0.5) 80%,
-    rgba(255, 255, 255, 0.75) 100%
+    rgba(245, 247, 252, 0.6) 100%
   );
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.65);
+  --surface-topbar-border: 1px solid rgba(0, 0, 0, 0.06);
   --surface-topbar-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
-    0 12px 32px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
-  --surface-topbar-blur: blur(28px) saturate(180%) brightness(1.02) contrast(1.01);
+    0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --surface-topbar-blur: blur(24px) saturate(170%);
   --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
   --surface-glass-rim: linear-gradient(
     90deg,
-    rgba(200, 225, 255, 0.2) 0%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 225, 250, 0.2) 100%
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.7) 50%,
+    rgba(255, 255, 255, 0.3) 100%
   );
   --surface-glass-bottom-rim: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(0, 0, 0, 0.03) 25%,
-    rgba(0, 0, 0, 0.05) 50%,
-    rgba(0, 0, 0, 0.03) 75%,
+    rgba(0, 0, 0, 0.03) 50%,
     transparent 100%
   );
   --surface-glass-lens-bg: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(245, 248, 255, 0.75) 50%,
-    rgba(255, 255, 255, 0.85) 100%
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(240, 244, 252, 0.75) 100%
   );
-  --surface-glass-lens-border: 1px solid rgba(255, 255, 255, 0.9);
-  --surface-glass-lens-shadow:
-    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 1.5px 0 rgba(0, 0, 0, 0.04),
-    0 3px 10px rgba(0, 0, 0, 0.06);
+  --surface-glass-lens-border: 1px solid rgba(0, 0, 0, 0.06);
+  --surface-glass-lens-shadow: 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 1);
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
 }
 

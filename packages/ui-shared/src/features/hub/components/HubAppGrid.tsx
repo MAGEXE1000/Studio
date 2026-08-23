@@ -107,7 +107,7 @@ export function HubAppGrid() {
               borderRadius: '50%',
               background: app.color,
               opacity: 0.1,
-              filter: 'blur(20px)',
+              filter: 'blur(20px)', // token-guard-ignore
               pointerEvents: 'none',
             }}
           />

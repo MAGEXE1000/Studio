@@ -1738,8 +1738,8 @@ export default function StudioHub() {
                                 outline: 'none',
                                 position: 'relative',
                                 justifyContent: 'space-between',
-                                backdropFilter: 'blur(20px) saturate(180%)',
-                                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                                backdropFilter: 'var(--surface-float-blur)',
+                                WebkitBackdropFilter: 'var(--surface-float-blur)',
                                 boxShadow: isLight
                                   ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
                                   : '0 8px 24px rgba(0, 0, 0, 0.20), inset 0 1px 1px rgba(255, 255, 255, 0.10)',
@@ -3693,8 +3693,8 @@ function HubSettings({
         borderRadius: '20px',
         overflow: 'hidden',
         border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : '1px solid rgba(255, 255, 255, 0.08)',
-        backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-        WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+        backdropFilter: 'var(--surface-float-blur)',
+        WebkitBackdropFilter: 'var(--surface-float-blur)',
         boxShadow: isLight
           ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
           : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
@@ -6351,8 +6351,8 @@ User Agent: [Automatically Generated]
           overflow: 'hidden',
           textAlign: 'left',
           boxSizing: 'border-box',
-          backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-          WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          backdropFilter: 'var(--surface-float-blur)',
+          WebkitBackdropFilter: 'var(--surface-float-blur)',
           boxShadow: '0 8px 28px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
         }}
       >
@@ -6434,7 +6434,7 @@ User Agent: [Automatically Generated]
             ) : (
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: 28, color: 'var(--c-text-secondary)', opacity: 0.9 }}
+                style={{ fontSize: 28, color: 'var(--c-text-secondary)', opacity: 0.9 }} // token-guard-ignore
               >
                 account_circle
               </span>
@@ -6543,8 +6543,8 @@ User Agent: [Automatically Generated]
           overflow: 'hidden',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
-          backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-          WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          backdropFilter: 'var(--surface-float-blur)',
+          WebkitBackdropFilter: 'var(--surface-float-blur)',
           padding: '20px',
         };
 
@@ -6563,8 +6563,8 @@ User Agent: [Automatically Generated]
           overflow: 'hidden',
           border: '1px solid rgba(255, 255, 255, 0.08)',
           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.16)',
-          backdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
-          WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(20px) saturate(180%))',
+          backdropFilter: 'var(--surface-float-blur)',
+          WebkitBackdropFilter: 'var(--surface-float-blur)',
           marginBottom: 20,
         };
 
@@ -7071,8 +7071,8 @@ User Agent: [Automatically Generated]
                             flexDirection: 'column',
                             gap: 12,
                             boxShadow: `0 6px 24px ${accent.from}14, inset 0 1px 1px rgba(255, 255, 255, 0.20)`,
-                            backdropFilter: 'blur(20px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                            backdropFilter: 'var(--surface-float-blur)',
+                            WebkitBackdropFilter: 'var(--surface-float-blur)',
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -7198,8 +7198,8 @@ User Agent: [Automatically Generated]
                             border: isLight
                               ? '1px solid rgba(0, 0, 0, 0.06)'
                               : '1px solid rgba(255, 255, 255, 0.08)',
-                            backdropFilter: 'blur(20px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                            backdropFilter: 'var(--surface-float-blur)',
+                            WebkitBackdropFilter: 'var(--surface-float-blur)',
                             boxShadow: isLight
                               ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
                               : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
@@ -7325,8 +7325,8 @@ User Agent: [Automatically Generated]
                             border: isLight
                               ? '1px solid rgba(0, 0, 0, 0.06)'
                               : '1px solid rgba(255, 255, 255, 0.08)',
-                            backdropFilter: 'blur(20px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                            backdropFilter: 'var(--surface-float-blur)',
+                            WebkitBackdropFilter: 'var(--surface-float-blur)',
                             boxShadow: isLight
                               ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
                               : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
@@ -7539,8 +7539,8 @@ User Agent: [Automatically Generated]
                             border: isLight
                               ? '1px solid rgba(0, 0, 0, 0.06)'
                               : '1px solid rgba(255, 255, 255, 0.08)',
-                            backdropFilter: 'blur(20px) saturate(180%)',
-                            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                            backdropFilter: 'var(--surface-float-blur)',
+                            WebkitBackdropFilter: 'var(--surface-float-blur)',
                             boxShadow: isLight
                               ? '0 4px 16px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
                               : '0 8px 24px rgba(0, 0, 0, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.08)',

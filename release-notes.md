@@ -1,17 +1,11 @@
-# Version 4.5.37
+# Version 4.5.38
 
-Release Date: 2026-08-22
-
-### Fixed
-
-- Resolved Settings sub-pages navigation bug (Appearance, Help & Support, Report a Bug, Updater) where font ligature failure caused back icons to render as clipped text `"w_b"`, back button opacity was tied to scroll position, and isolated floating capsule obscured page titles.
-- Rebuilt SharedFloatingHeader and SettingsScaffold with a full-width integrated Liquid Glass top bar, centered title, robust SVG vector back chevron, and proper top scroll padding.
-- Hardened navigation stack handling in HubSettings and HubHelp to safely return to Settings root.
+Release Date: 2026-08-23
 
 ### Added
 
-- Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.
-- Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.
-- Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.
-- Matched separate Search and App Switcher action buttons to 58px / 26px radius with identical optical glass material and horizontal baseline alignment.
-- Polished Profile Bento metric cards (Favorites, Progressions, Presets, Sync) by removing artificial 1px hard rim lines and colored background halos.
+- Implemented true floating glass top bar on Android Settings child screens (Appearance, Help & Support, FAQ, Updater, About, Privacy, Terms, Licenses, Bug Report) with large pill radius, centered titles, and smooth spring-animated back navigation.
+- Refined Liquid Glass material system with ~60% natural optical overlay, restrained lighting, soft edge definition, and multi-layered depth shadows across Dark, Light, and AMOLED modes.
+- Enhanced bottom navigation dock sizing (64px height, 28px corner radius, 80px slot width for Hub) with comfortable breathing room for icon and label.
+- Maintained consistent vertical icon-above-label hierarchy with resting label visibility and zero layout shifting.
+- Synchronized active glass lens capsule and standalone floating search button with matching 64px height and 28px radius.

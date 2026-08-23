@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.37';
-export const NATIVE_VERSION_CODE = 40537;
-export const WEB_VERSION = '4.5.37';
+export const NATIVE_VERSION = '4.5.38';
+export const NATIVE_VERSION_CODE = 40538;
+export const WEB_VERSION = '4.5.38';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '61a90c60';
+export const APP_COMMIT_SHA = '21d2f15f';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/22/2026, 10:53:17 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/23/2026, 12:09:39 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,19 +98,11 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.',
-      'Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.',
-      'Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.',
-      'Matched separate Search and App Switcher action buttons to 58px / 26px radius with identical optical glass material and horizontal baseline alignment.',
-      'Polished Profile Bento metric cards (Favorites, Progressions, Presets, Sync) by removing artificial 1px hard rim lines and colored background halos.',
-    ],
-  },
-  {
-    heading: 'Fixed',
-    items: [
-      'Resolved Settings sub-pages navigation bug (Appearance, Help & Support, Report a Bug, Updater) where font ligature failure caused back icons to render as clipped text `"w_b"`, back button opacity was tied to scroll position, and isolated floating capsule obscured page titles.',
-      'Rebuilt SharedFloatingHeader and SettingsScaffold with a full-width integrated Liquid Glass top bar, centered title, robust SVG vector back chevron, and proper top scroll padding.',
-      'Hardened navigation stack handling in HubSettings and HubHelp to safely return to Settings root.',
+      'Implemented true floating glass top bar on Android Settings child screens (Appearance, Help & Support, FAQ, Updater, About, Privacy, Terms, Licenses, Bug Report) with large pill radius, centered titles, and smooth spring-animated back navigation.',
+      'Refined Liquid Glass material system with ~60% natural optical overlay, restrained lighting, soft edge definition, and multi-layered depth shadows across Dark, Light, and AMOLED modes.',
+      'Enhanced bottom navigation dock sizing (64px height, 28px corner radius, 80px slot width for Hub) with comfortable breathing room for icon and label.',
+      'Maintained consistent vertical icon-above-label hierarchy with resting label visibility and zero layout shifting.',
+      'Synchronized active glass lens capsule and standalone floating search button with matching 64px height and 28px radius.',
     ],
   },
 ];

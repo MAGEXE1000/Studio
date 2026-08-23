@@ -1,27 +1,22 @@
 {
   "platform": "android",
-  "version": "4.5.37",
-  "versionName": "4.5.37",
-  "versionCode": 40537,
-  "version_code": 40537,
-  "commit": "61a90c60",
-  "releasedAt": "8/22/2026, 10:53:17 PM CST",
-  "buildTimestamp": "8/22/2026, 10:53:17 PM CST",
+  "version": "4.5.38",
+  "versionName": "4.5.38",
+  "versionCode": 40538,
+  "version_code": 40538,
+  "commit": "21d2f15f",
+  "releasedAt": "8/23/2026, 12:09:39 AM CST",
+  "buildTimestamp": "8/23/2026, 12:09:39 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Resolved Settings sub-pages navigation bug (Appearance, Help & Support, Report a Bug, Updater) where font ligature failure caused back icons to render as clipped text `\"w_b\"`, back button opacity was tied to scroll position, and isolated floating capsule obscured page titles.\n• Rebuilt SharedFloatingHeader and SettingsScaffold with a full-width integrated Liquid Glass top bar, centered title, robust SVG vector back chevron, and proper top scroll padding.\n• Hardened navigation stack handling in HubSettings and HubHelp to safely return to Settings root.\n• Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.\n• Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.\n• Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.\n• Matched separate Search and App Switcher action buttons to 58px / 26px radius with identical optical glass material and horizontal baseline alignment.\n• Polished Profile Bento metric cards (Favorites, Progressions, Presets, Sync) by removing artificial 1px hard rim lines and colored background halos.",
-  "whatsNew": "• Resolved Settings sub-pages navigation bug (Appearance, Help & Support, Report a Bug, Updater) where font ligature failure caused back icons to render as clipped text `\"w_b\"`, back button opacity was tied to scroll position, and isolated floating capsule obscured page titles.\n• Rebuilt SharedFloatingHeader and SettingsScaffold with a full-width integrated Liquid Glass top bar, centered title, robust SVG vector back chevron, and proper top scroll padding.\n• Hardened navigation stack handling in HubSettings and HubHelp to safely return to Settings root.\n• Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.\n• Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.\n• Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.\n• Matched separate Search and App Switcher action buttons to 58px / 26px radius with identical optical glass material and horizontal baseline alignment.\n• Polished Profile Bento metric cards (Favorites, Progressions, Presets, Sync) by removing artificial 1px hard rim lines and colored background halos.",
+  "changelog": "• Implemented true floating glass top bar on Android Settings child screens (Appearance, Help & Support, FAQ, Updater, About, Privacy, Terms, Licenses, Bug Report) with large pill radius, centered titles, and smooth spring-animated back navigation.\n• Refined Liquid Glass material system with ~60% natural optical overlay, restrained lighting, soft edge definition, and multi-layered depth shadows across Dark, Light, and AMOLED modes.\n• Enhanced bottom navigation dock sizing (64px height, 28px corner radius, 80px slot width for Hub) with comfortable breathing room for icon and label.\n• Maintained consistent vertical icon-above-label hierarchy with resting label visibility and zero layout shifting.\n• Synchronized active glass lens capsule and standalone floating search button with matching 64px height and 28px radius.",
+  "whatsNew": "• Implemented true floating glass top bar on Android Settings child screens (Appearance, Help & Support, FAQ, Updater, About, Privacy, Terms, Licenses, Bug Report) with large pill radius, centered titles, and smooth spring-animated back navigation.\n• Refined Liquid Glass material system with ~60% natural optical overlay, restrained lighting, soft edge definition, and multi-layered depth shadows across Dark, Light, and AMOLED modes.\n• Enhanced bottom navigation dock sizing (64px height, 28px corner radius, 80px slot width for Hub) with comfortable breathing room for icon and label.\n• Maintained consistent vertical icon-above-label hierarchy with resting label visibility and zero layout shifting.\n• Synchronized active glass lens capsule and standalone floating search button with matching 64px height and 28px radius.",
   "releaseNotes": {
     "added": [
-      "Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.",
-      "Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.",
-      "Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.",
-      "Matched separate Search and App Switcher action buttons to 58px / 26px radius with identical optical glass material and horizontal baseline alignment.",
-      "Polished Profile Bento metric cards (Favorites, Progressions, Presets, Sync) by removing artificial 1px hard rim lines and colored background halos."
-    ],
-    "fixed": [
-      "Resolved Settings sub-pages navigation bug (Appearance, Help & Support, Report a Bug, Updater) where font ligature failure caused back icons to render as clipped text `\"w_b\"`, back button opacity was tied to scroll position, and isolated floating capsule obscured page titles.",
-      "Rebuilt SharedFloatingHeader and SettingsScaffold with a full-width integrated Liquid Glass top bar, centered title, robust SVG vector back chevron, and proper top scroll padding.",
-      "Hardened navigation stack handling in HubSettings and HubHelp to safely return to Settings root."
+      "Implemented true floating glass top bar on Android Settings child screens (Appearance, Help & Support, FAQ, Updater, About, Privacy, Terms, Licenses, Bug Report) with large pill radius, centered titles, and smooth spring-animated back navigation.",
+      "Refined Liquid Glass material system with ~60% natural optical overlay, restrained lighting, soft edge definition, and multi-layered depth shadows across Dark, Light, and AMOLED modes.",
+      "Enhanced bottom navigation dock sizing (64px height, 28px corner radius, 80px slot width for Hub) with comfortable breathing room for icon and label.",
+      "Maintained consistent vertical icon-above-label hierarchy with resting label visibility and zero layout shifting.",
+      "Synchronized active glass lens capsule and standalone floating search button with matching 64px height and 28px radius."
     ]
   },
   "mandatory": false

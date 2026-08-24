@@ -237,27 +237,6 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
   }, [appWarnings]);
 
   if (appWarnings.length === 0) {
-    if (appKey === 'hub') {
-      return (
-        <div
-          style={{
-            marginTop: 12,
-            background: 'rgba(16, 185, 129, 0.03)',
-            border: '1px solid rgba(16, 185, 129, 0.15)',
-            borderRadius: '12px',
-            padding: '12px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ color: '#10b981', fontSize: 18 }}>
-            check_circle
-          </span>
-          <span style={{ fontSize: '13px', fontWeight: 800, color: '#10b981' }}>No warnings</span>
-        </div>
-      );
-    }
     return null;
   }
 
@@ -4572,10 +4551,16 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   );
 
   const renderAppsView = () => {
-    const getAppWarningsCount = (appKey: string) => {
+    const isLightMode =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+
+    const getAppWarnings = (appKey: string) => {
       return logs.filter((l) => {
         if (l.level !== 'warn') return false;
-        const mod = l.module.toLowerCase();
+        const mod = (l.module || '').toLowerCase();
         if (appKey === 'chordex') return mod === 'chordex';
         if (appKey === 'drumex') return mod === 'drumex' || mod === 'drums';
         if (appKey === 'stagex') return mod === 'stagex' || mod === 'stage';
@@ -4587,64 +4572,152 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           );
         }
         return false;
-      }).length;
+      });
     };
+
+    const getAppErrors = (appKey: string) => {
+      return errors.filter((e) => {
+        const mod = (e.module || '').toLowerCase();
+        if (appKey === 'chordex') return mod === 'chordex';
+        if (appKey === 'drumex') return mod === 'drumex' || mod === 'drums';
+        if (appKey === 'stagex') return mod === 'stagex' || mod === 'stage';
+        if (appKey === 'groovex') return mod === 'groovex';
+        if (appKey === 'vocalex') return mod === 'vocalex';
+        if (appKey === 'hub') {
+          return !['chordex', 'drumex', 'drums', 'stagex', 'stage', 'groovex', 'vocalex'].includes(
+            mod
+          );
+        }
+        return false;
+      });
+    };
+
+    // Genuine JS heap measurement if supported by browser/WebView
+    const measuredHeap =
+      typeof window !== 'undefined' && (window.performance as any)?.memory?.usedJSHeapSize
+        ? `${Math.round(((window.performance as any).memory.usedJSHeapSize / (1024 * 1024)) * 10) / 10} MB`
+        : null;
+
+    // Genuine OS process PID if available from nativeDeviceInfo
+    const nativePid = nativeDeviceInfo?.pid ? String(nativeDeviceInfo.pid) : null;
+
+    const chordsHistory = useNavigationStore.getState().history.find((r) => r.app === 'chordex');
+    const chordsView = chordsHistory?.page || chordsHistory?.tab || 'Library';
+
+    const stagexHistory = useNavigationStore.getState().history.find((r) => r.app === 'stagex');
+    const stagexView =
+      stagexHistory?.page || stagexHistory?.tab || settings.defaultStageView || 'Editor';
+
+    const drumexHistory = useNavigationStore.getState().history.find((r) => r.app === 'drumex');
+    const drumexView =
+      drumexHistory?.page || drumexHistory?.tab || settings.defaultDrumTab || 'Songs';
+
+    const groovexHistory = useNavigationStore.getState().history.find((r) => r.app === 'groovex');
+    const groovexView = groovexHistory?.page || groovexHistory?.tab || 'Library';
+
+    const vocalexHistory = useNavigationStore.getState().history.find((r) => r.app === 'vocalex');
+    const vocalexView = vocalexHistory?.page || vocalexHistory?.tab || 'Practice';
+
+    const hubHistory = useNavigationStore.getState().history.find((r) => r.app === 'hub');
+    const hubView = hubHistory?.tab || hubHistory?.page || 'Main';
+
+    const customChordsCount = useChordStore.getState().customChords?.length || 0;
 
     const appsList = [
       {
         key: 'hub',
         name: 'Livex Hub',
-        status: currentApp === 'hub' ? 'Active' : 'Suspended',
-        view: activePanel,
-        memory: '24.5 MB',
-        warnings: getAppWarningsCount('hub'),
-        pid: '8842',
+        icon: 'hub',
+        isActive: currentApp === 'hub',
+        view: hubView,
+        engine: 'React DOM / Host Router',
+        details: [
+          { label: 'Route Tab', value: hubView },
+          { label: 'Theme', value: settings.theme },
+          { label: 'Language', value: settings.language || 'en' },
+        ],
+        warnings: getAppWarnings('hub'),
+        errors: getAppErrors('hub'),
       },
       {
         key: 'chordex',
         name: 'Chordex',
-        status: currentApp === 'chordex' ? 'Active' : 'Suspended',
-        view: activePanel,
-        memory: '32.1 MB',
-        warnings: getAppWarningsCount('chordex'),
-        pid: '9102',
+        icon: 'music_note',
+        isActive: currentApp === 'chordex',
+        view: chordsView,
+        engine: 'Chord Engine & SVG Renderer',
+        details: [
+          { label: 'Active Page', value: chordsView },
+          { label: 'Instrument', value: settings.instrument || 'guitar' },
+          { label: 'Custom Chords', value: String(customChordsCount) },
+        ],
+        warnings: getAppWarnings('chordex'),
+        errors: getAppErrors('chordex'),
       },
       {
         key: 'drumex',
         name: 'Drumex',
-        status: currentApp === 'drumex' ? 'Active' : 'Suspended',
-        view: settings.defaultDrumTab || 'songs',
-        memory: '45.8 MB',
-        warnings: getAppWarningsCount('drumex'),
-        pid: '9421',
+        icon: 'album',
+        isActive: currentApp === 'drumex',
+        view: drumexView,
+        engine: 'Web Audio Sequencer',
+        details: [
+          { label: 'Default Tab', value: drumexView },
+          { label: 'Audio Engine', value: 'Web Audio API' },
+          {
+            label: 'Sample Rate',
+            value: typeof AudioContext !== 'undefined' ? '44.1/48 kHz' : 'N/A',
+          },
+        ],
+        warnings: getAppWarnings('drumex'),
+        errors: getAppErrors('drumex'),
       },
       {
         key: 'stagex',
         name: 'Stagex',
-        status: currentApp === 'stagex' ? 'Active' : 'Suspended',
-        view: settings.defaultStageView || 'Editor',
-        memory: '58.2 MB',
-        warnings: getAppWarningsCount('stagex'),
-        pid: '9885',
+        icon: 'theater_comedy',
+        isActive: currentApp === 'stagex',
+        view: stagexView,
+        engine: 'IFrame Stage-Core Bridge',
+        details: [
+          { label: 'Default View', value: stagexView },
+          { label: 'Bridge Status', value: stagexStatus },
+          {
+            label: 'ACK Telemetry',
+            value: `${stagex.ackCount} ACKs / ${stagex.messagesSent} Sent`,
+          },
+        ],
+        warnings: getAppWarnings('stagex'),
+        errors: getAppErrors('stagex'),
         hasTelemetry: true,
       },
       {
         key: 'groovex',
         name: 'Groovex',
-        status: currentApp === 'groovex' ? 'Active' : 'Suspended',
-        view: 'Library',
-        memory: '18.4 MB',
-        warnings: getAppWarningsCount('groovex'),
-        pid: '1014',
+        icon: 'graphic_eq',
+        isActive: currentApp === 'groovex',
+        view: groovexView,
+        engine: 'Soundfont Player & Synth',
+        details: [
+          { label: 'Active Tab', value: groovexView },
+          { label: 'Synth Engine', value: 'Web Audio / Soundfont' },
+        ],
+        warnings: getAppWarnings('groovex'),
+        errors: getAppErrors('groovex'),
       },
       {
         key: 'vocalex',
         name: 'Vocalex',
-        status: currentApp === 'vocalex' ? 'Active' : 'Suspended',
-        view: 'Practice',
-        memory: '22.9 MB',
-        warnings: getAppWarningsCount('vocalex'),
-        pid: '1044',
+        icon: 'mic',
+        isActive: currentApp === 'vocalex',
+        view: vocalexView,
+        engine: 'Audio Worklet & Pitch Detection',
+        details: [
+          { label: 'Active View', value: vocalexView },
+          { label: 'Pitch Detector', value: 'YIN Algorithm' },
+        ],
+        warnings: getAppWarnings('vocalex'),
+        errors: getAppErrors('vocalex'),
       },
     ];
 
@@ -4654,308 +4727,401 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         timestamp: new Date().toISOString(),
         appName,
         key: appData.key,
-        status: appData.status,
+        status: appData.isActive ? 'Active' : 'Inactive',
         view: appData.view,
-        memory: appData.memory,
-        warnings: appData.warnings,
-        pid: appData.pid,
+        engine: appData.engine,
+        details: appData.details,
+        warningsCount: appData.warnings.length,
+        errorsCount: appData.errors.length,
+        ...(measuredHeap ? { jsHeapUsage: measuredHeap } : {}),
+        ...(nativePid ? { processId: nativePid } : {}),
       };
       copyToClipboard(`${appName} Diagnostics`, dump);
     };
 
-    const hasAnyWarnings = appsList.some((app) => app.warnings > 0);
-
     return (
-      <SettingsContentContainer style={{ gap: 20 }}>
+      <SettingsContentContainer style={{ gap: 16 }}>
         <style>{`
-          .bento-grid {
+          .apps-diag-grid {
             display: grid !important;
-            grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
-            gap: 20px !important;
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
             width: 100% !important;
           }
-          .bento-card-hub, .bento-card-chords, .bento-card-drums, .bento-card-vocalex, .bento-card-groovex {
-            grid-column: span 12 !important;
-          }
-          .bento-card-stage {
-            grid-column: span 12 !important;
-          }
-          @media (min-width: 768px) {
-            .bento-card-hub, .bento-card-chords, .bento-card-drums, .bento-card-vocalex, .bento-card-groovex {
-              grid-column: span 6 !important;
-            }
-            .bento-card-stage {
-              grid-column: span 12 !important;
+          @media (min-width: 640px) {
+            .apps-diag-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
           }
-          @media (min-width: 1024px) {
-            .bento-card-hub, .bento-card-chords, .bento-card-drums, .bento-card-vocalex, .bento-card-groovex {
-              grid-column: span 4 !important;
-            }
-            .bento-card-stage {
-              grid-column: span 8 !important;
+          @media (min-width: 1080px) {
+            .apps-diag-grid {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
             }
           }
-          
-          @keyframes status-pulse-anim {
-            0% { transform: scale(0.95); opacity: 0.5; }
+          @keyframes app-status-pulse {
+            0% { transform: scale(0.95); opacity: 0.6; }
             50% { transform: scale(1.15); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.5; }
+            100% { transform: scale(0.95); opacity: 0.6; }
           }
-          .status-pulse {
-            animation: status-pulse-anim 2s infinite ease-in-out;
+          .app-active-pulse {
+            animation: app-status-pulse 2s infinite ease-in-out;
           }
         `}</style>
 
-        {/* Warning Alert Banner (Rendered dynamically based on active warnings status) */}
-        {showWarningBanner && hasAnyWarnings && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-              background: 'rgba(127, 41, 39, 0.15)',
-              border: '1px solid rgba(238, 125, 119, 0.1)',
-              borderRadius: '12px',
-              padding: '14px 18px',
-              boxSizing: 'border-box',
-            }}
-          >
+        {/* Global Runtime Overview Card */}
+        <div
+          style={{
+            background: isLightMode
+              ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.75))'
+              : 'var(--surface-topbar-bg, rgba(20, 20, 24, 0.70))',
+            borderRadius: 18,
+            padding: '14px 18px',
+            border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div
               style={{
-                flexShrink: 0,
-                width: 38,
-                height: 38,
-                background: 'rgba(238, 125, 119, 0.15)',
-                borderRadius: '50%',
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: 'rgba(37, 99, 235, 0.12)',
+                border: '1px solid rgba(37, 99, 235, 0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#ee7d77',
+                color: 'var(--studio-accent-from, #2563eb)',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
-                warning
+              <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
+                apps
               </span>
             </div>
-            <div style={{ flexGrow: 1 }}>
-              <h3 style={{ margin: 0, color: '#ee7d77', fontWeight: 700, fontSize: '14px' }}>
-                System Anomalies Detected
-              </h3>
-              <p
+            <div>
+              <div
                 style={{
-                  margin: '2px 0 0',
-                  color: 'var(--c-text-secondary)',
-                  fontSize: '12px',
-                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
                 }}
               >
-                Vocalex is experiencing higher than usual latency in the neural synthesis thread.
-                Recommended restart.
-              </p>
+                App Runtime Manager
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter, sans-serif',
+                  opacity: 0.8,
+                }}
+              >
+                Active app:{' '}
+                <strong style={{ color: 'var(--studio-accent-from, #2563eb)' }}>
+                  {currentApp.toUpperCase()}
+                </strong>{' '}
+                • 6 Integrated Modules
+              </div>
             </div>
-            <button
-              onClick={() => setShowWarningBanner(false)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--c-text-secondary)',
-                cursor: 'pointer',
-                padding: 4,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                close
-              </span>
-            </button>
           </div>
-        )}
 
-        {/* Bento Grid */}
-        <div className="bento-grid">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {measuredHeap && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  fontFamily: 'monospace',
+                  background: 'rgba(16, 185, 129, 0.10)',
+                  border: '1px solid rgba(16, 185, 129, 0.20)',
+                  color: '#10b981',
+                  padding: '3px 8px',
+                  borderRadius: 6,
+                }}
+              >
+                Heap: {measuredHeap}
+              </span>
+            )}
+            {nativePid && (
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  fontFamily: 'monospace',
+                  background: 'rgba(128, 128, 128, 0.10)',
+                  border: '1px solid var(--c-border)',
+                  color: 'var(--c-text-secondary)',
+                  padding: '3px 8px',
+                  borderRadius: 6,
+                }}
+              >
+                PID: {nativePid}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Responsive Independent Apps Grid */}
+        <div className="apps-diag-grid">
           {appsList.map((app) => {
-            const isActive = app.status === 'Active';
-            const hasWarnings = app.warnings > 0;
-            const statusColor = hasWarnings
+            const hasErrors = app.errors.length > 0;
+            const hasWarnings = app.warnings.length > 0;
+            const statusColor = hasErrors
               ? '#ee7d77'
-              : isActive
-                ? 'var(--studio-accent-from, #679cff)'
-                : 'var(--c-text-secondary)';
-            const statusLabel = hasWarnings ? 'Warning' : app.status;
+              : hasWarnings
+                ? '#fbbf24'
+                : app.isActive
+                  ? 'var(--studio-accent-from, #2563eb)'
+                  : 'var(--c-text-secondary)';
+
+            const statusBg = hasErrors
+              ? 'rgba(238, 125, 119, 0.12)'
+              : hasWarnings
+                ? 'rgba(251, 191, 36, 0.12)'
+                : app.isActive
+                  ? 'rgba(37, 99, 235, 0.12)'
+                  : 'rgba(128, 128, 128, 0.08)';
+
+            const statusText = hasErrors
+              ? `${app.errors.length} ERROR${app.errors.length > 1 ? 'S' : ''}`
+              : hasWarnings
+                ? `${app.warnings.length} WARN`
+                : app.isActive
+                  ? 'ACTIVE'
+                  : 'INACTIVE';
 
             return (
               <div
                 key={app.key}
-                className={`bento-card-${app.key}`}
                 style={{
-                  background: 'var(--app-surface-high, var(--app-surface))',
-                  borderRadius: '16px',
-                  padding: '20px 22px',
-                  boxSizing: 'border-box',
-                  border: hasWarnings
-                    ? '1px solid rgba(238, 125, 119, 0.2)'
-                    : '1px solid var(--c-border)',
+                  background: isLightMode
+                    ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.70))'
+                    : 'var(--surface-topbar-bg, rgba(24, 24, 28, 0.70))',
+                  borderRadius: 18,
+                  padding: '16px 18px',
+                  border: app.isActive
+                    ? '1.5px solid var(--studio-accent-from, #2563eb)'
+                    : hasErrors
+                      ? '1px solid rgba(238, 125, 119, 0.3)'
+                      : '1px solid var(--c-border)',
+                  boxShadow: 'var(--surface-topbar-shadow)',
+                  backdropFilter: 'var(--surface-float-blur)',
+                  WebkitBackdropFilter: 'var(--surface-float-blur)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 16,
+                  gap: 12,
+                  boxSizing: 'border-box',
+                  width: '100%',
                 }}
               >
+                {/* Card Header */}
                 <div
                   style={{
                     display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-start',
                   }}
                 >
-                  <div>
-                    <h3
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div
                       style={{
-                        fontSize: '17px',
-                        fontWeight: 800,
-                        color: 'var(--c-text-primary)',
-                        margin: 0,
+                        width: 32,
+                        height: 32,
+                        borderRadius: 10,
+                        background: app.isActive
+                          ? 'rgba(37, 99, 235, 0.15)'
+                          : 'rgba(128, 128, 128, 0.08)',
+                        border: '1px solid var(--c-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: app.isActive
+                          ? 'var(--studio-accent-from, #2563eb)'
+                          : 'var(--c-text-secondary)',
                       }}
                     >
-                      {app.name}
-                    </h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                      <span
-                        className={isActive || hasWarnings ? 'status-pulse' : ''}
-                        style={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          background: statusColor,
-                          display: 'inline-block',
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          color: statusColor,
-                          fontFamily: 'Inter',
-                          letterSpacing: '0.04em',
-                        }}
-                      >
-                        {statusLabel}
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                        {app.icon}
                       </span>
                     </div>
+                    <div>
+                      <h3
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 800,
+                          color: 'var(--c-text-primary)',
+                          margin: 0,
+                          fontFamily: 'Manrope, sans-serif',
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        {app.name}
+                      </h3>
+                      <div
+                        style={{
+                          fontSize: 10.5,
+                          color: 'var(--c-text-secondary)',
+                          fontFamily: 'Inter, sans-serif',
+                          opacity: 0.75,
+                        }}
+                      >
+                        {app.engine}
+                      </div>
+                    </div>
                   </div>
-                  <span
+
+                  {/* Status Badge */}
+                  <div
                     style={{
-                      fontSize: '10px',
-                      fontFamily: 'Inter',
-                      color: 'var(--c-text-secondary)',
-                      background: 'var(--app-surface-low, var(--app-surface))',
-                      border: '1px solid var(--c-border)',
-                      padding: '3px 8px',
-                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                      padding: '4px 8px',
+                      borderRadius: 9999,
+                      background: statusBg,
+                      border: `1px solid ${statusColor}30`,
                     }}
                   >
-                    PID: {isActive ? app.pid : '--'}
-                  </span>
+                    <span
+                      className={app.isActive ? 'app-active-pulse' : ''}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: statusColor,
+                        display: 'inline-block',
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 9.5,
+                        fontWeight: 800,
+                        color: statusColor,
+                        fontFamily: 'Inter, sans-serif',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {statusText}
+                    </span>
+                  </div>
                 </div>
 
+                {/* Details Metrics Grid */}
                 <div
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-                    gap: 12,
-                    background: 'var(--app-surface-low, var(--app-surface))',
-                    padding: 12,
-                    borderRadius: '10px',
+                    background: isLightMode ? 'rgba(0, 0, 0, 0.025)' : 'rgba(255, 255, 255, 0.03)',
+                    borderRadius: 12,
+                    padding: '10px 12px',
                     border: '1px solid var(--c-border)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
                   }}
                 >
-                  <div>
-                    <span
+                  {app.details.map((det, i) => (
+                    <div
+                      key={i}
                       style={{
-                        fontSize: '10px',
-                        textTransform: 'uppercase',
-                        color: 'var(--c-text-secondary)',
-                        display: 'block',
-                        marginBottom: 2,
-                        fontFamily: 'Inter',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        fontSize: 11,
+                        fontFamily: 'Inter, sans-serif',
                       }}
                     >
-                      Memory
-                    </span>
-                    <span
-                      style={{ fontSize: '15px', fontWeight: 700, color: 'var(--c-text-primary)' }}
-                    >
-                      {app.memory}
-                    </span>
-                  </div>
-                  <div>
-                    <span
-                      style={{
-                        fontSize: '10px',
-                        textTransform: 'uppercase',
-                        color: 'var(--c-text-secondary)',
-                        display: 'block',
-                        marginBottom: 2,
-                        fontFamily: 'Inter',
-                      }}
-                    >
-                      Warnings
-                    </span>
-                    <span
-                      style={{
-                        fontSize: '15px',
-                        fontWeight: 700,
-                        color: hasWarnings ? '#ee7d77' : 'var(--c-text-primary)',
-                      }}
-                    >
-                      {app.warnings}
-                    </span>
-                  </div>
+                      <span style={{ color: 'var(--c-text-secondary)', opacity: 0.8 }}>
+                        {det.label}
+                      </span>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          color: 'var(--c-text-primary)',
+                          fontFamily: 'monospace',
+                          fontSize: 11,
+                          maxWidth: '65%',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {det.value}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
-                <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+                {/* Actions Row */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
                   <button
                     onClick={() => copyAppDiagnostics(app.name, app)}
                     style={{
                       flex: 1,
-                      padding: '10px 14px',
-                      borderRadius: '10px',
-                      background: 'var(--app-surface-high, var(--app-surface))',
+                      padding: '8px 12px',
+                      borderRadius: 10,
+                      background: isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid var(--c-border)',
-                      color: 'var(--studio-accent-from, #679cff)',
+                      color: 'var(--c-text-primary)',
+                      fontFamily: 'Manrope, sans-serif',
                       fontWeight: 700,
-                      fontSize: '11px',
+                      fontSize: 11,
                       cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 4,
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    Copy Section
+                    <span
+                      className="material-symbols-outlined"
+                      style={{ fontSize: 13, opacity: 0.7 }}
+                    >
+                      content_copy
+                    </span>
+                    Copy Data
                   </button>
+
                   {app.hasTelemetry && (
                     <button
                       onClick={() => setSubView('stagex')}
                       style={{
                         flex: 1,
-                        padding: '10px 14px',
-                        borderRadius: '10px',
-                        background: 'rgba(103, 124, 255, 0.15)',
-                        border: 'none',
-                        color: 'var(--studio-accent-from, #679cff)',
+                        padding: '8px 12px',
+                        borderRadius: 10,
+                        background: 'rgba(37, 99, 235, 0.12)',
+                        border: '1px solid rgba(37, 99, 235, 0.25)',
+                        color: 'var(--studio-accent-from, #2563eb)',
+                        fontFamily: 'Manrope, sans-serif',
                         fontWeight: 700,
-                        fontSize: '11px',
+                        fontSize: 11,
                         cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
                         transition: 'all 0.15s ease',
                       }}
                     >
+                      <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
+                        sensors
+                      </span>
                       Telemetry
                     </button>
                   )}
                 </div>
 
-                <WarningsInspector logs={logs} showToast={showToast} appKey={app.key} />
+                {/* Warnings Accordion if any warning exists for this app */}
+                {app.warnings.length > 0 && (
+                  <WarningsInspector logs={logs} showToast={showToast} appKey={app.key} />
+                )}
               </div>
             );
           })}

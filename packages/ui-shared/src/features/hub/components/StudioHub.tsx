@@ -6066,7 +6066,7 @@ User Agent: [Automatically Generated]
                 alignItems: 'center',
                 width: '100%',
                 padding: '14px 16px',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                borderBottom: '1px solid var(--c-border)',
                 background: 'transparent',
                 borderTop: 'none',
                 borderLeft: 'none',
@@ -6082,8 +6082,8 @@ User Agent: [Automatically Generated]
                     width: 32,
                     height: 32,
                     borderRadius: 10,
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid var(--c-border)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -6110,7 +6110,7 @@ User Agent: [Automatically Generated]
                   width: 24,
                   height: 24,
                   borderRadius: '50%',
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255, 255, 255, 0.04)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -6151,8 +6151,8 @@ User Agent: [Automatically Generated]
                   width: 32,
                   height: 32,
                   borderRadius: 10,
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
+                  background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -6179,7 +6179,7 @@ User Agent: [Automatically Generated]
                 width: 24,
                 height: 24,
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.04)',
+                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255, 255, 255, 0.04)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -7648,6 +7648,199 @@ User Agent: [Automatically Generated]
                               </span>
                             </div>
                           </motion.div>
+
+                          <motion.div
+                            whileTap={{ scale: 0.985 }}
+                            whileHover={{ scale: 1.008 }}
+                            transition={SpringPresets.soft}
+                            onClick={() => navigate('about')}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 14,
+                              padding: '12px 14px',
+                              borderRadius: 16,
+                              cursor: 'pointer',
+                            }}
+                            className="hover:bg-white/5 transition-colors"
+                          >
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: 12,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
+                                border: isLight
+                                  ? '1px solid rgba(0,0,0,0.06)'
+                                  : '1px solid rgba(255,255,255,0.10)',
+                                boxShadow: isLight
+                                  ? 'inset 0 1px 1px rgba(255,255,255,0.8)'
+                                  : 'inset 0 1px 1px rgba(255,255,255,0.15)',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                              >
+                                info
+                              </span>
+                            </div>
+                            <div
+                              style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
+                            >
+                              <span
+                                style={{
+                                  fontSize: 14.5,
+                                  fontWeight: 750,
+                                  color: 'var(--c-text-primary)',
+                                  fontFamily: 'Manrope, sans-serif',
+                                  letterSpacing: '-0.015em',
+                                }}
+                              >
+                                {lang === 'es' ? 'Acerca de' : 'About'}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: '12px',
+                                  color: 'var(--c-text-secondary)',
+                                  fontFamily: 'Inter, sans-serif',
+                                  opacity: 0.75,
+                                }}
+                              >
+                                {lang === 'es'
+                                  ? `Versión ${APP_VERSION_LABEL}`
+                                  : `Version ${APP_VERSION_LABEL}`}
+                              </span>
+                            </div>
+                            <div
+                              style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.6,
+                                  fontSize: 15,
+                                }}
+                              >
+                                chevron_right
+                              </span>
+                            </div>
+                          </motion.div>
+
+                          {settings.developerMode && (
+                            <motion.div
+                              whileTap={{ scale: 0.985 }}
+                              whileHover={{ scale: 1.008 }}
+                              transition={SpringPresets.soft}
+                              onClick={() => navigate('developer')}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 14,
+                                padding: '12px 14px',
+                                borderRadius: 16,
+                                cursor: 'pointer',
+                              }}
+                              className="hover:bg-white/5 transition-colors"
+                            >
+                              <div
+                                style={{
+                                  width: 36,
+                                  height: 36,
+                                  borderRadius: 12,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: isLight
+                                    ? 'rgba(0,0,0,0.04)'
+                                    : 'rgba(255,255,255,0.06)',
+                                  border: isLight
+                                    ? '1px solid rgba(0,0,0,0.06)'
+                                    : '1px solid rgba(255,255,255,0.10)',
+                                  boxShadow: isLight
+                                    ? 'inset 0 1px 1px rgba(255,255,255,0.8)'
+                                    : 'inset 0 1px 1px rgba(255,255,255,0.15)',
+                                }}
+                              >
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
+                                >
+                                  terminal
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  flex: 1,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 2,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: 14.5,
+                                    fontWeight: 750,
+                                    color: 'var(--c-text-primary)',
+                                    fontFamily: 'Manrope, sans-serif',
+                                    letterSpacing: '-0.015em',
+                                  }}
+                                >
+                                  {lang === 'es'
+                                    ? 'Opciones de Desarrollador'
+                                    : 'Developer Options'}
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: '12px',
+                                    color: 'var(--c-text-secondary)',
+                                    fontFamily: 'Inter, sans-serif',
+                                    opacity: 0.75,
+                                  }}
+                                >
+                                  {lang === 'es'
+                                    ? 'Herramientas de depuración'
+                                    : 'Debug tools & metrics'}
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  width: 24,
+                                  height: 24,
+                                  borderRadius: '50%',
+                                  background: isLight
+                                    ? 'rgba(0,0,0,0.03)'
+                                    : 'rgba(255,255,255,0.04)',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                }}
+                              >
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{
+                                    color: 'var(--c-text-secondary)',
+                                    opacity: 0.6,
+                                    fontSize: 15,
+                                  }}
+                                >
+                                  chevron_right
+                                </span>
+                              </div>
+                            </motion.div>
+                          )}
                         </div>
                       </div>
                     </div>

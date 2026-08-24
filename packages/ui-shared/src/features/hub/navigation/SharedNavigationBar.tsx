@@ -160,7 +160,7 @@ const NavigationItem = React.memo(
               <AnimatedNavigationIcon
                 itemKey={item.key}
                 iconName={item.icon as string}
-                size={21}
+                size={isSwitcherOpen ? 19 : 21}
                 color={iconColor}
                 isActive={isActive}
                 animationEpoch={animationEpoch}
@@ -169,7 +169,7 @@ const NavigationItem = React.memo(
               <AnimatedNavigationIcon
                 itemKey={item.key}
                 iconNode={item.icon}
-                size={21}
+                size={isSwitcherOpen ? 19 : 21}
                 color={iconColor}
                 isActive={isActive}
                 animationEpoch={animationEpoch}
@@ -181,14 +181,17 @@ const NavigationItem = React.memo(
             <span
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: '11px',
+                fontSize: isSwitcherOpen ? '10px' : '11px',
                 fontWeight: isActive ? 700 : 550,
                 color: labelColor,
                 whiteSpace: 'nowrap',
-                letterSpacing: '-0.01em',
+                letterSpacing: isSwitcherOpen ? '-0.025em' : '-0.01em',
                 lineHeight: 1.15,
                 textAlign: 'center',
                 userSelect: 'none',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
                 transition: 'color 180ms ease, font-weight 180ms ease',
               }}
             >
@@ -381,24 +384,28 @@ export function SharedNavigationBar({
     [isSwitcherOpen, measuredContentGeometry]
   );
 
-  const slotWidth = isSwitcherOpen ? 60 : isHub ? 80 : 70;
-  const paddingX = 8;
+  const slotWidth = isSwitcherOpen ? 50 : isHub ? 80 : 70;
+  const paddingX = isSwitcherOpen ? 6 : 8;
 
   // hasRightBubble: true when App Changer satellite button is shown (non-hub apps only)
   const hasRightBubble = showSwitcherButton;
-  const maxBarWidth = windowWidth - 32 - (hasRightBubble ? 80 : 0);
-  const minBarW = windowWidth < 480 ? 190 : 230;
-  const barWidth = Math.max(minBarW, Math.min(totalSlots * slotWidth + paddingX * 2, maxBarWidth));
+  const satelliteWidth = 58;
+  const dockGap = 8;
+  const maxDockWidth = Math.min(windowWidth - 32, 600);
+  const maxBarWidth = hasRightBubble ? maxDockWidth - satelliteWidth - dockGap : maxDockWidth;
+  const targetBarWidth = totalSlots * slotWidth + paddingX * 2;
+  const minBarW = isSwitcherOpen ? Math.min(250, maxBarWidth) : windowWidth < 480 ? 190 : 230;
+  const barWidth = Math.max(Math.min(targetBarWidth, maxBarWidth), Math.min(minBarW, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
   const itemWidth = usableWidth / totalSlots;
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = Math.max(44, itemWidth - 6);
-      const rawX = index * itemWidth + 3;
-      const minX = 3;
-      const maxX = Math.max(minX, usableWidth - pillW - 3);
+      const pillW = Math.max(30, itemWidth - 4);
+      const rawX = index * itemWidth + 2;
+      const minX = 2;
+      const maxX = Math.max(minX, usableWidth - pillW - 2);
       return Math.max(minX, Math.min(maxX, rawX));
     },
     [itemWidth, usableWidth]
@@ -480,7 +487,7 @@ export function SharedNavigationBar({
       const isScrubbingActive = isScrubbingRef.current;
       const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
       const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
-      const pillW = Math.max(40, itemWidth - 4);
+      const pillW = Math.max(30, itemWidth - 4);
       const rawX = idx * itemWidth + 2 + (dragVal as number);
       const minX = 2;
       const maxX = Math.max(minX, usableWidth - pillW - 2);
@@ -489,7 +496,7 @@ export function SharedNavigationBar({
   );
 
   const animatedPillX = pillX;
-  const pillWidthVal = Math.max(40, itemWidth - 4);
+  const pillWidthVal = Math.max(30, itemWidth - 4);
 
   const pillPressScale = useTransform(pressPressureRaw, [0, 5], [1, 0.96]);
 
@@ -852,28 +859,29 @@ export function SharedNavigationBar({
             transformOrigin: 'center center',
           }}
         >
-          {/* Bottom Navigation Dock Grid */}
+          {/* Bottom Navigation Dock Container */}
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr auto 1fr',
+              display: 'flex',
               alignItems: 'center',
-              width: '100%',
-              pointerEvents: 'none',
+              justifyContent: 'center',
               gap: '8px',
+              width: '100%',
+              maxWidth: '100%',
+              paddingLeft: 'max(16px, env(safe-area-inset-left, 16px))',
+              paddingRight: 'max(16px, env(safe-area-inset-right, 16px))',
+              boxSizing: 'border-box',
+              pointerEvents: 'none',
             }}
           >
-            <div style={{ pointerEvents: 'none' }} />
-
             <motion.div
               className="shared-bottom-nav glass-nav"
               style={{
                 pointerEvents: 'auto',
-                justifySelf: 'center',
                 width: barWidth,
                 maxWidth: `${barWidth}px`,
-                height: '64px',
-                borderRadius: '28px',
+                height: '58px',
+                borderRadius: '26px',
                 border: 'var(--surface-topbar-border)',
                 background: 'var(--surface-topbar-bg)',
                 boxShadow: 'var(--surface-topbar-shadow)',
@@ -882,7 +890,7 @@ export function SharedNavigationBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
-                padding: '4px 8px',
+                padding: `4px ${paddingX}px`,
                 position: 'relative',
                 touchAction: 'none',
                 userSelect: 'none',
@@ -893,10 +901,8 @@ export function SharedNavigationBar({
                 transformOrigin: 'center bottom',
                 scale: containerScale,
                 y: containerY,
-                // x translation intentionally omitted: the 1fr/auto/1fr grid
-                // keeps the pill centered automatically. An additional x offset
-                // caused the collapsed state to drift rightward.
-                transition: 'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1)',
+                transition:
+                  'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1), width 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {/* Inner Radial Vignette — realistic optical depth / gentle fresnel reflection */}
@@ -904,7 +910,7 @@ export function SharedNavigationBar({
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  borderRadius: '28px',
+                  borderRadius: '26px',
                   background: isLight
                     ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.20) 0%, transparent 100%)'
                     : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 100%)',
@@ -930,7 +936,7 @@ export function SharedNavigationBar({
                   // keeps nav items clipped to pill shape without breaking
                   // Android WebView's compositing of the parent's backdrop-filter.
                   overflow: 'hidden',
-                  borderRadius: '28px',
+                  borderRadius: '26px',
                 }}
               >
                 {/* Active lens pill */}
@@ -942,7 +948,7 @@ export function SharedNavigationBar({
                     left: 0,
                     x: animatedPillX,
                     width: pillWidthVal,
-                    borderRadius: '23px',
+                    borderRadius: '20px',
                     background: isLight
                       ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 255, 0.85) 100%)'
                       : 'var(--surface-glass-lens-bg)',
@@ -966,7 +972,7 @@ export function SharedNavigationBar({
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      borderRadius: '23px',
+                      borderRadius: '20px',
                       background: isLight
                         ? 'radial-gradient(ellipse 65% 50% at 50% 8%, rgba(255,255,255,0.40) 0%, transparent 100%)'
                         : 'radial-gradient(ellipse 65% 50% at 50% 8%, rgba(255,255,255,0.12) 0%, transparent 100%)',
@@ -1011,25 +1017,24 @@ export function SharedNavigationBar({
               </div>
             </motion.div>
 
-            <div
-              style={{
-                pointerEvents: 'auto',
-                justifySelf: 'start',
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: '8px',
-              }}
-            >
-              {showSwitcherButton && (
+            {showSwitcherButton && (
+              <div
+                style={{
+                  pointerEvents: 'auto',
+                  flexShrink: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
                 <motion.button
                   onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
                   whileTap={{ scale: 0.92 }}
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
                   style={{
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '28px',
+                    width: '58px',
+                    height: '58px',
+                    borderRadius: '26px',
                     background: 'var(--surface-topbar-bg)',
                     border: 'var(--surface-topbar-border)',
                     backdropFilter: 'var(--surface-float-blur)',
@@ -1061,7 +1066,7 @@ export function SharedNavigationBar({
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      borderRadius: '28px',
+                      borderRadius: '26px',
                       background:
                         'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.08) 0%, transparent 100%)',
                       pointerEvents: 'none',
@@ -1075,8 +1080,8 @@ export function SharedNavigationBar({
                     {isSwitcherOpen ? 'close' : 'apps'}
                   </motion.span>
                 </motion.button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </>

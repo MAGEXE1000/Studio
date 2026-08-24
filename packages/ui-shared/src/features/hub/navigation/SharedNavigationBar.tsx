@@ -1,5 +1,12 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, useMotionValue, useSpring, useTransform, animate } from 'motion/react';
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  animate,
+  AnimatePresence,
+} from 'motion/react';
 import {
   subscribeNavScrollOffset,
   getNavScrollOffset,
@@ -876,10 +883,20 @@ export function SharedNavigationBar({
           >
             <motion.div
               className="shared-bottom-nav glass-nav"
+              animate={{
+                width: barWidth,
+                paddingLeft: paddingX,
+                paddingRight: paddingX,
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 380,
+                damping: 28,
+                mass: 0.75,
+              }}
               style={{
                 pointerEvents: 'auto',
-                width: barWidth,
-                maxWidth: `${barWidth}px`,
+                maxWidth: '100%',
                 height: '58px',
                 borderRadius: '26px',
                 border: 'var(--surface-topbar-border)',
@@ -890,7 +907,8 @@ export function SharedNavigationBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
-                padding: `4px ${paddingX}px`,
+                paddingTop: '4px',
+                paddingBottom: '4px',
                 position: 'relative',
                 touchAction: 'none',
                 userSelect: 'none',
@@ -901,8 +919,6 @@ export function SharedNavigationBar({
                 transformOrigin: 'center bottom',
                 scale: containerScale,
                 y: containerY,
-                transition:
-                  'border-radius 250ms cubic-bezier(0.16, 1, 0.3, 1), width 250ms cubic-bezier(0.16, 1, 0.3, 1)',
               }}
             >
               {/* Inner Radial Vignette — realistic optical depth / gentle fresnel reflection */}
@@ -941,13 +957,21 @@ export function SharedNavigationBar({
               >
                 {/* Active lens pill */}
                 <motion.div
+                  animate={{
+                    width: pillWidthVal,
+                  }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 380,
+                    damping: 28,
+                    mass: 0.75,
+                  }}
                   style={{
                     position: 'absolute',
                     top: 5,
                     bottom: 5,
                     left: 0,
                     x: animatedPillX,
-                    width: pillWidthVal,
                     borderRadius: '20px',
                     background: isLight
                       ? 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 244, 255, 0.85) 100%)'
@@ -964,7 +988,7 @@ export function SharedNavigationBar({
                     zIndex: 0,
                     skewX: dragSkewRaw,
                     scale: pillPressScale,
-                    willChange: 'transform',
+                    willChange: 'transform, width',
                   }}
                 >
                   {/* Inner Lens — Radial Center Glow (specular center highlight) */}
@@ -981,39 +1005,52 @@ export function SharedNavigationBar({
                   />
                 </motion.div>
 
-                {/* Navigation items */}
-                <div
-                  style={{
-                    display: 'flex',
-                    width: '100%',
-                    height: '100%',
-                    alignItems: 'center',
-                    justifyContent: 'space-around',
-                    opacity: 1,
-                    pointerEvents: 'auto',
-                  }}
-                >
-                  {currentItems.map((item, index) => {
-                    const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
-                    return (
-                      <NavigationItem
-                        key={item.key}
-                        item={item}
-                        index={index}
-                        onClick={() => {
-                          if (performance.now() - pointerUpHandledAtRef.current < 100) return;
-                          navigationEpochRef.current += 1;
-                          setNavigationEpoch(navigationEpochRef.current);
-                          item.onClick();
-                        }}
-                        isActive={isActive}
-                        isLight={isLight}
-                        isSwitcherOpen={isSwitcherOpen}
-                        animationEpoch={navigationEpoch}
-                      />
-                    );
-                  })}
-                </div>
+                {/* Navigation items — liquid spring cross-morph */}
+                <AnimatePresence mode="popLayout" initial={false}>
+                  <motion.div
+                    key={isSwitcherOpen ? 'switcher' : 'nav'}
+                    initial={{ opacity: 0, scale: 0.92, filter: 'blur(3px)' }}
+                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, scale: 0.92, filter: 'blur(3px)' }}
+                    transition={{
+                      type: 'spring',
+                      stiffness: 420,
+                      damping: 28,
+                      mass: 0.6,
+                    }}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      display: 'flex',
+                      width: '100%',
+                      height: '100%',
+                      alignItems: 'center',
+                      justifyContent: 'space-around',
+                      pointerEvents: 'auto',
+                    }}
+                  >
+                    {currentItems.map((item, index) => {
+                      const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
+                      return (
+                        <NavigationItem
+                          key={item.key}
+                          item={item}
+                          index={index}
+                          onClick={() => {
+                            if (performance.now() - pointerUpHandledAtRef.current < 100) return;
+                            navigationEpochRef.current += 1;
+                            setNavigationEpoch(navigationEpochRef.current);
+                            item.onClick();
+                          }}
+                          isActive={isActive}
+                          isLight={isLight}
+                          isSwitcherOpen={isSwitcherOpen}
+                          animationEpoch={navigationEpoch}
+                        />
+                      );
+                    })}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
 
@@ -1073,13 +1110,19 @@ export function SharedNavigationBar({
                       pointerEvents: 'none',
                     }}
                   />
-                  <motion.span
-                    className="material-symbols-outlined text-[20px]"
-                    animate={{ rotate: isSwitcherOpen ? 90 : 0 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                  >
-                    {isSwitcherOpen ? 'close' : 'apps'}
-                  </motion.span>
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    <motion.span
+                      key={isSwitcherOpen ? 'close' : 'apps'}
+                      initial={{ rotate: isSwitcherOpen ? -60 : 60, opacity: 0, scale: 0.7 }}
+                      animate={{ rotate: 0, opacity: 1, scale: 1 }}
+                      exit={{ rotate: isSwitcherOpen ? 60 : -60, opacity: 0, scale: 0.7 }}
+                      transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.7 }}
+                      className="material-symbols-outlined text-[20px]"
+                      style={{ display: 'block' }}
+                    >
+                      {isSwitcherOpen ? 'close' : 'apps'}
+                    </motion.span>
+                  </AnimatePresence>
                 </motion.button>
               </div>
             )}

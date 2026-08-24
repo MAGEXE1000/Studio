@@ -1579,9 +1579,20 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         dump.errors = errors;
         dump.logs = logs.slice(-100);
         break;
-      case 'Performance':
-        dump.perfStats = Array.from(perf.entries()).map(([k, v]) => ({ component: k, ...v }));
+      case 'Performance': {
+        const profiler = PerformanceProfiler.getInstance();
+        const metrics = profiler.getMetrics();
+        dump.performance = {
+          score: profiler.getScore(metrics),
+          metrics,
+          warnings: profiler.getWarnings(metrics),
+        };
+        dump.componentProfiler = Array.from(perf.entries()).map(([k, v]) => ({
+          component: k,
+          ...v,
+        }));
         break;
+      }
       case 'Network':
         dump.network = network.slice(-50);
         break;
@@ -2386,17 +2397,32 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   );
 
   const renderPerfTab = () => {
+    const isLightMode =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+
     const profiler = PerformanceProfiler.getInstance();
     const metrics = perfMetrics || profiler.getMetrics();
     const score = profiler.getScore(metrics);
     const warnings = profiler.getWarnings(metrics);
 
+    const hasMemoryAPI =
+      typeof window !== 'undefined' && Boolean((window.performance as any)?.memory);
+    const mem = hasMemoryAPI ? (window.performance as any).memory : null;
+
     const copyMemoryMap = () => {
       const memoryStats = {
-        heapSize: metrics.heapSize,
+        timestamp: new Date().toISOString(),
+        heapAvailable: hasMemoryAPI,
         usedJSHeapSize: metrics.usedHeap,
+        totalJSHeapSize: metrics.heapSize,
         heapGrowthRate: metrics.heapGrowth,
-        origin: 'Browser API (performance.memory)',
+        heapLimit: mem ? `${Math.round(mem.jsHeapSizeLimit / (1024 * 1024))} MB` : 'N/A',
+        dataSource: hasMemoryAPI
+          ? 'window.performance.memory (Chromium API)'
+          : 'Unavailable in WebView sandbox',
       };
       copyToClipboard('Memory Profile', memoryStats);
     };
@@ -2412,29 +2438,39 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       return '#ef4444';
     };
 
-    const originBadge = (
-      origin: 'Measured' | 'Calculated' | 'Browser API' | 'Native' | 'Unavailable'
-    ) => {
-      const colors = {
-        Measured: { bg: 'rgba(103,124,255,0.12)', text: '#677cff' },
-        Calculated: { bg: 'rgba(236,72,153,0.12)', text: '#ec4899' },
-        'Browser API': { bg: 'rgba(16,185,129,0.12)', text: '#10b981' },
-        Native: { bg: 'rgba(139,92,246,0.12)', text: '#8b5cf6' },
-        Unavailable: { bg: 'rgba(239,68,68,0.12)', text: '#ef4444' },
+    const originBadge = (origin: 'MEASURED' | 'CALCULATED' | 'UNAVAILABLE') => {
+      const config = {
+        MEASURED: {
+          bg: 'rgba(37, 99, 235, 0.12)',
+          border: 'rgba(37, 99, 235, 0.25)',
+          color: 'var(--studio-accent-from, #2563eb)',
+        },
+        CALCULATED: {
+          bg: 'rgba(168, 85, 247, 0.12)',
+          border: 'rgba(168, 85, 247, 0.25)',
+          color: '#a855f7',
+        },
+        UNAVAILABLE: {
+          bg: 'rgba(128, 128, 128, 0.10)',
+          border: 'var(--c-border)',
+          color: 'var(--c-text-secondary)',
+        },
       };
-      const match = colors[origin] || colors.Calculated;
+      const match = config[origin];
       return (
         <span
           style={{
             fontSize: '8px',
             fontWeight: 800,
             background: match.bg,
-            color: match.text,
-            padding: '2px 5px',
+            border: `1px solid ${match.border}`,
+            color: match.color,
+            padding: '2px 6px',
             borderRadius: '4px',
             textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            marginLeft: 'auto',
+            letterSpacing: '0.05em',
+            fontFamily: 'Inter, sans-serif',
+            whiteSpace: 'nowrap',
           }}
         >
           {origin}
@@ -2442,854 +2478,962 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       );
     };
 
+    const cardBg = isLightMode
+      ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.75))'
+      : 'var(--surface-topbar-bg, rgba(20, 20, 24, 0.70))';
+    const innerCardBg = isLightMode ? 'rgba(0, 0, 0, 0.025)' : 'rgba(255, 255, 255, 0.03)';
+
     return (
-      <SettingsContentContainer style={{ gap: 24 }}>
+      <SettingsContentContainer style={{ gap: 14 }}>
         <style>{`
-          .perf-metrics-grid {
+          .perf-hero-grid {
             display: grid !important;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            grid-template-columns: 1fr !important;
             gap: 12px !important;
           }
-          @media (min-width: 768px) {
-            .perf-metrics-grid {
-              grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+          @media (min-width: 640px) {
+            .perf-hero-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
-          }
-          .perf-bento-grid {
-            display: grid !important;
-            grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
-            gap: 20px !important;
-          }
-          .perf-card-memory {
-            grid-column: span 12 !important;
-          }
-          .perf-card-pipeline {
-            grid-column: span 12 !important;
           }
           @media (min-width: 1024px) {
-            .perf-card-memory {
-              grid-column: span 4 !important;
+            .perf-hero-grid {
+              grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
             }
-            .perf-card-pipeline {
-              grid-column: span 8 !important;
+          }
+          .perf-columns-grid {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+          }
+          @media (min-width: 860px) {
+            .perf-columns-grid {
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             }
           }
         `}</style>
 
+        {/* 1. HEALTH SCORE & LIVE TELEMETRY HERO */}
         <div
           style={{
-            background: 'var(--app-surface-high, var(--app-surface))',
-            borderRadius: '16px',
-            padding: '20px 24px',
-            boxSizing: 'border-box',
+            background: cardBg,
+            borderRadius: 18,
+            padding: '16px 18px',
             border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 16,
+            flexDirection: 'column',
+            gap: 14,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-            <div
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: '50%',
-                border: `4px solid ${getScoreColor(score)}`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 800,
-                fontSize: '18px',
-                color: 'var(--c-text-primary)',
-                background: 'var(--app-surface-low, var(--app-surface))',
-              }}
-            >
-              {score}
-            </div>
-            <div>
-              <h4
+          {/* Top Banner Row */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 12,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div
                 style={{
-                  margin: 0,
-                  fontSize: '15px',
+                  width: 48,
+                  height: 48,
+                  borderRadius: '50%',
+                  border: `3.5px solid ${getScoreColor(score)}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   fontWeight: 800,
+                  fontSize: '17px',
                   color: 'var(--c-text-primary)',
+                  background: innerCardBg,
+                  flexShrink: 0,
+                  fontFamily: 'Manrope, sans-serif',
                 }}
               >
-                Overall Performance Score
-              </h4>
-              <p
+                {score}
+              </div>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <h3
+                    style={{
+                      margin: 0,
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      color: 'var(--c-text-primary)',
+                      fontFamily: 'Manrope, sans-serif',
+                    }}
+                  >
+                    Runtime Performance Health
+                  </h3>
+                  {originBadge('CALCULATED')}
+                </div>
+                <div
+                  style={{
+                    margin: '3px 0 0',
+                    fontSize: '11px',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  Status:{' '}
+                  <strong style={{ color: getScoreColor(score) }}>
+                    {score >= 90 ? 'Excellent' : score >= 70 ? 'Optimal' : 'Jank Detected'}
+                  </strong>{' '}
+                  • Synthesized from frame pacing, long tasks, and JS heap stability.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Core Telemetry Cards Grid */}
+          <div className="perf-hero-grid">
+            {/* Card 1: Frame Rate */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 14,
+                padding: '12px 14px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <div
                 style={{
-                  margin: '4px 0 0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter',
+                  }}
+                >
+                  Live FPS
+                </span>
+                {originBadge('MEASURED')}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 800,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  {metrics.currentFps}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>
+                  / {metrics.refreshRate} Hz
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: '10.5px',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'monospace',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span>Avg: {metrics.averageFps}</span>
+                <span>1% Low: {metrics.low1PercentFps}</span>
+              </div>
+            </div>
+
+            {/* Card 2: Frametime & Jitter */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 14,
+                padding: '12px 14px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter',
+                  }}
+                >
+                  Frame Duration
+                </span>
+                {originBadge('MEASURED')}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                <span
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 800,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  {metrics.frameTime}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>ms</span>
+              </div>
+              <div
+                style={{
+                  fontSize: '10.5px',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'monospace',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span>Jitter: ±{metrics.frameVariance}ms</span>
+                <span
+                  style={{
+                    color: metrics.droppedFrames > 0 ? '#fbbf24' : 'var(--c-text-secondary)',
+                  }}
+                >
+                  Drops: {metrics.droppedFrames}
+                </span>
+              </div>
+            </div>
+
+            {/* Card 3: Main Thread Lag */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 14,
+                padding: '12px 14px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter',
+                  }}
+                >
+                  Event Loop Lag
+                </span>
+                {originBadge('MEASURED')}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                <span
+                  style={{
+                    fontSize: '24px',
+                    fontWeight: 800,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  {metrics.eventLoopDelay.toFixed(1)}
+                </span>
+                <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>ms</span>
+              </div>
+              <div
+                style={{
+                  fontSize: '10.5px',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'monospace',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span>Long Tasks: {metrics.mainThreadBlockingTotal.toFixed(0)}ms</span>
+                <span>Max: {metrics.longestBlockingTask.toFixed(0)}ms</span>
+              </div>
+            </div>
+
+            {/* Card 4: JS Heap Usage */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 14,
+                padding: '12px 14px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter',
+                  }}
+                >
+                  JS Heap
+                </span>
+                {originBadge(hasMemoryAPI ? 'MEASURED' : 'UNAVAILABLE')}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                <span
+                  style={{
+                    fontSize: hasMemoryAPI ? '24px' : '18px',
+                    fontWeight: 800,
+                    color: hasMemoryAPI ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  {hasMemoryAPI ? metrics.usedHeap : 'Restricted'}
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: '10.5px',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'monospace',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <span>Alloc: {hasMemoryAPI ? metrics.heapSize : 'N/A'}</span>
+                <span>Rate: {hasMemoryAPI ? metrics.heapGrowth : 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. TWO-COLUMN DETAILS: RENDERING PACING & MEMORY/HARDWARE */}
+        <div className="perf-columns-grid">
+          {/* Column A: Frame Pacing Timeline & GPU Info */}
+          <div
+            style={{
+              background: cardBg,
+              borderRadius: 18,
+              padding: '16px 18px',
+              border: '1px solid var(--c-border)',
+              boxShadow: 'var(--surface-topbar-shadow)',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+                >
+                  speed
+                </span>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  Frame Pacing & V-Sync
+                </h4>
+              </div>
+              {originBadge('MEASURED')}
+            </div>
+
+            {/* Pacing Visualizer */}
+            <div
+              style={{
+                height: 80,
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 14px 6px',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-end',
+                gap: 6,
+                border: '1px solid var(--c-border)',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-end',
+                  justifyContent: 'space-between',
+                  height: '100%',
+                  width: '100%',
+                  gap: 3,
+                }}
+              >
+                {chartBars.map((val, idx) => {
+                  const barHeight = Math.max(15, Math.min(100, (val / metrics.refreshRate) * 100));
+                  const isDrop = val < metrics.refreshRate * 0.85;
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        background: isDrop ? '#fbbf24' : 'var(--studio-accent-from, #2563eb)',
+                        height: `${barHeight}%`,
+                        width: '100%',
+                        borderRadius: '2px 2px 0 0',
+                        opacity: 0.4 + (idx / chartBars.length) * 0.6,
+                        transition: 'height 0.2s ease',
+                      }}
+                    />
+                  );
+                })}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  fontSize: '9px',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                <span>Last 20 RAF Frames</span>
+                <span>V-Sync Active ({metrics.refreshRate} Hz Target)</span>
+              </div>
+            </div>
+
+            {/* GPU & Hardware Rendering Details */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
                   fontSize: '11px',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
                 }}
               >
-                Score calculated from frame stability, dropped frames, main thread blocks, and
-                memory overhead.
-              </p>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <span
-              style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                color: getScoreColor(score),
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-              }}
-            >
-              {score >= 90 ? 'Excellent' : score >= 70 ? 'Optimal' : 'Janky / Warning'}
-            </span>
-          </div>
-        </div>
-
-        <div className="perf-metrics-grid">
-          <div
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '12px',
-              padding: '16px',
-              border: '1px solid var(--c-border)',
-              borderLeft: '3px solid var(--studio-accent-from, #679cff)',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '9px',
-                  textTransform: 'uppercase',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                Current FPS
-              </span>
-              {originBadge('Measured')}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-              <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-                {metrics.currentFps}
-              </span>
-              <span
-                style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}
-              >
-                / {metrics.refreshRate}Hz
-              </span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '12px',
-              padding: '16px',
-              border: '1px solid var(--c-border)',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '9px',
-                  textTransform: 'uppercase',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                Avg FPS
-              </span>
-              {originBadge('Calculated')}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-                {metrics.averageFps}
-              </span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '12px',
-              padding: '16px',
-              border: '1px solid var(--c-border)',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '9px',
-                  textTransform: 'uppercase',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                1% Low FPS
-              </span>
-              {originBadge('Calculated')}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-                {metrics.low1PercentFps}
-              </span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '12px',
-              padding: '16px',
-              border: '1px solid var(--c-border)',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '9px',
-                  textTransform: 'uppercase',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                Frame Time
-              </span>
-              {originBadge('Measured')}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-                {metrics.frameTime}
-              </span>
-              <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>ms</span>
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '12px',
-              padding: '16px',
-              border: '1px solid var(--c-border)',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: '9px',
-                  textTransform: 'uppercase',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                Jitter
-              </span>
-              {originBadge('Calculated')}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-                {metrics.frameVariance}
-              </span>
-              <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>ms</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="perf-bento-grid">
-          <div
-            className="perf-card-memory"
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '16px',
-              padding: '24px',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 20,
-              border: '1px solid var(--c-border)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 800,
-                  color: 'var(--c-text-primary)',
-                  margin: 0,
-                }}
-              >
-                Memory Profile
-              </h3>
-              <span
-                className="material-symbols-outlined"
-                style={{ color: 'var(--c-text-secondary)' }}
-              >
-                memory
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <span style={{ color: 'var(--c-text-secondary)' }}>GPU Renderer</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'monospace',
+                    maxWidth: '65%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                  title={metrics.gpuRenderer}
+                >
+                  {metrics.gpuRenderer}
+                </span>
+              </div>
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  borderBottom: '1px solid var(--c-border)',
-                  paddingBottom: 10,
+                  fontSize: '11px',
                 }}
               >
-                <div>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      color: 'var(--c-text-secondary)',
-                      display: 'block',
-                      marginBottom: 2,
-                    }}
-                  >
-                    Heap Size
-                  </span>
-                  <span
-                    style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-text-primary)' }}
-                  >
-                    {metrics.heapSize}
-                  </span>
-                </div>
-                {originBadge(metrics.heapSize === 'Unavailable' ? 'Unavailable' : 'Browser API')}
+                <span style={{ color: 'var(--c-text-secondary)' }}>
+                  Heavy Frame Spikes (&gt;33ms)
+                </span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontFamily: 'monospace',
+                    color: metrics.longFrames > 0 ? '#fbbf24' : 'var(--c-text-primary)',
+                  }}
+                >
+                  {metrics.longFrames} frames
+                </span>
               </div>
-
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  borderBottom: '1px solid var(--c-border)',
-                  paddingBottom: 10,
+                  fontSize: '11px',
                 }}
               >
-                <div>
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      color: 'var(--c-text-secondary)',
-                      display: 'block',
-                      marginBottom: 2,
-                    }}
-                  >
-                    Used Heap
-                  </span>
-                  <span
-                    style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-text-primary)' }}
-                  >
-                    {metrics.usedHeap}
-                  </span>
-                </div>
-                {originBadge(metrics.usedHeap === 'Unavailable' ? 'Unavailable' : 'Browser API')}
+                <span style={{ color: 'var(--c-text-secondary)' }}>Critical Jank (&gt;50ms)</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontFamily: 'monospace',
+                    color: metrics.veryLongFrames > 0 ? '#ef4444' : 'var(--c-text-primary)',
+                  }}
+                >
+                  {metrics.veryLongFrames} frames
+                </span>
               </div>
+            </div>
+          </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <div>
-                  <span
+          {/* Column B: Memory Snapshot & Engine Profile */}
+          <div
+            style={{
+              background: cardBg,
+              borderRadius: 18,
+              padding: '16px 18px',
+              border: '1px solid var(--c-border)',
+              boxShadow: 'var(--surface-topbar-shadow)',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+                >
+                  memory
+                </span>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  Memory & Resource Profile
+                </h4>
+              </div>
+              {originBadge(hasMemoryAPI ? 'MEASURED' : 'UNAVAILABLE')}
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                flex: 1,
+                justifyContent: 'center',
+              }}
+            >
+              {hasMemoryAPI ? (
+                <>
+                  <div
                     style={{
-                      fontSize: '10px',
-                      color: 'var(--c-text-secondary)',
-                      display: 'block',
-                      marginBottom: 2,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '11px',
                     }}
                   >
-                    Heap Growth
-                  </span>
-                  <span
-                    style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-text-primary)' }}
+                    <span style={{ color: 'var(--c-text-secondary)' }}>Active Used JS Heap</span>
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        color: 'var(--c-text-primary)',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {metrics.usedHeap}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '11px',
+                    }}
                   >
-                    {metrics.heapGrowth}
+                    <span style={{ color: 'var(--c-text-secondary)' }}>
+                      Allocated Total JS Heap
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        color: 'var(--c-text-primary)',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {metrics.heapSize}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '11px',
+                    }}
+                  >
+                    <span style={{ color: 'var(--c-text-secondary)' }}>V8 Heap Size Limit</span>
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        color: 'var(--c-text-primary)',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {mem ? `${Math.round(mem.jsHeapSizeLimit / (1024 * 1024))} MB` : 'N/A'}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontSize: '11px',
+                    }}
+                  >
+                    <span style={{ color: 'var(--c-text-secondary)' }}>
+                      Heap Allocation Velocity
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        color: 'var(--c-text-primary)',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {metrics.heapGrowth}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <div
+                  style={{
+                    padding: '12px 6px',
+                    textAlign: 'center',
+                    color: 'var(--c-text-secondary)',
+                    fontSize: '11.5px',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{
+                      fontSize: 22,
+                      opacity: 0.5,
+                      marginBottom: 4,
+                      display: 'block',
+                    }}
+                  >
+                    lock
                   </span>
+                  V8 heap memory metrics are restricted in this WebView sandbox.
                 </div>
-                {originBadge(metrics.heapGrowth === 'Unavailable' ? 'Unavailable' : 'Calculated')}
-              </div>
+              )}
             </div>
 
             <button
               onClick={copyMemoryMap}
               style={{
                 width: '100%',
-                background: 'var(--app-surface-high, var(--app-surface))',
+                padding: '8px 12px',
+                borderRadius: 10,
+                background: isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid var(--c-border)',
-                borderRadius: '10px',
                 color: 'var(--c-text-primary)',
-                padding: '12px',
+                fontFamily: 'Manrope, sans-serif',
                 fontWeight: 700,
-                fontSize: '12px',
+                fontSize: 11,
                 cursor: 'pointer',
-                marginTop: 'auto',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
+                gap: 6,
                 transition: 'all 0.15s ease',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 13, opacity: 0.7 }}>
                 content_copy
               </span>
-              Copy Memory Map
+              Copy Memory Snapshot
             </button>
           </div>
-
-          <div
-            className="perf-card-pipeline"
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '16px',
-              padding: '24px',
-              boxSizing: 'border-box',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-              border: '1px solid var(--c-border)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 800,
-                  color: 'var(--c-text-primary)',
-                  margin: 0,
-                }}
-              >
-                Rendering Pipeline
-              </h3>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <span
-                  style={{
-                    fontSize: '9px',
-                    fontWeight: 700,
-                    background: 'rgba(103,124,255,0.15)',
-                    color: 'var(--studio-accent-from, #679cff)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  V-Sync On
-                </span>
-                <span
-                  style={{
-                    fontSize: '9px',
-                    fontWeight: 700,
-                    background: 'var(--app-surface-low, var(--app-surface))',
-                    border: '1px solid var(--c-border)',
-                    color: 'var(--c-text-secondary)',
-                    padding: '2px 6px',
-                    borderRadius: '4px',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  Refresh: {metrics.refreshRate}Hz
-                </span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                flexGrow: 1,
-                minHeight: 180,
-                background: 'var(--app-surface-low, #0a0a0c)',
-                borderRadius: '12px',
-                padding: '16px 20px',
-                position: 'relative',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-end',
-                gap: 8,
-                border: '1px solid var(--c-border)',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  opacity: 0.06,
-                  backgroundSize: '20px 20px',
-                  backgroundImage:
-                    'linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)',
-                }}
-              />
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'end',
-                  justifyContent: 'space-between',
-                  height: '100%',
-                  width: '100%',
-                  zIndex: 10,
-                  gap: 4,
-                }}
-              >
-                {chartBars.map((val, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      background: 'var(--studio-accent-from, #679cff)',
-                      height: `${(val / metrics.refreshRate) * 80}%`,
-                      width: '100%',
-                      borderRadius: '2px 2px 0 0',
-                      opacity: 0.3 + (idx / chartBars.length) * 0.7,
-                      transition: 'height 0.3s ease',
-                    }}
-                  />
-                ))}
-              </div>
-
-              <div
-                style={{
-                  zIndex: 10,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  fontSize: '9px',
-                  color: 'var(--c-text-secondary)',
-                  textTransform: 'uppercase',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.04em',
-                  marginTop: 6,
-                }}
-              >
-                <span>Last 20 Samples</span>
-                <span>UI Thread Delay: {metrics.eventLoopDelay.toFixed(1)}ms</span>
-                <span>GPU: {metrics.gpuRenderer.substring(0, 30)}</span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: 12,
-                paddingTop: 8,
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      color: 'var(--c-text-secondary)',
-                      textTransform: 'uppercase',
-                      fontFamily: 'Inter',
-                    }}
-                  >
-                    Rasterization
-                  </span>
-                  {originBadge('Unavailable')}
-                </div>
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: 'var(--c-text-secondary)',
-                    opacity: 0.6,
-                    display: 'block',
-                    marginTop: 4,
-                  }}
-                >
-                  Unavailable
-                </span>
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      color: 'var(--c-text-secondary)',
-                      textTransform: 'uppercase',
-                      fontFamily: 'Inter',
-                    }}
-                  >
-                    Compositing
-                  </span>
-                  {originBadge('Unavailable')}
-                </div>
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: 'var(--c-text-secondary)',
-                    opacity: 0.6,
-                    display: 'block',
-                    marginTop: 4,
-                  }}
-                >
-                  Unavailable
-                </span>
-              </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span
-                    style={{
-                      fontSize: '9px',
-                      color: 'var(--c-text-secondary)',
-                      textTransform: 'uppercase',
-                      fontFamily: 'Inter',
-                    }}
-                  >
-                    UI Loop Lag
-                  </span>
-                  {originBadge('Measured')}
-                </div>
-                <span
-                  style={{
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    color: 'var(--c-text-primary)',
-                    display: 'block',
-                    marginTop: 4,
-                  }}
-                >
-                  {metrics.eventLoopDelay.toFixed(1)}ms
-                </span>
-              </div>
-            </div>
-          </div>
         </div>
 
+        {/* 3. COMPONENT RENDERING PROFILER */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 16,
-          }}
-        >
-          <div
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '12px',
-              padding: '16px 20px',
-              border: '1px solid var(--c-border)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  fontSize: '10px',
-                  textTransform: 'uppercase',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                Thermal State
-              </span>
-              <span
-                style={{
-                  fontSize: '15px',
-                  fontWeight: 700,
-                  color: 'var(--c-text-secondary)',
-                  opacity: 0.6,
-                  display: 'block',
-                  marginTop: 4,
-                }}
-              >
-                Unavailable
-              </span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  color: 'var(--c-text-secondary)',
-                  opacity: 0.7,
-                  display: 'block',
-                  marginTop: 2,
-                }}
-              >
-                Reason: Metric not exposed by current platform.
-              </span>
-            </div>
-            {originBadge('Unavailable')}
-          </div>
-          <div
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              borderRadius: '12px',
-              padding: '16px 20px',
-              border: '1px solid var(--c-border)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <div>
-              <span
-                style={{
-                  fontSize: '10px',
-                  textTransform: 'uppercase',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                Battery Optimization
-              </span>
-              <span
-                style={{
-                  fontSize: '15px',
-                  fontWeight: 700,
-                  color: 'var(--c-text-secondary)',
-                  opacity: 0.6,
-                  display: 'block',
-                  marginTop: 4,
-                }}
-              >
-                Unavailable
-              </span>
-              <span
-                style={{
-                  fontSize: '10px',
-                  color: 'var(--c-text-secondary)',
-                  opacity: 0.7,
-                  display: 'block',
-                  marginTop: 2,
-                }}
-              >
-                Reason: Metric not exposed by current platform.
-              </span>
-            </div>
-            {originBadge('Unavailable')}
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: 'var(--app-surface-high, var(--app-surface))',
-            borderRadius: '16px',
-            padding: '24px',
-            boxSizing: 'border-box',
+            background: cardBg,
+            borderRadius: 18,
+            padding: '16px 18px',
             border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
             display: 'flex',
             flexDirection: 'column',
-            gap: 16,
+            gap: 12,
           }}
         >
-          <h3
+          <div
             style={{
-              fontSize: '18px',
-              fontWeight: 800,
-              color: 'var(--c-text-primary)',
-              margin: 0,
               display: 'flex',
+              justifyContent: 'space-between',
               alignItems: 'center',
+              flexWrap: 'wrap',
               gap: 8,
             }}
           >
-            <span
-              className="material-symbols-outlined"
-              style={{ color: warnings.length > 0 ? '#fbbf24' : '#10b981' }}
-            >
-              warning
-            </span>
-            Active Performance Warnings ({warnings.length})
-          </h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+              >
+                account_tree
+              </span>
+              <div>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  Component Lifecycle Profiler
+                </h4>
+                <div
+                  style={{
+                    fontSize: '10.5px',
+                    color: 'var(--c-text-secondary)',
+                    fontFamily: 'Inter',
+                  }}
+                >
+                  Live React render count & mount tracking
+                </div>
+              </div>
+            </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {warnings.length === 0 ? (
-              <div
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {originBadge('MEASURED')}
+              <button
+                onClick={copyComponentRenderStats}
                 style={{
-                  fontSize: '13px',
-                  color: 'var(--c-text-secondary)',
-                  padding: '12px',
-                  background: 'rgba(16,185,129,0.05)',
-                  border: '1px solid rgba(16,185,129,0.1)',
-                  borderRadius: '10px',
+                  background: isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: '8px',
+                  color: 'var(--c-text-primary)',
+                  padding: '5px 10px',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  gap: 4,
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'Manrope, sans-serif',
                 }}
               >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: '#10b981', fontSize: 18 }}
-                >
-                  check_circle
+                <span className="material-symbols-outlined" style={{ fontSize: 13, opacity: 0.7 }}>
+                  content_copy
                 </span>
-                All metrics are operating within recommended limits. Rendering pipeline is optimal.
+                Copy Stats
+              </button>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              maxHeight: 220,
+              overflowY: 'auto',
+              paddingRight: 4,
+            }}
+          >
+            {perf.size === 0 ? (
+              <div
+                style={{
+                  fontSize: '11.5px',
+                  color: 'var(--c-text-secondary)',
+                  textAlign: 'center',
+                  padding: '18px 0',
+                  fontFamily: 'Inter',
+                }}
+              >
+                No heavy component render cycles logged yet in this session.
               </div>
             ) : (
-              warnings.map((w, idx) => (
+              Array.from(perf.entries()).map(([comp, stats]) => {
+                const isHighRerender = stats.renders > 15;
+                return (
+                  <div
+                    key={comp}
+                    style={{
+                      padding: '8px 12px',
+                      background: innerCardBg,
+                      border: isHighRerender
+                        ? '1px solid rgba(251, 191, 36, 0.3)'
+                        : '1px solid var(--c-border)',
+                      borderRadius: 10,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <span
+                        style={{
+                          fontWeight: 700,
+                          fontSize: '12px',
+                          color: isHighRerender ? '#fbbf24' : 'var(--c-text-primary)',
+                          fontFamily: 'monospace',
+                        }}
+                      >
+                        {comp}
+                      </span>
+                      <div
+                        style={{
+                          fontSize: '9.5px',
+                          color: 'var(--c-text-secondary)',
+                          fontFamily: 'Inter',
+                        }}
+                      >
+                        Last: {new Date(stats.lastRenderTime).toLocaleTimeString()}
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        gap: 12,
+                        fontSize: '10.5px',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      <span style={{ color: 'var(--c-text-secondary)' }}>
+                        Mounts: <strong style={{ color: '#10b981' }}>{stats.mounts}</strong>
+                      </span>
+                      <span style={{ color: 'var(--c-text-secondary)' }}>
+                        Renders:{' '}
+                        <strong
+                          style={{
+                            color: isHighRerender
+                              ? '#f59e0b'
+                              : 'var(--studio-accent-from, #2563eb)',
+                          }}
+                        >
+                          {stats.renders}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* 4. ACTIVE PERFORMANCE ALERTS (ONLY BACKED BY ACTUAL MEASUREMENTS) */}
+        {warnings.length > 0 && (
+          <div
+            style={{
+              background: cardBg,
+              borderRadius: 18,
+              padding: '16px 18px',
+              border: '1px solid rgba(238, 125, 119, 0.3)',
+              boxShadow: 'var(--surface-topbar-shadow)',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: '#ee7d77', fontSize: 18 }}
+              >
+                warning
+              </span>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: '#ee7d77',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                Performance Bottlenecks Detected ({warnings.length})
+              </h4>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {warnings.map((w, idx) => (
                 <div
                   key={idx}
                   style={{
-                    padding: '16px',
-                    background: 'var(--app-surface-bright, var(--app-surface))',
-                    border: '1px solid var(--c-border)',
-                    borderLeft: `4px solid ${w.severity === 'Critical' ? '#ef4444' : '#fbbf24'}`,
-                    borderRadius: '4px 12px 12px 4px',
+                    padding: '10px 12px',
+                    background: innerCardBg,
+                    borderLeft: `3px solid ${w.severity === 'Critical' ? '#ee7d77' : '#fbbf24'}`,
+                    borderTop: '1px solid var(--c-border)',
+                    borderRight: '1px solid var(--c-border)',
+                    borderBottom: '1px solid var(--c-border)',
+                    borderRadius: '4px 10px 10px 4px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 6,
+                    gap: 4,
                   }}
                 >
                   <div
@@ -3300,20 +3444,24 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     }}
                   >
                     <span
-                      style={{ fontWeight: 800, fontSize: '14px', color: 'var(--c-text-primary)' }}
+                      style={{
+                        fontWeight: 800,
+                        fontSize: '12px',
+                        color: 'var(--c-text-primary)',
+                      }}
                     >
                       {w.title}
                     </span>
                     <span
                       style={{
-                        fontSize: '9px',
+                        fontSize: '8.5px',
                         fontWeight: 800,
                         background:
                           w.severity === 'Critical'
-                            ? 'rgba(239,68,68,0.15)'
-                            : 'rgba(251,191,36,0.15)',
-                        color: w.severity === 'Critical' ? '#ef4444' : '#fbbf24',
-                        padding: '2px 6px',
+                            ? 'rgba(238, 125, 119, 0.15)'
+                            : 'rgba(251, 191, 36, 0.15)',
+                        color: w.severity === 'Critical' ? '#ee7d77' : '#fbbf24',
+                        padding: '1px 5px',
                         borderRadius: '4px',
                         textTransform: 'uppercase',
                       }}
@@ -3324,212 +3472,67 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   <p
                     style={{
                       margin: 0,
-                      fontSize: '12px',
+                      fontSize: '11px',
                       color: 'var(--c-text-secondary)',
-                      lineHeight: 1.4,
+                      lineHeight: 1.35,
                     }}
                   >
                     {w.description}
                   </p>
                   <div
                     style={{
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(2, 1fr)',
-                      gap: 8,
-                      marginTop: 4,
-                      fontSize: '11px',
-                      borderTop: '1px solid var(--c-border)',
-                      paddingTop: 8,
+                      fontSize: '10.5px',
+                      color: 'var(--c-text-secondary)',
+                      marginTop: 2,
                     }}
                   >
-                    <div>
-                      <span style={{ color: 'var(--c-text-secondary)' }}>Measured: </span>
-                      <span style={{ color: 'var(--c-text-primary)', fontWeight: 600 }}>
-                        {w.measured}
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ color: 'var(--c-text-secondary)' }}>Expected: </span>
-                      <span style={{ color: 'var(--c-text-secondary)' }}>{w.expected}</span>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--c-text-secondary)', marginTop: 4 }}>
-                    <span style={{ fontWeight: 700, color: 'var(--studio-accent-from, #679cff)' }}>
-                      Possible Cause:{' '}
-                    </span>
-                    {w.possibleCause}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>
-                    <span style={{ fontWeight: 700, color: 'var(--studio-accent-from, #679cff)' }}>
-                      Investigation:{' '}
-                    </span>
-                    {w.suggestedInvestigation}
+                    <span>
+                      Measured:{' '}
+                      <strong style={{ color: 'var(--c-text-primary)' }}>{w.measured}</strong>
+                    </span>{' '}
+                    • <span>Expected: {w.expected}</span>
                   </div>
                 </div>
-              ))
-            )}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
+        {/* 5. PLATFORM AVAILABILITY DISCLAIMER NOTE */}
         <div
           style={{
-            background: 'var(--app-surface-high, var(--app-surface))',
-            borderRadius: '16px',
-            padding: '24px',
-            boxSizing: 'border-box',
+            padding: '12px 14px',
+            borderRadius: 12,
+            background: innerCardBg,
             border: '1px solid var(--c-border)',
             display: 'flex',
-            flexDirection: 'column',
-            gap: 16,
+            alignItems: 'center',
+            gap: 10,
           }}
         >
-          <div
+          <span
+            className="material-symbols-outlined"
             style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 12,
+              fontSize: 18,
+              color: 'var(--c-text-secondary)',
+              opacity: 0.7,
+              flexShrink: 0,
             }}
           >
-            <div>
-              <h3
-                style={{
-                  fontSize: '18px',
-                  fontWeight: 800,
-                  color: 'var(--c-text-primary)',
-                  margin: 0,
-                }}
-              >
-                Component Rendering Profiler
-              </h3>
-              <p
-                style={{
-                  margin: '4px 0 0',
-                  fontSize: '11px',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
-                }}
-              >
-                Tracks mounts, unmounts, and render frequencies for heavy layout components in the
-                active session.
-              </p>
-            </div>
-            <button
-              onClick={copyComponentRenderStats}
-              style={{
-                background: 'var(--app-surface-high, var(--app-surface))',
-                border: '1px solid var(--c-border)',
-                borderRadius: '8px',
-                color: 'var(--c-text-primary)',
-                padding: '6px 14px',
-                fontWeight: 700,
-                fontSize: '11px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                content_copy
-              </span>
-              Copy Stats
-            </button>
-          </div>
-
-          <div
+            info
+          </span>
+          <span
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 10,
-              maxHeight: 300,
-              overflowY: 'auto',
-              paddingRight: 4,
+              fontSize: '10.5px',
+              color: 'var(--c-text-secondary)',
+              lineHeight: 1.4,
+              fontFamily: 'Inter, sans-serif',
             }}
           >
-            {perf.size === 0 ? (
-              <div
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--c-text-secondary)',
-                  textAlign: 'center',
-                  padding: '24px 0',
-                }}
-              >
-                No active component render telemetry captured in this session.
-              </div>
-            ) : (
-              Array.from(perf.entries()).map(([comp, stats]) => {
-                const isHighRerender = stats.renders > 15;
-                return (
-                  <div
-                    key={comp}
-                    style={{
-                      padding: '12px 16px',
-                      background: 'var(--app-surface-low, var(--app-surface))',
-                      border: isHighRerender
-                        ? '1px solid rgba(251,191,36,0.25)'
-                        : '1px solid var(--c-border)',
-                      borderRadius: 12,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div>
-                      <span
-                        style={{
-                          fontWeight: 800,
-                          fontSize: '13px',
-                          color: isHighRerender ? '#fbbf24' : 'var(--c-text-primary)',
-                        }}
-                      >
-                        {comp}
-                      </span>
-                      <div
-                        style={{
-                          fontSize: '10px',
-                          color: 'var(--c-text-secondary)',
-                          marginTop: 4,
-                          fontFamily: 'Inter',
-                        }}
-                      >
-                        Last render: {new Date(stats.lastRenderTime).toLocaleTimeString()}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: 12,
-                        fontSize: '11px',
-                        fontFamily: 'monospace',
-                      }}
-                    >
-                      <div style={{ color: 'var(--c-text-secondary)' }}>
-                        Mounts:{' '}
-                        <span style={{ color: '#10b981', fontWeight: 800 }}>{stats.mounts}</span>
-                      </div>
-                      <div style={{ color: 'var(--c-text-secondary)' }}>
-                        Renders:{' '}
-                        <span
-                          style={{
-                            color: isHighRerender
-                              ? '#f59e0b'
-                              : 'var(--studio-accent-from, #679cff)',
-                            fontWeight: 800,
-                          }}
-                        >
-                          {stats.renders}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+            <strong>Platform Note:</strong> Low-level OS metrics (GPU Rasterization/Compositing
+            passes, SoC Thermal States, Battery Power States) are not exposed by the WebView sandbox
+            to JavaScript and are intentionally omitted rather than fabricated.
+          </span>
         </div>
       </SettingsContentContainer>
     );

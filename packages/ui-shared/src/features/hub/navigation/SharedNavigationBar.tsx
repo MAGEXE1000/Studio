@@ -400,9 +400,18 @@ export function SharedNavigationBar({
   const satelliteWidth = 58;
   const dockGap = 8;
   const maxDockWidth = Math.min(windowWidth - 32, 600);
-  const maxBarWidth = hasRightBubble ? maxDockWidth - satelliteWidth - dockGap : maxDockWidth;
+  const maxBarWidth = hasRightBubble
+    ? Math.min(
+        maxDockWidth,
+        Math.max(isSwitcherOpen ? 240 : 180, (windowWidth / 2 - dockGap - satelliteWidth - 8) * 2)
+      )
+    : maxDockWidth;
   const targetBarWidth = totalSlots * slotWidth + paddingX * 2;
-  const minBarW = isSwitcherOpen ? Math.min(240, maxBarWidth) : windowWidth < 480 ? 190 : 230;
+  const minBarW = isSwitcherOpen
+    ? Math.min(240, maxBarWidth)
+    : windowWidth < 480
+      ? Math.min(180, maxBarWidth)
+      : 230;
   const barWidth = Math.max(Math.min(targetBarWidth, maxBarWidth), Math.min(minBarW, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
@@ -878,10 +887,10 @@ export function SharedNavigationBar({
           {/* Bottom Navigation Dock Container */}
           <div
             style={{
+              position: 'relative',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px',
               width: '100%',
               maxWidth: '100%',
               paddingLeft: 'max(16px, env(safe-area-inset-left, 16px))',
@@ -1167,12 +1176,24 @@ export function SharedNavigationBar({
             </motion.div>
 
             {showSwitcherButton && (
-              <div
+              <motion.div
                 style={{
-                  pointerEvents: 'auto',
-                  flexShrink: 0,
+                  position: 'absolute',
+                  left: `calc(50% + ${barWidth / 2 + dockGap}px)`,
+                  top: 0,
+                  bottom: 0,
                   display: 'flex',
                   alignItems: 'center',
+                  pointerEvents: 'auto',
+                }}
+                animate={{
+                  left: `calc(50% + ${barWidth / 2 + dockGap}px)`,
+                }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 340,
+                  damping: 26,
+                  mass: 0.75,
                 }}
               >
                 <motion.button
@@ -1202,7 +1223,7 @@ export function SharedNavigationBar({
                     cursor: 'pointer',
                     outline: 'none',
                     WebkitTapHighlightColor: 'transparent',
-                    transformOrigin: 'center center',
+                    transformOrigin: 'center bottom',
                     position: 'relative',
                     overflow: 'hidden',
                     opacity: switcherOpacity,
@@ -1236,7 +1257,7 @@ export function SharedNavigationBar({
                     </motion.span>
                   </AnimatePresence>
                 </motion.button>
-              </div>
+              </motion.div>
             )}
           </div>
         </motion.div>

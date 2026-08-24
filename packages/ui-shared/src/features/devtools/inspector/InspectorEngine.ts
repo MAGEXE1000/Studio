@@ -429,3 +429,147 @@ export function freezeStudioUI(freeze: boolean) {
     }
   }
 }
+
+export interface DOMTreeNode {
+  id: string;
+  tagName: string;
+  displayName: string;
+  isReact: boolean;
+  element: HTMLElement;
+  children: DOMTreeNode[];
+  depth: number;
+  isInteractive: boolean;
+  isLayoutContainer: boolean;
+  hasChildren: boolean;
+}
+
+/**
+ * Build recursive DOM/React component tree starting from an element
+ */
+export function buildElementTree(
+  root: HTMLElement | null,
+  maxDepth = 3,
+  currentDepth = 0
+): DOMTreeNode | null {
+  if (!root || currentDepth > maxDepth) return null;
+  if (
+    root.getAttribute('data-inspector-overlay') === 'true' ||
+    root.closest('[data-inspector-dock="true"]') ||
+    root.tagName === 'SCRIPT' ||
+    root.tagName === 'STYLE'
+  ) {
+    return null;
+  }
+
+  const fiber = getFiberInfoFromDOMNode(root);
+  const isReact = Boolean(fiber && fiber.displayName !== root.tagName.toLowerCase());
+  const displayName = fiber?.displayName || root.tagName.toLowerCase();
+
+  const isInteractive = Boolean(
+    root.matches('button, a, input, select, textarea, [role="button"], [tabindex]')
+  );
+
+  let isLayoutContainer = false;
+  try {
+    const display = window.getComputedStyle(root).display;
+    isLayoutContainer = display.includes('flex') || display.includes('grid');
+  } catch (e) {}
+
+  const children: DOMTreeNode[] = [];
+  if (currentDepth < maxDepth) {
+    for (let i = 0; i < Math.min(root.children.length, 16); i++) {
+      const child = root.children[i];
+      if (child instanceof HTMLElement) {
+        const childNode = buildElementTree(child, maxDepth, currentDepth + 1);
+        if (childNode) children.push(childNode);
+      }
+    }
+  }
+
+  return {
+    id: `${displayName}_${currentDepth}_${root.id || root.className || Math.random().toString(36).substring(2, 6)}`,
+    tagName: root.tagName.toLowerCase(),
+    displayName,
+    isReact,
+    element: root,
+    children,
+    depth: currentDepth,
+    isInteractive,
+    isLayoutContainer,
+    hasChildren: root.children.length > 0,
+  };
+}
+
+/**
+ * Discover key targets for quick inspection when empty
+ */
+export interface QuickTarget {
+  name: string;
+  type: string;
+  element: HTMLElement;
+  description: string;
+}
+
+export function getQuickInspectTargets(): QuickTarget[] {
+  const targets: QuickTarget[] = [];
+
+  const root = document.getElementById('root');
+  if (root) {
+    const rootFiber = getFiberInfoFromDOMNode(root);
+    targets.push({
+      name: rootFiber?.displayName || '#root',
+      type: 'Root Container',
+      element: root,
+      description: 'Main application mounting point',
+    });
+  }
+
+  const main = document.querySelector('main, [data-app-container="true"], .app-container, [role="main"]');
+  if (main instanceof HTMLElement) {
+    const mainFiber = getFiberInfoFromDOMNode(main);
+    targets.push({
+      name: mainFiber?.displayName || main.tagName.toLowerCase(),
+      type: 'Active View Container',
+      element: main,
+      description: 'Primary screen content area',
+    });
+  }
+
+  const nav = document.querySelector('nav, [data-nav-dock="true"], header, [role="navigation"]');
+  if (nav instanceof HTMLElement) {
+    const navFiber = getFiberInfoFromDOMNode(nav);
+    targets.push({
+      name: navFiber?.displayName || nav.tagName.toLowerCase(),
+      type: 'Navigation / Header',
+      element: nav,
+      description: 'Top navigation bar or bottom dock',
+    });
+  }
+
+  const firstBtn = document.querySelector('button, [role="button"]');
+  if (firstBtn instanceof HTMLElement && !firstBtn.closest('[data-inspector-dock="true"]')) {
+    const btnFiber = getFiberInfoFromDOMNode(firstBtn);
+    targets.push({
+      name: btnFiber?.displayName || `<${firstBtn.tagName.toLowerCase()}>`,
+      type: 'Interactive Control',
+      element: firstBtn,
+      description: firstBtn.innerText?.slice(0, 24) || 'Interactive button element',
+    });
+  }
+
+  return targets;
+}
+
+/**
+ * Extract all DOM attributes from an element
+ */
+export function getElementDOMAttributes(element: HTMLElement | null): Array<{ name: string; value: string }> {
+  if (!element) return [];
+  const attrs: Array<{ name: string; value: string }> = [];
+  for (let i = 0; i < element.attributes.length; i++) {
+    const attr = element.attributes[i];
+    attrs.push({ name: attr.name, value: attr.value });
+  }
+  return attrs;
+}
+

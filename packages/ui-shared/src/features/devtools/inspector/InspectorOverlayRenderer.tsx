@@ -28,6 +28,7 @@ export const InspectorOverlayRenderer: React.FC = () => {
 
   const setSelectedElement = useDeveloperInspectorStore((s) => s.setSelectedElement);
   const setHoveredElement = useDeveloperInspectorStore((s) => s.setHoveredElement);
+  const setIsLiveSelecting = useDeveloperInspectorStore((s) => s.setIsLiveSelecting);
 
   const [selectedBox, setSelectedBox] = useState<BoxModel | null>(null);
   const [hoveredBox, setHoveredBox] = useState<BoxModel | null>(null);
@@ -121,6 +122,27 @@ export const InspectorOverlayRenderer: React.FC = () => {
       }
     };
 
+    const handleCapturingClick = (e: MouseEvent) => {
+      if (!isLiveSelecting) return;
+      const target = e.target as HTMLElement | null;
+      if (!target || target.closest('[data-inspector-dock="true"]')) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof (e as any).stopImmediatePropagation === 'function') {
+        (e as any).stopImmediatePropagation();
+      }
+
+      const inspectTarget = getInspectableElementAtPoint(e.clientX, e.clientY) || target;
+      if (inspectTarget) {
+        const fiberInfo = getFiberInfoFromDOMNode(inspectTarget);
+        const breadcrumbs = getBreadcrumbsForElement(inspectTarget);
+        setSelectedElement(inspectTarget, fiberInfo, breadcrumbs);
+        setHoveredElement(null);
+      }
+      setIsLiveSelecting(false);
+    };
+
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
       const touch = e.touches[0];
@@ -154,17 +176,19 @@ export const InspectorOverlayRenderer: React.FC = () => {
     };
 
     window.addEventListener('pointermove', handlePointerMove, { capture: true, passive: true });
+    window.addEventListener('click', handleCapturingClick, { capture: true });
     window.addEventListener('touchstart', handleTouchStart, { capture: true, passive: true });
     window.addEventListener('touchmove', handleTouchMove, { capture: true, passive: true });
     window.addEventListener('touchend', handleTouchEnd, { capture: true, passive: true });
 
     return () => {
       window.removeEventListener('pointermove', handlePointerMove, { capture: true });
+      window.removeEventListener('click', handleCapturingClick, { capture: true });
       window.removeEventListener('touchstart', handleTouchStart, { capture: true });
       window.removeEventListener('touchmove', handleTouchMove, { capture: true });
       window.removeEventListener('touchend', handleTouchEnd, { capture: true });
     };
-  }, [isEnabled, isLiveSelecting, isFrozen, hoveredElement, setHoveredElement, setSelectedElement]);
+  }, [isEnabled, isLiveSelecting, isFrozen, hoveredElement, setHoveredElement, setSelectedElement, setIsLiveSelecting]);
 
   // 4. Touch Target Warnings Calculation (< 44dp targets)
   useEffect(() => {

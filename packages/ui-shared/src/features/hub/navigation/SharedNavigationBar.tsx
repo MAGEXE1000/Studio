@@ -150,8 +150,9 @@ const NavigationItem = React.memo(
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: '2px',
+            gap: isSwitcherOpen ? '0px' : '2px',
             width: '100%',
+            height: '100%',
           }}
         >
           <div
@@ -159,15 +160,15 @@ const NavigationItem = React.memo(
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 24,
-              height: 24,
+              width: isSwitcherOpen ? 28 : 24,
+              height: isSwitcherOpen ? 28 : 24,
             }}
           >
             {isIconString ? (
               <AnimatedNavigationIcon
                 itemKey={item.key}
                 iconName={item.icon as string}
-                size={isSwitcherOpen ? 19 : 21}
+                size={isSwitcherOpen ? 22 : 21}
                 color={iconColor}
                 isActive={isActive}
                 animationEpoch={animationEpoch}
@@ -176,7 +177,7 @@ const NavigationItem = React.memo(
               <AnimatedNavigationIcon
                 itemKey={item.key}
                 iconNode={item.icon}
-                size={isSwitcherOpen ? 19 : 21}
+                size={isSwitcherOpen ? 22 : 21}
                 color={iconColor}
                 isActive={isActive}
                 animationEpoch={animationEpoch}
@@ -184,15 +185,15 @@ const NavigationItem = React.memo(
             )}
           </div>
 
-          {item.label && (
+          {!isSwitcherOpen && item.label && (
             <span
               style={{
                 fontFamily: 'Inter, sans-serif',
-                fontSize: isSwitcherOpen ? '10px' : '11px',
+                fontSize: '11px',
                 fontWeight: isActive ? 700 : 550,
                 color: labelColor,
                 whiteSpace: 'nowrap',
-                letterSpacing: isSwitcherOpen ? '-0.025em' : '-0.01em',
+                letterSpacing: '-0.01em',
                 lineHeight: 1.15,
                 textAlign: 'center',
                 userSelect: 'none',
@@ -377,7 +378,7 @@ export function SharedNavigationBar({
 
   const getItemPillWidth = useCallback(
     (item: any, index: number) => {
-      if (isSwitcherOpen) return 44;
+      if (isSwitcherOpen) return 42;
       const geom = measuredContentGeometry[index];
       if (geom && geom.width > 0) {
         // Real DOM measured width + 24px fixed horizontal padding (12px left, 12px right)
@@ -391,7 +392,7 @@ export function SharedNavigationBar({
     [isSwitcherOpen, measuredContentGeometry]
   );
 
-  const slotWidth = isSwitcherOpen ? 50 : isHub ? 80 : 70;
+  const slotWidth = isSwitcherOpen ? 46 : isHub ? 80 : 70;
   const paddingX = isSwitcherOpen ? 6 : 8;
 
   // hasRightBubble: true when App Changer satellite button is shown (non-hub apps only)
@@ -401,7 +402,7 @@ export function SharedNavigationBar({
   const maxDockWidth = Math.min(windowWidth - 32, 600);
   const maxBarWidth = hasRightBubble ? maxDockWidth - satelliteWidth - dockGap : maxDockWidth;
   const targetBarWidth = totalSlots * slotWidth + paddingX * 2;
-  const minBarW = isSwitcherOpen ? Math.min(250, maxBarWidth) : windowWidth < 480 ? 190 : 230;
+  const minBarW = isSwitcherOpen ? Math.min(240, maxBarWidth) : windowWidth < 480 ? 190 : 230;
   const barWidth = Math.max(Math.min(targetBarWidth, maxBarWidth), Math.min(minBarW, maxBarWidth));
 
   const usableWidth = barWidth - paddingX * 2;
@@ -409,13 +410,13 @@ export function SharedNavigationBar({
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = Math.max(30, itemWidth - 4);
-      const rawX = index * itemWidth + 2;
+      const pillW = isSwitcherOpen ? Math.max(30, itemWidth - 6) : Math.max(30, itemWidth - 4);
+      const rawX = index * itemWidth + (isSwitcherOpen ? 3 : 2);
       const minX = 2;
       const maxX = Math.max(minX, usableWidth - pillW - 2);
       return Math.max(minX, Math.min(maxX, rawX));
     },
-    [itemWidth, usableWidth]
+    [isSwitcherOpen, itemWidth, usableWidth]
   );
 
   const activeIndex = useMemo(() => {
@@ -494,8 +495,8 @@ export function SharedNavigationBar({
       const isScrubbingActive = isScrubbingRef.current;
       const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
       const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
-      const pillW = Math.max(30, itemWidth - 4);
-      const rawX = idx * itemWidth + 2 + (dragVal as number);
+      const pillW = isSwitcherOpen ? Math.max(30, itemWidth - 6) : Math.max(30, itemWidth - 4);
+      const rawX = idx * itemWidth + (isSwitcherOpen ? 3 : 2) + (dragVal as number);
       const minX = 2;
       const maxX = Math.max(minX, usableWidth - pillW - 2);
       return Math.max(minX, Math.min(maxX, rawX));
@@ -503,7 +504,7 @@ export function SharedNavigationBar({
   );
 
   const animatedPillX = pillX;
-  const pillWidthVal = Math.max(30, itemWidth - 4);
+  const pillWidthVal = isSwitcherOpen ? Math.max(30, itemWidth - 6) : Math.max(30, itemWidth - 4);
 
   const pillPressScale = useTransform(pressPressureRaw, [0, 5], [1, 0.96]);
 

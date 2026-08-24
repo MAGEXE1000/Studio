@@ -242,6 +242,8 @@
   --hub-card-icon-bg: rgba(255, 255, 255, 0.04);
   --hub-card-icon-border: rgba(255, 255, 255, 0.08);
 
+  /* Segmented-control / generic control track — theme-aware groove background */
+  --control-track-bg: rgba(0, 0, 0, 0.32);
   /* Animate the variables themselves — every consumer transitions for free */
   transition:
     --app-bg 300ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -283,6 +285,7 @@
   --hub-card-border: rgba(255, 255, 255, 0.06);
   --hub-card-icon-bg: rgba(255, 255, 255, 0.04);
   --hub-card-icon-border: rgba(255, 255, 255, 0.08);
+  --control-track-bg: rgba(0, 0, 0, 0.65);
 }
 
 :root.light.amoled {
@@ -363,12 +366,21 @@
   --hub-card-border: rgba(0, 0, 0, 0.08);
   --hub-card-icon-bg: rgba(0, 0, 0, 0.03);
   --hub-card-icon-border: rgba(0, 0, 0, 0.06);
+  --control-track-bg: rgba(0, 0, 0, 0.07);
 }
 
 /* Body background always tracks the active theme so the status bar area blends in */
 html,
 .web-desktop {
   --content-bottom-pad: 96px;
+}
+
+/* Setting row interactive hover — adapts to active theme via --c-border */
+.sc-setting-row-interactive {
+  transition: background 120ms ease;
+}
+.sc-setting-row-interactive:hover {
+  background: var(--c-border);
 }
 
 /* ============================================================

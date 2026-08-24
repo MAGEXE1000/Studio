@@ -67,11 +67,11 @@ export function SettingRow({
     <RowWrapper
       {...(motionProps as any)}
       onClick={onClick}
-      className={`flex items-center justify-between gap-4 ${isInteractive ? 'cursor-pointer hover:bg-white/5 transition-colors' : ''}`}
+      className={`flex items-center justify-between gap-4 ${isInteractive ? 'cursor-pointer sc-setting-row-interactive' : ''}`}
       style={{
         padding: '14px 16px',
         paddingLeft: indent ? 'calc(16px * 1.75)' : '16px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+        borderBottom: '1px solid var(--c-border)',
         boxSizing: 'border-box',
       }}
     >
@@ -128,13 +128,13 @@ export function SegmentedControl<T extends string>({
   return (
     <div
       style={{
-        background: 'rgba(0, 0, 0, 0.28)',
+        background: 'var(--control-track-bg, rgba(0, 0, 0, 0.28))',
         borderRadius: '9999px',
         padding: '3px',
         display: 'flex',
         position: 'relative',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
+        border: '1px solid var(--c-border)',
+        boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.20)',
       }}
     >
       {options.map((opt) => {
@@ -260,15 +260,15 @@ export function BentoSettingCard({
             width: 36,
             height: 36,
             borderRadius: 12,
-            background: iconColor ? `${iconColor}22` : 'rgba(255, 255, 255, 0.06)',
+            background: iconColor ? `${iconColor}22` : 'var(--c-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            border: iconColor ? `1px solid ${iconColor}40` : '1px solid rgba(255, 255, 255, 0.10)',
+            border: iconColor ? `1px solid ${iconColor}40` : '1px solid var(--c-border)',
             boxShadow: iconColor
               ? `0 2px 8px ${iconColor}25, inset 0 1px 1px rgba(255, 255, 255, 0.35)`
-              : 'inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+              : 'inset 0 1px 1px rgba(255, 255, 255, 0.10)',
           }}
         >
           <span
@@ -336,9 +336,9 @@ export function BentoSettingCard({
               fontFamily: 'Manrope, sans-serif',
               padding: '2px 8px',
               borderRadius: 6,
-              background: 'rgba(255, 255, 255, 0.08)',
+              background: 'var(--c-border)',
               color: 'var(--c-text-primary)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: '1px solid var(--c-border)',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
@@ -351,7 +351,7 @@ export function BentoSettingCard({
             width: 24,
             height: 24,
             borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.04)',
+            background: 'var(--c-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -403,7 +403,7 @@ export function BentoSettingRow({
         padding: '14px 16px',
         background: 'transparent',
         border: 'none',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+        borderBottom: '1px solid var(--c-border)',
         cursor: 'pointer',
         textAlign: 'left',
         boxSizing: 'border-box',
@@ -423,15 +423,15 @@ export function BentoSettingRow({
             width: 36,
             height: 36,
             borderRadius: 12,
-            background: iconColor ? `${iconColor}22` : 'rgba(255, 255, 255, 0.06)',
+            background: iconColor ? `${iconColor}22` : 'var(--c-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            border: iconColor ? `1px solid ${iconColor}40` : '1px solid rgba(255, 255, 255, 0.10)',
+            border: iconColor ? `1px solid ${iconColor}40` : '1px solid var(--c-border)',
             boxShadow: iconColor
               ? `0 2px 8px ${iconColor}25, inset 0 1px 1px rgba(255, 255, 255, 0.35)`
-              : 'inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+              : 'inset 0 1px 1px rgba(255, 255, 255, 0.10)',
           }}
         >
           <span
@@ -499,9 +499,9 @@ export function BentoSettingRow({
               fontFamily: 'Manrope, sans-serif',
               padding: '2px 8px',
               borderRadius: 6,
-              background: 'rgba(255, 255, 255, 0.08)',
+              background: 'var(--c-border)',
               color: 'var(--c-text-primary)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              border: '1px solid var(--c-border)',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}
@@ -514,7 +514,7 @@ export function BentoSettingRow({
             width: 24,
             height: 24,
             borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.04)',
+            background: 'var(--c-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -559,7 +559,7 @@ export function SettingSection({
       </span>
       <div
         style={{
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: '1px solid var(--c-border)',
           backgroundColor: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.03))',
           borderRadius: 20,
           overflow: 'hidden',

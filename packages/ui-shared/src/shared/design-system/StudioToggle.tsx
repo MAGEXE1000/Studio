@@ -62,9 +62,7 @@ export const Toggle: React.FC<ToggleProps> = ({
           height: 26,
           borderRadius: 13,
           backgroundColor: isChecked ? activeColor : 'rgba(128, 128, 128, 0.16)',
-          border: isChecked
-            ? '1px solid rgba(255, 255, 255, 0.20)'
-            : '1px solid rgba(255, 255, 255, 0.08)',
+          border: isChecked ? '1px solid rgba(255, 255, 255, 0.20)' : '1px solid var(--c-border)',
           boxShadow: isChecked
             ? `0 2px 10px ${activeColor}40, inset 0 1px 1px rgba(255, 255, 255, 0.25)`
             : 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',

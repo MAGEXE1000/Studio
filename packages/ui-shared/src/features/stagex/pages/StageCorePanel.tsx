@@ -3653,7 +3653,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   right: 0,
                   bottom: 0,
                   zIndex: 9999,
-                  background: isLight ? '#ffffff' : isAmoled ? '#000' : '#161616',
+                  background: isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--app-bg)',
                   borderTop: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
                   borderTopLeftRadius: 20,
                   borderTopRightRadius: 20,

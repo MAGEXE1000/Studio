@@ -100,32 +100,32 @@
 @property --app-bg {
   syntax: '<color>';
   inherits: true;
-  initial-value: #0e0e0e;
+  initial-value: #09090b;
 }
 @property --app-surface-lowest {
   syntax: '<color>';
   inherits: true;
-  initial-value: #000000;
+  initial-value: #0c0c0f;
 }
 @property --app-surface-low {
   syntax: '<color>';
   inherits: true;
-  initial-value: #131313;
+  initial-value: #0f0f12;
 }
 @property --app-surface {
   syntax: '<color>';
   inherits: true;
-  initial-value: #191a1a;
+  initial-value: #111115;
 }
 @property --app-surface-high {
   syntax: '<color>';
   inherits: true;
-  initial-value: #1f2020;
+  initial-value: #151518;
 }
 @property --app-surface-highest {
   syntax: '<color>';
   inherits: true;
-  initial-value: #252626;
+  initial-value: #1a1a1f;
 }
 
 /* ===== AMOLED-aware CSS Custom Properties ===== */
@@ -162,18 +162,18 @@
   --studio-accent-border: color-mix(in srgb, var(--studio-accent-to) 30%, transparent);
 
   --app-bg: var(--c-background, #09090b);
-  --app-surface-lowest: var(--c-surface-lowest, #0e0e11);
-  --app-surface-low: var(--c-surface-low, #131316);
-  --app-surface: var(--c-surface-mid, #191a1e);
-  --app-surface-high: var(--c-surface-high, #1f2025);
-  --app-surface-highest: var(--c-surface-highest, #25262c);
+  --app-surface-lowest: var(--c-surface-lowest, #0c0c0f);
+  --app-surface-low: var(--c-surface-low, #0f0f12);
+  --app-surface: var(--c-surface-mid, #111115);
+  --app-surface-high: var(--c-surface-high, #151518);
+  --app-surface-highest: var(--c-surface-highest, #1a1a1f);
 
   --c-background: #09090b;
-  --c-surface-lowest: #0e0e11;
-  --c-surface-low: #131316;
-  --c-surface-mid: #191a1e;
-  --c-surface-high: #1f2025;
-  --c-surface-highest: #25262c;
+  --c-surface-lowest: #0c0c0f;
+  --c-surface-low: #0f0f12;
+  --c-surface-mid: #111115;
+  --c-surface-high: #151518;
+  --c-surface-highest: #1a1a1f;
 
   --c-text-primary: #e7e5e4;
   --c-text-secondary: #acabaa;
@@ -1309,11 +1309,12 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --font-display-lg: 36px; /* full-hero titles (player, lab)      */
 
   /* ── Floating-surface tokens — dark (default) ───────────── */
-  /* Alpha 0.38: dark base tinted translucent glass. Low enough that colored
-     content and shapes behind the bars remain clearly visible even on dark
-     backgrounds. Do NOT raise above 0.50 or the glass reads as solid.       */
-  --surface-float-bg: rgba(18, 20, 28, 0.38);
-  --surface-topbar-bg: rgba(18, 20, 28, 0.38);
+  /* Alpha 0.32: very slightly tinted translucent glass on deep-black backgrounds.
+     Lower alpha and darker base tint than before so the glass is nearly invisible
+     against the #09090b body, matching the Settings-screen canonical look.
+     Do NOT raise above 0.40 or the glass reads as a noticeable gray layer.     */
+  --surface-float-bg: rgba(12, 12, 18, 0.32);
+  --surface-topbar-bg: rgba(12, 12, 18, 0.32);
   /* Outer border: soft, low-contrast translucent rim */
   --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.1);
   /* Natural depth separation — lighter to avoid competing with transparent bg */

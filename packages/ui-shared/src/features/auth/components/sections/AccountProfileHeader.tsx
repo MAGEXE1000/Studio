@@ -48,7 +48,7 @@ export function AccountProfileHeader({
               width: '100%',
               height: '100%',
               borderRadius: '50%',
-              backgroundColor: 'var(--c-surface-mid, #1c1c1e)',
+              backgroundColor: 'var(--c-surface-mid, #111115)',
               color: '#fff',
               display: 'flex',
               alignItems: 'center',

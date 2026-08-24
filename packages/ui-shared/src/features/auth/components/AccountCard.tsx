@@ -1049,7 +1049,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
   const sheetStyle: React.CSSProperties = isWebDesktop
     ? {
         position: 'relative',
-        background: 'var(--app-surface)',
+        background: 'var(--c-background)',
         borderRadius: '16px',
         boxShadow: '0 24px 60px rgba(0, 0, 0, 0.65)',
         border: '1px solid rgba(128, 128, 128, 0.15)',
@@ -1066,7 +1066,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'var(--app-surface)',
+        background: 'var(--c-background)',
         borderRadius: '1.5rem 1.5rem 0 0',
         padding: '0 0 max(28px, env(safe-area-inset-bottom)) 0',
         animation: sheetAnim,
@@ -2319,7 +2319,7 @@ export function AccountSettingsPage({
   const sheetStyle: React.CSSProperties = isWebDesktop
     ? {
         position: 'relative',
-        background: 'var(--app-surface)',
+        background: 'var(--c-background)',
         borderRadius: '16px',
         boxShadow: '0 24px 60px rgba(0, 0, 0, 0.65)',
         border: '1px solid rgba(128, 128, 128, 0.15)',
@@ -2336,7 +2336,7 @@ export function AccountSettingsPage({
         bottom: 0,
         left: 0,
         right: 0,
-        background: 'var(--app-surface)',
+        background: 'var(--c-background)',
         borderRadius: '1.5rem 1.5rem 0 0',
         padding: '0 0 max(28px, env(safe-area-inset-bottom)) 0',
         animation: sheetAnim,
@@ -8350,7 +8350,7 @@ function SelectControl<T extends string>({
           <option
             key={opt.value}
             value={opt.value}
-            style={{ background: 'var(--app-surface)', color: 'var(--c-text-primary)' }}
+            style={{ background: 'var(--c-background)', color: 'var(--c-text-primary)' }}
           >
             {opt.label}
           </option>

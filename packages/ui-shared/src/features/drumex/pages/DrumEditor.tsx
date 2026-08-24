@@ -1,7 +1,11 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
-import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
+import {
+  BouncyAccordion,
+  type BouncyAccordionItem,
+} from '../../../components/motion/bouncy-accordion';
 import { Capacitor } from '@capacitor/core';
-import { useChordStore,
+import {
+  useChordStore,
   ACCENT_COLORS,
   useT,
   useBackHandler,
@@ -18,7 +22,9 @@ import { useChordStore,
   unregisterDebugProvider,
   useNavigationStore,
   NavigationDispatcher,
-  useSettingsStore, useSessionStore } from '@workspace/studio-core';
+  useSettingsStore,
+  useSessionStore,
+} from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { DrumTransportBar } from '../components/DrumTransportBar';
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -56,7 +62,8 @@ import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
 import LoadingLottie from '../../../shared/lottie/LoadingLottie';
 import { Loader } from '../../../components/motion/loader';
 import SuccessLottie from '../../../shared/lottie/SuccessLottie';
-import { useDrumStore,
+import {
+  useDrumStore,
   KIT_INSTRUMENTS,
   INSTRUMENT_COLOR,
   INSTRUMENT_NAME,
@@ -94,8 +101,10 @@ import { useDrumStore,
   type InstFX,
   type InstPlugin,
   type LoopRange,
-  useBottomNavigationStore } from '@workspace/studio-core';
-import { drumScheduler,
+  useBottomNavigationStore,
+} from '@workspace/studio-core';
+import {
+  drumScheduler,
   samplePool,
   loadDrumSamples,
   loadHouseKit,
@@ -114,13 +123,14 @@ import { drumScheduler,
   setInstPluginMap,
   getAudioCtx,
   type SampleStatus,
-  type HouseInstName } from '@workspace/studio-core';
+  type HouseInstName,
+} from '@workspace/studio-core';
 
 import DrumPrefsPanel from './DrumPrefsPanel';
 import { StaggeredReveal } from '../../../shared/animation';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
-import { ScreenScaffold, ScrollScaffold,  } from '../../../shared/layout/StudioLayoutSystem';
+import { ScreenScaffold, ScrollScaffold } from '../../../shared/layout/StudioLayoutSystem';
 import { Button, EmptyState, Input } from '../../../shared/design-system/StudioDesignSystem';
 import {
   Toggle as ToggleComponent,
@@ -2868,13 +2878,13 @@ const LibCard = memo(function LibCard({
   return (
     <div
       style={{
-        background: isWebDesktop ? (isLight ? '#ffffff' : '#000000') : 'var(--app-surface)',
+        background: isWebDesktop ? (isLight ? '#ffffff' : '#000000') : 'var(--app-bg)',
         borderRadius: isWebDesktop ? 12 : 14,
         overflow: 'hidden',
         border: isWebDesktop
           ? isLight
             ? '1px solid #e4e4e7'
-            : '1px solid #18181b'
+            : '1px solid rgba(255,255,255,0.10)'
           : '1px solid rgba(128,128,128,0.06)',
         transition: 'border-color 200ms',
       }}
@@ -6528,7 +6538,11 @@ export default function DrumEditor() {
         }}
       >
         {isWebDesktop && (
-          <WebAppSectionDock app="drumex" activeSection={activeTab} onChangeSection={handleSetTab} />
+          <WebAppSectionDock
+            app="drumex"
+            activeSection={activeTab}
+            onChangeSection={handleSetTab}
+          />
         )}
         <div
           style={{
@@ -6615,12 +6629,15 @@ export default function DrumEditor() {
                     return (
                       <div
                         onScroll={drumScrollHide}
-                        style={{ overflowY: 'auto', paddingBottom: 100, paddingLeft: 24, paddingRight: 24 }}
+                        style={{
+                          overflowY: 'auto',
+                          paddingBottom: 100,
+                          paddingLeft: 24,
+                          paddingRight: 24,
+                        }}
                         className="no-scrollbar flex flex-col w-full h-full"
                       >
-                        {!isWebDesktop && (
-                          <StudioHeader title="Beats" subtitle="Your drum songs" />
-                        )}
+                        {!isWebDesktop && <StudioHeader title="Beats" subtitle="Your drum songs" />}
 
                         {/* Desktop Secondary Toolbar */}
                         {isWebDesktop && (
@@ -10680,7 +10697,8 @@ export default function DrumEditor() {
               color: '#ffffff',
               backdropFilter: 'blur(25px)',
               WebkitBackdropFilter: 'blur(25px)',
-              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+              boxShadow:
+                '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
               pointerEvents: 'auto',
               cursor: 'pointer',
             }}
@@ -10702,7 +10720,8 @@ export default function DrumEditor() {
               color: '#ffffff',
               backdropFilter: 'blur(25px)',
               WebkitBackdropFilter: 'blur(25px)',
-              boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+              boxShadow:
+                '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
               pointerEvents: 'auto',
               cursor: 'pointer',
             }}
@@ -10719,11 +10738,7 @@ export default function DrumEditor() {
 
       {/* â”€â”€ Save Groove sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {showSaveGroove && (
-        <Dialog
-          open={true}
-          onClose={() => setShowSaveGroove(false)}
-          title="Save to Groove Library"
-        >
+        <Dialog open={true} onClose={() => setShowSaveGroove(false)} title="Save to Groove Library">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
               <label

@@ -33,12 +33,10 @@ import { Capacitor } from '@capacitor/core';
 import SuccessLottie from '../../../shared/lottie/SuccessLottie';
 import MusicNotesLottie from '../../../shared/lottie/MusicNotesLottie';
 import LiveMode from '../../chordex/components/LiveMode';
-import CustomChordBuilder, {
-  CustomMiniDiagram,
-} from '../../chordex/components/CustomChordBuilder';
+import CustomChordBuilder, { CustomMiniDiagram } from '../../chordex/components/CustomChordBuilder';
 import ChordDiagram from '../../chordex/diagrams/ChordDiagram';
 import { StaggeredReveal } from '../../../shared/animation';
-import { ScreenScaffold, ScrollScaffold,  } from '../../../shared/layout/StudioLayoutSystem';
+import { ScreenScaffold, ScrollScaffold } from '../../../shared/layout/StudioLayoutSystem';
 import {
   Button,
   EmptyState,
@@ -387,12 +385,12 @@ async function exportPresetToPDF(
   }
 
   /* ── Palette ── */
-  const bg = dark ? '#0c0c0c' : elegant ? '#f6f5f2' : '#ffffff';
+  const bg = dark ? 'var(--c-background, #09090b)' : elegant ? '#f6f5f2' : '#ffffff';
   const text = dark ? '#edeae4' : '#0d0d0d';
   const sub = dark ? '#8a8a8a' : '#5a5f6e';
   const muted = dark ? '#4a4a4a' : '#a0a6b2';
   const divider = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)';
-  const cardBg = dark ? '#1a1a1a' : '#ffffff';
+  const cardBg = dark ? 'var(--c-surface-low, #0f0f12)' : '#ffffff';
   const cardBdr = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
   const cardShad = dark
     ? 'none'
@@ -5052,7 +5050,9 @@ export default function SongsPanel() {
                 </button>
               )}
               <button
-                onClick={() => useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })}
+                onClick={() =>
+                  useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })
+                }
                 className="btn-smooth"
                 title={preferFlats ? t.songs.usingFlats : t.songs.usingSharps}
                 style={{
@@ -6020,11 +6020,7 @@ export default function SongsPanel() {
 
         {/* Section selector â€” pick where to add chord */}
         {showSectionSelector && activePreset.sections && (
-          <Dialog
-            open={true}
-            onClose={() => setShowSectionSelector(false)}
-            title="Add chord toâ€¦"
-          >
+          <Dialog open={true} onClose={() => setShowSectionSelector(false)} title="Add chord toâ€¦">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 {activePreset.sections.map((section) => (
@@ -6585,7 +6581,8 @@ export default function SongsPanel() {
             color: '#ffffff',
             backdropFilter: 'blur(25px)',
             WebkitBackdropFilter: 'blur(25px)',
-            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+            boxShadow:
+              '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
             cursor: 'pointer',
           }}
         >
@@ -6610,7 +6607,8 @@ export default function SongsPanel() {
             color: '#ffffff',
             backdropFilter: 'blur(25px)',
             WebkitBackdropFilter: 'blur(25px)',
-            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+            boxShadow:
+              '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
             cursor: 'pointer',
           }}
         >

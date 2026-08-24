@@ -2114,55 +2114,82 @@ export default function StudioHub() {
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
-              maxWidth: 448,
-              background: 'var(--app-surface, #141418)',
-              borderTopLeftRadius: 28,
-              borderTopRightRadius: 28,
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              maxWidth: 440,
+              background: 'var(--app-surface-low, #141418)',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              border: '1px solid var(--c-border)',
               borderBottom: 'none',
-              padding: '24px 20px', // token-guard-ignore
-              paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+              padding: '16px 18px', // token-guard-ignore
+              paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
-              maxHeight: '85vh',
-              animation: 'picker-slide-up 350ms cubic-bezier(0.34, 1.56, 0.64, 1) both',
+              maxHeight: '78vh',
+              animation: 'picker-slide-up 280ms cubic-bezier(0.16, 1, 0.3, 1) both',
+              boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.25)',
             }}
           >
             {/* Grab handle */}
             <div
               style={{
-                width: 36,
+                width: 32,
                 height: 4,
                 borderRadius: 2,
-                background: 'rgba(128, 128, 128, 0.3)',
-                margin: '0 auto 16px',
+                background: 'var(--c-border)',
+                margin: '0 auto 12px',
+                opacity: 0.8,
               }}
             />
 
-            <h3
+            {/* Header with Title and Counter badge */}
+            <div
               style={{
-                fontFamily: 'Manrope',
-                fontSize: 18,
-                fontWeight: 800,
-                color: 'var(--c-text-primary)',
-                margin: '0 0 4px 0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 2,
               }}
             >
-              {lang === 'es' ? 'Personalizar Acciones Rápidas' : 'Customize Quick Actions'}
-            </h3>
+              <h3
+                style={{
+                  fontFamily: 'Manrope, sans-serif',
+                  fontSize: 16,
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  margin: 0,
+                }}
+              >
+                {lang === 'es' ? 'Acciones Rápidas' : 'Customize Quick Actions'}
+              </h3>
+              <span
+                style={{
+                  fontSize: 'var(--font-section-label)',
+                  fontWeight: 700,
+                  padding: '2px 8px',
+                  borderRadius: 10,
+                  background:
+                    shortcuts.length >= 5 ? 'rgba(239, 68, 68, 0.12)' : 'var(--app-surface)',
+                  color: shortcuts.length >= 5 ? '#ef4444' : 'var(--c-text-secondary)',
+                  border: '1px solid var(--c-border)',
+                }}
+              >
+                {shortcuts.length}/5 {lang === 'es' ? 'activos' : 'active'}
+              </span>
+            </div>
+
             <p
               style={{
-                fontFamily: 'Inter',
-                fontSize: 12.5,
+                fontFamily: 'Inter, sans-serif',
+                fontSize: 12,
                 color: 'var(--c-text-secondary)',
-                margin: '0 0 20px 0',
+                margin: '0 0 12px 0',
                 opacity: 0.8,
               }}
             >
               {lang === 'es'
-                ? 'Selecciona hasta 5 atajos para acceso rápido en la pantalla de inicio.'
-                : 'Select up to 5 shortcuts for quick access on the home screen.'}
+                ? 'Arrastra para reordenar. Elige hasta 5 accesos directos.'
+                : 'Drag to reorder. Select up to 5 quick shortcuts.'}
             </p>
 
             <div
@@ -2171,42 +2198,64 @@ export default function StudioHub() {
                 overflowY: 'auto',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 20,
+                gap: 14,
+                paddingRight: 2,
               }}
               className="hide-scrollbar"
             >
-              {/* Selected Section */}
+              {/* Active Shortcuts Section */}
               <div>
-                <h4
+                <div
                   style={{
-                    fontFamily: 'Inter',
-                    fontSize: 'var(--font-section-label)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: 'var(--c-text-secondary)',
-                    opacity: 0.6,
-                    marginBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 6,
                   }}
                 >
-                  {lang === 'es' ? 'Atajos Activos (Máx 5)' : 'Active Shortcuts (Max 5)'}
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <h4
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 'var(--font-section-label)',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: 'var(--c-text-secondary)',
+                      opacity: 0.7,
+                      margin: 0,
+                    }}
+                  >
+                    {lang === 'es' ? 'Atajos Activos' : 'Active Shortcuts'}
+                  </h4>
+                  {shortcuts.length > 1 && (
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        color: 'var(--c-text-secondary)',
+                        opacity: 0.6,
+                      }}
+                    >
+                      {lang === 'es' ? 'Arrastra para ordenar' : 'Drag to reorder'}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {shortcuts.length === 0 ? (
                     <div
                       style={{
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
-                        opacity: 0.5,
-                        padding: '12px 14px',
-                        border: '1px dashed rgba(128,128,128,0.2)',
-                        borderRadius: 12,
+                        opacity: 0.6,
+                        padding: '10px 12px',
+                        border: '1px dashed var(--c-border)',
+                        borderRadius: 10,
                         textAlign: 'center',
                       }}
                     >
                       {lang === 'es'
                         ? 'Ninguno seleccionado. Agrega algunos abajo.'
-                        : 'None selected. Add some below.'}
+                        : 'No active shortcuts. Add options below.'}
                     </div>
                   ) : (
                     <Reorder.Group
@@ -2222,7 +2271,7 @@ export default function StudioHub() {
                       style={{
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: 8,
+                        gap: 6,
                         padding: 0,
                         margin: 0,
                         listStyle: 'none',
@@ -2239,77 +2288,102 @@ export default function StudioHub() {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              padding: '10px 12px',
-                              background: 'rgba(255, 255, 255, 0.03)',
-                              border: '1px solid rgba(255, 255, 255, 0.05)',
-                              borderRadius: 12,
+                              padding: '7px 10px',
+                              background: 'var(--app-surface)',
+                              border: '1px solid var(--c-border)',
+                              borderRadius: 10,
                               cursor: 'grab',
                               userSelect: 'none',
+                              touchAction: 'none',
                             }}
                             whileDrag={{
                               scale: 1.02,
-                              boxShadow: '0 8px 20px rgba(0,0,0,0.3)',
-                              background: 'rgba(255, 255, 255, 0.08)',
+                              boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                              background: 'var(--app-surface-bright, var(--app-surface))',
                               cursor: 'grabbing',
+                              zIndex: 10,
                             }}
                             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                           >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span
                                 className="material-symbols-outlined"
                                 style={{
-                                  color: 'rgba(255, 255, 255, 0.3)',
-                                  fontSize: 18,
+                                  color: 'var(--c-text-secondary)',
+                                  opacity: 0.4,
+                                  fontSize: 16,
                                   cursor: 'grab',
                                 }}
                               >
                                 drag_indicator
                               </span>
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ color: accent.from, fontSize: 20 }}
-                              >
-                                {opt.icon}
-                              </span>
-                              <span
+                              <div
                                 style={{
-                                  fontSize: 13,
-                                  color: 'var(--c-text-primary)',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {lang === 'es' ? opt.titleEs : opt.titleEn}
-                              </span>
-                            </div>
-
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <button
-                                onClick={() => {
-                                  const newShortcuts = shortcuts.filter((x) => x !== id);
-                                  setShortcuts(newShortcuts);
-                                  localStorage.setItem(
-                                    'studio:quick-shortcuts',
-                                    JSON.stringify(newShortcuts)
-                                  );
-                                }}
-                                style={{
-                                  background: 'transparent',
-                                  border: 'none',
-                                  color: '#f87171',
+                                  width: 26,
+                                  height: 26,
+                                  borderRadius: 7,
+                                  background: 'var(--app-surface-low)',
+                                  border: '1px solid var(--c-border)',
                                   display: 'flex',
                                   alignItems: 'center',
-                                  padding: 4,
-                                  cursor: 'pointer',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
                                 }}
                               >
                                 <span
                                   className="material-symbols-outlined"
-                                  style={{ fontSize: 18 }}
+                                  style={{ color: accent.from, fontSize: 15 }}
                                 >
-                                  remove_circle
+                                  {opt.icon}
                                 </span>
-                              </button>
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span
+                                  style={{
+                                    fontSize: 12.5,
+                                    color: 'var(--c-text-primary)',
+                                    fontWeight: 600,
+                                    lineHeight: 1.2,
+                                  }}
+                                >
+                                  {lang === 'es' ? opt.titleEs : opt.titleEn}
+                                </span>
+                              </div>
                             </div>
+
+                            <button
+                              onClick={() => {
+                                const newShortcuts = shortcuts.filter((x) => x !== id);
+                                setShortcuts(newShortcuts);
+                                localStorage.setItem(
+                                  'studio:quick-shortcuts',
+                                  JSON.stringify(newShortcuts)
+                                );
+                              }}
+                              title={lang === 'es' ? 'Quitar' : 'Remove'}
+                              style={{
+                                width: 24,
+                                height: 24,
+                                borderRadius: '50%',
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                border: 'none',
+                                color: '#ef4444',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                padding: 0,
+                                flexShrink: 0,
+                                transition: 'transform 120ms ease, background 120ms ease',
+                              }}
+                            >
+                              <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 14, fontWeight: 700 }}
+                              >
+                                remove
+                              </span>
+                            </button>
                           </Reorder.Item>
                         );
                       })}
@@ -2318,23 +2392,44 @@ export default function StudioHub() {
                 </div>
               </div>
 
-              {/* Available Shortcuts */}
+              {/* Available Shortcuts Section */}
               <div>
-                <h4
+                <div
                   style={{
-                    fontFamily: 'Inter',
-                    fontSize: 'var(--font-section-label)',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                    color: 'var(--c-text-secondary)',
-                    opacity: 0.6,
-                    marginBottom: 10,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 6,
                   }}
                 >
-                  {lang === 'es' ? 'Atajos Disponibles' : 'Available Shortcuts'}
-                </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <h4
+                    style={{
+                      fontFamily: 'Inter, sans-serif',
+                      fontSize: 'var(--font-section-label)',
+                      fontWeight: 700,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.06em',
+                      color: 'var(--c-text-secondary)',
+                      opacity: 0.7,
+                      margin: 0,
+                    }}
+                  >
+                    {lang === 'es' ? 'Atajos Disponibles' : 'Available Shortcuts'}
+                  </h4>
+                  {shortcuts.length >= 5 && (
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        color: '#ef4444',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {lang === 'es' ? 'Máximo alcanzado' : 'Limit reached'}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {ALL_SHORTCUT_OPTIONS.filter((o) => !shortcuts.includes(o.id)).map((opt) => {
                     const isLimitReached = shortcuts.length >= 5;
                     return (
@@ -2344,22 +2439,47 @@ export default function StudioHub() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          padding: '10px 12px',
-                          background: 'rgba(255, 255, 255, 0.01)',
-                          border: '1px solid rgba(255, 255, 255, 0.03)',
-                          borderRadius: 12,
+                          padding: '7px 10px',
+                          background: 'var(--app-surface-low)',
+                          border: '1px solid var(--c-border)',
+                          borderRadius: 10,
+                          opacity: isLimitReached ? 0.6 : 1,
+                          transition: 'opacity 180ms ease',
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span
-                            className="material-symbols-outlined"
-                            style={{ color: 'var(--c-text-secondary)', opacity: 0.6, fontSize: 20 }}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 7,
+                              background: 'var(--app-surface)',
+                              border: '1px solid var(--c-border)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
                           >
-                            {opt.icon}
-                          </span>
-                          <span style={{ fontSize: 13, color: 'var(--c-text-primary)' }}>
-                            {lang === 'es' ? opt.titleEs : opt.titleEn}
-                          </span>
+                            <span
+                              className="material-symbols-outlined"
+                              style={{ color: 'var(--c-text-secondary)', fontSize: 15 }}
+                            >
+                              {opt.icon}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span
+                              style={{
+                                fontSize: 12.5,
+                                color: 'var(--c-text-primary)',
+                                fontWeight: 550,
+                                lineHeight: 1.2,
+                              }}
+                            >
+                              {lang === 'es' ? opt.titleEs : opt.titleEn}
+                            </span>
+                          </div>
                         </div>
 
                         <button
@@ -2372,18 +2492,37 @@ export default function StudioHub() {
                               JSON.stringify(newShortcuts)
                             );
                           }}
+                          title={
+                            isLimitReached
+                              ? lang === 'es'
+                                ? 'Máximo alcanzado'
+                                : 'Limit reached (5/5)'
+                              : lang === 'es'
+                                ? 'Agregar'
+                                : 'Add'
+                          }
                           style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: isLimitReached ? 'rgba(128,128,128,0.2)' : accent.from,
+                            width: 24,
+                            height: 24,
+                            borderRadius: '50%',
+                            background: isLimitReached ? 'transparent' : accent.from,
+                            border: isLimitReached ? '1px solid var(--c-border)' : 'none',
+                            color: isLimitReached ? 'var(--c-text-secondary)' : '#ffffff',
                             display: 'flex',
                             alignItems: 'center',
-                            padding: 4,
+                            justifyContent: 'center',
                             cursor: isLimitReached ? 'default' : 'pointer',
+                            padding: 0,
+                            flexShrink: 0,
+                            opacity: isLimitReached ? 0.4 : 1,
+                            transition: 'transform 120ms ease, opacity 120ms ease',
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-                            add_circle
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: 14, fontWeight: 700 }}
+                          >
+                            add
                           </span>
                         </button>
                       </div>
@@ -2393,24 +2532,31 @@ export default function StudioHub() {
               </div>
             </div>
 
-            {/* Close Button */}
+            {/* Done Button */}
             <button
               onClick={() => setShortcutPickerOpen(false)}
               style={{
                 width: '100%',
-                height: 48,
-                borderRadius: 14,
+                height: 40,
+                borderRadius: 12,
                 background: accent.from,
-                color: 'white',
+                color: '#ffffff',
                 border: 'none',
-                fontFamily: 'Manrope',
+                fontFamily: 'Manrope, sans-serif',
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 13.5,
                 cursor: 'pointer',
-                marginTop: 16,
+                marginTop: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
                 boxShadow: `0 4px 12px ${accent.from}25`,
               }}
             >
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                check
+              </span>
               {lang === 'es' ? 'Listo' : 'Done'}
             </button>
           </div>

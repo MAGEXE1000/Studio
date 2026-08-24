@@ -899,8 +899,8 @@ export function SharedNavigationBar({
               }}
               transition={{
                 type: 'spring',
-                stiffness: 380,
-                damping: 28,
+                stiffness: 340,
+                damping: 26,
                 mass: 0.75,
               }}
               style={{
@@ -971,8 +971,8 @@ export function SharedNavigationBar({
                   }}
                   transition={{
                     type: 'spring',
-                    stiffness: 380,
-                    damping: 28,
+                    stiffness: 340,
+                    damping: 26,
                     mass: 0.75,
                   }}
                   style={{
@@ -1014,51 +1014,154 @@ export function SharedNavigationBar({
                   />
                 </motion.div>
 
-                {/* Navigation items — liquid spring cross-morph */}
+                {/* Navigation items — fluid liquid continuous transformation */}
                 <AnimatePresence mode="popLayout" initial={false}>
-                  <motion.div
-                    key={isSwitcherOpen ? 'switcher' : 'nav'}
-                    initial={{ opacity: 0, scale: 0.92, filter: 'blur(3px)' }}
-                    animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, scale: 0.92, filter: 'blur(3px)' }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 420,
-                      damping: 28,
-                      mass: 0.6,
-                    }}
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      display: 'flex',
-                      width: '100%',
-                      height: '100%',
-                      alignItems: 'center',
-                      justifyContent: 'space-around',
-                      pointerEvents: 'auto',
-                    }}
-                  >
-                    {currentItems.map((item, index) => {
-                      const isActive = isSwitcherOpen ? item.key === currentApp : item.isActive;
-                      return (
-                        <NavigationItem
+                  {isSwitcherOpen ? (
+                    <motion.div
+                      key="switcher"
+                      initial={{ opacity: 0 }}
+                      animate={{
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.022,
+                          delayChildren: 0.02,
+                        },
+                      }}
+                      exit={{
+                        opacity: 0,
+                        transition: { duration: 0.12, ease: 'easeOut' },
+                      }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        width: '100%',
+                        height: '100%',
+                        alignItems: 'center',
+                        justifyContent: 'space-around',
+                        pointerEvents: 'auto',
+                      }}
+                    >
+                      {switcherApps.map((item, index) => {
+                        const isActive = item.key === currentApp;
+                        return (
+                          <motion.div
+                            key={item.key}
+                            initial={{ opacity: 0, scale: 0.65, y: 4 }}
+                            animate={{
+                              opacity: 1,
+                              scale: 1,
+                              y: 0,
+                              transition: {
+                                type: 'spring',
+                                stiffness: 360,
+                                damping: 24,
+                                mass: 0.6,
+                              },
+                            }}
+                            exit={{
+                              opacity: 0,
+                              scale: 0.75,
+                              transition: { duration: 0.1, ease: 'easeIn' },
+                            }}
+                            style={{
+                              flex: 1,
+                              height: '100%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <NavigationItem
+                              item={item}
+                              index={index}
+                              onClick={() => {
+                                if (performance.now() - pointerUpHandledAtRef.current < 100) return;
+                                navigationEpochRef.current += 1;
+                                setNavigationEpoch(navigationEpochRef.current);
+                                item.onClick();
+                              }}
+                              isActive={isActive}
+                              isLight={isLight}
+                              isSwitcherOpen={true}
+                              animationEpoch={navigationEpoch}
+                            />
+                          </motion.div>
+                        );
+                      })}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="nav"
+                      initial={{ opacity: 0 }}
+                      animate={{
+                        opacity: 1,
+                        transition: {
+                          staggerChildren: 0.025,
+                          delayChildren: 0.02,
+                        },
+                      }}
+                      exit={{
+                        opacity: 0,
+                        transition: { duration: 0.12, ease: 'easeOut' },
+                      }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        width: '100%',
+                        height: '100%',
+                        alignItems: 'center',
+                        justifyContent: 'space-around',
+                        pointerEvents: 'auto',
+                      }}
+                    >
+                      {(items || []).map((item, index) => (
+                        <motion.div
                           key={item.key}
-                          item={item}
-                          index={index}
-                          onClick={() => {
-                            if (performance.now() - pointerUpHandledAtRef.current < 100) return;
-                            navigationEpochRef.current += 1;
-                            setNavigationEpoch(navigationEpochRef.current);
-                            item.onClick();
+                          initial={{ opacity: 0, scale: 0.8, y: -2 }}
+                          animate={{
+                            opacity: 1,
+                            scale: 1,
+                            y: 0,
+                            transition: {
+                              type: 'spring',
+                              stiffness: 360,
+                              damping: 24,
+                              mass: 0.6,
+                            },
                           }}
-                          isActive={isActive}
-                          isLight={isLight}
-                          isSwitcherOpen={isSwitcherOpen}
-                          animationEpoch={navigationEpoch}
-                        />
-                      );
-                    })}
-                  </motion.div>
+                          exit={{
+                            opacity: 0,
+                            scale: 0.8,
+                            transition: { duration: 0.1, ease: 'easeIn' },
+                          }}
+                          style={{
+                            flex: 1,
+                            height: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <NavigationItem
+                            item={item}
+                            index={index}
+                            onClick={() => {
+                              if (performance.now() - pointerUpHandledAtRef.current < 100) return;
+                              navigationEpochRef.current += 1;
+                              setNavigationEpoch(navigationEpochRef.current);
+                              item.onClick();
+                            }}
+                            isActive={item.isActive}
+                            isLight={isLight}
+                            isSwitcherOpen={false}
+                            animationEpoch={navigationEpoch}
+                          />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
                 </AnimatePresence>
               </div>
             </motion.div>
@@ -1076,7 +1179,7 @@ export function SharedNavigationBar({
                   onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
                   whileTap={{ scale: 0.92 }}
                   whileHover={{ scale: 1.04 }}
-                  transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.8 }}
+                  transition={{ type: 'spring', stiffness: 360, damping: 24, mass: 0.75 }}
                   style={{
                     width: '58px',
                     height: '58px',
@@ -1122,10 +1225,10 @@ export function SharedNavigationBar({
                   <AnimatePresence mode="popLayout" initial={false}>
                     <motion.span
                       key={isSwitcherOpen ? 'close' : 'apps'}
-                      initial={{ rotate: isSwitcherOpen ? -60 : 60, opacity: 0, scale: 0.7 }}
+                      initial={{ rotate: isSwitcherOpen ? -90 : 90, opacity: 0, scale: 0.7 }}
                       animate={{ rotate: 0, opacity: 1, scale: 1 }}
-                      exit={{ rotate: isSwitcherOpen ? 60 : -60, opacity: 0, scale: 0.7 }}
-                      transition={{ type: 'spring', stiffness: 420, damping: 26, mass: 0.7 }}
+                      exit={{ rotate: isSwitcherOpen ? 90 : -90, opacity: 0, scale: 0.7 }}
+                      transition={{ type: 'spring', stiffness: 360, damping: 24, mass: 0.7 }}
                       className="material-symbols-outlined text-[20px]"
                       style={{ display: 'block' }}
                     >

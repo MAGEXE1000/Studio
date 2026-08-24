@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.40';
-export const NATIVE_VERSION_CODE = 40540;
-export const WEB_VERSION = '4.5.40';
+export const NATIVE_VERSION = '4.5.41';
+export const NATIVE_VERSION_CODE = 40541;
+export const WEB_VERSION = '4.5.41';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '1fc414bd';
+export const APP_COMMIT_SHA = '070491e7';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/23/2026, 7:34:07 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/23/2026, 10:10:58 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,15 +96,12 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: 'Fixed',
+    heading: 'Added',
     items: [
-      'Global AMOLED True Black: Fixed StageCorePanel settings fallback and replaced hardcoded near-black surfaces with var(--app-bg) to guarantee true #000000 black base across all internal apps, Hub, and Settings.',
-      'Dark Mode Surface Polish: Darkened dark surface scale and glass tint to eliminate gray wash across bottom sheets, DrumEditor, SongsPanel, and AccountProfileHeader.',
-      'Appearance Theme Mode Icons: Corrected Theme Toggle icon mapping to Light Mode -> Sun, Dark Mode -> Moon, and AMOLED Mode -> Eclipse with live spring transitions.',
-      'Appearance Component Theming: Added --control-track-bg token and theme-adaptive borders/backgrounds across SegmentedControl, SettingRow, SettingSection, BentoSettingCard, and Language selector.',
-      'Restored About Section in Settings: Restored About and Developer Options destinations in Settings > System & About with full theme support and seamless back navigation.',
-      'App Changer Layout Overflow: Replaced asymmetrical 3-column grid with a centered responsive flex dock respecting horizontal safe-area insets, preventing clipping and viewport overflow across all Android screen sizes.',
-      'Bottom Navigation Polish: Removed search satellite button from Hub home page and optimized satellite glass button dimensions to match the main dock.',
+      "Global HeroUI Dialog & Modal Migration: Unified all application dialogs, confirmation dialogs, and modal overlays under HeroUI's AlertDialog compound components (AlertDialog, Backdrop, Container, Dialog, CloseTrigger, Header, Icon, Heading, Body, Footer) across Stagex, Chordex, Drumex, Vocalex, and Hub.",
+      'Destructive Confirmation Safety: Applied danger status and enforced backdrop dismissal prevention on destructive operations to avoid accidental data loss.',
+      'Global HeroUI Button & ButtonGroup System: Replaced custom buttons and standalone action triggers with HeroUI Button, and unified paired/connected actions (measure/timeline tools, regenerate/random templates, clear/copy logs) under HeroUI ButtonGroup.',
+      'Verifiable Developer Diagnostics: Rebuilt Developer Options (System, Apps, Performance, Logs) with real, verifiable runtime telemetry for Android OS, WebView version, battery, storage, display characteristics, network Wi-Fi filters, and live memory metrics.',
     ],
   },
 ];

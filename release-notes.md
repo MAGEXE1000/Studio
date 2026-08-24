@@ -1,13 +1,12 @@
-# Version 4.5.40
+# Version 4.5.41
 
 Release Date: 2026-08-23
 
-### Fixed
+Release Date: 2026-08-23
 
-- Global AMOLED True Black: Fixed StageCorePanel settings fallback and replaced hardcoded near-black surfaces with var(--app-bg) to guarantee true #000000 black base across all internal apps, Hub, and Settings.
-- Dark Mode Surface Polish: Darkened dark surface scale and glass tint to eliminate gray wash across bottom sheets, DrumEditor, SongsPanel, and AccountProfileHeader.
-- Appearance Theme Mode Icons: Corrected Theme Toggle icon mapping to Light Mode -> Sun, Dark Mode -> Moon, and AMOLED Mode -> Eclipse with live spring transitions.
-- Appearance Component Theming: Added --control-track-bg token and theme-adaptive borders/backgrounds across SegmentedControl, SettingRow, SettingSection, BentoSettingCard, and Language selector.
-- Restored About Section in Settings: Restored About and Developer Options destinations in Settings > System & About with full theme support and seamless back navigation.
-- App Changer Layout Overflow: Replaced asymmetrical 3-column grid with a centered responsive flex dock respecting horizontal safe-area insets, preventing clipping and viewport overflow across all Android screen sizes.
-- Bottom Navigation Polish: Removed search satellite button from Hub home page and optimized satellite glass button dimensions to match the main dock.
+### Added
+
+- Global HeroUI Dialog & Modal Migration: Unified all application dialogs, confirmation dialogs, and modal overlays under HeroUI's AlertDialog compound components (AlertDialog, Backdrop, Container, Dialog, CloseTrigger, Header, Icon, Heading, Body, Footer) across Stagex, Chordex, Drumex, Vocalex, and Hub.
+- Destructive Confirmation Safety: Applied danger status and enforced backdrop dismissal prevention on destructive operations to avoid accidental data loss.
+- Global HeroUI Button & ButtonGroup System: Replaced custom buttons and standalone action triggers with HeroUI Button, and unified paired/connected actions (measure/timeline tools, regenerate/random templates, clear/copy logs) under HeroUI ButtonGroup.
+- Verifiable Developer Diagnostics: Rebuilt Developer Options (System, Apps, Performance, Logs) with real, verifiable runtime telemetry for Android OS, WebView version, battery, storage, display characteristics, network Wi-Fi filters, and live memory metrics.

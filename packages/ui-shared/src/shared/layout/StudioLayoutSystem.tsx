@@ -182,7 +182,7 @@ export function SharedFloatingHeader({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: '0 16px',
+        padding: '0 var(--page-inset-h, 24px)',
         zIndex: 110,
         pointerEvents: 'none',
         boxSizing: 'border-box',
@@ -192,7 +192,7 @@ export function SharedFloatingHeader({
         ref={headerBgRef}
         style={{
           width: '100%',
-          maxWidth: 'calc(var(--content-max-w) - 32px)',
+          maxWidth: 'calc(var(--content-max-w) - calc(var(--page-inset-h, 24px) * 2))',
           height: '52px',
           borderRadius: '9999px',
           display: 'flex',
@@ -217,8 +217,8 @@ export function SharedFloatingHeader({
             inset: 0,
             borderRadius: '9999px',
             background: isLight
-              ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 100%)'
-              : 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.04) 0%, transparent 100%)',
+              ? 'radial-gradient(ellipse 80% 65% at 50% 0%, rgba(255, 255, 255, 0.14) 0%, transparent 100%)'
+              : 'radial-gradient(ellipse 80% 65% at 50% 0%, rgba(255, 255, 255, 0.05) 0%, transparent 100%)',
             pointerEvents: 'none',
           }}
         />

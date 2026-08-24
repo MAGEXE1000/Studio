@@ -25,9 +25,34 @@ export const activeOverlaysRegistry = {
 };
 
 import React, { useEffect } from 'react';
+import {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogContainer,
+  AlertDialogDialog,
+  AlertDialogHeader,
+  AlertDialogIcon,
+  AlertDialogHeading,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogCloseTrigger,
+} from '@heroui/react';
 import { MorphingModal } from '../../components/motion/morphing-modal';
 
-// ── 4. Dialog ──────────────────────────────────────────────────────────────
+export {
+  AlertDialog,
+  AlertDialogBackdrop,
+  AlertDialogContainer,
+  AlertDialogDialog,
+  AlertDialogHeader,
+  AlertDialogIcon,
+  AlertDialogHeading,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogCloseTrigger,
+};
+
+// ── 4. Dialog (Powered by HeroUI AlertDialog) ─────────────────────────────
 export interface DialogProps {
   open: boolean;
   onClose: () => void;
@@ -35,9 +60,30 @@ export interface DialogProps {
   children: React.ReactNode;
   footer?: React.ReactNode;
   className?: string;
+  status?: 'default' | 'accent' | 'success' | 'warning' | 'danger';
+  isDestructive?: boolean;
+  isDismissable?: boolean;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'cover';
+  placement?: 'auto' | 'top' | 'center' | 'bottom';
+  hideCloseButton?: boolean;
+  icon?: React.ReactNode;
 }
 
-export function Dialog({ open, onClose, title, children, footer, className }: DialogProps) {
+export function Dialog({
+  open,
+  onClose,
+  title,
+  children,
+  footer,
+  className,
+  status,
+  isDestructive,
+  isDismissable,
+  size = 'sm',
+  placement = 'center',
+  hideCloseButton = false,
+  icon,
+}: DialogProps) {
   useEffect(() => {
     if (open) {
       const id = Math.random().toString();
@@ -49,87 +95,49 @@ export function Dialog({ open, onClose, title, children, footer, className }: Di
     return undefined;
   }, [open]);
 
+  // Determine semantic status: if explicit status is passed, use it. Otherwise infer from isDestructive or title keywords.
+  const isDestructiveInferred =
+    isDestructive ||
+    (typeof title === 'string' &&
+      /delete|eliminar|remove|borrar|reset|clear|revocar|revoke/i.test(title));
+
+  const resolvedStatus: 'default' | 'accent' | 'success' | 'warning' | 'danger' =
+    status || (isDestructiveInferred ? 'danger' : 'default');
+
+  // For destructive confirmations, prevent accidental outside backdrop dismissal
+  const dismissable = isDismissable !== undefined ? isDismissable : !isDestructiveInferred;
+
   return (
-    <MorphingModal
-      viewId={open ? title || 'dialog' : null}
-      onClose={onClose}
-      placement="center"
-      className={className}
+    <AlertDialog
+      isOpen={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
     >
-      {title && (
-        <div
-          style={{
-            paddingBottom: '14px',
-            marginBottom: '14px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <h3
-            style={{
-              margin: 0,
-              fontSize: '17px',
-              fontWeight: 850,
-              fontFamily: 'Manrope, sans-serif',
-              letterSpacing: '-0.025em',
-              color: 'var(--c-text-primary)',
-            }}
-          >
-            {title}
-          </h3>
-          <button
-            onClick={onClose}
-            type="button"
-            style={{
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              cursor: 'pointer',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--c-text-secondary)',
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              close
-            </span>
-          </button>
-        </div>
-      )}
-      <div
-        className="no-scrollbar"
-        style={{
-          overflowY: 'auto',
-          maxHeight: '65vh',
-          fontSize: '13.5px',
-          lineHeight: 1.5,
-          color: 'var(--c-text-secondary)',
-          fontFamily: 'Inter, sans-serif',
-        }}
+      <AlertDialog.Backdrop
+        variant="blur"
+        isDismissable={dismissable}
+        isKeyboardDismissDisabled={isDestructiveInferred}
       >
-        {children}
-      </div>
-      {footer && (
-        <div
-          style={{
-            paddingTop: '14px',
-            marginTop: '14px',
-            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '10px',
-          }}
-        >
-          {footer}
-        </div>
-      )}
-    </MorphingModal>
+        <AlertDialog.Container placement={placement} size={size}>
+          <AlertDialog.Dialog className={className}>
+            {!hideCloseButton && (
+              <AlertDialog.CloseTrigger onClick={onClose} aria-label="Close dialog" />
+            )}
+            {title && (
+              <AlertDialog.Header>
+                {(icon || resolvedStatus !== 'default') && (
+                  <AlertDialog.Icon status={resolvedStatus}>{icon}</AlertDialog.Icon>
+                )}
+                <AlertDialog.Heading>{title}</AlertDialog.Heading>
+              </AlertDialog.Header>
+            )}
+            <AlertDialog.Body>{children}</AlertDialog.Body>
+            {footer && <AlertDialog.Footer>{footer}</AlertDialog.Footer>}
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
 

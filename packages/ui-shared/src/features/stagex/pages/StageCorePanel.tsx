@@ -3905,6 +3905,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             open={confirmConfig.open}
             onClose={handleConfirmCancel}
             title={confirmConfig.title}
+            isDestructive={confirmConfig.isDestructive}
             footer={
               <div style={{ display: 'flex', gap: 8 }}>
                 <button

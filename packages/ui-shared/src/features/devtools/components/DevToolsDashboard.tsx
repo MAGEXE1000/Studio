@@ -6514,9 +6514,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     </p>
                   </div>
                 </div>
-                <span style={badgeStyle('profiling')}>
-                  {liveFps > 0 ? `${liveFps} FPS` : 'Profiling'}
-                </span>
+                <span style={badgeStyle('profiling')}>Profiling</span>
               </div>
               <div
                 style={{
@@ -6535,19 +6533,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontFamily: 'monospace',
                   }}
                 >
-                  {liveFps > 0 ? `${liveFps} FPS live` : 'Telemetry Active'}
-                  {memoryMetrics.usedMB !== null && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        color: 'var(--c-text-secondary)',
-                        fontWeight: 500,
-                        marginLeft: 6,
-                      }}
-                    >
-                      • Heap: {memoryMetrics.usedMB} MB
-                    </span>
-                  )}
+                  Live Telemetry Ready
                 </div>
                 <span
                   className="material-symbols-outlined"

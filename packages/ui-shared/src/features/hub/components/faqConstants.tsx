@@ -1,8 +1,10 @@
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import {
   useT,
+  useSettingsStore,
   startDiagnosticsSession,
   getTimelineReport,
   resetUpdateTimeline,
@@ -167,6 +169,13 @@ export function HelpAccordion({
   lang: string;
 }) {
   const t = useT();
+  const settings = useSettingsStore((s) => s.settings);
+  const isLight =
+    settings.theme === 'light' ||
+    (settings.theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches);
+
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
@@ -415,7 +424,7 @@ export function HelpAccordion({
     });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 32 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 32 }}>
       {/* Search Input */}
       <div
         style={{
@@ -424,21 +433,29 @@ export function HelpAccordion({
           gap: 10,
           height: 42,
           padding: '0 14px',
-          background: 'var(--app-surface-low)',
+          background: 'var(--surface-topbar-bg)',
           border: '1px solid var(--c-border)',
-          borderRadius: 12,
+          borderRadius: 14,
+          backdropFilter: 'var(--surface-float-blur)',
+          WebkitBackdropFilter: 'var(--surface-float-blur)',
+          boxShadow: isLight
+            ? '0 2px 8px rgba(0, 0, 0, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
+            : 'var(--surface-topbar-shadow)',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'border-color 180ms ease, box-shadow 180ms ease',
         }}
       >
         <span
           className="material-symbols-outlined"
-          style={{ color: 'var(--c-text-secondary)', fontSize: 18, opacity: 0.7 }}
+          style={{ color: 'var(--c-text-secondary)', fontSize: 19, opacity: 0.7 }}
         >
           search
         </span>
         <input
           type="text"
           placeholder={
-            t.help.accordion.searchPlaceholder ||
+            t.help?.accordion?.searchPlaceholder ||
             (lang === 'es' ? 'Buscar ayuda y preguntas...' : 'Search help articles & FAQs...')
           }
           value={searchQuery}
@@ -449,7 +466,8 @@ export function HelpAccordion({
             border: 'none',
             outline: 'none',
             color: 'var(--c-text-primary)',
-            fontSize: 13,
+            fontSize: 13.5,
+            fontWeight: 500,
             fontFamily: 'Inter, sans-serif',
           }}
         />
@@ -457,16 +475,20 @@ export function HelpAccordion({
           <button
             onClick={() => setSearchQuery('')}
             style={{
-              background: 'none',
+              background: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)',
               border: 'none',
+              borderRadius: '50%',
+              width: 20,
+              height: 20,
               cursor: 'pointer',
               color: 'var(--c-text-secondary)',
               padding: 0,
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
               close
             </span>
           </button>
@@ -475,25 +497,25 @@ export function HelpAccordion({
 
       {/* Category Chips */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <h3
+        <span
           style={{
-            fontSize: 11,
-            fontWeight: 700,
+            fontSize: '9.5px',
+            fontWeight: 800,
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: 'var(--c-text-secondary)',
-            opacity: 0.7,
-            margin: 0,
+            color: 'var(--c-text-tertiary, #808080)',
+            fontFamily: 'Inter, sans-serif',
+            paddingLeft: '4px',
           }}
         >
           {lang === 'es' ? 'Categorías de Ayuda' : 'Help Categories'}
-        </h3>
+        </span>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {[
             {
               id: 'getting-started',
               label:
-                t.help.accordion.categories.gettingStarted ||
+                t.help?.accordion?.categories?.gettingStarted ||
                 (lang === 'es' ? 'Inicio' : 'Getting Started'),
               icon: 'play_circle',
             },
@@ -501,45 +523,54 @@ export function HelpAccordion({
             {
               id: 'sync-storage',
               label:
-                t.help.accordion.categories.syncStorage ||
+                t.help?.accordion?.categories?.syncStorage ||
                 (lang === 'es' ? 'Sincro y Almacén' : 'Sync & Storage'),
               icon: 'cloud_sync',
             },
             {
               id: 'troubleshooting',
               label:
-                t.help.accordion.categories.diagnostics ||
+                t.help?.accordion?.categories?.diagnostics ||
                 (lang === 'es' ? 'Diagnóstico' : 'Diagnostics'),
               icon: 'build',
             },
           ].map((cat) => {
             const isActive = activeCategory === cat.id;
             return (
-              <button
+              <motion.button
                 key={cat.id}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveCategory(isActive ? null : cat.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  padding: '6px 12px',
-                  borderRadius: 20,
+                  padding: '6px 13px',
+                  borderRadius: '9999px',
                   border: isActive ? '1px solid transparent' : '1px solid var(--c-border)',
                   background: isActive
                     ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-                    : 'var(--app-surface-low)',
+                    : 'var(--surface-topbar-bg)',
+                  backdropFilter: 'var(--surface-float-blur)',
+                  WebkitBackdropFilter: 'var(--surface-float-blur)',
                   color: isActive ? '#ffffff' : 'var(--c-text-secondary)',
                   fontSize: 12,
-                  fontWeight: 600,
+                  fontWeight: isActive ? 700 : 600,
+                  fontFamily: 'Manrope, sans-serif',
                   cursor: 'pointer',
-                  transition: 'all 180ms ease',
+                  boxShadow: isActive
+                    ? '0 2px 10px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.35)'
+                    : isLight
+                      ? '0 1px 4px rgba(0, 0, 0, 0.02)'
+                      : 'none',
+                  transition: 'background 180ms ease, color 180ms ease, border-color 180ms ease',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                   {cat.icon}
                 </span>
                 <span>{cat.label}</span>
-              </button>
+              </motion.button>
             );
           })}
         </div>
@@ -547,546 +578,665 @@ export function HelpAccordion({
 
       {/* Device Diagnostics Card */}
       {(!activeCategory || activeCategory === 'troubleshooting') && (
-        <div
-          style={{
-            background: 'var(--app-surface-low)',
-            border: '1px solid var(--c-border)',
-            borderRadius: 16,
-            padding: 14,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 10,
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ color: accent.from, fontSize: 18 }}
-              >
-                monitor_heart
-              </span>
-            </div>
-            <div>
-              <h4
-                style={{
-                  margin: 0,
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  color: 'var(--c-text-primary)',
-                }}
-              >
-                {t.help.accordion.diagnosticsCard.title ||
-                  (lang === 'es' ? 'Diagnóstico del Dispositivo' : 'Device Diagnostics')}
-              </h4>
-              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8 }}>
-                ID:{' '}
-                <span style={{ fontFamily: 'monospace' }}>
-                  {deviceId()?.slice(0, 12) || 'UNKNOWN'}...
-                </span>
-              </span>
-            </div>
-          </div>
-
-          <div
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 8,
+              fontSize: '9.5px',
+              fontWeight: 800,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--c-text-tertiary, #808080)',
+              fontFamily: 'Inter, sans-serif',
+              paddingLeft: '4px',
             }}
           >
+            {t.help?.accordion?.diagnosticsCard?.title ||
+              (lang === 'es' ? 'Diagnóstico del Dispositivo' : 'Device Diagnostics')}
+          </span>
+          <div
+            style={{
+              background: 'var(--surface-topbar-bg)',
+              border: '1px solid var(--c-border)',
+              borderRadius: 18,
+              padding: '14px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              position: 'relative',
+              overflow: 'hidden',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              boxShadow: isLight
+                ? '0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                : 'var(--surface-topbar-shadow)',
+            }}
+          >
+            {/* Top Specular Rim */}
             <div
               style={{
-                padding: '8px 10px',
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                borderRadius: 10,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
+                position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
               }}
-            >
-              <span
-                style={{
-                  fontSize: 10.5,
-                  color: 'var(--c-text-secondary)',
-                  opacity: 0.8,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                {lang === 'es' ? 'Audio' : 'Audio Engine'}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div
                   style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: audioCtxState === 'running' ? '#10b981' : '#ef4444',
+                    width: 34,
+                    height: 34,
+                    borderRadius: 10,
+                    background: `${accent.from}18`,
+                    border: `1px solid ${accent.from}33`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     flexShrink: 0,
                   }}
-                />
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ color: accent.from, fontSize: 18 }}
+                  >
+                    monitor_heart
+                  </span>
+                </div>
+                <div>
+                  <h4
+                    style={{
+                      margin: 0,
+                      fontSize: 14,
+                      fontWeight: 750,
+                      color: 'var(--c-text-primary)',
+                      fontFamily: 'Manrope, sans-serif',
+                    }}
+                  >
+                    {t.help?.accordion?.diagnosticsCard?.title ||
+                      (lang === 'es' ? 'Diagnóstico del Dispositivo' : 'Device Diagnostics')}
+                  </h4>
+                  <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8 }}>
+                    ID:{' '}
+                    <span style={{ fontFamily: 'monospace' }}>
+                      {deviceId()?.slice(0, 12) || 'UNKNOWN'}...
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Metrics 2-column grid */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 8,
+              }}
+            >
+              <div
+                style={{
+                  padding: '8px 12px',
+                  background: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: 12,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
+                }}
+              >
                 <span
                   style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: audioCtxState === 'running' ? '#10b981' : 'var(--c-text-secondary)',
+                    fontSize: '9.5px',
+                    color: 'var(--c-text-tertiary)',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    fontFamily: 'Inter, sans-serif',
                   }}
                 >
-                  {audioCtxState === 'running'
-                    ? lang === 'es'
-                      ? 'Activo'
-                      : 'Running'
-                    : lang === 'es'
-                      ? 'Detenido'
-                      : 'Stopped'}
+                  {lang === 'es' ? 'Audio' : 'Audio Engine'}
                 </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      background: audioCtxState === 'running' ? '#10b981' : '#ef4444',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      fontFamily: 'Manrope, sans-serif',
+                      color: audioCtxState === 'running' ? '#10b981' : 'var(--c-text-secondary)',
+                    }}
+                  >
+                    {audioCtxState === 'running'
+                      ? lang === 'es'
+                        ? 'Activo'
+                        : 'Running'
+                      : lang === 'es'
+                        ? 'Detenido'
+                        : 'Stopped'}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: '8px 12px',
+                  background: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: 12,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 3,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    color: 'var(--c-text-tertiary)',
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    fontFamily: 'Inter, sans-serif',
+                  }}
+                >
+                  {lang === 'es' ? 'Almacenamiento' : 'Local Storage'}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 14, color: accent.from }}
+                  >
+                    database
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12.5,
+                      fontWeight: 700,
+                      fontFamily: 'Manrope, sans-serif',
+                      color: 'var(--c-text-primary)',
+                    }}
+                  >
+                    {localStorage?.length || 0} {lang === 'es' ? 'claves' : 'keys'}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div
-              style={{
-                padding: '8px 10px',
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                borderRadius: 10,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 2,
-              }}
-            >
-              <span
+            {/* Action buttons */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={runAudioTroubleshooter}
+                disabled={audioState === 'testing'}
                 style={{
-                  fontSize: 10.5,
-                  color: 'var(--c-text-secondary)',
-                  opacity: 0.8,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
+                  color: 'var(--c-text-primary)',
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  fontFamily: 'Manrope, sans-serif',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  opacity: audioState === 'testing' ? 0.6 : 1,
                 }}
               >
-                {lang === 'es' ? 'Almacenamiento' : 'Local Storage'}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 14, color: accent.from }}
+                  style={{
+                    fontSize: 14,
+                    animation: audioState === 'testing' ? 'spin 1s linear infinite' : 'none',
+                  }}
                 >
-                  database
+                  {audioState === 'testing' ? 'sync' : 'volume_up'}
                 </span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-primary)' }}>
-                  {localStorage?.length || 0} {lang === 'es' ? 'claves' : 'keys'}
+                {audioState === 'testing'
+                  ? t.help?.accordion?.diagnosticsCard?.btnTesting || 'Testing...'
+                  : t.help?.accordion?.diagnosticsCard?.btnTestAudio ||
+                    (lang === 'es' ? 'Probar Audio' : 'Test Audio')}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={runSyncTroubleshooter}
+                disabled={syncState === 'syncing'}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
+                  color: 'var(--c-text-primary)',
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  fontFamily: 'Manrope, sans-serif',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  opacity: syncState === 'syncing' ? 0.6 : 1,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: 14,
+                    animation: syncState === 'syncing' ? 'spin 1s linear infinite' : 'none',
+                  }}
+                >
+                  {syncState === 'syncing' ? 'sync' : 'sync'}
                 </span>
+                {syncState === 'syncing'
+                  ? t.help?.accordion?.diagnosticsCard?.btnSyncing || 'Syncing...'
+                  : t.help?.accordion?.diagnosticsCard?.btnForceSync ||
+                    (lang === 'es' ? 'Forzar Sincro' : 'Force Sync')}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={runCacheTroubleshooter}
+                disabled={cacheState === 'clearing'}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
+                  color: 'var(--c-text-primary)',
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  fontFamily: 'Manrope, sans-serif',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  opacity: cacheState === 'clearing' ? 0.6 : 1,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: 14,
+                    animation: cacheState === 'clearing' ? 'spin 1s linear infinite' : 'none',
+                  }}
+                >
+                  {cacheState === 'clearing' ? 'sync' : 'mop'}
+                </span>
+                {cacheState === 'clearing'
+                  ? t.help?.accordion?.diagnosticsCard?.btnClearing || 'Clearing...'
+                  : t.help?.accordion?.diagnosticsCard?.btnClearCache ||
+                    (lang === 'es' ? 'Limpiar Caché' : 'Clear Cache')}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={runSecurityTroubleshooter}
+                disabled={securityState === 'auditing'}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
+                  color: 'var(--c-text-primary)',
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  fontFamily: 'Manrope, sans-serif',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  opacity: securityState === 'auditing' ? 0.6 : 1,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: 14,
+                    animation: securityState === 'auditing' ? 'spin 1s linear infinite' : 'none',
+                  }}
+                >
+                  {securityState === 'auditing' ? 'sync' : 'security'}
+                </span>
+                {securityState === 'auditing'
+                  ? t.help?.accordion?.diagnosticsCard?.btnAuditing || 'Auditing...'
+                  : t.help?.accordion?.diagnosticsCard?.btnSecurityAudit ||
+                    (lang === 'es' ? 'Auditoría' : 'Security Audit')}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={runResetTroubleshooter}
+                disabled={resetState === 'repairing'}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
+                  color: 'var(--c-text-primary)',
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  fontFamily: 'Manrope, sans-serif',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  opacity: resetState === 'repairing' ? 0.6 : 1,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{
+                    fontSize: 14,
+                    animation: resetState === 'repairing' ? 'spin 1s linear infinite' : 'none',
+                  }}
+                >
+                  {resetState === 'repairing' ? 'sync' : 'restart_alt'}
+                </span>
+                {resetState === 'repairing'
+                  ? t.help?.accordion?.diagnosticsCard?.btnResetting || 'Resetting...'
+                  : t.help?.accordion?.diagnosticsCard?.btnResetReload ||
+                    (lang === 'es' ? 'Reiniciar' : 'Reset & Reload')}
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={toggleDiagOverlay}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '9999px',
+                  background: diagEnabled
+                    ? isLight
+                      ? 'rgba(16, 185, 129, 0.12)'
+                      : 'rgba(16, 185, 129, 0.18)'
+                    : isLight
+                      ? 'rgba(0, 0, 0, 0.03)'
+                      : 'rgba(255, 255, 255, 0.05)',
+                  border: diagEnabled
+                    ? '1px solid rgba(16, 185, 129, 0.35)'
+                    : '1px solid var(--c-border)',
+                  color: diagEnabled ? '#10b981' : 'var(--c-text-primary)',
+                  fontSize: 11.5,
+                  fontWeight: 650,
+                  fontFamily: 'Manrope, sans-serif',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  bug_report
+                </span>
+                {diagEnabled
+                  ? lang === 'es'
+                    ? 'Diag: ACTIVO'
+                    : 'Diagnostics: ON'
+                  : lang === 'es'
+                    ? 'Superposición Diag'
+                    : 'Diagnostics Overlay'}
+              </motion.button>
+            </div>
+
+            {auditReport && (
+              <div
+                style={{
+                  background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: 12,
+                  padding: '10px 12px',
+                  fontSize: 11,
+                  fontFamily: '"Roboto Mono", monospace',
+                  color: isLight ? '#0369a1' : '#4ade80',
+                  whiteSpace: 'pre-wrap',
+                  lineHeight: 1.45,
+                }}
+              >
+                {auditReport}
               </div>
-            </div>
+            )}
           </div>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            <button
-              onClick={runAudioTroubleshooter}
-              disabled={audioState === 'testing'}
-              style={{
-                padding: '6px 11px',
-                borderRadius: 20,
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                color: 'var(--c-text-primary)',
-                fontSize: 11.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                opacity: audioState === 'testing' ? 0.6 : 1,
-              }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 14,
-                  animation: audioState === 'testing' ? 'spin 1s linear infinite' : 'none',
-                }}
-              >
-                {audioState === 'testing' ? 'sync' : 'volume_up'}
-              </span>
-              {audioState === 'testing'
-                ? t.help.accordion.diagnosticsCard.btnTesting || 'Testing...'
-                : t.help.accordion.diagnosticsCard.btnTestAudio ||
-                  (lang === 'es' ? 'Probar Audio' : 'Test Audio')}
-            </button>
-
-            <button
-              onClick={runSyncTroubleshooter}
-              disabled={syncState === 'syncing'}
-              style={{
-                padding: '6px 11px',
-                borderRadius: 20,
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                color: 'var(--c-text-primary)',
-                fontSize: 11.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                opacity: syncState === 'syncing' ? 0.6 : 1,
-              }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 14,
-                  animation: syncState === 'syncing' ? 'spin 1s linear infinite' : 'none',
-                }}
-              >
-                {syncState === 'syncing' ? 'sync' : 'sync'}
-              </span>
-              {syncState === 'syncing'
-                ? t.help.accordion.diagnosticsCard.btnSyncing || 'Syncing...'
-                : t.help.accordion.diagnosticsCard.btnForceSync ||
-                  (lang === 'es' ? 'Forzar Sincro' : 'Force Sync')}
-            </button>
-
-            <button
-              onClick={runCacheTroubleshooter}
-              disabled={cacheState === 'clearing'}
-              style={{
-                padding: '6px 11px',
-                borderRadius: 20,
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                color: 'var(--c-text-primary)',
-                fontSize: 11.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                opacity: cacheState === 'clearing' ? 0.6 : 1,
-              }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 14,
-                  animation: cacheState === 'clearing' ? 'spin 1s linear infinite' : 'none',
-                }}
-              >
-                {cacheState === 'clearing' ? 'sync' : 'mop'}
-              </span>
-              {cacheState === 'clearing'
-                ? t.help.accordion.diagnosticsCard.btnClearing || 'Clearing...'
-                : t.help.accordion.diagnosticsCard.btnClearCache ||
-                  (lang === 'es' ? 'Limpiar Caché' : 'Clear Cache')}
-            </button>
-
-            <button
-              onClick={runSecurityTroubleshooter}
-              disabled={securityState === 'auditing'}
-              style={{
-                padding: '6px 11px',
-                borderRadius: 20,
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                color: 'var(--c-text-primary)',
-                fontSize: 11.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                opacity: securityState === 'auditing' ? 0.6 : 1,
-              }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 14,
-                  animation: securityState === 'auditing' ? 'spin 1s linear infinite' : 'none',
-                }}
-              >
-                {securityState === 'auditing' ? 'sync' : 'security'}
-              </span>
-              {securityState === 'auditing'
-                ? t.help.accordion.diagnosticsCard.btnAuditing || 'Auditing...'
-                : t.help.accordion.diagnosticsCard.btnSecurityAudit ||
-                  (lang === 'es' ? 'Auditoría' : 'Security Audit')}
-            </button>
-
-            <button
-              onClick={runResetTroubleshooter}
-              disabled={resetState === 'repairing'}
-              style={{
-                padding: '6px 11px',
-                borderRadius: 20,
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                color: 'var(--c-text-primary)',
-                fontSize: 11.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                opacity: resetState === 'repairing' ? 0.6 : 1,
-              }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{
-                  fontSize: 14,
-                  animation: resetState === 'repairing' ? 'spin 1s linear infinite' : 'none',
-                }}
-              >
-                {resetState === 'repairing' ? 'sync' : 'restart_alt'}
-              </span>
-              {resetState === 'repairing'
-                ? t.help.accordion.diagnosticsCard.btnResetting || 'Resetting...'
-                : t.help.accordion.diagnosticsCard.btnResetReload ||
-                  (lang === 'es' ? 'Reiniciar' : 'Reset & Reload')}
-            </button>
-
-            <button
-              onClick={toggleDiagOverlay}
-              style={{
-                padding: '6px 11px',
-                borderRadius: 20,
-                background: diagEnabled ? 'rgba(16, 185, 129, 0.15)' : 'var(--app-surface)',
-                border: diagEnabled
-                  ? '1px solid rgba(16, 185, 129, 0.3)'
-                  : '1px solid var(--c-border)',
-                color: diagEnabled ? '#10b981' : 'var(--c-text-primary)',
-                fontSize: 11.5,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                bug_report
-              </span>
-              {diagEnabled
-                ? lang === 'es'
-                  ? 'Diag: ACTIVO'
-                  : 'Diagnostics: ON'
-                : lang === 'es'
-                  ? 'Superposición Diag'
-                  : 'Diagnostics Overlay'}
-            </button>
-          </div>
-
-          {auditReport && (
-            <div
-              style={{
-                background: 'rgba(0, 0, 0, 0.45)',
-                border: '1px solid var(--c-border)',
-                borderRadius: 10,
-                padding: '10px 12px',
-                fontSize: 11,
-                fontFamily: '"Roboto Mono", monospace',
-                color: '#4ade80',
-                whiteSpace: 'pre-wrap',
-                lineHeight: 1.45,
-              }}
-            >
-              {auditReport}
-            </div>
-          )}
         </div>
       )}
 
       {/* Update Session Diagnostics Card */}
       {(!activeCategory || activeCategory === 'troubleshooting') && (
-        <div
-          style={{
-            background: 'var(--app-surface-low)',
-            border: '1px solid var(--c-border)',
-            borderRadius: 16,
-            padding: 14,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span
+            style={{
+              fontSize: '9.5px',
+              fontWeight: 800,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--c-text-tertiary, #808080)',
+              fontFamily: 'Inter, sans-serif',
+              paddingLeft: '4px',
+            }}
+          >
+            {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
+          </span>
+          <div
+            style={{
+              background: 'var(--surface-topbar-bg)',
+              border: '1px solid var(--c-border)',
+              borderRadius: 18,
+              padding: '14px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              position: 'relative',
+              overflow: 'hidden',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              boxShadow: isLight
+                ? '0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                : 'var(--surface-topbar-shadow)',
+            }}
+          >
+            {/* Top Specular Rim */}
             <div
               style={{
-                width: 32,
-                height: 32,
-                borderRadius: 10,
-                background: 'var(--app-surface)',
-                border: '1px solid var(--c-border)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
               }}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ color: accent.to, fontSize: 18 }}
-              >
-                system_update_alt
-              </span>
-            </div>
-            <div>
-              <h4
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
                 style={{
-                  margin: 0,
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  color: 'var(--c-text-primary)',
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: `${accent.to}18`,
+                  border: `1px solid ${accent.to}33`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
                 }}
               >
-                {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
-              </h4>
-              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8 }}>
-                {lang === 'es'
-                  ? 'Rastreo y registro de eventos del actualizador nativo en tiempo real.'
-                  : 'Trace and inspect native updater events in real-time.'}
-              </span>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: accent.to, fontSize: 18 }}
+                >
+                  system_update_alt
+                </span>
+              </div>
+              <div>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: 14,
+                    fontWeight: 750,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
+                </h4>
+                <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8 }}>
+                  {lang === 'es'
+                    ? 'Rastreo y registro de eventos del actualizador nativo en tiempo real.'
+                    : 'Trace and inspect native updater events in real-time.'}
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            <button
-              onClick={handleToggleDiagnostics}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 20,
-                background: diagActive
-                  ? '#10b981'
-                  : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                border: '1px solid transparent',
-                color: diagActive ? '#000000' : '#ffffff',
-                fontSize: 11.5,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-              }}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                {diagActive ? 'pause' : 'play_arrow'}
-              </span>
-              {diagActive
-                ? lang === 'es'
-                  ? 'Modo Diagnóstico: ACTIVO'
-                  : 'Diagnostic Mode: ACTIVE'
-                : lang === 'es'
-                  ? 'Iniciar Diagnóstico'
-                  : 'Start Diagnostic Mode'}
-            </button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleToggleDiagnostics}
+                style={{
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  background: diagActive
+                    ? '#10b981'
+                    : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                  border: '1px solid transparent',
+                  color: '#ffffff',
+                  fontSize: 11.5,
+                  fontWeight: 700,
+                  fontFamily: 'Manrope, sans-serif',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  {diagActive ? 'pause' : 'play_arrow'}
+                </span>
+                {diagActive
+                  ? lang === 'es'
+                    ? 'Modo Diagnóstico: ACTIVO'
+                    : 'Diagnostic Mode: ACTIVE'
+                  : lang === 'es'
+                    ? 'Iniciar Diagnóstico'
+                    : 'Start Diagnostic Mode'}
+              </motion.button>
+
+              {diagActive && (
+                <>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleCopyTimeline}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '9999px',
+                      background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid var(--c-border)',
+                      color: 'var(--c-text-primary)',
+                      fontSize: 11.5,
+                      fontWeight: 650,
+                      fontFamily: 'Manrope, sans-serif',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                      content_copy
+                    </span>
+                    {lang === 'es' ? 'Copiar' : 'Copy Trace'}
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleShareTimeline}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '9999px',
+                      background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid var(--c-border)',
+                      color: 'var(--c-text-primary)',
+                      fontSize: 11.5,
+                      fontWeight: 650,
+                      fontFamily: 'Manrope, sans-serif',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 5,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                      share
+                    </span>
+                    {lang === 'es' ? 'Compartir' : 'Share Trace'}
+                  </motion.button>
+                </>
+              )}
+            </div>
 
             {diagActive && (
-              <>
-                <button
-                  onClick={handleCopyTimeline}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 20,
-                    background: 'var(--app-surface)',
-                    border: '1px solid var(--c-border)',
-                    color: 'var(--c-text-primary)',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                    content_copy
-                  </span>
-                  {lang === 'es' ? 'Copiar' : 'Copy Trace'}
-                </button>
-                <button
-                  onClick={handleShareTimeline}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 20,
-                    background: 'var(--app-surface)',
-                    border: '1px solid var(--c-border)',
-                    color: 'var(--c-text-primary)',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                    share
-                  </span>
-                  {lang === 'es' ? 'Compartir' : 'Share Trace'}
-                </button>
-              </>
+              <div
+                style={{
+                  background: isLight ? 'rgba(15, 23, 42, 0.04)' : 'rgba(0, 0, 0, 0.45)',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: 12,
+                  padding: '10px 12px',
+                  fontFamily: '"Roboto Mono", monospace',
+                  fontSize: '11px',
+                  lineHeight: 1.4,
+                  color: isLight ? '#0284c7' : '#38bdf8',
+                  maxHeight: 160,
+                  overflowY: 'auto',
+                  whiteSpace: 'pre-wrap',
+                  textAlign: 'left',
+                }}
+              >
+                {timelineText ||
+                  (lang === 'es'
+                    ? 'Esperando eventos del actualizador...'
+                    : 'Waiting for update events...')}
+              </div>
             )}
           </div>
-
-          {diagActive && (
-            <div
-              style={{
-                background: 'rgba(0, 0, 0, 0.45)',
-                border: '1px solid var(--c-border)',
-                borderRadius: 10,
-                padding: '10px 12px',
-                fontFamily: '"Roboto Mono", monospace',
-                fontSize: '11px',
-                lineHeight: 1.4,
-                color: '#38bdf8',
-                maxHeight: 160,
-                overflowY: 'auto',
-                whiteSpace: 'pre-wrap',
-                textAlign: 'left',
-              }}
-            >
-              {timelineText ||
-                (lang === 'es'
-                  ? 'Esperando eventos del actualizador...'
-                  : 'Waiting for update events...')}
-            </div>
-          )}
         </div>
       )}
 
       {/* FAQs Section */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <h3
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        <span
           style={{
-            fontSize: 11,
-            fontWeight: 700,
+            fontSize: '9.5px',
+            fontWeight: 800,
+            letterSpacing: '0.14em',
             textTransform: 'uppercase',
-            letterSpacing: '0.08em',
-            color: 'var(--c-text-secondary)',
-            opacity: 0.7,
-            margin: 0,
+            color: 'var(--c-text-tertiary, #808080)',
+            fontFamily: 'Inter, sans-serif',
+            paddingLeft: '4px',
           }}
         >
           {lang === 'es' ? 'Preguntas Frecuentes' : 'Frequently Asked Questions'}
-        </h3>
+        </span>
 
         {filteredFaqs.length === 0 ? (
           <div
             style={{
-              padding: '16px 0',
+              padding: '24px 16px',
               textAlign: 'center',
+              background: 'var(--surface-topbar-bg)',
+              border: '1px solid var(--c-border)',
+              borderRadius: 18,
               color: 'var(--c-text-secondary)',
               fontSize: 13,
             }}
@@ -1094,18 +1244,43 @@ export function HelpAccordion({
             {lang === 'es' ? 'No se encontraron preguntas.' : 'No matching FAQs found.'}
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {filteredFaqs.map((item) => {
+          <div
+            style={{
+              border: '1px solid var(--c-border)',
+              backgroundColor: 'var(--surface-topbar-bg)',
+              borderRadius: 18,
+              overflow: 'hidden',
+              position: 'relative',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              boxShadow: isLight
+                ? '0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                : 'var(--surface-topbar-shadow)',
+            }}
+          >
+            {/* Top Specular Rim */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
+              }}
+            />
+
+            {filteredFaqs.map((item, idx) => {
               const isOpen = openIdx === item.originalIdx;
+              const isLast = idx === filteredFaqs.length - 1;
               return (
                 <div
                   key={item.originalIdx}
                   style={{
-                    background: 'var(--app-surface-low)',
-                    border: '1px solid var(--c-border)',
-                    borderRadius: 14,
-                    overflow: 'hidden',
-                    transition: 'border-color 180ms ease, box-shadow 180ms ease',
+                    borderBottom: isLast ? 'none' : '1px solid var(--c-border)',
+                    transition: 'background 180ms ease',
                   }}
                 >
                   <button
@@ -1115,15 +1290,16 @@ export function HelpAccordion({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '12px 14px',
+                      padding: '12px 16px',
                       background: 'transparent',
                       border: 'none',
                       cursor: 'pointer',
                       textAlign: 'left',
                       color: 'var(--c-text-primary)',
                       fontSize: 13.5,
-                      fontWeight: 600,
-                      gap: 10,
+                      fontWeight: 650,
+                      fontFamily: 'Manrope, sans-serif',
+                      gap: 12,
                       outline: 'none',
                       WebkitTapHighlightColor: 'transparent',
                     }}
@@ -1132,6 +1308,7 @@ export function HelpAccordion({
                       style={{
                         color: isOpen ? accent.from : 'var(--c-text-primary)',
                         transition: 'color 180ms ease',
+                        lineHeight: 1.35,
                       }}
                     >
                       {item.question}
@@ -1152,7 +1329,7 @@ export function HelpAccordion({
                   {isOpen && (
                     <div
                       style={{
-                        padding: '0 14px 12px 14px',
+                        padding: '0 16px 14px 16px',
                         fontSize: 12.5,
                         lineHeight: 1.55,
                         color: 'var(--c-text-secondary)',
@@ -1167,7 +1344,8 @@ export function HelpAccordion({
 
                       {/* Troubleshooter In-Answer Injectors */}
                       {item.originalIdx === 4 && (
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
                           onClick={runAudioTroubleshooter}
                           disabled={audioState === 'testing'}
                           style={{
@@ -1176,25 +1354,28 @@ export function HelpAccordion({
                             display: 'flex',
                             alignItems: 'center',
                             gap: 6,
-                            padding: '6px 12px',
-                            borderRadius: 20,
+                            padding: '6px 14px',
+                            borderRadius: '9999px',
                             background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                             color: '#ffffff',
                             border: 'none',
-                            fontWeight: 600,
+                            fontWeight: 700,
+                            fontFamily: 'Manrope, sans-serif',
                             fontSize: '11.5px',
                             cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                           }}
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                             volume_up
                           </span>
                           {lang === 'es' ? 'Probar Motor de Audio' : 'Test Audio Engine'}
-                        </button>
+                        </motion.button>
                       )}
 
                       {item.originalIdx === 5 && (
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
                           onClick={runSyncTroubleshooter}
                           disabled={syncState === 'syncing'}
                           style={{
@@ -1203,25 +1384,28 @@ export function HelpAccordion({
                             display: 'flex',
                             alignItems: 'center',
                             gap: 6,
-                            padding: '6px 12px',
-                            borderRadius: 20,
+                            padding: '6px 14px',
+                            borderRadius: '9999px',
                             background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                             color: '#ffffff',
                             border: 'none',
-                            fontWeight: 600,
+                            fontWeight: 700,
+                            fontFamily: 'Manrope, sans-serif',
                             fontSize: '11.5px',
                             cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                           }}
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                             cloud_sync
                           </span>
                           {lang === 'es' ? 'Forzar Sincronización' : 'Force Full Re-Sync'}
-                        </button>
+                        </motion.button>
                       )}
 
                       {item.originalIdx === 6 && (
-                        <button
+                        <motion.button
+                          whileTap={{ scale: 0.95 }}
                           onClick={runCacheTroubleshooter}
                           disabled={cacheState === 'clearing'}
                           style={{
@@ -1230,21 +1414,23 @@ export function HelpAccordion({
                             display: 'flex',
                             alignItems: 'center',
                             gap: 6,
-                            padding: '6px 12px',
-                            borderRadius: 20,
+                            padding: '6px 14px',
+                            borderRadius: '9999px',
                             background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                             color: '#ffffff',
                             border: 'none',
-                            fontWeight: 600,
+                            fontWeight: 700,
+                            fontFamily: 'Manrope, sans-serif',
                             fontSize: '11.5px',
                             cursor: 'pointer',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                           }}
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                             mop
                           </span>
                           {lang === 'es' ? 'Vaciar Caché' : 'Wipe Caches & Temp Files'}
-                        </button>
+                        </motion.button>
                       )}
                     </div>
                   )}
@@ -1258,29 +1444,56 @@ export function HelpAccordion({
       {/* Direct Assistance Card */}
       <div
         style={{
-          background: 'var(--app-surface-low)',
+          background: 'var(--surface-topbar-bg)',
           border: '1px solid var(--c-border)',
-          borderRadius: 16,
+          borderRadius: 18,
           padding: '14px 16px',
           display: 'flex',
           flexDirection: 'column',
           gap: 10,
           alignItems: 'center',
           textAlign: 'center',
+          position: 'relative',
+          overflow: 'hidden',
+          backdropFilter: 'var(--surface-float-blur)',
+          WebkitBackdropFilter: 'var(--surface-float-blur)',
+          boxShadow: isLight
+            ? '0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+            : 'var(--surface-topbar-shadow)',
         }}
       >
+        {/* Top Specular Rim */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 12,
+            right: 12,
+            height: '1px',
+            background: 'var(--surface-glass-rim)',
+            pointerEvents: 'none',
+            opacity: 0.6,
+          }}
+        />
+
         <div>
           <h4
-            style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--c-text-primary)' }}
+            style={{
+              margin: 0,
+              fontSize: 13.5,
+              fontWeight: 750,
+              fontFamily: 'Manrope, sans-serif',
+              color: 'var(--c-text-primary)',
+            }}
           >
             {lang === 'es' ? '¿Necesitas ayuda directa?' : 'Need direct assistance?'}
           </h4>
           <p
             style={{
-              margin: '4px 0 0',
+              margin: '3px 0 0',
               fontSize: 12,
               color: 'var(--c-text-secondary)',
-              lineHeight: 1.45,
+              lineHeight: 1.4,
               maxWidth: 380,
             }}
           >
@@ -1290,7 +1503,8 @@ export function HelpAccordion({
           </p>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-          <a
+          <motion.a
+            whileTap={{ scale: 0.95 }}
             href="https://github.com/MAGEXE1000/Studio"
             target="_blank"
             rel="noopener noreferrer"
@@ -1298,13 +1512,14 @@ export function HelpAccordion({
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '7px 14px',
-              borderRadius: 20,
-              background: 'var(--app-surface)',
+              padding: '6px 14px',
+              borderRadius: '9999px',
+              background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
               border: '1px solid var(--c-border)',
               color: 'var(--c-text-primary)',
               fontSize: 12,
-              fontWeight: 600,
+              fontWeight: 650,
+              fontFamily: 'Manrope, sans-serif',
               textDecoration: 'none',
             }}
           >
@@ -1312,28 +1527,31 @@ export function HelpAccordion({
               code
             </span>
             GitHub Repository
-          </a>
-          <a
+          </motion.a>
+          <motion.a
+            whileTap={{ scale: 0.95 }}
             href="mailto:stagecore.contact@gmail.com"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              padding: '7px 14px',
-              borderRadius: 20,
+              padding: '6px 14px',
+              borderRadius: '9999px',
               background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
               border: '1px solid transparent',
               color: '#ffffff',
               fontSize: 12,
-              fontWeight: 600,
+              fontWeight: 700,
+              fontFamily: 'Manrope, sans-serif',
               textDecoration: 'none',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               mail
             </span>
             Contact Support
-          </a>
+          </motion.a>
         </div>
       </div>
     </div>

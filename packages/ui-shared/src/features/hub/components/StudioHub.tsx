@@ -8426,7 +8426,7 @@ function HubHelp({
             alignItems: 'baseline',
             gap: 12,
             paddingBottom: 12,
-            borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
+            borderBottom: '1px solid var(--c-border)',
           }}
         >
           <span style={{ fontSize: 20, fontWeight: 800, color: 'var(--c-text-primary)' }}>
@@ -8519,19 +8519,19 @@ function HubHelp({
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--space-6)',
+          gap: 'var(--space-5)',
           paddingBottom: 'var(--space-6)',
         }}
       >
         <div
           style={{
-            padding: 20,
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(128, 128, 128, 0.08)',
+            padding: 18,
+            background: 'var(--surface-topbar-bg)',
+            border: '1px solid var(--c-border)',
             borderRadius: 16,
             display: 'flex',
             flexDirection: 'column',
-            gap: 16,
+            gap: 14,
           }}
         >
           <div
@@ -8545,7 +8545,7 @@ function HubHelp({
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: 32, color: accent.from }}
+                style={{ fontSize: 30, color: accent.from }}
               >
                 adb
               </span>
@@ -8553,9 +8553,10 @@ function HubHelp({
                 <h3
                   style={{
                     margin: 0,
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
                   }}
                 >
                   Android App (APK)
@@ -8569,24 +8570,24 @@ function HubHelp({
               href={apkUrl}
               style={{
                 textDecoration: 'none',
-                padding: '8px 16px',
+                padding: '7px 14px',
                 background: accent.from,
                 color: '#fff',
-                fontSize: 13,
+                fontSize: 12.5,
                 fontWeight: 700,
-                borderRadius: 8,
+                borderRadius: 9999,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                 download
               </span>
               {t.help.downloadApps.downloadApk}
             </a>
           </div>
-          <div style={{ height: 1, borderTop: '1px solid rgba(128, 128, 128, 0.08)' }} />
+          <div style={{ height: 1, borderTop: '1px solid var(--c-border)' }} />
           <p style={{ margin: 0, fontSize: 12, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
             {t.help.downloadApps.installApkDesc}
           </p>
@@ -8594,13 +8595,13 @@ function HubHelp({
 
         <div
           style={{
-            padding: 20,
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(128, 128, 128, 0.08)',
+            padding: 18,
+            background: 'var(--surface-topbar-bg)',
+            border: '1px solid var(--c-border)',
             borderRadius: 16,
             display: 'flex',
             flexDirection: 'column',
-            gap: 16,
+            gap: 14,
           }}
         >
           <div
@@ -8614,7 +8615,7 @@ function HubHelp({
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: 32, color: accent.from }}
+                style={{ fontSize: 30, color: accent.from }}
               >
                 language
               </span>
@@ -8622,9 +8623,10 @@ function HubHelp({
                 <h3
                   style={{
                     margin: 0,
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
                   }}
                 >
                   Web Version (PWA)
@@ -8636,24 +8638,24 @@ function HubHelp({
             </div>
             <div
               style={{
-                fontSize: 12,
+                fontSize: 'var(--font-section-label)',
                 fontWeight: 700,
                 color: accent.from,
                 background: `${accent.from}22`,
-                padding: '6px 12px',
-                borderRadius: 8,
+                padding: '5px 10px',
+                borderRadius: 9999,
               }}
             >
               {t.help.downloadApps.runningNow}
             </div>
           </div>
-          <div style={{ height: 1, borderTop: '1px solid rgba(128, 128, 128, 0.08)' }} />
+          <div style={{ height: 1, borderTop: '1px solid var(--c-border)' }} />
           <p style={{ margin: 0, fontSize: 12, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
             {t.help.downloadApps.installPwaDesc}
           </p>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {[
             { platform: 'iOS App', icon: 'phone_iphone' },
             { platform: 'Desktop (macOS / Windows)', icon: 'desktop_windows' },
@@ -8661,35 +8663,34 @@ function HubHelp({
             <div
               key={i}
               style={{
-                padding: 16,
-                background: 'rgba(255, 255, 255, 0.01)',
-                border: '1px solid rgba(128, 128, 128, 0.06)',
-                borderRadius: 12,
+                padding: 14,
+                background: 'var(--surface-topbar-bg)',
+                border: '1px solid var(--c-border)',
+                borderRadius: 14,
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 8,
-                opacity: 0.7,
+                gap: 6,
+                opacity: 0.8,
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 20, color: 'var(--c-text-secondary)' }}
+                  style={{ fontSize: 18, color: 'var(--c-text-secondary)' }}
                 >
                   {item.icon}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)' }}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--c-text-primary)' }}>
                   {item.platform}
                 </span>
               </div>
               <span
                 style={{
-                  fontSize: 'var(--font-section-label)',
-                  fontWeight: 700,
+                  fontSize: '9.5px',
+                  fontWeight: 800,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.05em',
+                  letterSpacing: '0.08em',
                   color: accent.from,
-                  opacity: 0.8,
                 }}
               >
                 {t.help.downloadApps.comingSoon}
@@ -8726,12 +8727,12 @@ function HubHelp({
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--space-6)',
+          gap: 'var(--space-5)',
           paddingBottom: 'var(--space-6)',
         }}
       >
         {categories.map((cat, i) => (
-          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <h3
               style={{
                 fontSize: 'var(--font-section-label)',
@@ -8745,7 +8746,7 @@ function HubHelp({
             >
               {cat.title}
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {cat.shortcuts.map((sh, j) => (
                 <div
                   key={j}
@@ -8753,10 +8754,10 @@ function HubHelp({
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    padding: '10px 12px',
-                    background: 'rgba(255, 255, 255, 0.02)',
-                    border: '1px solid rgba(128, 128, 128, 0.06)',
-                    borderRadius: 8,
+                    padding: '10px 14px',
+                    background: 'var(--surface-topbar-bg)',
+                    border: '1px solid var(--c-border)',
+                    borderRadius: 12,
                   }}
                 >
                   <span style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>{sh.desc}</span>
@@ -8777,9 +8778,9 @@ function HubHelp({
                         <kbd
                           style={{
                             padding: '3px 6px',
-                            border: '1px solid rgba(128, 128, 128, 0.2)',
-                            background: 'rgba(255, 255, 255, 0.06)',
-                            borderRadius: 4,
+                            border: '1px solid var(--c-border)',
+                            background: 'var(--surface-topbar-bg)',
+                            borderRadius: 6,
                             fontSize: 'var(--font-section-label)',
                             fontWeight: 700,
                             color: 'var(--c-text-primary)',
@@ -8939,20 +8940,20 @@ Date: ${new Date().toISOString()}
           onClick={handleCopyTemplate}
           style={{
             alignSelf: 'flex-start',
-            padding: '10px 16px',
+            padding: '8px 16px',
             background: accent.from,
             color: '#fff',
-            fontSize: 13,
+            fontSize: 12.5,
             fontWeight: 700,
             border: 'none',
-            borderRadius: 8,
+            borderRadius: 9999,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: 8,
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
             {copiedBugTemplate ? 'check' : 'content_copy'}
           </span>
           {copiedBugTemplate ? t.help.bugReport.copied : t.help.bugReport.copyTemplate}
@@ -8961,9 +8962,9 @@ Date: ${new Date().toISOString()}
         <div
           style={{
             padding: 14,
-            background: 'rgba(255,255,255,0.01)',
-            border: '1px solid rgba(128,128,128,0.08)',
-            borderRadius: 8,
+            background: 'var(--surface-topbar-bg)',
+            border: '1px solid var(--c-border)',
+            borderRadius: 12,
             fontFamily: 'monospace',
             fontSize: 12,
             color: 'var(--c-text-secondary)',
@@ -8977,9 +8978,7 @@ User Agent: [Automatically Generated]
 ...`}
         </div>
 
-        <div
-          style={{ height: 1, borderTop: '1px solid rgba(128, 128, 128, 0.08)', margin: '8px 0' }}
-        />
+        <div style={{ height: 1, borderTop: '1px solid var(--c-border)', margin: '4px 0' }} />
 
         <div style={{ display: 'flex', gap: 10 }}>
           <a
@@ -8997,19 +8996,19 @@ User Agent: [Automatically Generated]
             rel="noopener noreferrer"
             style={{
               textDecoration: 'none',
-              padding: '10px 16px',
+              padding: '8px 16px',
               background: accent.from,
               color: '#fff',
-              fontSize: 13,
+              fontSize: 12.5,
               fontWeight: 700,
-              borderRadius: 8,
+              borderRadius: 9999,
               border: 'none',
               display: 'flex',
               alignItems: 'center',
               gap: 8,
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               open_in_new
             </span>
             {t.help.bugReport.githubBtn}
@@ -9022,7 +9021,7 @@ User Agent: [Automatically Generated]
   function renderActivePageContent(activePageId: HelpPageId) {
     switch (activePageId) {
       case 'help-center':
-        return <StudioHubSettingsPanel />;
+        return renderHelpCenterContent();
       case 'faq':
         return renderFaqContent();
       case 'release-notes':
@@ -9150,7 +9149,11 @@ User Agent: [Automatically Generated]
               );
             }
             if (pageId === 'main') {
-              return <StudioHubSettingsPanel />;
+              return (
+                <SettingsScaffold title={getPageTitle('help-center')} onBack={goBack}>
+                  {renderHelpCenterContent()}
+                </SettingsScaffold>
+              );
             }
             return null;
           }}

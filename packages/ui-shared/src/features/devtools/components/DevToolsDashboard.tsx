@@ -12,6 +12,7 @@ import {
   subscribeToDevTools,
   getLogs,
   clearLogs,
+  inspectWifiInterface,
   getErrors,
   clearErrors,
   getEvents,
@@ -85,6 +86,7 @@ interface Props {
 type TabId =
   | 'inspector'
   | 'logs'
+  | 'wifi'
   | 'errors'
   | 'events'
   | 'perf'
@@ -815,15 +817,36 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     return Array.from(modules);
   }, [logs]);
 
+  // Wi-Fi / Network Logs
+  const wifiLogs = useMemo(() => {
+    return logs.filter(
+      (l) => l.module.toLowerCase() === 'wifi' || l.module.toLowerCase() === 'network'
+    );
+  }, [logs]);
+
   // Filtered Logs
   const filteredLogs = useMemo(() => {
     return logs.filter((l) => {
+      if (logSearchQuery.trim()) {
+        const query = logSearchQuery.toLowerCase();
+        const matchesQuery =
+          l.message.toLowerCase().includes(query) ||
+          l.module.toLowerCase().includes(query) ||
+          (l.source && l.source.toLowerCase().includes(query)) ||
+          ((l as any).details && (l as any).details.toLowerCase().includes(query));
+        if (!matchesQuery) return false;
+      }
+
+      if (activeTab === 'wifi') {
+        return l.module.toLowerCase() === 'wifi' || l.module.toLowerCase() === 'network';
+      }
+
       const matchLevel = logLevelFilter === 'all' || l.level === logLevelFilter;
       const matchModule =
         logModuleFilter === 'all' || l.module.toLowerCase() === logModuleFilter.toLowerCase();
       return matchLevel && matchModule;
     });
-  }, [logs, logLevelFilter, logModuleFilter]);
+  }, [logs, logLevelFilter, logModuleFilter, logSearchQuery, activeTab]);
 
   // Filtered Events
   const filteredEvents = useMemo(() => {
@@ -1578,6 +1601,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       case 'Logs':
         dump.errors = errors;
         dump.logs = logs.slice(-100);
+        dump.wifiLogs = wifiLogs;
+        dump.networkRequests = network.slice(-50);
         break;
       case 'Performance': {
         const profiler = PerformanceProfiler.getInstance();
@@ -1686,14 +1711,16 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   const buildCopySectionReport = () => {
     let title = 'Logs';
     let text = '';
-    if (activeTab === 'logs') {
-      title = `Logs (${logLevelFilter})`;
+    if (activeTab === 'logs' || activeTab === 'wifi') {
+      title = activeTab === 'wifi' ? 'Wi-Fi & Network Logs' : `Logs (${logLevelFilter})`;
       text = filteredLogs
         .map(
           (l) =>
-            `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level.toUpperCase()}] [${l.module}] ${l.message}`
+            `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level.toUpperCase()}] [${l.module}] ${l.message}${(l as any).details ? '\n' + (l as any).details : ''}`
         )
         .join('\n');
+    } else if (activeTab === 'network') {
+      return buildNetworkReport();
     } else if (activeTab === 'errors') {
       title = 'Errors';
       text = errors
@@ -1926,6 +1953,11 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       thread = 'State Machine Thread';
       caller = 'StateMachine';
       message = `${log.text} (${log.details || ''})`;
+    } else if (log.module === 'wifi' || log.module === 'network') {
+      level = log.level ? log.level.toUpperCase() : 'INFO';
+      thread = 'Network / Wi-Fi Subsystem';
+      caller = log.source || (log.module === 'wifi' ? 'NetworkInformation' : 'FetchInterceptor');
+      message = log.message || '';
     } else {
       const match = /^\[([^\]]+)\]\s*\[[^\]]+\]\s*(.*)$/.exec(message);
       if (match) {
@@ -1946,25 +1978,61 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
   const renderLogsTab = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 8,
+        }}
+      >
         <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-          Runtime Logs
+          {activeTab === 'wifi' ? 'Wi-Fi & Network Events' : 'Runtime Logs'}
         </span>
-        <button
-          onClick={clearLogs}
-          style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.15)',
-            color: '#ee7d77',
-            borderRadius: '8px',
-            fontSize: '11px',
-            fontWeight: 700,
-            padding: '6px 12px',
-            cursor: 'pointer',
-          }}
-        >
-          Clear Logs
-        </button>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {activeTab === 'wifi' && (
+            <button
+              onClick={() => {
+                inspectWifiInterface('Manual Probe');
+                showToast('Wi-Fi interface probed');
+              }}
+              style={{
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                color: '#38bdf8',
+                borderRadius: '8px',
+                fontSize: '11px',
+                fontWeight: 700,
+                padding: '6px 12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>
+                wifi_find
+              </span>
+              Probe Interface
+            </button>
+          )}
+          <button
+            onClick={clearLogs}
+            style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.15)',
+              color: '#ee7d77',
+              borderRadius: '8px',
+              fontSize: '11px',
+              fontWeight: 700,
+              padding: '6px 12px',
+              cursor: 'pointer',
+            }}
+          >
+            Clear Logs
+          </button>
+        </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1980,7 +2048,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               border: '1px solid var(--c-border)',
             }}
           >
-            No logs capture matched the filters.
+            {activeTab === 'wifi'
+              ? 'No Wi-Fi/Network events captured yet. Tap "Probe Interface" to inspect the active connection.'
+              : 'No logs capture matched the filters.'}
           </div>
         ) : (
           filteredLogs.map((log, i) => {
@@ -1993,7 +2063,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   ? '#fbbf24'
                   : level === 'NATIVE'
                     ? '#10b981'
-                    : '#60a5fa';
+                    : logAny.module === 'wifi'
+                      ? '#38bdf8'
+                      : '#60a5fa';
             const isExpanded = !!expandedLogIndices[i];
 
             return (
@@ -6221,6 +6293,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               },
             },
             {
+              label: `Wi-Fi (${wifiLogs.length})`,
+              id: 'wifi_logs',
+              active: activeTab === 'wifi',
+              color: '#38bdf8',
+              onClick: () => {
+                setActiveTab('wifi');
+              },
+            },
+            {
               label: `Errors (${errors.length})`,
               id: 'errors_tab',
               active: activeTab === 'errors',
@@ -6236,6 +6317,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               color: '#10b981',
               onClick: () => {
                 setActiveTab('events');
+              },
+            },
+            {
+              label: `Network Sniffer (${network.length})`,
+              id: 'network_tab',
+              active: activeTab === 'network',
+              color: '#a78bfa',
+              onClick: () => {
+                setActiveTab('network');
               },
             },
           ].map((toggle) => (
@@ -6285,10 +6375,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           paddingBottom: isMobile ? 20 : 'calc(var(--content-bottom-pad, 96px) + 20px)',
         }}
       >
-        {activeTab === 'logs' && renderLogsTab()}
+        {(activeTab === 'logs' || activeTab === 'wifi') && renderLogsTab()}
         {activeTab === 'errors' && renderErrorsTab()}
         {activeTab === 'events' && renderEventsTab()}
-
+        {activeTab === 'network' && renderNetworkTab()}
         <WarningsInspector logs={logs} showToast={showToast} />
       </div>
     </>

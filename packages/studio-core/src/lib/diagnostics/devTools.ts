@@ -12,6 +12,7 @@ export interface LogEntry {
   message: string;
   module: string;
   source: string;
+  details?: string;
 }
 
 export interface NavigationEntry {
@@ -208,14 +209,13 @@ export function resetStagexDiagnostics() {
   notifyListeners();
 }
 
-
 // Smart Error Normalizer to eliminate 'console.error {}' and format raw values
 export function normalizeErrorInput(...args: any[]): { message: string; stack: string } {
   if (args.length === 0) {
     return { message: 'Empty error logged', stack: '' };
   }
 
-  let messageParts: string[] = [];
+  const messageParts: string[] = [];
   let extractedStack = '';
 
   for (const arg of args) {
@@ -341,19 +341,31 @@ export function addLog(level: 'info' | 'warn' | 'error', module: string, ...args
   const isDevMode = useSettingsStore.getState().settings.developerMode;
   if (!isDevMode && !initialized) return;
 
-  const msg = args
-    .map((arg) => {
-      if (arg instanceof Error) return arg.message + '\n' + arg.stack;
-      if (typeof arg === 'object') {
-        try {
-          return JSON.stringify(arg);
-        } catch (_) {
-          return String(arg);
+  let detailsText: string | undefined = undefined;
+  const msgParts: string[] = [];
+
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg instanceof Error) {
+      msgParts.push(arg.message || String(arg));
+      if (arg.stack) detailsText = arg.stack;
+    } else if (typeof arg === 'object' && arg !== null) {
+      try {
+        const json = JSON.stringify(arg, null, 2);
+        if (i > 0 && !detailsText) {
+          detailsText = json;
+        } else {
+          msgParts.push(JSON.stringify(arg));
         }
+      } catch (_) {
+        msgParts.push(String(arg));
       }
-      return String(arg);
-    })
-    .join(' ');
+    } else {
+      msgParts.push(String(arg));
+    }
+  }
+
+  const msg = msgParts.join(' ');
 
   let targetLevel = level;
   if (level === 'warn') {
@@ -388,10 +400,55 @@ export function addLog(level: 'info' | 'warn' | 'error', module: string, ...args
     message: msg,
     module: isFirestore ? 'network' : module,
     source: isFirestore ? 'Firestore' : source,
+    details: detailsText,
   });
 
   if (logsBuffer.length > MAX_ITEMS) logsBuffer.shift();
   notifyListeners();
+}
+
+export function inspectWifiInterface(trigger = 'Manual Inspection') {
+  if (typeof window === 'undefined') return;
+
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  const conn = typeof navigator !== 'undefined' ? (navigator as any).connection : null;
+  const rawType = conn?.type;
+  const isWifi = rawType === 'wifi';
+  const effectiveType = conn?.effectiveType || 'unknown';
+  const downlink = conn?.downlink !== undefined ? `${conn.downlink} Mbps` : 'Unavailable';
+  const rtt = conn?.rtt !== undefined ? `${conn.rtt} ms` : 'Unavailable';
+  const saveData = conn?.saveData !== undefined ? String(conn.saveData) : 'Unavailable';
+
+  const connectionLabel = isWifi
+    ? 'Wi-Fi (802.11 Wireless)'
+    : rawType
+      ? `Cellular/Other (${rawType})`
+      : isOnline
+        ? 'Active (Interface Type Unspecified)'
+        : 'Disconnected (Offline)';
+
+  const detailsObj = {
+    trigger,
+    isOnline,
+    interfaceType: connectionLabel,
+    effectiveType,
+    downlinkBandwidth: downlink,
+    roundTripTime: rtt,
+    saveDataMode: saveData,
+    unavailablePlatformFields: {
+      ssid: 'Unavailable (Restricted: requires Android ACCESS_FINE_LOCATION & GPS on Android 10+)',
+      bssid: 'Unavailable (Restricted: requires Android ACCESS_FINE_LOCATION on Android 10+)',
+      signalStrengthDbm: 'Unavailable (Restricted: requires native Android ACCESS_WIFI_STATE)',
+      localIpAddress: 'Unavailable (Restricted: not exposed by WebView sandbox)',
+    },
+  };
+
+  const level: 'info' | 'warn' = isOnline ? 'info' : 'warn';
+  const message = isOnline
+    ? `Wi-Fi/Network status: ${connectionLabel} [Effective: ${effectiveType}, Downlink: ${downlink}, RTT: ${rtt}]`
+    : 'Wi-Fi/Network status: Disconnected (Device is offline)';
+
+  addLog(level, 'wifi', message, detailsObj);
 }
 
 export function getLogs() {
@@ -446,7 +503,9 @@ export function addError(err: Omit<ErrorEntry, 'timestamp'>) {
   });
 
   const existingIndex = errorsBuffer.findIndex(
-    (e) => (e.fingerprint && e.fingerprint === fingerprint) || (e.message === err.message && e.module === mod)
+    (e) =>
+      (e.fingerprint && e.fingerprint === fingerprint) ||
+      (e.message === err.message && e.module === mod)
   );
 
   if (existingIndex >= 0) {
@@ -841,4 +900,24 @@ export function initDevToolsFramework() {
       configurable: true,
     });
   } catch (e) {}
+
+  // ── 9. REAL WI-FI / NETWORK OBSERVATION ──
+  try {
+    inspectWifiInterface('System Startup Inspection');
+
+    window.addEventListener('online', () => {
+      inspectWifiInterface('Network State: ONLINE');
+    });
+
+    window.addEventListener('offline', () => {
+      inspectWifiInterface('Network State: OFFLINE');
+    });
+
+    const conn = (navigator as any)?.connection;
+    if (conn && typeof conn.addEventListener === 'function') {
+      conn.addEventListener('change', () => {
+        inspectWifiInterface('Network Connection Properties Changed');
+      });
+    }
+  } catch (_) {}
 }

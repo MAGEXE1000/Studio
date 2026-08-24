@@ -38,6 +38,7 @@ git add apps/studio-android/android/app/src/main/java/com/chordex/app/MainActivi
 git add apps/studio-android/src/main.tsx
 git add apps/studio-android/public/app-release.json
 git add apps/studio-android/public/version.json
+git add apps/studio-web/public/version.json
 git add apps/studio-web/package.json
 git add packages/studio-core/src/lib/startup/appVersion.ts
 git add packages/ui-shared/src/features/hub/navigation/SharedNavigationBar.tsx

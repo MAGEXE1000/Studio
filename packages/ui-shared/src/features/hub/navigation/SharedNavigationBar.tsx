@@ -160,8 +160,8 @@ const NavigationItem = React.memo(
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: isSwitcherOpen ? 28 : 24,
-              height: isSwitcherOpen ? 28 : 24,
+              width: isSwitcherOpen ? 32 : 24,
+              height: isSwitcherOpen ? 32 : 24,
             }}
           >
             {isIconString ? (
@@ -280,37 +280,37 @@ export function SharedNavigationBar({
       {
         key: 'hub',
         label: 'Hub',
-        icon: <StudioLogo size={18} />,
+        icon: <StudioLogo size={20} />,
         onClick: () => handleAppSwitch('hub'),
       },
       {
         key: 'chordex',
         label: 'Chordex',
-        icon: <ChordexLogo size={18} />,
+        icon: <ChordexLogo size={20} />,
         onClick: () => handleAppSwitch('chordex'),
       },
       {
         key: 'drumex',
         label: 'Drumex',
-        icon: <DrumexLogo size={18} />,
+        icon: <DrumexLogo size={20} />,
         onClick: () => handleAppSwitch('drumex'),
       },
       {
         key: 'stagex',
         label: 'Stagex',
-        icon: <StagexLogoIcon size={18} />,
+        icon: <StagexLogoIcon size={20} />,
         onClick: () => handleAppSwitch('stagex'),
       },
       {
         key: 'groovex',
         label: 'Groovex',
-        icon: <GroovexLogo size={18} />,
+        icon: <GroovexLogo size={20} />,
         onClick: () => handleAppSwitch('groovex'),
       },
       {
         key: 'vocalex',
         label: 'Vocalex',
-        icon: <VocalexLogo size={18} />,
+        icon: <VocalexLogo size={20} />,
         onClick: () => handleAppSwitch('vocalex'),
       },
     ],
@@ -378,7 +378,7 @@ export function SharedNavigationBar({
 
   const getItemPillWidth = useCallback(
     (item: any, index: number) => {
-      if (isSwitcherOpen) return 42;
+      if (isSwitcherOpen) return 40;
       const geom = measuredContentGeometry[index];
       if (geom && geom.width > 0) {
         // Real DOM measured width + 24px fixed horizontal padding (12px left, 12px right)
@@ -410,8 +410,11 @@ export function SharedNavigationBar({
 
   const getPillX = useCallback(
     (index: number) => {
-      const pillW = isSwitcherOpen ? Math.max(30, itemWidth - 6) : Math.max(30, itemWidth - 4);
-      const rawX = index * itemWidth + (isSwitcherOpen ? 3 : 2);
+      const pillW = isSwitcherOpen
+        ? Math.min(38, Math.max(30, itemWidth - 6))
+        : Math.max(30, itemWidth - 4);
+      const centerOffset = isSwitcherOpen ? (itemWidth - pillW) / 2 : 2;
+      const rawX = index * itemWidth + centerOffset;
       const minX = 2;
       const maxX = Math.max(minX, usableWidth - pillW - 2);
       return Math.max(minX, Math.min(maxX, rawX));
@@ -495,8 +498,11 @@ export function SharedNavigationBar({
       const isScrubbingActive = isScrubbingRef.current;
       const idxVal = isScrubbingActive ? (rawIdx as number) : (springIdx as number);
       const idx = Math.max(0, Math.min(totalSlots - 1, idxVal));
-      const pillW = isSwitcherOpen ? Math.max(30, itemWidth - 6) : Math.max(30, itemWidth - 4);
-      const rawX = idx * itemWidth + (isSwitcherOpen ? 3 : 2) + (dragVal as number);
+      const pillW = isSwitcherOpen
+        ? Math.min(38, Math.max(30, itemWidth - 6))
+        : Math.max(30, itemWidth - 4);
+      const centerOffset = isSwitcherOpen ? (itemWidth - pillW) / 2 : 2;
+      const rawX = idx * itemWidth + centerOffset + (dragVal as number);
       const minX = 2;
       const maxX = Math.max(minX, usableWidth - pillW - 2);
       return Math.max(minX, Math.min(maxX, rawX));
@@ -504,7 +510,9 @@ export function SharedNavigationBar({
   );
 
   const animatedPillX = pillX;
-  const pillWidthVal = isSwitcherOpen ? Math.max(30, itemWidth - 6) : Math.max(30, itemWidth - 4);
+  const pillWidthVal = isSwitcherOpen
+    ? Math.min(38, Math.max(30, itemWidth - 6))
+    : Math.max(30, itemWidth - 4);
 
   const pillPressScale = useTransform(pressPressureRaw, [0, 5], [1, 0.96]);
 

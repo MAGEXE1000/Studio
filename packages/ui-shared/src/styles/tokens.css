@@ -1354,6 +1354,8 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --surface-glass-lens-shadow:
     0 4px 12px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   --surface-modal-bg: rgba(0, 0, 0, 0.6); /* sheet / modal scrim      */
+  --surface-dialog-bg: var(--app-surface-high, #151518);
+  --surface-modal-surface: var(--app-surface-high, #151518);
 
   /* ── Semantic surface aliases ───────────────────────────────
      Thin wrappers over --app-* so migration sites reference a
@@ -1394,6 +1396,8 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --surface-glass-lens-border: 1px solid rgba(0, 0, 0, 0.06);
   --surface-glass-lens-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1);
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
+  --surface-dialog-bg: var(--app-surface-highest, #ffffff);
+  --surface-modal-surface: var(--app-surface-highest, #ffffff);
 }
 
 /* AMOLED overrides — translucent near-black glass over #000 */
@@ -1424,6 +1428,8 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --surface-glass-lens-shadow:
     0 4px 14px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14);
   --surface-modal-bg: rgba(0, 0, 0, 0.75);
+  --surface-dialog-bg: var(--app-surface-high, #0d0d0d);
+  --surface-modal-surface: var(--app-surface-high, #0d0d0d);
 }
 
 /* Light + AMOLED (pure-white) — inherits from :root.light */
@@ -1456,6 +1462,8 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --surface-glass-lens-border: 1px solid rgba(0, 0, 0, 0.06);
   --surface-glass-lens-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1);
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
+  --surface-dialog-bg: var(--app-surface-highest, #ffffff);
+  --surface-modal-surface: var(--app-surface-highest, #ffffff);
 }
 
 /* ===== Groovex design tokens ===== */
@@ -1916,8 +1924,7 @@ html.light .groovex-root button[style*='background: rgba(239,68,68,0.15)'] {
 /* Underflow safety panels to prevent bottom gaps during springy gestures, bounces, or keyboard resizes */
 .profile-panel-sheet::after,
 .settings-panel-sheet::after,
-.sheet-overlay [role='dialog']::after,
-[role='dialog']::after {
+.sheet-overlay [role='dialog']::after {
   content: '';
   position: absolute;
   top: 99%; /* overlap slightly to prevent line bleed */
@@ -2697,13 +2704,14 @@ html.web-desktop.light.amoled .app-sub-app-container {
   max-width: 380px;
   max-height: calc(100vh - 48px);
   max-height: calc(100dvh - 48px);
-  background: var(--surface-topbar-bg, var(--app-surface-high, var(--app-surface)));
+  background: var(--surface-dialog-bg, var(--app-surface-high, var(--c-surface-high)));
   color: var(--c-text-primary);
   border: 1px solid var(--c-border);
   border-radius: 24px;
   box-shadow:
-    0 20px 48px rgba(0, 0, 0, 0.45),
-    var(--surface-topbar-shadow, 0 8px 24px rgba(0, 0, 0, 0.2));
+    0 24px 64px -8px rgba(0, 0, 0, 0.5),
+    0 8px 24px -4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: var(--surface-float-blur, blur(20px));
   -webkit-backdrop-filter: var(--surface-float-blur, blur(20px));
   padding: 20px 22px;
@@ -2716,10 +2724,11 @@ html.web-desktop.light.amoled .app-sub-app-container {
 /* Light Mode Card Adjustments */
 html.light .alert-dialog__dialog,
 [data-theme='light'] .alert-dialog__dialog {
-  background: var(--surface-topbar-bg, rgba(255, 255, 255, 0.9));
+  background: var(--surface-dialog-bg, var(--app-surface-highest, #ffffff));
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.04);
+    0 20px 48px -4px rgba(0, 0, 0, 0.14),
+    0 4px 12px -2px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 /* Size modifiers */

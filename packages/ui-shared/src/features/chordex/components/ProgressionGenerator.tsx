@@ -129,9 +129,9 @@ export default function ProgressionGenerator({
     <div
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center ${closing ? 'overlay-fade-out' : 'overlay-fade-in'}`}
       style={{
-        background: 'rgba(0,0,0,0.55)',
-        backdropFilter: 'blur(4px)',
-        WebkitBackdropFilter: 'blur(4px)',
+        background: 'var(--surface-modal-bg, rgba(0, 0, 0, 0.6))',
+        backdropFilter: 'blur(14px) saturate(140%)',
+        WebkitBackdropFilter: 'blur(14px) saturate(140%)',
       }}
       onClick={requestClose}
       role="dialog"
@@ -142,10 +142,12 @@ export default function ProgressionGenerator({
         className={`w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl ${closing ? 'sheet-exit' : 'sheet-enter'}`}
         ref={scrollRef}
         style={{
-          background: 'var(--app-surface)',
+          background: 'var(--surface-dialog-bg, var(--app-surface-high, var(--c-surface-high)))',
+          color: 'var(--c-text-primary)',
+          border: '1px solid var(--c-border)',
           maxHeight: '92vh',
           overflowY: 'auto',
-          boxShadow: '0 -10px 40px rgba(0,0,0,0.4)',
+          boxShadow: '0 24px 64px -8px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.3)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           willChange: 'transform, opacity',
         }}

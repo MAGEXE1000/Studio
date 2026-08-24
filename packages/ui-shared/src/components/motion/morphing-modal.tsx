@@ -1,15 +1,10 @@
-"use client";
+'use client';
 // beui.dev/components/motion/morphing-modal
 
-import {
-  AnimatePresence,
-  motion,
-  useReducedMotion,
-} from "motion/react";
-import { type ReactNode, useEffect } from "react";
-import { EASE_OUT, SPRING_PANEL } from "../../lib/ease";
-import { cn } from "../../lib/utils";
-
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { type ReactNode, useEffect } from 'react';
+import { EASE_OUT, SPRING_PANEL } from '../../lib/ease';
+import { cn } from '../../lib/utils';
 
 export interface MorphingModalProps {
   /** Which view is currently shown. `null` closes the modal. */
@@ -17,7 +12,7 @@ export interface MorphingModalProps {
   onClose: () => void;
   children: ReactNode;
   /** "bottom" anchors to the viewport bottom (mobile-like). "center" centers vertically. */
-  placement?: "bottom" | "center";
+  placement?: 'bottom' | 'center';
   className?: string;
 }
 
@@ -25,18 +20,18 @@ export function MorphingModal({
   viewId,
   onClose,
   children,
-  placement = "bottom",
+  placement = 'bottom',
   className,
 }: MorphingModalProps) {
   const open = viewId !== null;
   const reduce = useReducedMotion();
-  const enterY = reduce ? 0 : placement === "bottom" ? 40 : 20;
+  const enterY = reduce ? 0 : placement === 'bottom' ? 40 : 20;
   const enterScale = reduce ? 1 : 0.97;
 
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
     };
@@ -47,10 +42,10 @@ export function MorphingModal({
       aria-hidden={!open}
       inert={!open}
       className={cn(
-        "fixed inset-0 z-[80] overscroll-contain",
-        open ? "pointer-events-auto" : "pointer-events-none",
+        'fixed inset-0 z-[80] overscroll-contain',
+        open ? 'pointer-events-auto' : 'pointer-events-none'
       )}
-      style={{ touchAction: "none" }}
+      style={{ touchAction: 'none' }}
     >
       <AnimatePresence>
         {open && (
@@ -62,15 +57,20 @@ export function MorphingModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: EASE_OUT }}
             onClick={onClose}
-            className="absolute inset-0 bg-background/5 [backdrop-filter:blur(14px)_saturate(140%)] [-webkit-backdrop-filter:blur(14px)_saturate(140%)] pointer-events-auto"
+            className="absolute inset-0 pointer-events-auto"
+            style={{
+              background: 'var(--surface-modal-bg, rgba(0, 0, 0, 0.6))',
+              backdropFilter: 'blur(14px) saturate(140%)',
+              WebkitBackdropFilter: 'blur(14px) saturate(140%)',
+            }}
           />
         )}
       </AnimatePresence>
 
       <div
         className={cn(
-          "pointer-events-none absolute inset-0 flex justify-center px-4",
-          placement === "bottom" ? "items-end pb-8" : "items-center",
+          'pointer-events-none absolute inset-0 flex justify-center px-4',
+          placement === 'bottom' ? 'items-end pb-8' : 'items-center'
         )}
       >
         <AnimatePresence initial={false}>
@@ -88,20 +88,26 @@ export function MorphingModal({
               }}
               transition={SPRING_PANEL}
               className={cn(
-                "pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl border border-border bg-background shadow-2xl will-change-transform overscroll-contain",
-                className,
+                'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl will-change-transform overscroll-contain',
+                className
               )}
-              style={{ touchAction: "pan-y" }}
+              style={{
+                touchAction: 'pan-y',
+                background:
+                  'var(--surface-dialog-bg, var(--app-surface-high, var(--c-surface-high)))',
+                border: '1px solid var(--c-border)',
+                color: 'var(--c-text-primary)',
+                boxShadow:
+                  '0 24px 64px -8px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'var(--surface-float-blur, blur(20px))',
+                WebkitBackdropFilter: 'var(--surface-float-blur, blur(20px))',
+              }}
             >
               <motion.div layout="position" className="p-5">
                 <AnimatePresence mode="popLayout" initial={false}>
                   <motion.div
                     key={viewId}
-                    initial={
-                      reduce
-                        ? { opacity: 0 }
-                        : { opacity: 0, y: 8, filter: "blur(4px)" }
-                    }
+                    initial={reduce ? { opacity: 0 } : { opacity: 0, y: 8, filter: 'blur(4px)' }}
                     animate={
                       reduce
                         ? {
@@ -114,7 +120,7 @@ export function MorphingModal({
                         : {
                             opacity: 1,
                             y: 0,
-                            filter: "blur(0px)",
+                            filter: 'blur(0px)',
                             transition: {
                               duration: 0.24,
                               ease: EASE_OUT,
@@ -133,7 +139,7 @@ export function MorphingModal({
                         : {
                             opacity: 0,
                             y: -8,
-                            filter: "blur(4px)",
+                            filter: 'blur(4px)',
                             transition: {
                               duration: 0.16,
                               ease: EASE_OUT,

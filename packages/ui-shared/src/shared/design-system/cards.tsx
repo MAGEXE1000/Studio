@@ -43,15 +43,13 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         style={{
           borderRadius: 20,
           padding: '16px 18px',
-          background: glass
-            ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))'
-            : 'var(--c-surface-mid)',
+          background: glass ? 'var(--surface-topbar-bg)' : 'var(--c-surface-mid)',
           border: accentBorder
             ? `1.5px solid var(--c-accent-from, #7c3aed)`
-            : `1px solid rgba(255, 255, 255, 0.08)`,
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
-          backdropFilter: glass ? 'blur(16px) saturate(180%)' : 'none',
-          WebkitBackdropFilter: glass ? 'blur(16px) saturate(180%)' : 'none',
+            : `1px solid var(--c-border)`,
+          boxShadow: 'var(--elevation-low)',
+          backdropFilter: glass ? 'var(--surface-topbar-blur, blur(16px))' : 'none',
+          WebkitBackdropFilter: glass ? 'var(--surface-topbar-blur, blur(16px))' : 'none',
           cursor: interactive ? 'pointer' : 'default',
           willChange: interactive ? 'transform, box-shadow' : 'auto',
           position: 'relative',
@@ -120,7 +118,7 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
         ref={ref}
         onClick={onClick}
         style={{
-          background: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
+          background: 'var(--surface-topbar-bg)',
           border: 'var(--surface-topbar-border)',
           borderRadius: 20,
           padding: '16px',
@@ -176,13 +174,13 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
                   width: 34,
                   height: 34,
                   borderRadius: 10,
-                  background: iconBg || 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
+                  background: iconBg || 'var(--c-surface-low)',
+                  border: '1px solid var(--c-border)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: iconColor || 'var(--c-text-primary)',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                  boxShadow: 'var(--elevation-low)',
                 }}
               >
                 {typeof icon === 'string' ? (

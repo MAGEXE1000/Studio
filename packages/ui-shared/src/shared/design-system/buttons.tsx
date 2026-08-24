@@ -91,23 +91,22 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       if (variant === 'primary') {
         return {
           bg: 'linear-gradient(135deg, var(--c-accent-from, #2563eb), var(--c-accent-to, var(--c-accent-from, #2563eb)))',
-          text: '#ffffff',
-          border: 'rgba(255, 255, 255, 0.20)',
-          shadow:
-            '0 4px 14px var(--c-accent-from, rgba(37, 99, 235, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
+          text: 'var(--color-on-tertiary, #ffffff)',
+          border: 'var(--studio-accent-border, rgba(255, 255, 255, 0.20))',
+          shadow: 'var(--studio-accent-glow)',
         };
       }
       if (variant === 'danger' || variant === 'danger-soft') {
         return {
           bg: variant === 'danger' ? 'rgba(239, 68, 68, 0.14)' : 'rgba(239, 68, 68, 0.08)',
-          text: '#ee7d77',
+          text: 'var(--c-error, #ee7d77)',
           border: variant === 'danger' ? 'rgba(239, 68, 68, 0.28)' : 'rgba(239, 68, 68, 0.15)',
           shadow: variant === 'danger' ? '0 2px 8px rgba(239, 68, 68, 0.15)' : 'none',
         };
       }
       if (variant === 'tertiary') {
         return {
-          bg: 'rgba(128, 128, 128, 0.06)',
+          bg: 'var(--c-surface-low)',
           text: 'var(--c-text-secondary)',
           border: '1px solid transparent',
           shadow: 'none',
@@ -130,10 +129,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         };
       }
       return {
-        bg: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.05))',
+        bg: 'var(--surface-topbar-bg)',
         text: 'var(--c-text-primary)',
         border: 'var(--c-border)',
-        shadow: '0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+        shadow: 'var(--elevation-low)',
       };
     };
 
@@ -360,16 +359,15 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       if (variant === 'primary') {
         return {
           bg: 'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
-          color: '#ffffff',
-          border: '1px solid rgba(255, 255, 255, 0.20)',
-          shadow:
-            '0 4px 16px var(--c-accent-from, rgba(124, 58, 237, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
+          color: 'var(--color-on-tertiary, #ffffff)',
+          border: '1px solid var(--studio-accent-border, rgba(255, 255, 255, 0.20))',
+          shadow: 'var(--studio-accent-glow)',
         };
       }
       if (variant === 'danger') {
         return {
           bg: 'rgba(239, 68, 68, 0.12)',
-          color: '#ef4444',
+          color: 'var(--c-error, #ef4444)',
           border: '1px solid rgba(239, 68, 68, 0.25)',
           shadow: '0 2px 8px rgba(239, 68, 68, 0.15)',
         };
@@ -383,10 +381,10 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         };
       }
       return {
-        bg: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.05))',
+        bg: 'var(--surface-topbar-bg)',
         color: 'var(--c-text-primary)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        shadow: '0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+        border: '1px solid var(--c-border)',
+        shadow: 'var(--elevation-low)',
       };
     };
 
@@ -667,16 +665,16 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
 
   // Color matching variants
   const getButtonStyles = () => {
-    let bg = 'rgba(255, 255, 255, 0.05)';
-    let border = '1px solid rgba(255, 255, 255, 0.08)';
-    let color = 'var(--c-text-primary, #ffffff)';
-    const shadow = '0 2px 8px rgba(0,0,0,0.15)';
+    let bg = 'var(--c-surface-low)';
+    let border = '1px solid var(--c-border)';
+    let color = 'var(--c-text-primary)';
+    const shadow = 'var(--elevation-low)';
 
     if (variant === 'delete') {
       if (confirmingDelete) {
-        bg = 'rgba(239, 68, 68, 0.2)';
-        border = '1px solid rgb(239, 68, 68)';
-        color = 'rgb(248, 113, 113)';
+        bg = 'var(--c-error-container, rgba(239, 68, 68, 0.2))';
+        border = '1px solid var(--c-error, rgb(239, 68, 68))';
+        color = 'var(--c-error-dim, rgb(248, 113, 113))';
       } else if (success) {
         bg = 'rgba(16, 185, 129, 0.15)';
         border = '1px solid rgb(16, 185, 129)';
@@ -744,7 +742,7 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
             width: 24,
             height: 24,
             borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.25)',
+            backgroundColor: 'var(--c-border)',
             transform: 'translate(-50%, -50%) scale(5)',
             transformOrigin: 'center',
             pointerEvents: 'none',
@@ -802,17 +800,16 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       if (variant === 'primary') {
         return {
           bg: 'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
-          text: '#ffffff',
-          border: 'rgba(255, 255, 255, 0.20)',
-          shadow:
-            '0 4px 16px var(--c-accent-from, rgba(124, 58, 237, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
+          text: 'var(--color-on-tertiary, #ffffff)',
+          border: '1px solid var(--studio-accent-border, rgba(255, 255, 255, 0.20))',
+          shadow: 'var(--studio-accent-glow)',
         };
       }
       if (variant === 'danger') {
         return {
           bg: 'rgba(239, 68, 68, 0.12)',
-          text: '#ef4444',
-          border: 'rgba(239, 68, 68, 0.25)',
+          text: 'var(--c-error, #ef4444)',
+          border: '1px solid rgba(239, 68, 68, 0.25)',
           shadow: '0 2px 10px rgba(239, 68, 68, 0.15)',
         };
       }
@@ -826,17 +823,17 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       }
       if (variant === 'outline') {
         return {
-          bg: 'rgba(255, 255, 255, 0.02)',
+          bg: 'transparent',
           text: 'var(--c-text-primary)',
-          border: 'rgba(255, 255, 255, 0.12)',
+          border: 'var(--c-border)',
           shadow: 'none',
         };
       }
       return {
-        bg: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.05))',
+        bg: 'var(--surface-topbar-bg)',
         text: 'var(--c-text-primary)',
-        border: 'rgba(255, 255, 255, 0.08)',
-        shadow: '0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
+        border: '1px solid var(--c-border)',
+        shadow: 'var(--elevation-low)',
       };
     };
 

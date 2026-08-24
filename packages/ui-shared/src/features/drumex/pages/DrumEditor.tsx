@@ -6586,22 +6586,26 @@ export default function DrumEditor() {
                   <>
                     <button
                       onClick={() => setShowImportDrum(true)}
-                      className={`h-7.5 px-3 rounded-lg border text-[9.5px] font-extrabold tracking-widest uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
-                        isLight
-                          ? 'border-zinc-200 bg-zinc-100/50 text-zinc-650 hover:bg-zinc-200 hover:text-black'
-                          : 'border-zinc-900 bg-zinc-950/20 text-zinc-400 hover:bg-zinc-900 hover:text-white hover:border-zinc-800'
-                      }`}
+                      className="h-7.5 px-3 rounded-lg text-[9.5px] font-extrabold tracking-widest uppercase transition-all cursor-pointer flex items-center gap-1.5"
+                      style={{
+                        background: 'var(--c-surface-low)',
+                        border: '1px solid var(--c-border)',
+                        color: 'var(--c-text-secondary)',
+                      }}
                     >
                       <span className="material-symbols-outlined text-[13px]">upload_file</span>
                       <span>IMPORT</span>
                     </button>
                     <button
                       onClick={() => setShowCreateForm(true)}
-                      className={`h-7.5 px-3.5 rounded-lg border text-[9.5px] font-extrabold tracking-widest uppercase transition-all cursor-pointer flex items-center gap-1.5 ${
-                        isLight
-                          ? 'border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100'
-                          : 'border-blue-900/60 bg-blue-950/40 text-blue-400 hover:bg-blue-900/40'
-                      }`}
+                      className="h-7.5 px-3.5 rounded-lg text-[9.5px] font-extrabold tracking-widest uppercase transition-all cursor-pointer flex items-center gap-1.5"
+                      style={{
+                        background:
+                          'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+                        border: '1px solid var(--studio-accent-border)',
+                        color: 'var(--color-on-tertiary, #ffffff)',
+                        boxShadow: 'var(--studio-accent-glow)',
+                      }}
                     >
                       <span className="material-symbols-outlined text-[13px]">add</span>
                       <span>NEW BEAT</span>
@@ -6751,11 +6755,14 @@ export default function DrumEditor() {
                             </div>
                             <button
                               onClick={() => setShowCreateForm(true)}
-                              className={`py-2 px-5 rounded-lg border text-[10px] font-extrabold tracking-widest uppercase transition-all cursor-pointer ${
-                                isLight
-                                  ? 'border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                  : 'border-blue-900/60 bg-blue-950/40 text-blue-400 hover:bg-blue-900/40'
-                              }`}
+                              className="py-2 px-5 rounded-lg text-[10px] font-extrabold tracking-widest uppercase transition-all cursor-pointer"
+                              style={{
+                                background:
+                                  'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+                                border: '1px solid var(--studio-accent-border)',
+                                color: 'var(--color-on-tertiary, #ffffff)',
+                                boxShadow: 'var(--studio-accent-glow)',
+                              }}
                             >
                               New Beat
                             </button>
@@ -6795,11 +6802,11 @@ export default function DrumEditor() {
                                 return (
                                   <div
                                     key={song.id}
-                                    className={`border rounded-xl transition-all duration-300 ${
-                                      isLight
-                                        ? 'bg-zinc-50 border-zinc-200 hover:border-zinc-300'
-                                        : 'bg-[#000000] border-zinc-900 hover:border-zinc-800'
-                                    }`}
+                                    className="rounded-xl transition-all duration-300"
+                                    style={{
+                                      background: 'var(--c-surface-low)',
+                                      border: '1px solid var(--c-border)',
+                                    }}
                                   >
                                     {isEditing ? (
                                       <div className="p-3.5 flex flex-col gap-2.5">
@@ -6808,40 +6815,46 @@ export default function DrumEditor() {
                                           onChange={(e) => setEditingName(e.target.value)}
                                           autoFocus
                                           placeholder="Beat name"
-                                          className={`w-full py-1.5 px-2.5 rounded-lg border text-[12px] font-extrabold outline-none transition-all ${
-                                            isLight
-                                              ? 'bg-white border-zinc-200 text-zinc-800 focus:border-zinc-350'
-                                              : 'bg-[#000000] border-zinc-850 text-white focus:border-zinc-750'
-                                          }`}
+                                          className="w-full py-1.5 px-2.5 rounded-lg text-[12px] font-extrabold outline-none transition-all"
+                                          style={{
+                                            backgroundColor: 'var(--c-surface-lowest)',
+                                            border: '1px solid var(--c-border)',
+                                            color: 'var(--c-text-primary)',
+                                          }}
                                         />
                                         <input
                                           value={editingArtist}
                                           onChange={(e) => setEditingArtist(e.target.value)}
                                           placeholder="Artist (optional)"
-                                          className={`w-full py-1.5 px-2.5 rounded-lg border text-[11px] outline-none transition-all ${
-                                            isLight
-                                              ? 'bg-white border-zinc-200 text-zinc-800 focus:border-zinc-350'
-                                              : 'bg-[#000000] border-zinc-850 text-white focus:border-zinc-750'
-                                          }`}
+                                          className="w-full py-1.5 px-2.5 rounded-lg text-[11px] outline-none transition-all"
+                                          style={{
+                                            backgroundColor: 'var(--c-surface-lowest)',
+                                            border: '1px solid var(--c-border)',
+                                            color: 'var(--c-text-primary)',
+                                          }}
                                         />
                                         <div className="flex gap-2">
                                           <button
                                             onClick={handleSaveEdit}
-                                            className={`flex-1 py-1.5 rounded-lg border text-[10px] font-extrabold tracking-widest uppercase transition-all cursor-pointer ${
-                                              isLight
-                                                ? 'border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                                : 'border-blue-900/60 bg-blue-950/40 text-blue-400 hover:bg-blue-900/40'
-                                            }`}
+                                            className="flex-1 py-1.5 rounded-lg text-[10px] font-extrabold tracking-widest uppercase transition-all cursor-pointer"
+                                            style={{
+                                              background:
+                                                'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+                                              border: '1px solid var(--studio-accent-border)',
+                                              color: 'var(--color-on-tertiary, #ffffff)',
+                                              boxShadow: 'var(--studio-accent-glow)',
+                                            }}
                                           >
                                             Save
                                           </button>
                                           <button
                                             onClick={() => setEditingSong(null)}
-                                            className={`flex-1 py-1.5 rounded-lg border text-[10px] font-extrabold tracking-widest uppercase transition-all cursor-pointer ${
-                                              isLight
-                                                ? 'border-zinc-200 bg-zinc-100/50 text-zinc-700 hover:bg-zinc-200'
-                                                : 'border-zinc-900 bg-zinc-950/20 text-zinc-400 hover:bg-zinc-900 hover:text-white'
-                                            }`}
+                                            className="flex-1 py-1.5 rounded-lg text-[10px] font-extrabold tracking-widest uppercase transition-all cursor-pointer"
+                                            style={{
+                                              background: 'var(--c-surface-mid)',
+                                              border: '1px solid var(--c-border)',
+                                              color: 'var(--c-text-secondary)',
+                                            }}
                                           >
                                             Cancel
                                           </button>
@@ -9995,15 +10008,19 @@ export default function DrumEditor() {
                                   setLibCategory(cat);
                                   if (cat === 'My Grooves') setLibGenre('');
                                 }}
-                                className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[10px] font-extrabold font-manrope uppercase tracking-widest transition-all cursor-pointer border ${
-                                  active
-                                    ? isLight
-                                      ? 'bg-blue-50 text-blue-600 border-blue-200'
-                                      : 'bg-blue-950/40 text-blue-400 border-blue-900/60'
-                                    : isLight
-                                      ? 'bg-zinc-100/50 text-zinc-650 border-zinc-200/50 hover:bg-zinc-200/50 hover:text-black'
-                                      : 'bg-zinc-900/30 text-zinc-400 border-zinc-950 hover:bg-zinc-800/40 hover:text-white'
-                                }`}
+                                className="flex-shrink-0 px-4 py-1.5 rounded-full text-[10px] font-extrabold font-manrope uppercase tracking-widest transition-all cursor-pointer"
+                                style={{
+                                  background: active
+                                    ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
+                                    : 'var(--c-surface-low)',
+                                  color: active
+                                    ? 'var(--color-on-tertiary, #ffffff)'
+                                    : 'var(--c-text-secondary)',
+                                  border: active
+                                    ? '1px solid var(--studio-accent-border)'
+                                    : '1px solid var(--c-border)',
+                                  boxShadow: active ? 'var(--studio-accent-glow)' : 'none',
+                                }}
                               >
                                 {cat}
                               </button>
@@ -10011,7 +10028,7 @@ export default function DrumEditor() {
                           })}
                         </div>
 
-                        {/* â”€â”€ Genre filter (not shown for My Grooves) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                        {/* ── Genre filter (not shown for My Grooves) ── */}
                         {libCategory !== 'My Grooves' && (
                           <div className="no-scrollbar flex gap-1.5 overflow-x-auto px-4 pb-4">
                             {(['', ...LIBRARY_GENRES] as (LibraryGenre | '')[]).map((g) => {
@@ -10021,15 +10038,19 @@ export default function DrumEditor() {
                                 <button
                                   key={label}
                                   onClick={() => setLibGenre(g)}
-                                  className={`flex-shrink-0 px-3 py-1 rounded-full text-[9px] font-extrabold tracking-widest uppercase transition-all cursor-pointer border ${
-                                    active
-                                      ? isLight
-                                        ? 'bg-blue-50/70 text-blue-600 border-blue-250'
-                                        : 'bg-blue-950/20 text-blue-400 border-blue-900/40'
-                                      : isLight
-                                        ? 'bg-transparent text-zinc-650 border-zinc-200 hover:border-zinc-350 hover:text-black'
-                                        : 'bg-transparent text-zinc-450 border-zinc-900 hover:border-zinc-800 hover:text-white'
-                                  }`}
+                                  className="flex-shrink-0 px-3 py-1 rounded-full text-[9px] font-extrabold tracking-widest uppercase transition-all cursor-pointer"
+                                  style={{
+                                    background: active
+                                      ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
+                                      : 'var(--c-surface-low)',
+                                    color: active
+                                      ? 'var(--color-on-tertiary, #ffffff)'
+                                      : 'var(--c-text-secondary)',
+                                    border: active
+                                      ? '1px solid var(--studio-accent-border)'
+                                      : '1px solid var(--c-border)',
+                                    boxShadow: active ? 'var(--studio-accent-glow)' : 'none',
+                                  }}
                                 >
                                   {label}
                                 </button>
@@ -10692,13 +10713,12 @@ export default function DrumEditor() {
               width: 48,
               height: 48,
               borderRadius: '50%',
-              background: 'rgba(12, 12, 14, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
-              backdropFilter: 'blur(25px)',
-              WebkitBackdropFilter: 'blur(25px)',
-              boxShadow:
-                '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+              background: 'var(--surface-topbar-bg)',
+              border: '1px solid var(--c-border)',
+              color: 'var(--c-text-primary)',
+              backdropFilter: 'var(--surface-topbar-blur, blur(25px))',
+              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(25px))',
+              boxShadow: 'var(--elevation-high)',
               pointerEvents: 'auto',
               cursor: 'pointer',
             }}
@@ -10711,17 +10731,16 @@ export default function DrumEditor() {
           <button
             onClick={() => setShowCreateForm(true)}
             className="flex items-center justify-center active:scale-90 transition-all duration-200"
+            title="New Beat"
             style={{
               width: 48,
               height: 48,
               borderRadius: '50%',
-              background: 'rgba(12, 12, 14, 0.45)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
-              backdropFilter: 'blur(25px)',
-              WebkitBackdropFilter: 'blur(25px)',
-              boxShadow:
-                '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+              background:
+                'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+              border: '1px solid var(--studio-accent-border)',
+              color: 'var(--color-on-tertiary, #ffffff)',
+              boxShadow: 'var(--studio-accent-glow)',
               pointerEvents: 'auto',
               cursor: 'pointer',
             }}

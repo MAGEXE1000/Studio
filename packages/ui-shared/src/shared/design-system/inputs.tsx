@@ -44,17 +44,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             borderRadius: '14px',
             fontSize: '13.5px',
             fontFamily: 'Inter, sans-serif',
-            backgroundColor: 'var(--c-surface-lowest, rgba(255, 255, 255, 0.03))',
+            backgroundColor: 'var(--c-surface-lowest)',
             border: error
               ? '1px solid var(--c-error, #ef4444)'
               : focused
                 ? '1px solid var(--c-accent-from, #7c3aed)'
-                : '1px solid rgba(255, 255, 255, 0.08)',
+                : '1px solid var(--c-border)',
             boxShadow: error
               ? '0 0 0 3px rgba(239, 68, 68, 0.20)'
               : focused
-                ? '0 0 0 3px var(--c-accent-from, rgba(124, 58, 237, 0.25)), inset 0 1px 1px rgba(255, 255, 255, 0.08)'
-                : 'inset 0 1px 1px rgba(0, 0, 0, 0.20)',
+                ? '0 0 0 3px var(--studio-accent-soft, rgba(124, 58, 237, 0.25))'
+                : 'var(--elevation-low)',
             color: 'var(--c-text-primary)',
             outline: 'none',
             transition: 'all 200ms cubic-bezier(0.2, 0, 0, 1)',
@@ -139,7 +139,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
             right: 14,
             height: '1px',
             background:
-              'var(--surface-glass-rim, linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent))',
+              'var(--surface-glass-rim, linear-gradient(90deg, transparent, var(--c-border), transparent))',
             pointerEvents: 'none',
             opacity: focused ? 0.9 : 0.5,
             zIndex: 6,
@@ -149,7 +149,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
         <span
           className="material-symbols-outlined absolute left-4 pointer-events-none"
           style={{
-            color: focused ? activeAccent : 'var(--c-text-secondary, #acabaa)',
+            color: focused ? activeAccent : 'var(--c-text-secondary)',
             fontSize: '20px',
             zIndex: 5,
             transition: 'color 200ms ease',
@@ -175,18 +175,18 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
             height: '46px',
             padding: '10px 44px 10px 46px',
             borderRadius: '9999px',
-            backgroundColor: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.04))',
-            border: focused ? `1px solid ${activeAccent}` : '1px solid rgba(255, 255, 255, 0.08)',
-            color: 'var(--c-text-primary, #ffffff)',
+            backgroundColor: 'var(--surface-topbar-bg)',
+            border: focused ? `1px solid ${activeAccent}` : '1px solid var(--c-border)',
+            color: 'var(--c-text-primary)',
             fontSize: '13.5px',
             fontFamily: 'Inter, sans-serif',
             outline: 'none',
             transition: 'all 240ms cubic-bezier(0.2, 0, 0, 1)',
             boxShadow: focused
-              ? `0 0 0 3px ${activeAccent}25, 0 4px 16px rgba(0, 0, 0, 0.16)`
-              : '0 4px 16px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
+              ? `0 0 0 3px var(--studio-accent-soft), var(--elevation-mid)`
+              : 'var(--elevation-low)',
+            backdropFilter: 'var(--surface-topbar-blur, blur(16px))',
+            WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(16px))',
             boxSizing: 'border-box',
             ...style,
           }}
@@ -203,9 +203,9 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               width: '26px',
               height: '26px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              color: 'var(--c-text-secondary, #acabaa)',
+              backgroundColor: 'var(--app-surface-high)',
+              border: '1px solid var(--c-border)',
+              color: 'var(--c-text-secondary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

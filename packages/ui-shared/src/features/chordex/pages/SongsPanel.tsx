@@ -6123,29 +6123,29 @@ export default function SongsPanel() {
   if (isWebDesktop) {
     return (
       <div
-        className="flex w-full h-full overflow-hidden bg-[#050505]"
-        style={{ position: 'relative' }}
+        className="flex w-full h-full overflow-hidden"
+        style={{ position: 'relative', background: 'var(--c-background)' }}
       >
         {/* Left Column: Setlist song list */}
         <div
-          className="border-r border-zinc-900/60"
           style={{
             width: '280px',
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
             overflow: 'hidden',
+            borderRight: '1px solid var(--c-border)',
           }}
         >
           {/* Header */}
           <div
-            className="border-b border-zinc-900/60"
             style={{
               padding: '12px 16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexShrink: 0,
+              borderBottom: '1px solid var(--c-border)',
             }}
           >
             <span
@@ -6456,7 +6456,14 @@ export default function SongsPanel() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search titles, keys, or tags..."
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-full py-4 pl-12 pr-6 outline-none text-zinc-100 placeholder:text-zinc-500 font-inter text-sm"
+            className="w-full rounded-full py-4 pl-12 pr-6 outline-none font-inter text-sm"
+            style={{
+              backgroundColor: 'var(--surface-topbar-bg)',
+              border: '1px solid var(--c-border)',
+              color: 'var(--c-text-primary)',
+              backdropFilter: 'var(--surface-topbar-blur, blur(16px))',
+              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(16px))',
+            }}
           />
         </div>
 
@@ -6472,7 +6479,7 @@ export default function SongsPanel() {
             >
               No songs yet
             </h3>
-            <p className="text-zinc-500 font-inter text-sm">
+            <p style={{ color: 'var(--c-text-secondary)' }} className="font-inter text-sm">
               Tap the '+' button to create your first progression
             </p>
           </div>

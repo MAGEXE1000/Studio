@@ -181,7 +181,6 @@ export default function DrumPrefsPanel() {
         return h >= lightStart && h < lightEnd;
       })());
 
-
   function PrefsSection({ title, children }: { title: string; children: React.ReactNode }) {
     return (
       <div className="flex flex-col gap-2">
@@ -271,15 +270,17 @@ export default function DrumPrefsPanel() {
               <button
                 key={c.id}
                 onClick={() => setActiveCat(c.id)}
-                className={`px-3.5 py-1.5 rounded-lg border text-[9.5px] font-extrabold uppercase tracking-widest transition-all cursor-pointer ${
-                  active
-                    ? isLight
-                      ? 'bg-blue-50 text-blue-600 border-blue-200'
-                      : 'bg-blue-950/40 text-blue-400 border-blue-900/60'
-                    : isLight
-                      ? 'bg-transparent text-zinc-500 border-zinc-200 hover:border-zinc-350 hover:text-black'
-                      : 'bg-transparent text-zinc-500 border-zinc-900 hover:border-zinc-800 hover:text-white'
-                }`}
+                className="px-3.5 py-1.5 rounded-lg text-[9.5px] font-extrabold uppercase tracking-widest transition-all cursor-pointer"
+                style={{
+                  background: active
+                    ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
+                    : 'var(--c-surface-low)',
+                  color: active ? 'var(--color-on-tertiary, #ffffff)' : 'var(--c-text-secondary)',
+                  border: active
+                    ? '1px solid var(--studio-accent-border)'
+                    : '1px solid var(--c-border)',
+                  boxShadow: active ? 'var(--studio-accent-glow)' : 'none',
+                }}
               >
                 {c.label}
               </button>
@@ -356,17 +357,23 @@ export default function DrumPrefsPanel() {
                                 <button
                                   key={value}
                                   onClick={() =>
-                                    useSettingsStore.getState().updateSettings({ defaultDrumTab: value })
+                                    useSettingsStore
+                                      .getState()
+                                      .updateSettings({ defaultDrumTab: value })
                                   }
-                                  className={`w-9 h-9 flex items-center justify-center rounded-lg border cursor-pointer transition-all ${
-                                    active
-                                      ? isLight
-                                        ? 'bg-blue-50 text-blue-600 border-blue-200'
-                                        : 'bg-blue-950/40 text-blue-400 border-blue-900/60'
-                                      : isLight
-                                        ? 'bg-transparent text-zinc-500 border-zinc-200 hover:text-black hover:border-zinc-350'
-                                        : 'bg-transparent text-zinc-500 border-zinc-900 hover:text-zinc-350 hover:border-zinc-800'
-                                  }`}
+                                  className="w-9 h-9 flex items-center justify-center rounded-lg cursor-pointer transition-all"
+                                  style={{
+                                    background: active
+                                      ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
+                                      : 'var(--c-surface-low)',
+                                    color: active
+                                      ? 'var(--color-on-tertiary, #ffffff)'
+                                      : 'var(--c-text-secondary)',
+                                    border: active
+                                      ? '1px solid var(--studio-accent-border)'
+                                      : '1px solid var(--c-border)',
+                                    boxShadow: active ? 'var(--studio-accent-glow)' : 'none',
+                                  }}
                                 >
                                   <AnimatedNavigationIcon
                                     itemKey={value}
@@ -404,10 +411,7 @@ export default function DrumPrefsPanel() {
           paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom)) + 90px)',
         }}
       >
-        <StudioHeader
-          title={dp.title}
-          subtitle={dp.subtitle}
-        />
+        <StudioHeader title={dp.title} subtitle={dp.subtitle} />
 
         <SectionHeader icon="edit_note" title={dp.editorBehavior} />
         <Card style={{ padding: 0, overflow: 'hidden' }}>
@@ -458,7 +462,9 @@ export default function DrumPrefsPanel() {
                     return (
                       <button
                         key={value}
-                        onClick={() => useSettingsStore.getState().updateSettings({ defaultDrumTab: value })}
+                        onClick={() =>
+                          useSettingsStore.getState().updateSettings({ defaultDrumTab: value })
+                        }
                         style={{
                           width: '40px',
                           height: '40px',

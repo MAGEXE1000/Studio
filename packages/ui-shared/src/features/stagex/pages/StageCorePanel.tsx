@@ -141,7 +141,8 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
     const t = translations[lang as keyof typeof translations] ?? translations.en;
     const sp = t.stagePrefs;
     const cur = store.settings.defaultStageView ?? 'Editor';
-    const accent = ACCENT_COLORS.blue;
+    const accentKey = store.settings.accentColor ?? 'blue';
+    const accent = ACCENT_COLORS[accentKey as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
 
     const section = doc.createElement('div');
     section.id = 'sc-start-on-injected';
@@ -199,7 +200,8 @@ function injectStartOnPicker(iframe: HTMLIFrameElement) {
           .getState()
           .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
-        const a2 = ACCENT_COLORS.blue;
+        const a2Key = useSettingsStore.getState().settings.accentColor ?? 'blue';
+        const a2 = ACCENT_COLORS[a2Key as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
         btnWrap.querySelectorAll('button').forEach((b, idx) => {
           const isActive = views[idx].value === updated;
           (b as HTMLButtonElement).style.border = isActive
@@ -1275,7 +1277,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     theme: (settings.theme ?? 'dark') as typeof settings.theme,
     amoledMode: settings.amoledMode ?? false,
   };
-  const accent = ACCENT_COLORS.blue;
+  const accentKey = settings.accentColor ?? 'blue';
+  const accent = ACCENT_COLORS[accentKey as keyof typeof ACCENT_COLORS] ?? ACCENT_COLORS.blue;
   const isLight = (() => {
     if (stageVis.theme === 'light') return true;
     if (stageVis.theme === 'system') {
@@ -2195,17 +2198,24 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         >
           {/* Top header/toolbar */}
           <Toolbar
-            className={`border-b ${isLight ? 'border-zinc-200 bg-zinc-50' : 'border-zinc-900 bg-[#080808]'} h-12 flex-shrink-0 select-none`}
+            className="h-12 flex-shrink-0 select-none"
+            style={{
+              background: 'var(--c-surface-mid)',
+              borderBottom: '1px solid var(--c-border)',
+            }}
           >
             <div className="flex items-center gap-3">
               <span
-                className={`font-extrabold text-[10px] uppercase ${isLight ? 'text-zinc-850' : 'text-white'} tracking-widest`}
-                style={{ letterSpacing: '0.08em' }}
+                className="font-extrabold text-[10px] uppercase tracking-widest"
+                style={{ letterSpacing: '0.08em', color: 'var(--c-text-primary)' }}
               >
                 Stagex
               </span>
-              <div className={`h-4 w-[1px] ${isLight ? 'bg-zinc-200' : 'bg-zinc-800'}`} />
-              <span className="text-[8.5px] text-zinc-500 font-extrabold uppercase tracking-widest">
+              <div className="h-4 w-[1px]" style={{ backgroundColor: 'var(--c-border)' }} />
+              <span
+                className="text-[8.5px] font-extrabold uppercase tracking-widest"
+                style={{ color: 'var(--c-text-secondary)' }}
+              >
                 {curView === 'Editor'
                   ? 'Stage Plot Editor'
                   : curView === 'Export'
@@ -2559,10 +2569,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           <button
                             onClick={() => callIframe('openPresetsPanel')}
-                            className={`btn-smooth ${isLight ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200' : 'bg-zinc-900 hover:bg-zinc-850 text-white border-zinc-800 hover:border-zinc-700'} border`}
+                            className="btn-smooth"
                             style={{
                               width: '100%',
                               padding: '8px 12px',
+                              background: 'var(--c-surface-low)',
+                              border: '1px solid var(--c-border)',
+                              color: 'var(--c-text-primary)',
                               borderRadius: '8px',
                               fontSize: '9px',
                               fontWeight: 800,
@@ -2585,10 +2598,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                           </button>
                           <button
                             onClick={() => callIframe('scOpenElPresets')}
-                            className={`btn-smooth ${isLight ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-900 border-zinc-200' : 'bg-zinc-900 hover:bg-zinc-850 text-white border-zinc-800 hover:border-zinc-700'} border`}
+                            className="btn-smooth"
                             style={{
                               width: '100%',
                               padding: '8px 12px',
+                              background: 'var(--c-surface-low)',
+                              border: '1px solid var(--c-border)',
+                              color: 'var(--c-text-primary)',
                               borderRadius: '8px',
                               fontSize: '9px',
                               fontWeight: 800,
@@ -2626,14 +2642,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                                 win?.openCustomElementModal?.();
                               } catch {}
                             }}
-                            className={`btn-smooth ${isLight ? 'hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900' : 'hover:bg-zinc-800 text-zinc-350 hover:text-white'}`}
+                            className="btn-smooth"
                             style={{
                               width: '100%',
                               padding: '8px 12px',
                               background: 'transparent',
-                              border: isLight
-                                ? '1px dashed rgba(0,0,0,0.15)'
-                                : '1px dashed rgba(255,255,255,0.15)',
+                              border: '1px dashed var(--c-border)',
+                              color: 'var(--c-text-secondary)',
                               borderRadius: '8px',
                               fontSize: '9px',
                               fontWeight: 800,
@@ -2912,12 +2927,15 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                           style={{
                             padding: '7px 12px',
                             background: active
-                              ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-                              : isLight
-                                ? 'rgba(0,0,0,0.05)'
-                                : 'rgba(255,255,255,0.05)',
-                            color: active ? '#fff' : isLight ? '#000' : '#fff',
-                            border: `1px solid ${active ? 'transparent' : isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
+                              ? `linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))`
+                              : 'var(--c-surface-low)',
+                            color: active
+                              ? 'var(--color-on-tertiary, #ffffff)'
+                              : 'var(--c-text-primary)',
+                            border: active
+                              ? '1px solid var(--studio-accent-border)'
+                              : '1px solid var(--c-border)',
+                            boxShadow: active ? 'var(--studio-accent-glow)' : 'none',
                             borderRadius: 8,
                             fontFamily: 'Manrope, sans-serif',
                             fontSize: 11,
@@ -3470,20 +3488,14 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   height: 44,
                   borderRadius: '50%',
                   background: liveMode
-                    ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-                    : isLight
-                      ? 'rgba(255,255,255,0.82)'
-                      : 'rgba(28,28,32,0.80)',
+                    ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
+                    : 'var(--surface-topbar-bg)',
                   border: liveMode
-                    ? 'none'
-                    : isLight
-                      ? '1px solid rgba(0,0,0,0.10)'
-                      : '1px solid rgba(255,255,255,0.12)',
-                  backdropFilter: liveMode ? 'none' : 'blur(12px)',
-                  WebkitBackdropFilter: liveMode ? 'none' : 'blur(12px)',
-                  boxShadow: liveMode
-                    ? `0 4px 20px ${accent.from}90`
-                    : '0 4px 16px rgba(0,0,0,0.25)',
+                    ? '1px solid var(--studio-accent-border)'
+                    : '1px solid var(--c-border)',
+                  backdropFilter: 'var(--surface-topbar-blur, blur(14px))',
+                  WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(14px))',
+                  boxShadow: liveMode ? 'var(--studio-accent-glow)' : 'var(--elevation-high)',
                   zIndex: 20,
                   cursor: 'pointer',
                   WebkitTapHighlightColor: 'transparent',
@@ -3508,11 +3520,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 <span
                   className="material-symbols-outlined"
                   style={{
-                    color: liveMode
-                      ? '#fff'
-                      : isLight
-                        ? 'rgba(0,0,0,0.65)'
-                        : 'rgba(200,200,220,0.9)',
+                    color: liveMode ? 'var(--color-on-tertiary, #ffffff)' : 'var(--c-text-primary)',
                     fontSize: 22,
                     lineHeight: 1,
                   }}
@@ -3542,8 +3550,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   width: 50,
                   height: 50,
                   borderRadius: '50%',
-                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  border: 'none',
+                  background:
+                    'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+                  border: '1px solid var(--studio-accent-border)',
+                  color: 'var(--color-on-tertiary, #ffffff)',
                   zIndex: 20,
                   cursor: 'pointer',
                   WebkitTapHighlightColor: 'transparent',
@@ -3564,9 +3574,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         : ('visible' as const),
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: fabOpen
-                    ? `0 6px 32px ${accent.from}99, 0 3px 12px rgba(0,0,0,0.4)`
-                    : `0 4px 24px ${accent.from}80, 0 2px 8px rgba(0,0,0,0.3)`,
+                  boxShadow: 'var(--studio-accent-glow)',
                   padding: 0,
                   transform: fabOpen ? 'rotate(45deg) scale(1.08)' : 'rotate(0deg) scale(1)',
                   transition:
@@ -3576,7 +3584,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 <span
                   className="material-symbols-outlined"
                   style={{
-                    color: '#fff',
+                    color: 'var(--color-on-tertiary, #ffffff)',
                     fontSize: 24,
                     lineHeight: 1,
                     transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
@@ -3726,12 +3734,15 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                             style={{
                               padding: '7px 12px',
                               background: active
-                                ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-                                : isLight
-                                  ? 'rgba(0,0,0,0.04)'
-                                  : 'rgba(255,255,255,0.05)',
-                              color: active ? '#fff' : isLight ? '#111' : 'rgba(220,222,232,0.85)',
-                              border: `1px solid ${active ? 'transparent' : isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
+                                ? `linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))`
+                                : 'var(--c-surface-low)',
+                              color: active
+                                ? 'var(--color-on-tertiary, #ffffff)'
+                                : 'var(--c-text-primary)',
+                              border: active
+                                ? '1px solid var(--studio-accent-border)'
+                                : '1px solid var(--c-border)',
+                              boxShadow: active ? 'var(--studio-accent-glow)' : 'none',
                               borderRadius: 8,
                               fontFamily: 'Manrope, sans-serif',
                               fontSize: 11,
@@ -3916,7 +3927,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             open={collabModalOpen}
             onClose={() => !collabLoading && setCollabModalOpen(false)}
           >
-            <div className="w-full max-w-[480px] text-[#e2e2e2] font-body-md">
+            <div
+              className="w-full max-w-[480px] font-body-md"
+              style={{ color: 'var(--c-text-primary)' }}
+            >
               {/* Header */}
               <div className="p-6 pb-0 flex items-start justify-between">
                 <div className="flex items-start gap-4">
@@ -3924,14 +3938,18 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     <h1 className="font-headline-lg text-3xl font-bold tracking-tight text-on-surface">
                       Collaborate
                     </h1>
-                    <p className="font-body-md text-sm text-[#c1c6d7] mt-1">
+                    <p
+                      className="font-body-md text-sm mt-1"
+                      style={{ color: 'var(--c-text-secondary)' }}
+                    >
                       Work together on this stage in real time.
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => !collabLoading && setCollabModalOpen(false)}
-                  className="p-2 hover:bg-white/5 rounded-full transition-colors flex items-center justify-center"
+                  className="p-2 rounded-full transition-colors flex items-center justify-center cursor-pointer"
+                  style={{ background: 'var(--c-surface-low)' }}
                 >
                   <span className="material-symbols-outlined text-on-surface-variant">close</span>
                 </button>
@@ -4009,7 +4027,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
                 {!currentUser ? (
                   <div className="text-center py-6 space-y-4">
-                    <p className="text-sm text-[#c1c6d7]">
+                    <p className="text-sm" style={{ color: 'var(--c-text-secondary)' }}>
                       You must be signed in to host or join collaborative sessions.
                     </p>
                     <button
@@ -4017,7 +4035,14 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         setCollabModalOpen(false);
                         window.dispatchEvent(new CustomEvent('studio:open-auth'));
                       }}
-                      className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-base h-12 rounded-full flex items-center justify-center font-bold hover:opacity-90 active:scale-95 transition-all"
+                      className="w-full font-label-lg text-base h-12 rounded-full flex items-center justify-center font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                      style={{
+                        background:
+                          'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+                        color: 'var(--color-on-tertiary, #ffffff)',
+                        border: '1px solid var(--studio-accent-border)',
+                        boxShadow: 'var(--studio-accent-glow)',
+                      }}
                     >
                       Sign In
                     </button>
@@ -4027,14 +4052,23 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   <div className="space-y-6">
                     {/* Invite Code Section */}
                     <section className="space-y-4">
-                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                      <label
+                        className="font-label-md text-xs uppercase tracking-widest font-semibold block"
+                        style={{ color: 'var(--c-text-secondary)' }}
+                      >
                         Your Invite Code
                       </label>
                       <div className="grid grid-cols-6 gap-3">
                         {Array.from({ length: 6 }).map((_, idx) => (
                           <div
                             key={idx}
-                            className="h-16 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/10 flex items-center justify-center font-code-display text-2xl font-bold text-[#adc6ff] shadow-[0_0_12px_-2px_rgba(173,198,255,0.4)] border-[#adc6ff]"
+                            className="h-16 rounded-2xl flex items-center justify-center font-code-display text-2xl font-bold"
+                            style={{
+                              background: 'var(--c-surface-low)',
+                              border: '1px solid var(--c-border)',
+                              color: 'var(--c-accent-from)',
+                              boxShadow: 'var(--elevation-low)',
+                            }}
                           >
                             {collabRoom.shortCode[idx] || ''}
                           </div>
@@ -4048,7 +4082,14 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                             setCollabCopied(true);
                             setTimeout(() => setCollabCopied(false), 2000);
                           }}
-                          className="flex-1 bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all"
+                          className="flex-1 font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                          style={{
+                            background:
+                              'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+                            color: 'var(--color-on-tertiary, #ffffff)',
+                            border: '1px solid var(--studio-accent-border)',
+                            boxShadow: 'var(--studio-accent-glow)',
+                          }}
                         >
                           <span className="material-symbols-outlined text-[18px]">
                             {collabCopied ? 'check' : 'content_copy'}
@@ -4056,7 +4097,14 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                           {collabCopied ? 'Copied!' : 'Copy Invite Code'}
                         </button>
                         <ShareMenu title="StageX Collaborative Session" url={window.location.href}>
-                          <button className="px-6 border border-white/15 text-[#e2e2e2] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 hover:bg-white/5 active:scale-95 transition-all">
+                          <button
+                            className="px-6 font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer"
+                            style={{
+                              background: 'var(--c-surface-low)',
+                              border: '1px solid var(--c-border)',
+                              color: 'var(--c-text-primary)',
+                            }}
+                          >
                             <span className="material-symbols-outlined text-[18px]">share</span>
                             Share
                           </button>
@@ -4066,10 +4114,16 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
                     {/* QR Code Section */}
                     <section className="flex flex-col items-center gap-2 pt-2">
-                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                      <label
+                        className="font-label-md text-xs uppercase tracking-widest font-semibold block"
+                        style={{ color: 'var(--c-text-secondary)' }}
+                      >
                         Scan to Join
                       </label>
-                      <div className="p-3 bg-white rounded-2xl border border-white/10 shadow-lg">
+                      <div
+                        className="p-3 rounded-2xl shadow-lg"
+                        style={{ background: '#ffffff', border: '1px solid var(--c-border)' }}
+                      >
                         <img
                           src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${collabRoom.shortCode}`}
                           alt="Room QR Code"
@@ -4079,19 +4133,32 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     </section>
 
                     {/* Soft Divider */}
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                    <div
+                      className="h-px w-full"
+                      style={{ backgroundColor: 'var(--c-border)' }}
+                    ></div>
 
                     {/* Collaborators Section */}
                     <section className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)] animate-pulse"></div>
-                          <label className="font-label-md text-sm font-semibold text-[#e2e2e2]">
+                          <label
+                            className="font-label-md text-sm font-semibold"
+                            style={{ color: 'var(--c-text-primary)' }}
+                          >
                             Connected ({collabParticipants.length})
                           </label>
                         </div>
                         {/* Sync Status Badge */}
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/8 text-[11px] font-semibold text-[#c1c6d7]">
+                        <div
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
+                          style={{
+                            background: 'var(--c-surface-low)',
+                            border: '1px solid var(--c-border)',
+                            color: 'var(--c-text-secondary)',
+                          }}
+                        >
                           {pendingOpsCount > 0 ? (
                             <Loader variant="comet" size={14} />
                           ) : (
@@ -4107,8 +4174,12 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         {collabParticipants.map((p, idx) => (
                           <div
                             key={p.id}
-                            className="stagger-avatar flex items-center justify-between p-3 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/8 transition-all hover:border-white/15"
-                            style={{ animationDelay: `${(idx + 1) * 0.1}s` }}
+                            className="stagger-avatar flex items-center justify-between p-3 rounded-2xl transition-all"
+                            style={{
+                              animationDelay: `${(idx + 1) * 0.1}s`,
+                              background: 'var(--c-surface-low)',
+                              border: '1px solid var(--c-border)',
+                            }}
                           >
                             <div className="flex items-center gap-3">
                               <div className="relative">
@@ -4119,22 +4190,41 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                                     className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/20"
                                   />
                                 ) : (
-                                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-sm text-[#adc6ff] ring-2 ring-[#adc6ff]/20 uppercase">
+                                  <div
+                                    className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm uppercase"
+                                    style={{
+                                      background: 'var(--c-surface-mid)',
+                                      color: 'var(--c-accent-from)',
+                                      border: '1px solid var(--c-border)',
+                                    }}
+                                  >
                                     {p.displayName ? p.displayName[0] : 'U'}
                                   </div>
                                 )}
                                 <div
-                                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#1f1f1f] ${p.online ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`}
+                                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${p.online ? 'bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]' : 'bg-gray-500'}`}
+                                  style={{ borderColor: 'var(--c-surface-low)' }}
                                 />
                               </div>
                               <div>
-                                <p className="font-label-lg text-sm font-semibold text-[#e2e2e2]">
+                                <p
+                                  className="font-label-lg text-sm font-semibold"
+                                  style={{ color: 'var(--c-text-primary)' }}
+                                >
                                   {p.displayName || 'Collaborator'}{' '}
                                   {p.id === currentUser.uid && (
-                                    <span className="text-[#c1c6d7]/60 font-normal">(You)</span>
+                                    <span
+                                      className="font-normal"
+                                      style={{ color: 'var(--c-text-muted)' }}
+                                    >
+                                      (You)
+                                    </span>
                                   )}
                                 </p>
-                                <p className="text-[11px] text-[#c1c6d7]/80 font-medium">
+                                <p
+                                  className="text-[11px] font-medium"
+                                  style={{ color: 'var(--c-text-secondary)' }}
+                                >
                                   {p.id === collabRoom.hostId
                                     ? 'Owner'
                                     : p.online
@@ -4144,10 +4234,16 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="material-symbols-outlined text-[#c1c6d7]/40 text-lg">
+                              <span
+                                className="material-symbols-outlined text-lg"
+                                style={{ color: 'var(--c-text-muted)' }}
+                              >
                                 signal_cellular_alt
                               </span>
-                              <span className="text-[10px] text-[#c1c6d7]/50 font-medium">
+                              <span
+                                className="text-[10px] font-medium"
+                                style={{ color: 'var(--c-text-muted)' }}
+                              >
                                 Excellent
                               </span>
                             </div>
@@ -4172,7 +4268,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         }
                       }}
                       disabled={collabLoading}
-                      className="w-full bg-red-500/15 border border-red-500/35 hover:bg-red-500/25 active:scale-95 text-red-400 font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center transition-all mt-4"
+                      className="w-full bg-red-500/15 border border-red-500/35 hover:bg-red-500/25 active:scale-95 text-red-400 font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center transition-all mt-4 cursor-pointer"
                     >
                       {collabLoading ? 'Leaving...' : 'Leave Collaboration'}
                     </button>
@@ -4182,7 +4278,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   <div className="space-y-6">
                     {/* Host Section */}
                     <section className="space-y-4">
-                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                      <label
+                        className="font-label-md text-xs uppercase tracking-widest font-semibold block"
+                        style={{ color: 'var(--c-text-secondary)' }}
+                      >
                         Host a Stage
                       </label>
                       <button
@@ -4206,18 +4305,31 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                           }
                         }}
                         disabled={collabLoading}
-                        className="w-full bg-[#adc6ff] text-[#002e69] font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all shadow-[0_4px_14px_rgba(173,198,255,0.25)]"
+                        className="w-full font-label-lg text-sm font-bold h-12 rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all cursor-pointer"
+                        style={{
+                          background:
+                            'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
+                          color: 'var(--color-on-tertiary, #ffffff)',
+                          border: '1px solid var(--studio-accent-border)',
+                          boxShadow: 'var(--studio-accent-glow)',
+                        }}
                       >
                         {collabLoading ? 'Hosting...' : 'Host Room'}
                       </button>
                     </section>
 
                     {/* Soft Divider */}
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+                    <div
+                      className="h-px w-full"
+                      style={{ backgroundColor: 'var(--c-border)' }}
+                    ></div>
 
                     {/* Join Section */}
                     <section className="space-y-4">
-                      <label className="font-label-md text-xs uppercase tracking-widest text-[#c1c6d7]/70 font-semibold block">
+                      <label
+                        className="font-label-md text-xs uppercase tracking-widest font-semibold block"
+                        style={{ color: 'var(--c-text-secondary)' }}
+                      >
                         Join a Stage
                       </label>
                       <SegmentedOtpInput
@@ -4251,7 +4363,24 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                           }
                         }}
                         disabled={collabLoading || shortCodeInput.length !== 6}
-                        className={`w-full font-label-lg text-sm font-bold h-12 rounded-full transition-all mt-2 flex items-center justify-center ${shortCodeInput.length === 6 ? 'bg-[#4b8eff] text-white hover:opacity-90 active:scale-95 shadow-[0_4px_14px_rgba(75,142,255,0.25)]' : 'bg-white/5 text-white/30 border border-white/5 cursor-not-allowed'}`}
+                        className="w-full font-label-lg text-sm font-bold h-12 rounded-full transition-all mt-2 flex items-center justify-center cursor-pointer"
+                        style={{
+                          background:
+                            shortCodeInput.length === 6
+                              ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
+                              : 'var(--c-surface-low)',
+                          color:
+                            shortCodeInput.length === 6
+                              ? 'var(--color-on-tertiary, #ffffff)'
+                              : 'var(--c-text-muted)',
+                          border:
+                            shortCodeInput.length === 6
+                              ? '1px solid var(--studio-accent-border)'
+                              : '1px solid var(--c-border)',
+                          boxShadow:
+                            shortCodeInput.length === 6 ? 'var(--studio-accent-glow)' : 'none',
+                          cursor: shortCodeInput.length === 6 ? 'pointer' : 'not-allowed',
+                        }}
                       >
                         {collabLoading ? 'Joining...' : 'Join Stage'}
                       </button>
@@ -4262,7 +4391,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
               {/* Footer */}
               <footer className="p-6 pt-0">
-                <p className="text-[11px] text-center text-[#c1c6d7]/60 font-medium">
+                <p
+                  className="text-[11px] text-center font-medium"
+                  style={{ color: 'var(--c-text-muted)' }}
+                >
                   Only invited collaborators can edit this stage.
                 </p>
               </footer>

@@ -19,7 +19,7 @@ export const SegmentedOtpInput: React.FC<SegmentedOtpInputProps> = ({
   // Handle auto-focus on mount
   useEffect(() => {
     // Focus the first empty cell, or the first cell
-    const emptyIndex = cells.findIndex(c => !c);
+    const emptyIndex = cells.findIndex((c) => !c);
     const targetIndex = emptyIndex !== -1 ? emptyIndex : 0;
     if (inputRefs.current[targetIndex] && !disabled) {
       inputRefs.current[targetIndex]?.focus();
@@ -29,11 +29,11 @@ export const SegmentedOtpInput: React.FC<SegmentedOtpInputProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
     const newCells = [...cells];
-    
+
     // Take only the last character entered
     const char = val[val.length - 1] || '';
     newCells[index] = char;
-    
+
     const newValue = newCells.join('');
     onChange(newValue);
 
@@ -47,7 +47,7 @@ export const SegmentedOtpInput: React.FC<SegmentedOtpInputProps> = ({
     if (e.key === 'Backspace') {
       e.preventDefault();
       const newCells = [...cells];
-      
+
       if (cells[index]) {
         // If current cell has value, clear it
         newCells[index] = '';
@@ -69,7 +69,8 @@ export const SegmentedOtpInput: React.FC<SegmentedOtpInputProps> = ({
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedText = e.clipboardData.getData('text')
+    const pastedText = e.clipboardData
+      .getData('text')
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, '')
       .slice(0, 6);
@@ -86,7 +87,9 @@ export const SegmentedOtpInput: React.FC<SegmentedOtpInputProps> = ({
       {cells.map((char, index) => (
         <input
           key={index}
-          ref={(el) => { inputRefs.current[index] = el; }}
+          ref={(el) => {
+            inputRefs.current[index] = el;
+          }}
           type="text"
           maxLength={2} // allow typing over existing char
           value={char}
@@ -95,7 +98,14 @@ export const SegmentedOtpInput: React.FC<SegmentedOtpInputProps> = ({
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
           placeholder="—"
-          className="w-full h-16 rounded-2xl bg-[#131313]/80 backdrop-blur-md border border-white/10 text-center font-code-display text-code-display text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 focus-within:-translate-y-0.5 focus-within:scale-105 hover:border-[#adc6ff] focus:border-[#adc6ff] hover:shadow-[0_0_12px_-2px_rgba(173,198,255,0.4)] focus:shadow-[0_0_12px_-2px_rgba(173,198,255,0.4)]"
+          className="w-full h-16 rounded-2xl text-center font-code-display text-code-display focus:outline-none transition-all duration-300 hover:-translate-y-0.5 hover:scale-105 focus-within:-translate-y-0.5 focus-within:scale-105"
+          style={{
+            backgroundColor: 'var(--c-surface-low)',
+            border: '1px solid var(--c-border)',
+            color: 'var(--c-text-primary)',
+            backdropFilter: 'var(--surface-topbar-blur, blur(12px))',
+            WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(12px))',
+          }}
           aria-label={`Digit ${index + 1}`}
           inputMode="text"
         />

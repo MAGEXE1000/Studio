@@ -177,7 +177,8 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
             width: '36px',
             height: '4px',
             borderRadius: '9999px',
-            backgroundColor: 'rgba(255, 255, 255, 0.25)',
+            backgroundColor: 'var(--c-text-muted)',
+            opacity: 0.4,
           }}
         />
       </div>
@@ -186,7 +187,7 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
           style={{
             paddingBottom: '14px',
             marginBottom: '14px',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+            borderBottom: '1px solid var(--c-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -211,8 +212,8 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
               width: 28,
               height: 28,
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.06)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'var(--app-surface-high)',
+              border: '1px solid var(--c-border)',
               cursor: 'pointer',
               padding: 0,
               display: 'flex',

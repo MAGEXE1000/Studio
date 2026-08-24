@@ -6,7 +6,7 @@ import {
   stopChordPlayback,
   type GuitarChordData,
   useSettingsStore,
-  useT
+  useT,
 } from '@workspace/studio-core';
 import ChordDiagram from '../diagrams/ChordDiagram';
 import GuitarDiagram from '../diagrams/GuitarDiagram';
@@ -90,7 +90,7 @@ export function LibraryChordDetail({ state }: { state: any }) {
     setChordPlaying,
     handleChordClick,
     accent,
-    isLight
+    isLight,
   } = state;
   const t = useT();
 
@@ -199,7 +199,13 @@ export function LibraryChordDetail({ state }: { state: any }) {
           </div>
         </div>
 
-        <div className="border border-zinc-900 bg-zinc-950/20 rounded-2xl p-6 flex justify-center items-center">
+        <div
+          className="rounded-2xl p-6 flex justify-center items-center"
+          style={{
+            backgroundColor: 'var(--c-surface-low)',
+            border: '1px solid var(--c-border)',
+          }}
+        >
           {renderDetailDiagram()}
         </div>
 
@@ -208,8 +214,8 @@ export function LibraryChordDetail({ state }: { state: any }) {
           relatedChords.length > 0 && (
             <div className="space-y-3">
               <h3
-                className="text-[9.5px] font-extrabold uppercase tracking-widest text-zinc-500"
-                style={{ fontFamily: 'var(--font-body)' }}
+                className="text-[9.5px] font-extrabold uppercase tracking-widest"
+                style={{ fontFamily: 'var(--font-body)', color: 'var(--c-text-secondary)' }}
               >
                 {t.chord.voicings}
               </h3>
@@ -218,7 +224,11 @@ export function LibraryChordDetail({ state }: { state: any }) {
                   <button
                     key={related.id}
                     onClick={() => handleChordClick(related.id)}
-                    className="block text-left p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all cursor-pointer w-full relative"
+                    className="block text-left p-4 rounded-xl transition-all cursor-pointer w-full relative"
+                    style={{
+                      backgroundColor: 'var(--c-surface-low)',
+                      border: '1px solid var(--c-border)',
+                    }}
                   >
                     <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 2 }}>
                       <RelatedPlayBtn guitar={related.guitar} accent={accent} isLight={isLight} />
@@ -229,7 +239,10 @@ export function LibraryChordDetail({ state }: { state: any }) {
                     >
                       {related.name}
                     </span>
-                    <div className="bg-black/40 rounded-lg p-3">
+                    <div
+                      className="rounded-lg p-3"
+                      style={{ backgroundColor: 'var(--c-surface-lowest)' }}
+                    >
                       <ChordDiagram data={related.guitar} accentFrom={accent.from} />
                     </div>
                   </button>
@@ -275,10 +288,7 @@ export function LibraryMainView({ state }: { state: any }) {
 
   return (
     <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef}>
-      <StudioHeader
-        title="Library"
-        subtitle={`Explore ${allChords.length} Chords`}
-      />
+      <StudioHeader title="Library" subtitle={`Explore ${allChords.length} Chords`} />
 
       <div className="px-6 mb-4 flex gap-2">
         <Button
@@ -299,17 +309,32 @@ export function LibraryMainView({ state }: { state: any }) {
         </Button>
       </div>
 
-      <div className="sticky top-0 z-30 px-6 mb-8 pt-4 pb-2 bg-black/85 backdrop-blur-xl">
-        <div className="glass-surface rounded-full h-14 flex items-center px-6 gap-4 border border-white/5 relative">
+      <div
+        className="sticky top-0 z-30 px-6 mb-8 pt-4 pb-2"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--app-bg) 85%, transparent)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}
+      >
+        <div
+          className="glass-surface rounded-full h-14 flex items-center px-6 gap-4 relative"
+          style={{
+            backgroundColor: 'var(--surface-topbar-bg)',
+            border: '1px solid var(--c-border)',
+            boxShadow: 'var(--elevation-low)',
+          }}
+        >
           <span className="material-symbols-outlined text-on-surface-variant">search</span>
           <input
-            className="bg-transparent border-none outline-none flex-1 text-on-surface placeholder:text-on-surface-variant/40 font-body-lg"
+            className="bg-transparent border-none outline-none flex-1 text-on-surface placeholder:text-on-surface-variant font-body-lg"
+            style={{ color: 'var(--c-text-primary)' }}
             placeholder="Search chords..."
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <div className="h-6 w-[1px] bg-white/10 mx-1"></div>
+          <div className="h-6 w-[1px] mx-1" style={{ backgroundColor: 'var(--c-border)' }}></div>
           <Button
             variant="ghost"
             size="icon"
@@ -319,8 +344,18 @@ export function LibraryMainView({ state }: { state: any }) {
           />
 
           {showTuningMenu && (
-            <div className="absolute right-4 top-[calc(100%+8px)] w-60 rounded-2xl border border-zinc-850 bg-zinc-900 p-2 shadow-2xl z-50">
-              <div className="text-[10px] font-extrabold uppercase tracking-widest text-zinc-500 px-3 py-2">
+            <div
+              className="absolute right-4 top-[calc(100%+8px)] w-60 rounded-2xl p-2 shadow-2xl z-50"
+              style={{
+                backgroundColor: 'var(--c-surface-high)',
+                border: '1px solid var(--c-border)',
+                boxShadow: 'var(--elevation-high)',
+              }}
+            >
+              <div
+                className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-2"
+                style={{ color: 'var(--c-text-secondary)' }}
+              >
                 Tuning System
               </div>
               {tunings.map((tu) => {
@@ -337,7 +372,9 @@ export function LibraryMainView({ state }: { state: any }) {
                       width: '100%',
                       justifyContent: 'space-between',
                       background: isCurrent ? 'var(--c-surface-high, #27272a)' : 'transparent',
-                      color: isCurrent ? 'var(--c-text-primary, #ffffff)' : 'var(--c-text-secondary, #a1a1aa)',
+                      color: isCurrent
+                        ? 'var(--c-text-primary, #ffffff)'
+                        : 'var(--c-text-secondary, #a1a1aa)',
                       borderRadius: '8px',
                     }}
                   >
@@ -359,14 +396,20 @@ export function LibraryMainView({ state }: { state: any }) {
             Search Results
           </h2>
           {searchResults.length === 0 ? (
-            <p className="text-sm text-zinc-500">No matching chords found</p>
+            <p className="text-sm" style={{ color: 'var(--c-text-secondary)' }}>
+              No matching chords found
+            </p>
           ) : (
             <div className="grid grid-cols-2 gap-3">
               {searchResults.map((c: any) => (
                 <button
                   key={c.id}
                   onClick={() => handleChordClick(c.id)}
-                  className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex items-center justify-between h-[110px] w-full"
+                  className="p-4 rounded-xl transition-all text-left cursor-pointer flex items-center justify-between h-[110px] w-full"
+                  style={{
+                    backgroundColor: 'var(--c-surface-low)',
+                    border: '1px solid var(--c-border)',
+                  }}
                 >
                   <div className="flex flex-col justify-between h-full flex-1 min-w-0 pr-2">
                     <div>
@@ -377,17 +420,23 @@ export function LibraryMainView({ state }: { state: any }) {
                         {c.name}
                       </span>
                       <span
-                        className="text-[10px] text-zinc-500 block mt-1 truncate"
-                        style={{ fontFamily: 'var(--font-body)' }}
+                        className="text-[10px] block mt-1 truncate"
+                        style={{ fontFamily: 'var(--font-body)', color: 'var(--c-text-secondary)' }}
                       >
                         {c.notes.join(' · ')}
                       </span>
                     </div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 block mt-2">
+                    <span
+                      className="text-[9px] font-bold uppercase tracking-wider block mt-2"
+                      style={{ color: 'var(--c-text-muted)' }}
+                    >
                       {c.type}
                     </span>
                   </div>
-                  <div className="w-16 h-16 flex-none bg-black/40 rounded-xl p-1.5 overflow-hidden flex items-center justify-center">
+                  <div
+                    className="w-16 h-16 flex-none rounded-xl p-1.5 overflow-hidden flex items-center justify-center"
+                    style={{ backgroundColor: 'var(--c-surface-lowest)' }}
+                  >
                     <ChordDiagram data={c.guitar} accentFrom={accent.from} />
                   </div>
                 </button>
@@ -414,7 +463,11 @@ export function LibraryMainView({ state }: { state: any }) {
               <button
                 key={c.id}
                 onClick={() => handleChordClick(c.id)}
-                className="p-4 rounded-xl border border-zinc-900 bg-zinc-950/40 hover:border-zinc-800 transition-all text-left cursor-pointer flex items-center justify-between h-[110px] w-full"
+                className="p-4 rounded-xl transition-all text-left cursor-pointer flex items-center justify-between h-[110px] w-full"
+                style={{
+                  backgroundColor: 'var(--c-surface-low)',
+                  border: '1px solid var(--c-border)',
+                }}
               >
                 <div className="flex flex-col justify-between h-full flex-1 min-w-0 pr-2">
                   <div>
@@ -425,17 +478,23 @@ export function LibraryMainView({ state }: { state: any }) {
                       {c.name}
                     </span>
                     <span
-                      className="text-[10px] text-zinc-500 block mt-1 truncate"
-                      style={{ fontFamily: 'var(--font-body)' }}
+                      className="text-[10px] block mt-1 truncate"
+                      style={{ fontFamily: 'var(--font-body)', color: 'var(--c-text-secondary)' }}
                     >
                       {c.notes.join(' · ')}
                     </span>
                   </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-600 block mt-2">
+                  <span
+                    className="text-[9px] font-bold uppercase tracking-wider block mt-2"
+                    style={{ color: 'var(--c-text-muted)' }}
+                  >
                     {c.type}
                   </span>
                 </div>
-                <div className="w-16 h-16 flex-none bg-black/40 rounded-xl p-1.5 overflow-hidden flex items-center justify-center">
+                <div
+                  className="w-16 h-16 flex-none rounded-xl p-1.5 overflow-hidden flex items-center justify-center"
+                  style={{ backgroundColor: 'var(--c-surface-lowest)' }}
+                >
                   <ChordDiagram data={c.guitar} accentFrom={accent.from} />
                 </div>
               </button>
@@ -555,7 +614,11 @@ export function LibraryMainView({ state }: { state: any }) {
                   <div
                     key={cat.type}
                     onClick={() => setActiveType(cat.type)}
-                    className="glass-surface rounded-2xl p-4 h-24 flex items-center justify-between border border-white/5 cursor-pointer hover:bg-zinc-900/60 transition-colors"
+                    className="glass-surface rounded-2xl p-4 h-24 flex items-center justify-between cursor-pointer transition-colors"
+                    style={{
+                      backgroundColor: 'var(--surface-topbar-bg)',
+                      border: '1px solid var(--c-border)',
+                    }}
                   >
                     <div className="flex flex-col justify-between h-full flex-1 min-w-0 pr-2">
                       <h3
@@ -572,7 +635,10 @@ export function LibraryMainView({ state }: { state: any }) {
                       </p>
                     </div>
                     {previewChord && (
-                      <div className="w-16 h-16 flex-none bg-black/40 rounded-xl p-1.5 overflow-hidden flex items-center justify-center">
+                      <div
+                        className="w-16 h-16 flex-none rounded-xl p-1.5 overflow-hidden flex items-center justify-center"
+                        style={{ backgroundColor: 'var(--c-surface-lowest)' }}
+                      >
                         <ChordDiagram data={previewChord.guitar} accentFrom={accent.from} />
                       </div>
                     )}

@@ -310,14 +310,6 @@ const ALL_SHORTCUT_OPTIONS = [
     descEs: 'Respuestas a dudas comunes',
   },
   {
-    id: 'bug-report',
-    icon: 'bug_report',
-    titleEn: 'Report Bug',
-    titleEs: 'Reportar Error',
-    descEn: 'Submit system diagnostics',
-    descEs: 'Enviar diagnóstico de fallos',
-  },
-  {
     id: 'keyboard-shortcuts',
     icon: 'keyboard',
     titleEn: 'Keyboard Rules',
@@ -385,7 +377,6 @@ const SHORTCUT_LABEL_MAP: Record<string, { en: string; es: string }> = {
   appearance: { en: 'Style', es: 'Estilo' },
   language: { en: 'Lang', es: 'Idioma' },
   faq: { en: 'FAQ', es: 'FAQ' },
-  'bug-report': { en: 'Bugs', es: 'Fallos' },
   'keyboard-shortcuts': { en: 'Keys', es: 'Teclas' },
   'vocalex-takes': { en: 'Takes', es: 'Tomas' },
   'stage-setlist': { en: 'Setlist', es: 'Setlist' },
@@ -719,7 +710,7 @@ export default function StudioHub() {
       case 'bug-report':
         setTab('settings');
         setTimeout(() => {
-          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'bug-report' });
+          NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'help-center' });
         }, 150);
         break;
       case 'keyboard-shortcuts':
@@ -4524,122 +4515,7 @@ function HubSettings({
   }
 
   function renderBugReportContent() {
-    const handleCopyTemplate = () => {
-      const template = `[STUDIO BUG REPORT]
-------------------------------------
-App Version: v${APP_VERSION} (Web)
-User Agent: ${navigator.userAgent}
-Date: ${new Date().toISOString()}
-
-[Description of Bug]
--
-
-[Steps to Reproduce]
-1.
-2.
-3.
-
-[Expected Behavior]
--
-
-[Actual Behavior]
-- `;
-      navigator.clipboard.writeText(template);
-      setCopiedBugTemplate(true);
-      setTimeout(() => setCopiedBugTemplate(false), 2000);
-    };
-
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
-          paddingBottom: 'var(--space-6)',
-        }}
-      >
-        <p
-          style={{
-            margin: 0,
-            fontSize: 13,
-            color: 'var(--c-text-secondary)',
-            lineHeight: 1.5,
-            fontFamily: 'Inter, sans-serif',
-          }}
-        >
-          {Capacitor.isNativePlatform()
-            ? 'If you encounter an issue or unexpected behavior in Studio, please report it! Tap below to send us a support email with pre-filled diagnostic information.'
-            : 'If you encounter an issue or unexpected behavior in Studio, please report it! Copy the template below and submit it on our GitHub repository.'}
-        </p>
-
-        <Button
-          variant="primary"
-          onClick={handleCopyTemplate}
-          style={{
-            alignSelf: 'flex-start',
-            fontFamily: 'Inter, sans-serif',
-          }}
-          icon={
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-              {copiedBugTemplate ? 'check' : 'content_copy'}
-            </span>
-          }
-        >
-          {copiedBugTemplate ? 'Copied to Clipboard!' : 'Copy Bug Template'}
-        </Button>
-
-        <div
-          style={{
-            padding: 14,
-            background: 'rgba(0, 0, 0, 0.30)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            borderRadius: 14,
-            fontFamily: 'monospace',
-            fontSize: 12,
-            color: 'var(--c-text-secondary)',
-            whiteSpace: 'pre-wrap',
-            lineHeight: 1.5,
-            boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.25)',
-          }}
-        >
-          {`[STUDIO BUG REPORT]
-App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
-User Agent: [Automatically Generated]
-...`}
-        </div>
-
-        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
-          <motion.a
-            whileTap={{ scale: 0.96 }}
-            whileHover={{ scale: 1.02 }}
-            transition={SpringPresets.soft}
-            href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent('Bug: [Enter short title]')}&body=${encodeURIComponent(
-              `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
-                `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android/Native' : 'Web'})\n\n` +
-                `**ANDROID/OS VERSION**\n- [e.g. Android 13 / Windows 11]\n\n` +
-                `**DEVICE MODEL**\n- [e.g. Samsung Galaxy S23 / Laptop]\n\n` +
-                `**REPRODUCTION STEPS**\n1. \n2. \n3. \n\n` +
-                `**EXPECTED RESULT**\n- \n\n` +
-                `**ACTUAL RESULT**\n- \n\n` +
-                `*Generated on ${new Date().toISOString()}*`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="button button--primary button--md"
-            style={{
-              textDecoration: 'none',
-              fontFamily: 'Inter, sans-serif',
-              gap: 8,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-              open_in_new
-            </span>
-            Report a Bug on GitHub
-          </motion.a>
-        </div>
-      </div>
-    );
+    return renderHelpCenterContent();
   }
 
   function renderGeneralContent() {
@@ -7513,94 +7389,6 @@ User Agent: [Automatically Generated]
                               </span>
                             </div>
                           </motion.div>
-
-                          <motion.div
-                            whileTap={{ scale: 0.985 }}
-                            whileHover={{ scale: 1.008 }}
-                            transition={SpringPresets.soft}
-                            onClick={() => navigate('bug-report')}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 14,
-                              padding: '12px 14px',
-                              borderRadius: 16,
-                              cursor: 'pointer',
-                            }}
-                            className="hover:bg-white/5 transition-colors"
-                          >
-                            <div
-                              style={{
-                                width: 36,
-                                height: 36,
-                                borderRadius: 12,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-                                border: isLight
-                                  ? '1px solid rgba(0,0,0,0.06)'
-                                  : '1px solid rgba(255,255,255,0.10)',
-                                boxShadow: isLight
-                                  ? 'inset 0 1px 1px rgba(255,255,255,0.8)'
-                                  : 'inset 0 1px 1px rgba(255,255,255,0.15)',
-                              }}
-                            >
-                              <span
-                                className="material-symbols-outlined"
-                                style={{ color: 'var(--c-text-secondary)', fontSize: 18 }}
-                              >
-                                bug_report
-                              </span>
-                            </div>
-                            <div
-                              style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}
-                            >
-                              <span
-                                style={{
-                                  fontSize: 14.5,
-                                  fontWeight: 750,
-                                  color: 'var(--c-text-primary)',
-                                  fontFamily: 'Manrope, sans-serif',
-                                  letterSpacing: '-0.015em',
-                                }}
-                              >
-                                Report a Bug
-                              </span>
-                              <span
-                                style={{
-                                  fontSize: '12px',
-                                  color: 'var(--c-text-secondary)',
-                                  fontFamily: 'Inter, sans-serif',
-                                  opacity: 0.75,
-                                }}
-                              >
-                                Help us improve the workspace
-                              </span>
-                            </div>
-                            <div
-                              style={{
-                                width: 24,
-                                height: 24,
-                                borderRadius: '50%',
-                                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              <span
-                                className="material-symbols-outlined"
-                                style={{
-                                  color: 'var(--c-text-secondary)',
-                                  opacity: 0.6,
-                                  fontSize: 15,
-                                }}
-                              >
-                                chevron_right
-                              </span>
-                            </div>
-                          </motion.div>
                         </div>
                       </div>
 
@@ -8846,124 +8634,7 @@ function HubHelp({
   }
 
   function renderBugReportContent() {
-    const handleCopyTemplate = () => {
-      const template = `[STUDIO BUG REPORT]
-------------------------------------
-App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
-User Agent: ${navigator.userAgent}
-Date: ${new Date().toISOString()}
-
-[Description of Bug]
--
-
-[Steps to Reproduce]
-1.
-2.
-3.
-
-[Expected Behavior]
--
-
-[Actual Behavior]
-- `;
-      navigator.clipboard.writeText(template);
-      setCopiedBugTemplate(true);
-      setTimeout(() => setCopiedBugTemplate(false), 2000);
-    };
-
-    return (
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-4)',
-          paddingBottom: 'var(--space-6)',
-        }}
-      >
-        <p style={{ margin: 0, fontSize: 13, color: 'var(--c-text-secondary)', lineHeight: 1.5 }}>
-          {Capacitor.isNativePlatform() ? t.help.bugReport.nativeDesc : t.help.bugReport.webDesc}
-        </p>
-
-        <button
-          onClick={handleCopyTemplate}
-          style={{
-            alignSelf: 'flex-start',
-            padding: '8px 16px',
-            background: accent.from,
-            color: '#fff',
-            fontSize: 12.5,
-            fontWeight: 700,
-            border: 'none',
-            borderRadius: 9999,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-            {copiedBugTemplate ? 'check' : 'content_copy'}
-          </span>
-          {copiedBugTemplate ? t.help.bugReport.copied : t.help.bugReport.copyTemplate}
-        </button>
-
-        <div
-          style={{
-            padding: 14,
-            background: 'var(--surface-topbar-bg)',
-            border: '1px solid var(--c-border)',
-            borderRadius: 12,
-            fontFamily: 'monospace',
-            fontSize: 12,
-            color: 'var(--c-text-secondary)',
-            whiteSpace: 'pre-wrap',
-            lineHeight: 1.5,
-          }}
-        >
-          {`[STUDIO BUG REPORT]
-App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
-User Agent: [Automatically Generated]
-...`}
-        </div>
-
-        <div style={{ height: 1, borderTop: '1px solid var(--c-border)', margin: '4px 0' }} />
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <a
-            href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent('Bug: [Enter short title]')}&body=${encodeURIComponent(
-              `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
-                `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android/Native' : 'Web'})\n\n` +
-                `**ANDROID/OS VERSION**\n- [e.g. Android 13 / Windows 11]\n\n` +
-                `**DEVICE MODEL**\n- [e.g. Samsung Galaxy S23 / Laptop]\n\n` +
-                `**REPRODUCTION STEPS**\n1. \n2. \n3. \n\n` +
-                `**EXPECTED RESULT**\n- \n\n` +
-                `**ACTUAL RESULT**\n- \n\n` +
-                `*Generated on ${new Date().toISOString()}*`
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              textDecoration: 'none',
-              padding: '8px 16px',
-              background: accent.from,
-              color: '#fff',
-              fontSize: 12.5,
-              fontWeight: 700,
-              borderRadius: 9999,
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              open_in_new
-            </span>
-            {t.help.bugReport.githubBtn}
-          </a>
-        </div>
-      </div>
-    );
+    return renderHelpCenterContent();
   }
 
   function renderActivePageContent(activePageId: HelpPageId) {

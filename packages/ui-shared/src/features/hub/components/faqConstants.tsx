@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
+import { Button } from '../../../shared/design-system/buttons';
 import {
   useT,
   useSettingsStore,
@@ -10,6 +11,7 @@ import {
   resetUpdateTimeline,
   subscribeSyncStatus,
   deviceId,
+  APP_VERSION,
   type SyncStatus,
 } from '@workspace/studio-core';
 
@@ -190,6 +192,35 @@ export function HelpAccordion({
   const [resetState, setResetState] = useState<'idle' | 'repairing' | 'success'>('idle');
 
   const [timelineText, setTimelineText] = useState('');
+  const [copiedBugTemplate, setCopiedBugTemplate] = useState(false);
+
+  const handleCopyBugTemplate = () => {
+    const template = `[STUDIO BUG REPORT]
+------------------------------------
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
+User Agent: ${typeof navigator !== 'undefined' ? navigator.userAgent : 'Unknown'}
+Date: ${new Date().toISOString()}
+
+[Description of Bug]
+-
+
+[Steps to Reproduce]
+1.
+2.
+3.
+
+[Expected Behavior]
+-
+
+[Actual Behavior]
+- `;
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(template);
+    }
+    setCopiedBugTemplate(true);
+    setTimeout(() => setCopiedBugTemplate(false), 2000);
+  };
+
   const [diagActive, setDiagActive] = useState(() => {
     try {
       return localStorage.getItem('studio:diagnostics_session_active') === 'true';
@@ -533,6 +564,11 @@ export function HelpAccordion({
                 t.help?.accordion?.categories?.diagnostics ||
                 (lang === 'es' ? 'Diagnóstico' : 'Diagnostics'),
               icon: 'build',
+            },
+            {
+              id: 'bug-report',
+              label: lang === 'es' ? 'Reportar Error' : 'Report a Bug',
+              icon: 'bug_report',
             },
           ].map((cat) => {
             const isActive = activeCategory === cat.id;
@@ -1440,6 +1476,180 @@ export function HelpAccordion({
           </div>
         )}
       </div>
+
+      {/* Report a Bug Section */}
+      {(!activeCategory ||
+        activeCategory === 'troubleshooting' ||
+        activeCategory === 'bug-report') && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span
+            style={{
+              fontSize: '9.5px',
+              fontWeight: 800,
+              letterSpacing: '0.14em',
+              textTransform: 'uppercase',
+              color: 'var(--c-text-tertiary, #808080)',
+              fontFamily: 'Inter, sans-serif',
+              paddingLeft: '4px',
+            }}
+          >
+            {lang === 'es' ? 'Reportar un Error' : 'Report a Bug'}
+          </span>
+          <div
+            style={{
+              background: 'var(--surface-topbar-bg)',
+              border: '1px solid var(--c-border)',
+              borderRadius: 18,
+              padding: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              position: 'relative',
+              overflow: 'hidden',
+              backdropFilter: 'var(--surface-float-blur)',
+              WebkitBackdropFilter: 'var(--surface-float-blur)',
+              boxShadow: isLight
+                ? '0 4px 16px rgba(0, 0, 0, 0.03), inset 0 1px 1px rgba(255, 255, 255, 0.8)'
+                : 'var(--surface-topbar-shadow)',
+            }}
+          >
+            {/* Top Specular Rim */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 12,
+                right: 12,
+                height: '1px',
+                background: 'var(--surface-glass-rim)',
+                pointerEvents: 'none',
+                opacity: 0.6,
+              }}
+            />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 10,
+                  background: `${accent.from}18`,
+                  border: `1px solid ${accent.from}33`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: accent.from, fontSize: 18 }}
+                >
+                  bug_report
+                </span>
+              </div>
+              <div>
+                <h4
+                  style={{
+                    margin: 0,
+                    fontSize: 14,
+                    fontWeight: 750,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'Manrope, sans-serif',
+                  }}
+                >
+                  {lang === 'es' ? 'Reportar un Error / Incidencia' : 'Report a Bug / Issue'}
+                </h4>
+                <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8 }}>
+                  {Capacitor.isNativePlatform()
+                    ? lang === 'es'
+                      ? 'Copia el diagnóstico del sistema o repórtalo en nuestro repositorio GitHub.'
+                      : 'Copy system diagnostics or report on our GitHub repository.'
+                    : lang === 'es'
+                      ? 'Copia la plantilla con datos del sistema y envíala a GitHub.'
+                      : 'Copy pre-filled system diagnostics and submit on GitHub.'}
+                </span>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: 12,
+                background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(0, 0, 0, 0.35)',
+                border: '1px solid var(--c-border)',
+                borderRadius: 12,
+                fontFamily: 'monospace',
+                fontSize: 11.5,
+                color: 'var(--c-text-secondary)',
+                whiteSpace: 'pre-wrap',
+                lineHeight: 1.45,
+              }}
+            >
+              {`[STUDIO BUG REPORT]
+App Version: v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android' : 'Web'})
+User Agent: ${typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 48) + '...' : '[Auto]'}
+Date: ${new Date().toISOString()}`}
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCopyBugTemplate}
+                icon={
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                    {copiedBugTemplate ? 'check' : 'content_copy'}
+                  </span>
+                }
+              >
+                {copiedBugTemplate
+                  ? lang === 'es'
+                    ? '¡Copiado!'
+                    : 'Copied to Clipboard!'
+                  : lang === 'es'
+                    ? 'Copiar Plantilla'
+                    : 'Copy Bug Template'}
+              </Button>
+
+              <motion.a
+                whileTap={{ scale: 0.95 }}
+                href={`https://github.com/MAGEXE1000/Studio/issues/new?title=${encodeURIComponent('Bug: [Enter short title]')}&body=${encodeURIComponent(
+                  `**AFFECTED MODULE**\n- [e.g. Chordex, Drumex, Stagex, Groovex, Vocalex, Settings, Help]\n\n` +
+                    `**APP VERSION**\n- v${APP_VERSION} (${Capacitor.isNativePlatform() ? 'Android/Native' : 'Web'})\n\n` +
+                    `**ANDROID/OS VERSION**\n- [e.g. Android 13 / Windows 11]\n\n` +
+                    `**DEVICE MODEL**\n- [e.g. Samsung Galaxy S23 / Laptop]\n\n` +
+                    `**REPRODUCTION STEPS**\n1. \n2. \n3. \n\n` +
+                    `**EXPECTED RESULT**\n- \n\n` +
+                    `**ACTUAL RESULT**\n- \n\n` +
+                    `*Generated on ${new Date().toISOString()}*`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '6px 14px',
+                  borderRadius: '9999px',
+                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                  border: '1px solid transparent',
+                  color: '#ffffff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  fontFamily: 'Manrope, sans-serif',
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  open_in_new
+                </span>
+                {lang === 'es' ? 'Reportar en GitHub' : 'Report on GitHub'}
+              </motion.a>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Direct Assistance Card */}
       <div

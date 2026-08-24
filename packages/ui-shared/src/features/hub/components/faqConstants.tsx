@@ -414,441 +414,24 @@ export function HelpAccordion({
       return matchesSearch && matchesCategory;
     });
 
-  if (Capacitor.isNativePlatform()) {
-    return (
-      <div className="flex flex-col gap-6 pb-24 text-on-surface font-body-md bg-surface-container-lowest min-h-screen">
-        {/* Search Bar */}
-        <div className="relative mt-4">
-          <div className="flex items-center bg-surface-container-high h-14 rounded-full px-4 gap-3 focus-within:ring-2 focus-within:ring-primary/30 transition-all">
-            <span className="material-symbols-outlined text-on-surface-variant">search</span>
-            <input
-              className="bg-transparent border-none focus:ring-0 w-full text-body-lg text-on-surface placeholder:text-on-surface-variant"
-              placeholder={
-                lang === 'es' ? 'Buscar ayuda y preguntas...' : 'Search help articles & FAQs...'
-              }
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="text-on-surface-variant hover:text-on-surface"
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Help Categories */}
-        <section>
-          <h2 className="text-label-md uppercase tracking-wider text-on-surface-variant mb-3 px-1">
-            {lang === 'es' ? 'Categorías de Ayuda' : 'Help Categories'}
-          </h2>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-            {[
-              {
-                id: 'getting-started',
-                label: lang === 'es' ? 'Inicio' : 'Getting Started',
-                icon: 'play_circle',
-              },
-              { id: 'audio-midi', label: 'Audio & MIDI', icon: 'volume_up' },
-              {
-                id: 'sync-storage',
-                label: lang === 'es' ? 'Sincro y Almacén' : 'Sync & Storage',
-                icon: 'cloud_sync',
-              },
-              {
-                id: 'troubleshooting',
-                label: lang === 'es' ? 'Diagnóstico' : 'Diagnostics',
-                icon: 'build',
-              },
-            ].map((cat) => {
-              const isActive = activeCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => setActiveCategory(isActive ? null : cat.id)}
-                  className={`flex items-center gap-2 h-8 px-3 rounded-lg border transition-colors whitespace-nowrap ${
-                    isActive
-                      ? 'border-primary bg-primary-container/20 text-primary font-semibold'
-                      : 'border-outline-variant bg-surface-container-low hover:bg-surface-variant text-on-surface-variant'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-[18px]">{cat.icon}</span>
-                  <span className="text-label-lg">{cat.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Device Diagnostics Card */}
-        {(!activeCategory || activeCategory === 'troubleshooting') && (
-          <section className="bg-surface-container rounded-3xl border border-outline-variant/30 p-4 space-y-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-secondary-container">
-                  monitor_heart
-                </span>
-              </div>
-              <div>
-                <h3 className="text-title-lg font-bold">
-                  {lang === 'es' ? 'Diagnóstico del Dispositivo' : 'Device Diagnostics'}
-                </h3>
-                <p className="text-label-md text-on-surface-variant opacity-70">
-                  ID: {deviceId()?.slice(0, 12) || 'UNKNOWN'}...
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-3">
-              <div className="bg-surface-container-low p-3 rounded-2xl">
-                <p className="text-label-md text-on-surface-variant mb-1">
-                  {lang === 'es' ? 'Estado' : 'Status'}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`w-2 h-2 rounded-full ${audioCtxState === 'running' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}
-                  ></span>
-                  <span
-                    className={`text-body-md font-medium ${audioCtxState === 'running' ? 'text-emerald-400' : 'text-red-400'}`}
-                  >
-                    {audioCtxState === 'running'
-                      ? lang === 'es'
-                        ? 'Audio funcionando'
-                        : 'Audio running'
-                      : lang === 'es'
-                        ? 'Audio detenido'
-                        : 'Audio stopped'}
-                  </span>
-                </div>
-              </div>
-              <div className="bg-surface-container-low p-3 rounded-2xl">
-                <p className="text-label-md text-on-surface-variant mb-1">
-                  {lang === 'es' ? 'Almacenamiento' : 'Storage'}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px] text-primary">
-                    database
-                  </span>
-                  <span className="text-body-md font-medium">
-                    {localStorage?.length || 0}{' '}
-                    {lang === 'es' ? 'claves indexadas' : 'keys indexed'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mb-3">
-              <button
-                onClick={runAudioTroubleshooter}
-                disabled={audioState === 'testing'}
-                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
-              >
-                <span
-                  className={`material-symbols-outlined text-[18px] ${audioState === 'testing' ? 'animate-spin' : ''}`}
-                >
-                  {audioState === 'testing' ? 'sync' : 'hearing'}
-                </span>
-                {audioState === 'testing'
-                  ? lang === 'es'
-                    ? 'Probando...'
-                    : 'Testing...'
-                  : lang === 'es'
-                    ? 'Probar Audio'
-                    : 'Test Audio'}
-              </button>
-
-              <button
-                onClick={runSyncTroubleshooter}
-                disabled={syncState === 'syncing'}
-                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
-              >
-                <span
-                  className={`material-symbols-outlined text-[18px] ${syncState === 'syncing' ? 'animate-spin' : ''}`}
-                >
-                  {syncState === 'syncing' ? 'sync' : 'sync'}
-                </span>
-                {syncState === 'syncing'
-                  ? lang === 'es'
-                    ? 'Sincronizando...'
-                    : 'Syncing...'
-                  : lang === 'es'
-                    ? 'Forzar Sincro'
-                    : 'Force Sync'}
-              </button>
-
-              <button
-                onClick={runCacheTroubleshooter}
-                disabled={cacheState === 'clearing'}
-                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
-              >
-                <span
-                  className={`material-symbols-outlined text-[18px] ${cacheState === 'clearing' ? 'animate-spin' : ''}`}
-                >
-                  {cacheState === 'clearing' ? 'sync' : 'mop'}
-                </span>
-                {cacheState === 'clearing'
-                  ? lang === 'es'
-                    ? 'Limpiando...'
-                    : 'Clearing...'
-                  : lang === 'es'
-                    ? 'Limpiar Caché'
-                    : 'Clear Cache'}
-              </button>
-
-              <button
-                onClick={runSecurityTroubleshooter}
-                disabled={securityState === 'auditing'}
-                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
-              >
-                <span
-                  className={`material-symbols-outlined text-[18px] ${securityState === 'auditing' ? 'animate-spin' : ''}`}
-                >
-                  {securityState === 'auditing' ? 'sync' : 'security'}
-                </span>
-                {securityState === 'auditing'
-                  ? lang === 'es'
-                    ? 'Auditando...'
-                    : 'Auditing...'
-                  : lang === 'es'
-                    ? 'Auditoría Seguridad'
-                    : 'Security Audit'}
-              </button>
-
-              <button
-                onClick={runResetTroubleshooter}
-                disabled={resetState === 'repairing'}
-                className="flex items-center gap-2 px-4 py-2 bg-surface-container-highest rounded-full text-label-lg hover:bg-surface-bright transition-all active:scale-95 text-on-surface font-semibold disabled:opacity-50"
-              >
-                <span
-                  className={`material-symbols-outlined text-[18px] ${resetState === 'repairing' ? 'animate-spin' : ''}`}
-                >
-                  {resetState === 'repairing' ? 'sync' : 'restart_alt'}
-                </span>
-                {resetState === 'repairing'
-                  ? lang === 'es'
-                    ? 'Restableciendo...'
-                    : 'Resetting...'
-                  : lang === 'es'
-                    ? 'Reiniciar'
-                    : 'Reset & Reload'}
-              </button>
-
-              <button
-                onClick={toggleDiagOverlay}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-label-lg transition-all active:scale-95 font-semibold ${
-                  diagEnabled
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                    : 'bg-surface-container-highest text-on-surface hover:bg-surface-bright'
-                }`}
-              >
-                <span className="material-symbols-outlined text-[18px]">bug_report</span>
-                {diagEnabled
-                  ? lang === 'es'
-                    ? 'Diag: ACTIVO'
-                    : 'Diagnostics: ON'
-                  : lang === 'es'
-                    ? 'Superposición Diag'
-                    : 'Diagnostics Overlay'}
-              </button>
-            </div>
-
-            {auditReport && (
-              <div className="bg-black/40 rounded-xl p-4 font-mono text-label-md border border-outline-variant/20 overflow-hidden relative">
-                <div className="flex flex-col gap-1 text-emerald-400">
-                  {auditReport.split('\n').map((line, lIdx) => {
-                    const colonIdx = line.indexOf(':');
-                    if (colonIdx !== -1) {
-                      const prefix = line.slice(0, colonIdx + 1);
-                      const suffix = line.slice(colonIdx + 1);
-                      return (
-                        <p key={lIdx}>
-                          <span className="text-emerald-500/60">{prefix}</span>
-                          <span>{suffix}</span>
-                        </p>
-                      );
-                    }
-                    return <p key={lIdx}>{line}</p>;
-                  })}
-                </div>
-                <div className="absolute right-3 top-3 opacity-20 text-emerald-400">
-                  <span className="material-symbols-outlined text-[48px]">terminal</span>
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Update Session Diagnostics Card */}
-        {(!activeCategory || activeCategory === 'troubleshooting') && (
-          <section className="bg-surface-container-low rounded-3xl border border-outline-variant/20 relative overflow-hidden group p-4">
-            <div className="absolute -right-12 -top-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors"></div>
-            <div className="flex items-start gap-4 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-primary-container flex items-center justify-center flex-shrink-0">
-                <span className="material-symbols-outlined text-on-primary-container">
-                  system_update_alt
-                </span>
-              </div>
-              <div className="flex-1 space-y-3">
-                <div>
-                  <h3 className="text-title-lg font-bold mb-1">
-                    {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
-                  </h3>
-                  <p className="text-body-md text-on-surface-variant">
-                    {lang === 'es'
-                      ? 'Activa el modo de diagnóstico para registrar y rastrear el historial de eventos del actualizador nativo en tiempo real.'
-                      : 'Enable diagnostics mode to capture, trace, and inspect native updater event history in real-time.'}
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={handleToggleDiagnostics}
-                    className={`h-10 px-6 rounded-full text-label-lg font-semibold flex items-center gap-2 transition-all ${
-                      diagActive
-                        ? 'bg-emerald-500 text-black hover:bg-emerald-400'
-                        : 'bg-primary text-on-primary hover:bg-primary-fixed-dim'
-                    }`}
-                  >
-                    <span className="material-symbols-outlined text-[18px]">
-                      {diagActive ? 'pause' : 'play_arrow'}
-                    </span>
-                    {diagActive
-                      ? lang === 'es'
-                        ? 'Modo Diagnóstico: ACTIVO'
-                        : 'Diagnostic Mode: ACTIVE'
-                      : lang === 'es'
-                        ? 'Iniciar Diagnóstico'
-                        : 'Start Diagnostic Mode'}
-                  </button>
-                  {diagActive && (
-                    <>
-                      <button
-                        onClick={handleCopyTimeline}
-                        className="h-10 px-4 bg-surface-container-highest text-on-surface rounded-full text-label-lg font-semibold flex items-center gap-2 hover:bg-surface-bright transition-all"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">content_copy</span>
-                        {lang === 'es' ? 'Copiar' : 'Copy Trace'}
-                      </button>
-                      <button
-                        onClick={handleShareTimeline}
-                        className="h-10 px-4 bg-surface-container-highest text-on-surface rounded-full text-label-lg font-semibold flex items-center gap-2 hover:bg-surface-bright transition-all"
-                      >
-                        <span className="material-symbols-outlined text-[18px]">share</span>
-                        {lang === 'es' ? 'Compartir' : 'Share Trace'}
-                      </button>
-                    </>
-                  )}
-                </div>
-                {diagActive && (
-                  <div className="bg-black/40 rounded-xl p-4 font-mono text-label-md border border-outline-variant/20 overflow-y-auto max-h-56 text-left text-sky-400 white-space-pre-wrap">
-                    {timelineText ||
-                      (lang === 'es'
-                        ? 'Esperando eventos del actualizador...'
-                        : 'Waiting for update events...')}
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* FAQs Section */}
-        <section>
-          <h2 className="text-label-md uppercase tracking-wider text-on-surface-variant mb-4 px-1">
-            {lang === 'es' ? 'Preguntas Frecuentes' : 'Frequently Asked Questions'}
-          </h2>
-          <div className="space-y-3">
-            {filteredFaqs.length === 0 ? (
-              <div className="text-center py-6 text-on-surface-variant">
-                {lang === 'es' ? 'No se encontraron preguntas.' : 'No matching FAQs found.'}
-              </div>
-            ) : (
-              filteredFaqs.map((item) => {
-                const isOpen = openIdx === item.originalIdx;
-                return (
-                  <div
-                    key={item.originalIdx}
-                    className="bg-surface-container-low rounded-2xl overflow-hidden border border-outline-variant/10"
-                  >
-                    <button
-                      className="w-full flex items-center justify-between p-5 text-left hover:bg-surface-container-high transition-colors group"
-                      onClick={() => setOpenIdx(isOpen ? null : item.originalIdx)}
-                    >
-                      <span className="font-medium text-body-lg text-on-surface">
-                        {item.question}
-                      </span>
-                      <span
-                        className="material-symbols-outlined transition-transform duration-300 text-on-surface"
-                        style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                      >
-                        expand_more
-                      </span>
-                    </button>
-                    {isOpen && (
-                      <div className="px-5 pb-5 text-body-md text-on-surface-variant border-t border-outline-variant/5 pt-4">
-                        {item.answer}
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </section>
-
-        {/* Direct Assistance Card */}
-        <section className="bg-surface-container-highest/30 rounded-3xl p-8 text-center border-2 border-dashed border-outline-variant/30 mt-8">
-          <h3 className="text-headline-lg-mobile font-bold mb-2">
-            {lang === 'es' ? '¿Necesitas ayuda directa?' : 'Need direct assistance?'}
-          </h3>
-          <p className="text-body-md text-on-surface-variant mb-6 max-w-sm mx-auto">
-            {lang === 'es'
-              ? 'Para ayuda con tu cuenta, recuperación de proyectos o problemas complejos, visita nuestro repositorio oficial en GitHub.'
-              : 'For help with your account, project recovery, or complex technical issues, feel free to visit our official GitHub repository.'}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a
-              className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-surface-container-high text-on-surface border border-outline-variant hover:bg-surface-bright transition-all font-medium"
-              href="https://github.com/MAGEXE1000/Studio"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className="material-symbols-outlined text-[20px]">code</span>
-              GitHub Repository
-            </a>
-            <a
-              className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-full bg-secondary-container text-on-secondary-container hover:brightness-110 transition-all font-medium"
-              href="mailto:stagecore.contact@gmail.com"
-            >
-              <span className="material-symbols-outlined text-[20px]">mail</span>
-              Contact Support
-            </a>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingBottom: 24 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14, paddingBottom: 32 }}>
       {/* Search Input */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 12,
-          padding: '12px 16px',
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(128, 128, 128, 0.08)',
+          gap: 10,
+          height: 42,
+          padding: '0 14px',
+          background: 'var(--app-surface-low)',
+          border: '1px solid var(--c-border)',
           borderRadius: 12,
         }}
       >
         <span
           className="material-symbols-outlined"
-          style={{ color: 'var(--c-text-secondary)', fontSize: 20 }}
+          style={{ color: 'var(--c-text-secondary)', fontSize: 18, opacity: 0.7 }}
         >
           search
         </span>
@@ -861,12 +444,13 @@ export function HelpAccordion({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           style={{
+            flex: 1,
             background: 'transparent',
             border: 'none',
             outline: 'none',
             color: 'var(--c-text-primary)',
-            fontSize: 14,
-            width: '100%',
+            fontSize: 13,
+            fontFamily: 'Inter, sans-serif',
           }}
         />
         {searchQuery && (
@@ -878,9 +462,11 @@ export function HelpAccordion({
               cursor: 'pointer',
               color: 'var(--c-text-secondary)',
               padding: 0,
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               close
             </span>
           </button>
@@ -888,7 +474,7 @@ export function HelpAccordion({
       </div>
 
       {/* Category Chips */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         <h3
           style={{
             fontSize: 11,
@@ -896,13 +482,13 @@ export function HelpAccordion({
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             color: 'var(--c-text-secondary)',
-            opacity: 0.6,
+            opacity: 0.7,
             margin: 0,
           }}
         >
           {lang === 'es' ? 'Categorías de Ayuda' : 'Help Categories'}
         </h3>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {[
             {
               id: 'getting-started',
@@ -936,17 +522,17 @@ export function HelpAccordion({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  padding: '8px 14px',
+                  padding: '6px 12px',
                   borderRadius: 20,
-                  border: isActive ? 'none' : '1px solid rgba(128, 128, 128, 0.15)',
+                  border: isActive ? '1px solid transparent' : '1px solid var(--c-border)',
                   background: isActive
                     ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-                    : 'rgba(255, 255, 255, 0.02)',
-                  color: isActive ? '#fff' : 'var(--c-text-primary)',
+                    : 'var(--app-surface-low)',
+                  color: isActive ? '#ffffff' : 'var(--c-text-secondary)',
                   fontSize: 12,
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  transition: 'all 200ms ease',
+                  transition: 'all 180ms ease',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
@@ -959,89 +545,170 @@ export function HelpAccordion({
         </div>
       </div>
 
-      {/* Dynamic Device Diagnostics Card */}
+      {/* Device Diagnostics Card */}
       {(!activeCategory || activeCategory === 'troubleshooting') && (
         <div
           style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(128, 128, 128, 0.08)',
+            background: 'var(--app-surface-low)',
+            border: '1px solid var(--c-border)',
             borderRadius: 16,
-            padding: 16,
+            padding: 14,
             display: 'flex',
             flexDirection: 'column',
             gap: 12,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span
-              className="material-symbols-outlined"
-              style={{ color: accent.from, fontSize: 22 }}
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 10,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              monitor_heart
-            </span>
-            <h4
-              style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)' }}
-            >
-              {t.help.accordion.diagnosticsCard.title ||
-                (lang === 'es' ? 'Diagnóstico del Dispositivo' : 'Device Diagnostics')}
-            </h4>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: accent.from, fontSize: 18 }}
+              >
+                monitor_heart
+              </span>
+            </div>
+            <div>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  color: 'var(--c-text-primary)',
+                }}
+              >
+                {t.help.accordion.diagnosticsCard.title ||
+                  (lang === 'es' ? 'Diagnóstico del Dispositivo' : 'Device Diagnostics')}
+              </h4>
+              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8 }}>
+                ID:{' '}
+                <span style={{ fontFamily: 'monospace' }}>
+                  {deviceId()?.slice(0, 12) || 'UNKNOWN'}...
+                </span>
+              </span>
+            </div>
           </div>
+
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: 10,
-              fontSize: 11,
-              color: 'var(--c-text-secondary)',
+              gap: 8,
             }}
           >
-            <div>
-              <span style={{ opacity: 0.6 }}>ID: </span>
-              <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-                {deviceId()?.slice(0, 12) || 'UNKNOWN'}...
-              </span>
-            </div>
-            <div>
-              <span style={{ opacity: 0.6 }}>Platform: </span>
-              <span style={{ fontWeight: 600 }}>
-                {Capacitor.isNativePlatform() ? 'Android App' : 'Web Browser'}
-              </span>
-            </div>
-            <div>
-              <span style={{ opacity: 0.6 }}>Audio: </span>
+            <div
+              style={{
+                padding: '8px 10px',
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
+                borderRadius: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+              }}
+            >
               <span
                 style={{
-                  fontWeight: 600,
-                  color: audioCtxState === 'running' ? '#40c057' : 'var(--c-text-secondary)',
+                  fontSize: 10.5,
+                  color: 'var(--c-text-secondary)',
+                  opacity: 0.8,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
                 }}
               >
-                {audioCtxState}
+                {lang === 'es' ? 'Audio' : 'Audio Engine'}
               </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: '50%',
+                    background: audioCtxState === 'running' ? '#10b981' : '#ef4444',
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: audioCtxState === 'running' ? '#10b981' : 'var(--c-text-secondary)',
+                  }}
+                >
+                  {audioCtxState === 'running'
+                    ? lang === 'es'
+                      ? 'Activo'
+                      : 'Running'
+                    : lang === 'es'
+                      ? 'Detenido'
+                      : 'Stopped'}
+                </span>
+              </div>
             </div>
-            <div>
-              <span style={{ opacity: 0.6 }}>Storage: </span>
-              <span style={{ fontWeight: 600 }}>{localStorage?.length || 0} keys</span>
+
+            <div
+              style={{
+                padding: '8px 10px',
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
+                borderRadius: 10,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 10.5,
+                  color: 'var(--c-text-secondary)',
+                  opacity: 0.8,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {lang === 'es' ? 'Almacenamiento' : 'Local Storage'}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 14, color: accent.from }}
+                >
+                  database
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--c-text-primary)' }}>
+                  {localStorage?.length || 0} {lang === 'es' ? 'claves' : 'keys'}
+                </span>
+              </div>
             </div>
           </div>
-
-          <div style={{ height: 1, background: 'rgba(128, 128, 128, 0.08)', margin: '4px 0' }} />
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             <button
               onClick={runAudioTroubleshooter}
               disabled={audioState === 'testing'}
               style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(128,128,128,0.1)',
+                padding: '6px 11px',
+                borderRadius: 20,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
                 color: 'var(--c-text-primary)',
-                fontSize: 11,
-                fontWeight: 700,
+                fontSize: 11.5,
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
+                opacity: audioState === 'testing' ? 0.6 : 1,
               }}
             >
               <span
@@ -1055,24 +722,26 @@ export function HelpAccordion({
               </span>
               {audioState === 'testing'
                 ? t.help.accordion.diagnosticsCard.btnTesting || 'Testing...'
-                : t.help.accordion.diagnosticsCard.btnTestAudio || 'Test Audio'}
+                : t.help.accordion.diagnosticsCard.btnTestAudio ||
+                  (lang === 'es' ? 'Probar Audio' : 'Test Audio')}
             </button>
 
             <button
               onClick={runSyncTroubleshooter}
               disabled={syncState === 'syncing'}
               style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(128,128,128,0.1)',
+                padding: '6px 11px',
+                borderRadius: 20,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
                 color: 'var(--c-text-primary)',
-                fontSize: 11,
-                fontWeight: 700,
+                fontSize: 11.5,
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
+                opacity: syncState === 'syncing' ? 0.6 : 1,
               }}
             >
               <span
@@ -1082,28 +751,30 @@ export function HelpAccordion({
                   animation: syncState === 'syncing' ? 'spin 1s linear infinite' : 'none',
                 }}
               >
-                {syncState === 'syncing' ? 'sync' : 'sync_problem'}
+                {syncState === 'syncing' ? 'sync' : 'sync'}
               </span>
               {syncState === 'syncing'
                 ? t.help.accordion.diagnosticsCard.btnSyncing || 'Syncing...'
-                : t.help.accordion.diagnosticsCard.btnForceSync || 'Force Sync'}
+                : t.help.accordion.diagnosticsCard.btnForceSync ||
+                  (lang === 'es' ? 'Forzar Sincro' : 'Force Sync')}
             </button>
 
             <button
               onClick={runCacheTroubleshooter}
               disabled={cacheState === 'clearing'}
               style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(128,128,128,0.1)',
+                padding: '6px 11px',
+                borderRadius: 20,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
                 color: 'var(--c-text-primary)',
-                fontSize: 11,
-                fontWeight: 700,
+                fontSize: 11.5,
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
+                opacity: cacheState === 'clearing' ? 0.6 : 1,
               }}
             >
               <span
@@ -1117,99 +788,119 @@ export function HelpAccordion({
               </span>
               {cacheState === 'clearing'
                 ? t.help.accordion.diagnosticsCard.btnClearing || 'Clearing...'
-                : t.help.accordion.diagnosticsCard.btnClearCache || 'Clear Cache'}
+                : t.help.accordion.diagnosticsCard.btnClearCache ||
+                  (lang === 'es' ? 'Limpiar Caché' : 'Clear Cache')}
             </button>
 
             <button
               onClick={runSecurityTroubleshooter}
               disabled={securityState === 'auditing'}
               style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(128,128,128,0.1)',
+                padding: '6px 11px',
+                borderRadius: 20,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
                 color: 'var(--c-text-primary)',
-                fontSize: 11,
-                fontWeight: 700,
+                fontSize: 11.5,
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
+                opacity: securityState === 'auditing' ? 0.6 : 1,
               }}
             >
-              <AnimatedIcon
-                name={securityState === 'auditing' ? 'sync' : 'security'}
-                state={securityState === 'auditing' ? 'loading' : 'inactive'}
-                size={14}
-              />
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: 14,
+                  animation: securityState === 'auditing' ? 'spin 1s linear infinite' : 'none',
+                }}
+              >
+                {securityState === 'auditing' ? 'sync' : 'security'}
+              </span>
               {securityState === 'auditing'
                 ? t.help.accordion.diagnosticsCard.btnAuditing || 'Auditing...'
-                : t.help.accordion.diagnosticsCard.btnSecurityAudit || 'Security Audit'}
+                : t.help.accordion.diagnosticsCard.btnSecurityAudit ||
+                  (lang === 'es' ? 'Auditoría' : 'Security Audit')}
             </button>
 
             <button
               onClick={runResetTroubleshooter}
               disabled={resetState === 'repairing'}
               style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(128,128,128,0.1)',
+                padding: '6px 11px',
+                borderRadius: 20,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
                 color: 'var(--c-text-primary)',
-                fontSize: 11,
-                fontWeight: 700,
+                fontSize: 11.5,
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
+                opacity: resetState === 'repairing' ? 0.6 : 1,
               }}
             >
-              <AnimatedIcon
-                name={resetState === 'repairing' ? 'sync' : 'restart_alt'}
-                state={resetState === 'repairing' ? 'loading' : 'inactive'}
-                size={14}
-              />
+              <span
+                className="material-symbols-outlined"
+                style={{
+                  fontSize: 14,
+                  animation: resetState === 'repairing' ? 'spin 1s linear infinite' : 'none',
+                }}
+              >
+                {resetState === 'repairing' ? 'sync' : 'restart_alt'}
+              </span>
               {resetState === 'repairing'
                 ? t.help.accordion.diagnosticsCard.btnResetting || 'Resetting...'
-                : t.help.accordion.diagnosticsCard.btnResetReload || 'Reset & Reload'}
+                : t.help.accordion.diagnosticsCard.btnResetReload ||
+                  (lang === 'es' ? 'Reiniciar' : 'Reset & Reload')}
             </button>
 
             <button
               onClick={toggleDiagOverlay}
               style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                background: diagEnabled ? 'rgba(64,192,87,0.15)' : 'rgba(255,255,255,0.04)',
+                padding: '6px 11px',
+                borderRadius: 20,
+                background: diagEnabled ? 'rgba(16, 185, 129, 0.15)' : 'var(--app-surface)',
                 border: diagEnabled
-                  ? '1px solid rgba(64,192,87,0.3)'
-                  : '1px solid rgba(128,128,128,0.1)',
-                color: diagEnabled ? '#40c057' : 'var(--c-text-primary)',
-                fontSize: 11,
-                fontWeight: 700,
+                  ? '1px solid rgba(16, 185, 129, 0.3)'
+                  : '1px solid var(--c-border)',
+                color: diagEnabled ? '#10b981' : 'var(--c-text-primary)',
+                fontSize: 11.5,
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
               }}
             >
-              <AnimatedIcon name="bug_report" size={14} />
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                bug_report
+              </span>
               {diagEnabled
-                ? t.help.accordion.diagnosticsCard.btnDiagOn || 'Diagnostics: ON'
-                : t.help.accordion.diagnosticsCard.btnDiagOff || 'Diagnostics Overlay'}
+                ? lang === 'es'
+                  ? 'Diag: ACTIVO'
+                  : 'Diagnostics: ON'
+                : lang === 'es'
+                  ? 'Superposición Diag'
+                  : 'Diagnostics Overlay'}
             </button>
           </div>
 
           {auditReport && (
             <div
               style={{
-                background: 'rgba(0,0,0,0.2)',
-                border: '1px solid rgba(128,128,128,0.1)',
-                borderRadius: 8,
-                padding: 10,
-                fontSize: 10,
-                fontFamily: 'monospace',
-                color: '#40c057',
+                background: 'rgba(0, 0, 0, 0.45)',
+                border: '1px solid var(--c-border)',
+                borderRadius: 10,
+                padding: '10px 12px',
+                fontSize: 11,
+                fontFamily: '"Roboto Mono", monospace',
+                color: '#4ade80',
                 whiteSpace: 'pre-wrap',
+                lineHeight: 1.45,
               }}
             >
               {auditReport}
@@ -1222,50 +913,76 @@ export function HelpAccordion({
       {(!activeCategory || activeCategory === 'troubleshooting') && (
         <div
           style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(128, 128, 128, 0.08)',
+            background: 'var(--app-surface-low)',
+            border: '1px solid var(--c-border)',
             borderRadius: 16,
-            padding: 16,
+            padding: 14,
             display: 'flex',
             flexDirection: 'column',
-            gap: 12,
+            gap: 10,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <AnimatedIcon name="system_update" size={22} color={accent.to} />
-            <h4
-              style={{ margin: 0, fontSize: 14, fontWeight: 800, color: 'var(--c-text-primary)' }}
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 10,
+                background: 'var(--app-surface)',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
             >
-              {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
-            </h4>
+              <span
+                className="material-symbols-outlined"
+                style={{ color: accent.to, fontSize: 18 }}
+              >
+                system_update_alt
+              </span>
+            </div>
+            <div>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                  color: 'var(--c-text-primary)',
+                }}
+              >
+                {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
+              </h4>
+              <span style={{ fontSize: 11, color: 'var(--c-text-secondary)', opacity: 0.8 }}>
+                {lang === 'es'
+                  ? 'Rastreo y registro de eventos del actualizador nativo en tiempo real.'
+                  : 'Trace and inspect native updater events in real-time.'}
+              </span>
+            </div>
           </div>
-
-          <p style={{ margin: 0, fontSize: 11, color: 'var(--c-text-secondary)', lineHeight: 1.4 }}>
-            {lang === 'es'
-              ? 'Activa el modo de diagnóstico para registrar y rastrear el historial de eventos del actualizador nativo en tiempo real.'
-              : 'Enable diagnostics mode to capture, trace, and inspect native updater event history in real-time.'}
-          </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             <button
               onClick={handleToggleDiagnostics}
               style={{
                 padding: '6px 12px',
-                borderRadius: 8,
-                background: diagActive ? 'rgba(64,192,87,0.15)' : 'rgba(255,255,255,0.04)',
-                border: diagActive
-                  ? '1px solid rgba(64,192,87,0.3)'
-                  : '1px solid rgba(128,128,128,0.1)',
-                color: diagActive ? '#40c057' : 'var(--c-text-primary)',
-                fontSize: 11,
+                borderRadius: 20,
+                background: diagActive
+                  ? '#10b981'
+                  : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                border: '1px solid transparent',
+                color: diagActive ? '#000000' : '#ffffff',
+                fontSize: 11.5,
                 fontWeight: 700,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 4,
+                gap: 5,
               }}
             >
-              <AnimatedIcon name={diagActive ? 'pause-circle' : 'play-circle'} size={14} />
+              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                {diagActive ? 'pause' : 'play_arrow'}
+              </span>
               {diagActive
                 ? lang === 'es'
                   ? 'Modo Diagnóstico: ACTIVO'
@@ -1281,39 +998,42 @@ export function HelpAccordion({
                   onClick={handleCopyTimeline}
                   style={{
                     padding: '6px 12px',
-                    borderRadius: 8,
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(128,128,128,0.1)',
+                    borderRadius: 20,
+                    background: 'var(--app-surface)',
+                    border: '1px solid var(--c-border)',
                     color: 'var(--c-text-primary)',
-                    fontSize: 11,
-                    fontWeight: 700,
+                    fontSize: 11.5,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 5,
                   }}
                 >
-                  <AnimatedIcon name="content_copy" size={14} />
-                  {lang === 'es' ? 'Copiar Registro' : 'Copy Trace'}
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    content_copy
+                  </span>
+                  {lang === 'es' ? 'Copiar' : 'Copy Trace'}
                 </button>
-
                 <button
                   onClick={handleShareTimeline}
                   style={{
                     padding: '6px 12px',
-                    borderRadius: 8,
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(128,128,128,0.1)',
+                    borderRadius: 20,
+                    background: 'var(--app-surface)',
+                    border: '1px solid var(--c-border)',
                     color: 'var(--c-text-primary)',
-                    fontSize: 11,
-                    fontWeight: 700,
+                    fontSize: 11.5,
+                    fontWeight: 600,
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 4,
+                    gap: 5,
                   }}
                 >
-                  <AnimatedIcon name="share" size={14} />
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    share
+                  </span>
                   {lang === 'es' ? 'Compartir' : 'Share Trace'}
                 </button>
               </>
@@ -1323,15 +1043,15 @@ export function HelpAccordion({
           {diagActive && (
             <div
               style={{
-                background: '#0c0f12',
-                border: '1px solid rgba(128,128,128,0.15)',
+                background: 'rgba(0, 0, 0, 0.45)',
+                border: '1px solid var(--c-border)',
                 borderRadius: 10,
-                padding: 12,
-                fontFamily: '"Roboto Mono", "Courier New", monospace',
+                padding: '10px 12px',
+                fontFamily: '"Roboto Mono", monospace',
                 fontSize: '11px',
-                lineHeight: '1.4',
-                color: '#4dabf7',
-                maxHeight: '220px',
+                lineHeight: 1.4,
+                color: '#38bdf8',
+                maxHeight: 160,
                 overflowY: 'auto',
                 whiteSpace: 'pre-wrap',
                 textAlign: 'left',
@@ -1346,8 +1066,8 @@ export function HelpAccordion({
         </div>
       )}
 
-      {/* FAQ items / Accordions */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* FAQs Section */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         <h3
           style={{
             fontSize: 11,
@@ -1355,7 +1075,7 @@ export function HelpAccordion({
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             color: 'var(--c-text-secondary)',
-            opacity: 0.6,
+            opacity: 0.7,
             margin: 0,
           }}
         >
@@ -1365,7 +1085,7 @@ export function HelpAccordion({
         {filteredFaqs.length === 0 ? (
           <div
             style={{
-              padding: '20px 0',
+              padding: '16px 0',
               textAlign: 'center',
               color: 'var(--c-text-secondary)',
               fontSize: 13,
@@ -1374,433 +1094,245 @@ export function HelpAccordion({
             {lang === 'es' ? 'No se encontraron preguntas.' : 'No matching FAQs found.'}
           </div>
         ) : (
-          filteredFaqs.map((item) => {
-            const isOpen = openIdx === item.originalIdx;
-            return (
-              <div
-                key={item.originalIdx}
-                className="spring-in"
-                style={{
-                  background: 'var(--app-surface)',
-                  border: '1px solid rgba(128,128,128,0.1)',
-                  borderRadius: 14,
-                  overflow: 'hidden',
-                  boxShadow: isOpen ? '0 8px 24px rgba(0,0,0,0.06)' : '0 2px 8px rgba(0,0,0,0.02)',
-                  transition: 'box-shadow 300ms ease, border-color 300ms ease',
-                  borderColor: isOpen
-                    ? `color-mix(in srgb, ${accent.from} 30%, rgba(128,128,128,0.1))`
-                    : 'rgba(128,128,128,0.1)',
-                }}
-              >
-                <button
-                  onClick={() => setOpenIdx(isOpen ? null : item.originalIdx)}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '16px 18px',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
-                    fontWeight: 700,
-                    fontSize: 14,
-                    gap: 12,
-                    outline: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                >
-                  <span
-                    style={{
-                      transition: 'color 200ms ease',
-                      color: isOpen ? accent.from : 'var(--c-text-primary)',
-                    }}
-                  >
-                    {item.question}
-                  </span>
-                  <AnimatedIcon
-                    name="chevron-down"
-                    size={20}
-                    color={isOpen ? accent.from : 'var(--c-text-secondary)'}
-                    style={{
-                      transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                      transition:
-                        'transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), color 200ms ease',
-                    }}
-                  />
-                </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {filteredFaqs.map((item) => {
+              const isOpen = openIdx === item.originalIdx;
+              return (
                 <div
+                  key={item.originalIdx}
                   style={{
-                    maxHeight: isOpen ? 380 : 0,
-                    opacity: isOpen ? 1 : 0,
+                    background: 'var(--app-surface-low)',
+                    border: '1px solid var(--c-border)',
+                    borderRadius: 14,
                     overflow: 'hidden',
-                    transition:
-                      'max-height 300ms cubic-bezier(0.25, 1, 0.5, 1), opacity 240ms ease',
+                    transition: 'border-color 180ms ease, box-shadow 180ms ease',
                   }}
                 >
-                  <div
+                  <button
+                    onClick={() => setOpenIdx(isOpen ? null : item.originalIdx)}
                     style={{
-                      padding: '0 18px 16px',
-                      fontSize: '13px',
-                      lineHeight: '1.6',
-                      color: 'var(--c-text-secondary)',
-                      fontFamily: 'Inter, sans-serif',
-                      fontWeight: 500,
+                      width: '100%',
                       display: 'flex',
-                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '12px 14px',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      color: 'var(--c-text-primary)',
+                      fontSize: 13.5,
+                      fontWeight: 600,
+                      gap: 10,
+                      outline: 'none',
+                      WebkitTapHighlightColor: 'transparent',
                     }}
                   >
-                    <span>{item.answer}</span>
+                    <span
+                      style={{
+                        color: isOpen ? accent.from : 'var(--c-text-primary)',
+                        transition: 'color 180ms ease',
+                      }}
+                    >
+                      {item.question}
+                    </span>
+                    <span
+                      className="material-symbols-outlined"
+                      style={{
+                        fontSize: 18,
+                        color: isOpen ? accent.from : 'var(--c-text-secondary)',
+                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 200ms ease, color 180ms ease',
+                        flexShrink: 0,
+                      }}
+                    >
+                      expand_more
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div
+                      style={{
+                        padding: '0 14px 12px 14px',
+                        fontSize: 12.5,
+                        lineHeight: 1.55,
+                        color: 'var(--c-text-secondary)',
+                        borderTop: '1px solid var(--c-border)',
+                        paddingTop: 10,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 8,
+                      }}
+                    >
+                      <span>{item.answer}</span>
 
-                    {/* Troubleshooter Injectors */}
-                    {item.originalIdx === 4 && (
-                      <button
-                        onClick={runAudioTroubleshooter}
-                        disabled={audioState === 'testing'}
-                        style={{
-                          marginTop: 12,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 8,
-                          padding: '10px 16px',
-                          borderRadius: 12,
-                          background:
-                            audioState === 'testing'
-                              ? 'rgba(128,128,128,0.1)'
-                              : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                          color: audioState === 'testing' ? 'var(--c-text-secondary)' : '#ffffff',
-                          border: 'none',
-                          fontFamily: 'Manrope, sans-serif',
-                          fontWeight: 700,
-                          fontSize: '12px',
-                          cursor: audioState === 'testing' ? 'default' : 'pointer',
-                          boxShadow:
-                            audioState === 'testing'
-                              ? 'none'
-                              : `0 4px 12px rgba(0, 122, 255, 0.15)`,
-                          transition: 'all 200ms ease',
-                          outline: 'none',
-                        }}
-                      >
-                        {audioState === 'testing' ? (
-                          <>
-                            <AnimatedIcon name="sync" state="loading" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? 'Probando Altavoces...'
-                                : lang === 'de'
-                                  ? 'Testen...'
-                                  : 'Running Diagnostics...'}
-                            </span>
-                          </>
-                        ) : audioState === 'success' ? (
-                          <>
-                            <AnimatedIcon name="check_circle" state="success" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? '¡Altavoz Activo!'
-                                : lang === 'de'
-                                  ? 'Lautsprecher Aktiv!'
-                                  : 'Sound Active!'}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <AnimatedIcon name="volume_up" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? 'Reiniciar y Probar Sonido'
-                                : lang === 'de'
-                                  ? 'Sound-Engine testen'
-                                  : 'Restart & Test Sound Engine'}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    )}
-
-                    {item.originalIdx === 5 && (
-                      <button
-                        onClick={runSyncTroubleshooter}
-                        disabled={syncState === 'syncing'}
-                        style={{
-                          marginTop: 12,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 8,
-                          padding: '10px 16px',
-                          borderRadius: 12,
-                          background:
-                            syncState === 'syncing'
-                              ? 'rgba(128,128,128,0.1)'
-                              : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                          color: syncState === 'syncing' ? 'var(--c-text-secondary)' : '#ffffff',
-                          border: 'none',
-                          fontFamily: 'Manrope, sans-serif',
-                          fontWeight: 700,
-                          fontSize: '12px',
-                          cursor: syncState === 'syncing' ? 'default' : 'pointer',
-                          boxShadow:
-                            syncState === 'syncing' ? 'none' : `0 4px 12px rgba(0, 122, 255, 0.15)`,
-                          transition: 'all 200ms ease',
-                          outline: 'none',
-                        }}
-                      >
-                        {syncState === 'syncing' ? (
-                          <>
-                            <AnimatedIcon name="sync" state="loading" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? 'Sincronizando de Nuevo...'
-                                : lang === 'de'
-                                  ? 'Synchronisieren...'
-                                  : 'Re-syncing with Cloud...'}
-                            </span>
-                          </>
-                        ) : syncState === 'success' ? (
-                          <>
-                            <AnimatedIcon name="check_circle" state="success" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? '¡Sincronización Exitosa!'
-                                : lang === 'de'
-                                  ? 'Erfolgreich synchronisiert!'
-                                  : 'Sync Successful!'}
-                            </span>
-                          </>
-                        ) : syncState === 'error' ? (
-                          <>
-                            <AnimatedIcon name="error" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? 'Error al Sincronizar'
-                                : lang === 'de'
-                                  ? 'Synchronisierungsfehler'
-                                  : 'Sync Failed'}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <AnimatedIcon name="cloud_sync" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? 'Forzar Sincronización Completa'
-                                : lang === 'de'
-                                  ? 'Datenbank neu synchronisieren'
-                                  : 'Force Full Re-Sync'}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    )}
-
-                    {item.originalIdx === 6 && (
-                      <button
-                        onClick={runCacheTroubleshooter}
-                        disabled={cacheState === 'clearing'}
-                        style={{
-                          marginTop: 12,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 8,
-                          padding: '10px 16px',
-                          borderRadius: 12,
-                          background:
-                            cacheState === 'clearing'
-                              ? 'rgba(128,128,128,0.1)'
-                              : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                          color: cacheState === 'clearing' ? 'var(--c-text-secondary)' : '#ffffff',
-                          border: 'none',
-                          fontFamily: 'Manrope, sans-serif',
-                          fontWeight: 700,
-                          fontSize: '12px',
-                          cursor: cacheState === 'clearing' ? 'default' : 'pointer',
-                          boxShadow:
-                            cacheState === 'clearing'
-                              ? 'none'
-                              : `0 4px 12px rgba(0, 122, 255, 0.15)`,
-                          transition: 'all 200ms ease',
-                          outline: 'none',
-                        }}
-                      >
-                        {cacheState === 'clearing' ? (
-                          <>
-                            <AnimatedIcon name="sync" state="loading" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? 'Limpiando Caché...'
-                                : lang === 'de'
-                                  ? 'Cache wird geleert...'
-                                  : 'Flushing Cache...'}
-                            </span>
-                          </>
-                        ) : cacheState === 'success' ? (
-                          <>
-                            <AnimatedIcon name="check_circle" state="success" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? '¡Caché Limpia!'
-                                : lang === 'de'
-                                  ? 'Cache Geleert!'
-                                  : 'Cache Cleaned!'}
-                            </span>
-                          </>
-                        ) : (
-                          <>
-                            <AnimatedIcon name="mop" size={16} />
-                            <span>
-                              {lang === 'es'
-                                ? 'Vaciar Caché y Temporales'
-                                : lang === 'de'
-                                  ? 'Caches & Temp-Dateien löschen'
-                                  : 'Wipe Caches & Temp Files'}
-                            </span>
-                          </>
-                        )}
-                      </button>
-                    )}
-
-                    {item.originalIdx === 7 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                      {/* Troubleshooter In-Answer Injectors */}
+                      {item.originalIdx === 4 && (
                         <button
-                          onClick={runSecurityTroubleshooter}
-                          disabled={securityState === 'auditing'}
+                          onClick={runAudioTroubleshooter}
+                          disabled={audioState === 'testing'}
                           style={{
-                            marginTop: 12,
+                            marginTop: 4,
+                            alignSelf: 'flex-start',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 8,
-                            padding: '10px 16px',
-                            borderRadius: 12,
-                            background:
-                              securityState === 'auditing'
-                                ? 'rgba(128,128,128,0.1)'
-                                : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                            color:
-                              securityState === 'auditing' ? 'var(--c-text-secondary)' : '#ffffff',
+                            gap: 6,
+                            padding: '6px 12px',
+                            borderRadius: 20,
+                            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                            color: '#ffffff',
                             border: 'none',
-                            fontFamily: 'Manrope, sans-serif',
-                            fontWeight: 700,
-                            fontSize: '12px',
-                            cursor: securityState === 'auditing' ? 'default' : 'pointer',
-                            boxShadow:
-                              securityState === 'auditing'
-                                ? 'none'
-                                : `0 4px 12px rgba(0, 122, 255, 0.15)`,
-                            transition: 'all 200ms ease',
-                            outline: 'none',
+                            fontWeight: 600,
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
                           }}
                         >
-                          {securityState === 'auditing' ? (
-                            <>
-                              <AnimatedIcon name="sync" state="loading" size={16} />
-                              <span>
-                                {lang === 'es'
-                                  ? 'Realizando Auditoría...'
-                                  : lang === 'de'
-                                    ? 'Prüfung läuft...'
-                                    : 'Auditing Storage...'}
-                              </span>
-                            </>
-                          ) : securityState === 'success' ? (
-                            <>
-                              <AnimatedIcon name="check_circle" state="success" size={16} />
-                              <span>
-                                {lang === 'es'
-                                  ? '¡Auditoría Completa!'
-                                  : lang === 'de'
-                                    ? 'Prüfung Abgeschlossen!'
-                                    : 'Audit Complete!'}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <AnimatedIcon name="security" size={16} />
-                              <span>
-                                {lang === 'es'
-                                  ? 'Auditar Claves y Encriptación'
-                                  : lang === 'de'
-                                    ? 'Datenbank-Verschlüsselung prüfen'
-                                    : 'Audit Keys & Encryption'}
-                              </span>
-                            </>
-                          )}
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                            volume_up
+                          </span>
+                          {lang === 'es' ? 'Probar Motor de Audio' : 'Test Audio Engine'}
                         </button>
-                        {auditReport && (
-                          <div
-                            style={{
-                              marginTop: 10,
-                              padding: 12,
-                              background: 'rgba(0,0,0,0.15)',
-                              border: '1px solid rgba(128,128,128,0.1)',
-                              borderRadius: 8,
-                              fontFamily: 'monospace',
-                              fontSize: 11,
-                              color: '#40c057',
-                              whiteSpace: 'pre-wrap',
-                              lineHeight: 1.4,
-                            }}
-                          >
-                            {auditReport}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                      )}
+
+                      {item.originalIdx === 5 && (
+                        <button
+                          onClick={runSyncTroubleshooter}
+                          disabled={syncState === 'syncing'}
+                          style={{
+                            marginTop: 4,
+                            alignSelf: 'flex-start',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '6px 12px',
+                            borderRadius: 20,
+                            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                            color: '#ffffff',
+                            border: 'none',
+                            fontWeight: 600,
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                            cloud_sync
+                          </span>
+                          {lang === 'es' ? 'Forzar Sincronización' : 'Force Full Re-Sync'}
+                        </button>
+                      )}
+
+                      {item.originalIdx === 6 && (
+                        <button
+                          onClick={runCacheTroubleshooter}
+                          disabled={cacheState === 'clearing'}
+                          style={{
+                            marginTop: 4,
+                            alignSelf: 'flex-start',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '6px 12px',
+                            borderRadius: 20,
+                            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                            color: '#ffffff',
+                            border: 'none',
+                            fontWeight: 600,
+                            fontSize: '11.5px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                            mop
+                          </span>
+                          {lang === 'es' ? 'Vaciar Caché' : 'Wipe Caches & Temp Files'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* GitHub contact card */}
+      {/* Direct Assistance Card */}
       <div
         style={{
-          padding: 18,
-          background: 'rgba(255, 255, 255, 0.01)',
-          border: '1px solid rgba(128, 128, 128, 0.06)',
-          borderRadius: 12,
+          background: 'var(--app-surface-low)',
+          border: '1px solid var(--c-border)',
+          borderRadius: 16,
+          padding: '14px 16px',
           display: 'flex',
           flexDirection: 'column',
-          gap: 12,
+          gap: 10,
+          alignItems: 'center',
+          textAlign: 'center',
         }}
       >
-        <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--c-text-primary)' }}>
-          {lang === 'es' ? '¿Necesitas ayuda directa?' : 'Need direct assistance?'}
-        </h4>
-        <p style={{ margin: 0, fontSize: 12, color: 'var(--c-text-secondary)', lineHeight: 1.4 }}>
-          {lang === 'es'
-            ? 'Para ayuda con tu cuenta, recuperación de proyectos o problemas complejos, visita nuestro repositorio oficial en GitHub.'
-            : 'For help with your account, project recovery, or complex issues, feel free to visit our official GitHub repository or reach out directly.'}
-        </p>
-        <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
+        <div>
+          <h4
+            style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: 'var(--c-text-primary)' }}
+          >
+            {lang === 'es' ? '¿Necesitas ayuda directa?' : 'Need direct assistance?'}
+          </h4>
+          <p
+            style={{
+              margin: '4px 0 0',
+              fontSize: 12,
+              color: 'var(--c-text-secondary)',
+              lineHeight: 1.45,
+              maxWidth: 380,
+            }}
+          >
+            {lang === 'es'
+              ? 'Para asistencia técnica, recuperación o reporte de incidencias, contacta con soporte o visita nuestro repositorio.'
+              : 'For technical assistance, project recovery, or bug reports, contact support or visit our repository.'}
+          </p>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
           <a
             href="https://github.com/MAGEXE1000/Studio"
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              textDecoration: 'none',
-              padding: '8px 16px',
-              background: 'rgba(255,255,255,0.06)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              borderRadius: 20,
+              background: 'var(--app-surface)',
+              border: '1px solid var(--c-border)',
               color: 'var(--c-text-primary)',
               fontSize: 12,
-              fontWeight: 700,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
+              fontWeight: 600,
+              textDecoration: 'none',
             }}
           >
-            <AnimatedIcon name="open_in_new" size={16} color="currentColor" />
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              code
+            </span>
             GitHub Repository
+          </a>
+          <a
+            href="mailto:stagecore.contact@gmail.com"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              padding: '7px 14px',
+              borderRadius: 20,
+              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+              border: '1px solid transparent',
+              color: '#ffffff',
+              fontSize: 12,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+              mail
+            </span>
+            Contact Support
           </a>
         </div>
       </div>

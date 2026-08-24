@@ -36,7 +36,7 @@ import {
   AlertDialogBody,
   AlertDialogFooter,
   AlertDialogCloseTrigger,
-} from '@heroui/react';
+} from '@heroui/react/alert-dialog';
 import { MorphingModal } from '../../components/motion/morphing-modal';
 
 export {

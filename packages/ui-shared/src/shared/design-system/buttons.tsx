@@ -3,12 +3,14 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import {
   Button as HeroUIButton,
   ButtonRoot as HeroUIButtonRoot,
+  buttonVariants,
+} from '@heroui/react/button';
+import {
   ButtonGroup as HeroUIButtonGroup,
   ButtonGroupRoot as HeroUIButtonGroupRoot,
   ButtonGroupSeparator,
-  buttonVariants,
   buttonGroupVariants,
-} from '@heroui/react';
+} from '@heroui/react/button-group';
 import { SpringPresets } from '@workspace/studio-core';
 import { AnimatedIcon } from '../icons/AnimatedIcon';
 import { EASE_OUT } from '../../lib/ease';

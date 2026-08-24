@@ -2,8 +2,6 @@
 
 Release Date: 2026-08-23
 
-Release Date: 2026-08-23
-
 ### Added
 
 - Global HeroUI Dialog & Modal Migration: Unified all application dialogs, confirmation dialogs, and modal overlays under HeroUI's AlertDialog compound components (AlertDialog, Backdrop, Container, Dialog, CloseTrigger, Header, Icon, Heading, Body, Footer) across Stagex, Chordex, Drumex, Vocalex, and Hub.

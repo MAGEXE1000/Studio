@@ -498,8 +498,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         return 'Logs';
       case 'performance':
         return 'Performance Diagnostics';
-      case 'network':
-        return 'Network Sniffer';
       default:
         return 'Developer Options';
     }
@@ -2820,6 +2818,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             display: 'flex',
             flexDirection: 'column',
             gap: 14,
+            minWidth: 0,
+            boxSizing: 'border-box',
           }}
         >
           {/* Top Banner Row */}
@@ -2830,9 +2830,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: 12,
+              minWidth: 0,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flex: 1, minWidth: 0 }}>
               <div
                 style={{
                   width: 48,
@@ -2852,8 +2853,16 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               >
                 {score}
               </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: 8,
+                    minWidth: 0,
+                  }}
+                >
                   <h3
                     style={{
                       margin: 0,
@@ -2861,6 +2870,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       fontWeight: 800,
                       color: 'var(--c-text-primary)',
                       fontFamily: 'Manrope, sans-serif',
+                      wordBreak: 'break-word',
+                      minWidth: 0,
                     }}
                   >
                     Runtime Performance Health
@@ -2873,6 +2884,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '11px',
                     color: 'var(--c-text-secondary)',
                     fontFamily: 'Inter, sans-serif',
+                    wordBreak: 'break-word',
                   }}
                 >
                   Status:{' '}
@@ -2886,7 +2898,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           </div>
 
           {/* 4 Core Telemetry Cards Grid */}
-          <div className="perf-hero-grid">
+          <div className="perf-hero-grid" style={{ minWidth: 0 }}>
             {/* Card 1: Frame Rate */}
             <div
               style={{
@@ -2897,6 +2909,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -2904,6 +2918,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                  minWidth: 0,
                 }}
               >
                 <span
@@ -2919,7 +2936,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 </span>
                 {originBadge('MEASURED')}
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
                 <span
                   style={{
                     fontSize: '24px',
@@ -2941,6 +2958,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontFamily: 'monospace',
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '2px 8px',
+                  minWidth: 0,
                 }}
               >
                 <span>Avg: {metrics.averageFps}</span>
@@ -2958,6 +2979,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -2965,6 +2988,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                  minWidth: 0,
                 }}
               >
                 <span
@@ -2980,7 +3006,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 </span>
                 {originBadge('MEASURED')}
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, minWidth: 0 }}>
                 <span
                   style={{
                     fontSize: '24px',
@@ -3000,6 +3026,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontFamily: 'monospace',
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '2px 8px',
+                  minWidth: 0,
                 }}
               >
                 <span>Jitter: ±{metrics.frameVariance}ms</span>
@@ -3023,6 +3053,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -3030,6 +3062,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                  minWidth: 0,
                 }}
               >
                 <span
@@ -3045,7 +3080,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 </span>
                 {originBadge('MEASURED')}
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, minWidth: 0 }}>
                 <span
                   style={{
                     fontSize: '24px',
@@ -3065,6 +3100,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontFamily: 'monospace',
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '2px 8px',
+                  minWidth: 0,
                 }}
               >
                 <span>Long Tasks: {metrics.mainThreadBlockingTotal.toFixed(0)}ms</span>
@@ -3082,6 +3121,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -3089,6 +3130,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 4,
+                  minWidth: 0,
                 }}
               >
                 <span
@@ -3104,7 +3148,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 </span>
                 {originBadge(hasMemoryAPI ? 'MEASURED' : 'UNAVAILABLE')}
               </div>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 4, minWidth: 0 }}>
                 <span
                   style={{
                     fontSize: hasMemoryAPI ? '24px' : '18px',
@@ -3123,6 +3167,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontFamily: 'monospace',
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '2px 8px',
+                  minWidth: 0,
                 }}
               >
                 <span>Alloc: {hasMemoryAPI ? metrics.heapSize : 'N/A'}</span>
@@ -3133,7 +3181,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         </div>
 
         {/* 2. TWO-COLUMN DETAILS: RENDERING PACING & MEMORY/HARDWARE */}
-        <div className="perf-columns-grid">
+        <div className="perf-columns-grid" style={{ minWidth: 0 }}>
           {/* Column A: Frame Pacing Timeline & GPU Info */}
           <div
             style={{
@@ -3147,6 +3195,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
+              minWidth: 0,
+              boxSizing: 'border-box',
             }}
           >
             <div
@@ -3154,12 +3204,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 8,
+                minWidth: 0,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)', flexShrink: 0 }}
                 >
                   speed
                 </span>
@@ -3170,6 +3223,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
                     fontFamily: 'Manrope, sans-serif',
+                    wordBreak: 'break-word',
                   }}
                 >
                   Frame Pacing & V-Sync
@@ -3192,6 +3246,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 border: '1px solid var(--c-border)',
                 position: 'relative',
                 overflow: 'hidden',
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div
@@ -3202,6 +3258,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   height: '100%',
                   width: '100%',
                   gap: 3,
+                  minWidth: 0,
                 }}
               >
                 {chartBars.map((val, idx) => {
@@ -3226,9 +3283,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '2px 6px',
                   fontSize: '9px',
                   color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter, sans-serif',
+                  minWidth: 0,
                 }}
               >
                 <span>Last 20 RAF Frames</span>
@@ -3246,25 +3307,34 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '2px 8px',
                   fontSize: '11px',
+                  minWidth: 0,
                 }}
               >
-                <span style={{ color: 'var(--c-text-secondary)' }}>GPU Renderer</span>
+                <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '100px' }}>
+                  GPU Renderer
+                </span>
                 <span
                   style={{
                     fontWeight: 700,
                     color: 'var(--c-text-primary)',
                     fontFamily: 'monospace',
-                    maxWidth: '65%',
+                    maxWidth: '100%',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    flexShrink: 1,
                   }}
                   title={metrics.gpuRenderer}
                 >
@@ -3275,10 +3345,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '2px 8px',
                   fontSize: '11px',
+                  minWidth: 0,
                 }}
               >
-                <span style={{ color: 'var(--c-text-secondary)' }}>
+                <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '140px' }}>
                   Heavy Frame Spikes (&gt;33ms)
                 </span>
                 <span
@@ -3286,6 +3360,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontWeight: 700,
                     fontFamily: 'monospace',
                     color: metrics.longFrames > 0 ? '#fbbf24' : 'var(--c-text-primary)',
+                    flexShrink: 0,
                   }}
                 >
                   {metrics.longFrames} frames
@@ -3295,15 +3370,22 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  flexWrap: 'wrap',
+                  gap: '2px 8px',
                   fontSize: '11px',
+                  minWidth: 0,
                 }}
               >
-                <span style={{ color: 'var(--c-text-secondary)' }}>Critical Jank (&gt;50ms)</span>
+                <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
+                  Critical Jank (&gt;50ms)
+                </span>
                 <span
                   style={{
                     fontWeight: 700,
                     fontFamily: 'monospace',
                     color: metrics.veryLongFrames > 0 ? '#ef4444' : 'var(--c-text-primary)',
+                    flexShrink: 0,
                   }}
                 >
                   {metrics.veryLongFrames} frames
@@ -3325,6 +3407,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
+              minWidth: 0,
+              boxSizing: 'border-box',
             }}
           >
             <div
@@ -3332,12 +3416,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 8,
+                minWidth: 0,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)', flexShrink: 0 }}
                 >
                   memory
                 </span>
@@ -3348,6 +3435,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
                     fontFamily: 'Manrope, sans-serif',
+                    wordBreak: 'break-word',
                   }}
                 >
                   Memory & Resource Profile
@@ -3367,6 +3455,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 gap: 6,
                 flex: 1,
                 justifyContent: 'center',
+                minWidth: 0,
+                boxSizing: 'border-box',
               }}
             >
               {hasMemoryAPI ? (
@@ -3375,15 +3465,22 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      flexWrap: 'wrap',
+                      gap: '2px 8px',
                       fontSize: '11px',
+                      minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)' }}>Active Used JS Heap</span>
+                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
+                      Active Used JS Heap
+                    </span>
                     <span
                       style={{
                         fontWeight: 700,
                         color: 'var(--c-text-primary)',
                         fontFamily: 'monospace',
+                        flexShrink: 0,
                       }}
                     >
                       {metrics.usedHeap}
@@ -3393,10 +3490,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      flexWrap: 'wrap',
+                      gap: '2px 8px',
                       fontSize: '11px',
+                      minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)' }}>
+                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
                       Allocated Total JS Heap
                     </span>
                     <span
@@ -3404,6 +3505,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         fontWeight: 700,
                         color: 'var(--c-text-primary)',
                         fontFamily: 'monospace',
+                        flexShrink: 0,
                       }}
                     >
                       {metrics.heapSize}
@@ -3413,15 +3515,22 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      flexWrap: 'wrap',
+                      gap: '2px 8px',
                       fontSize: '11px',
+                      minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)' }}>V8 Heap Size Limit</span>
+                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '120px' }}>
+                      V8 Heap Size Limit
+                    </span>
                     <span
                       style={{
                         fontWeight: 700,
                         color: 'var(--c-text-primary)',
                         fontFamily: 'monospace',
+                        flexShrink: 0,
                       }}
                     >
                       {mem ? `${Math.round(mem.jsHeapSizeLimit / (1024 * 1024))} MB` : 'N/A'}
@@ -3431,10 +3540,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      flexWrap: 'wrap',
+                      gap: '2px 8px',
                       fontSize: '11px',
+                      minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)' }}>
+                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
                       Heap Allocation Velocity
                     </span>
                     <span
@@ -3442,6 +3555,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         fontWeight: 700,
                         color: 'var(--c-text-primary)',
                         fontFamily: 'monospace',
+                        flexShrink: 0,
                       }}
                     >
                       {metrics.heapGrowth}
@@ -3456,6 +3570,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     color: 'var(--c-text-secondary)',
                     fontSize: '11.5px',
                     lineHeight: 1.4,
+                    minWidth: 0,
                   }}
                 >
                   <span
@@ -3515,6 +3630,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             display: 'flex',
             flexDirection: 'column',
             gap: 12,
+            minWidth: 0,
+            boxSizing: 'border-box',
           }}
         >
           <div
@@ -3524,16 +3641,17 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               alignItems: 'center',
               flexWrap: 'wrap',
               gap: 8,
+              minWidth: 0,
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <span
                 className="material-symbols-outlined"
-                style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+                style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)', flexShrink: 0 }}
               >
                 account_tree
               </span>
-              <div>
+              <div style={{ minWidth: 0 }}>
                 <h4
                   style={{
                     margin: 0,
@@ -3541,6 +3659,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
                     fontFamily: 'Manrope, sans-serif',
+                    wordBreak: 'break-word',
                   }}
                 >
                   Component Lifecycle Profiler
@@ -3550,6 +3669,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '10.5px',
                     color: 'var(--c-text-secondary)',
                     fontFamily: 'Inter',
+                    wordBreak: 'break-word',
                   }}
                 >
                   Live React render count & mount tracking
@@ -3557,7 +3677,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
               {originBadge('MEASURED')}
               <button
                 onClick={copyComponentRenderStats}
@@ -3593,6 +3713,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               maxHeight: 220,
               overflowY: 'auto',
               paddingRight: 4,
+              minWidth: 0,
             }}
           >
             {perf.size === 0 ? (
@@ -3623,19 +3744,27 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '6px 12px',
+                      minWidth: 0,
+                      boxSizing: 'border-box',
                     }}
                   >
-                    <div>
-                      <span
+                    <div style={{ flex: '1 1 160px', minWidth: 0 }}>
+                      <div
                         style={{
                           fontWeight: 700,
                           fontSize: '12px',
                           color: isHighRerender ? '#fbbf24' : 'var(--c-text-primary)',
                           fontFamily: 'monospace',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
                         }}
+                        title={comp}
                       >
                         {comp}
-                      </span>
+                      </div>
                       <div
                         style={{
                           fontSize: '9.5px',
@@ -3652,6 +3781,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         gap: 12,
                         fontSize: '10.5px',
                         fontFamily: 'monospace',
+                        flexShrink: 0,
+                        alignItems: 'center',
                       }}
                     >
                       <span style={{ color: 'var(--c-text-secondary)' }}>
@@ -3691,12 +3822,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               display: 'flex',
               flexDirection: 'column',
               gap: 10,
+              minWidth: 0,
+              boxSizing: 'border-box',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <span
                 className="material-symbols-outlined"
-                style={{ color: '#ee7d77', fontSize: 18 }}
+                style={{ color: '#ee7d77', fontSize: 18, flexShrink: 0 }}
               >
                 warning
               </span>
@@ -3707,13 +3840,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontWeight: 800,
                   color: '#ee7d77',
                   fontFamily: 'Manrope, sans-serif',
+                  wordBreak: 'break-word',
                 }}
               >
                 Performance Bottlenecks Detected ({warnings.length})
               </h4>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
               {warnings.map((w, idx) => (
                 <div
                   key={idx}
@@ -3728,6 +3862,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 4,
+                    minWidth: 0,
+                    boxSizing: 'border-box',
                   }}
                 >
                   <div
@@ -3735,6 +3871,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 6,
+                      minWidth: 0,
                     }}
                   >
                     <span
@@ -3742,6 +3881,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         fontWeight: 800,
                         fontSize: '12px',
                         color: 'var(--c-text-primary)',
+                        wordBreak: 'break-word',
+                        minWidth: 0,
+                        flex: 1,
                       }}
                     >
                       {w.title}
@@ -3758,6 +3900,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         padding: '1px 5px',
                         borderRadius: '4px',
                         textTransform: 'uppercase',
+                        flexShrink: 0,
                       }}
                     >
                       {w.severity}
@@ -3769,6 +3912,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       fontSize: '11px',
                       color: 'var(--c-text-secondary)',
                       lineHeight: 1.35,
+                      wordBreak: 'break-word',
                     }}
                   >
                     {w.description}
@@ -3778,6 +3922,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       fontSize: '10.5px',
                       color: 'var(--c-text-secondary)',
                       marginTop: 2,
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '2px 8px',
+                      minWidth: 0,
                     }}
                   >
                     <span>
@@ -3802,6 +3950,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             display: 'flex',
             alignItems: 'center',
             gap: 10,
+            minWidth: 0,
+            boxSizing: 'border-box',
           }}
         >
           <span
@@ -3821,6 +3971,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               color: 'var(--c-text-secondary)',
               lineHeight: 1.4,
               fontFamily: 'Inter, sans-serif',
+              wordBreak: 'break-word',
+              flex: 1,
+              minWidth: 0,
             }}
           >
             <strong>Platform Note:</strong> Low-level OS metrics (GPU Rasterization/Compositing
@@ -6591,7 +6744,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         lineHeight: 1.3,
                       }}
                     >
-                      View runtime logs, warnings and system errors.
+                      View runtime logs, network traffic, warnings and system errors.
                     </p>
                   </div>
                 </div>
@@ -6627,91 +6780,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 <span
                   className="material-symbols-outlined"
                   style={{ color: 'var(--c-text-secondary)', opacity: 0.5, flexShrink: 0 }}
-                >
-                  arrow_forward
-                </span>
-              </div>
-            </button>
-
-            {/* Network */}
-            <button
-              onClick={() => {
-                setSubView('network');
-                setActiveTab('network');
-              }}
-              className="btn-smooth"
-              style={cardContainerStyle('network')}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'start',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                }}
-              >
-                <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
-                  <span
-                    className="material-symbols-outlined"
-                    style={{
-                      fontSize: 32,
-                      color: 'var(--studio-accent-from, #679cff)',
-                      fontVariationSettings: "'FILL' 1",
-                    }}
-                  >
-                    wifi
-                  </span>
-                  <div>
-                    <h3
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 800,
-                        color: 'var(--c-text-primary)',
-                        margin: '0 0 4px',
-                      }}
-                    >
-                      Network
-                    </h3>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: 'var(--c-text-secondary)',
-                        margin: 0,
-                        lineHeight: 1.3,
-                      }}
-                    >
-                      Inspect network traffic, latency, and endpoint requests.
-                    </p>
-                  </div>
-                </div>
-                <span style={badgeStyle('active')}>Active</span>
-              </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  width: '100%',
-                  marginTop: 16,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-primary)' }}>
-                    {typeof navigator !== 'undefined' && navigator.onLine ? 'Online' : 'Offline'}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      color: 'var(--c-text-secondary)',
-                      fontFamily: 'monospace',
-                    }}
-                  >
-                    • {network.length} requests logged
-                  </span>
-                </div>
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: 'var(--c-text-secondary)', opacity: 0.5 }}
                 >
                   arrow_forward
                 </span>
@@ -7214,7 +7282,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             'system',
             'logs',
             'performance',
-            'network',
             'motion_playground',
           ]}
         >
@@ -7367,21 +7434,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     logs={logs}
                     showToast={showToast}
                     moduleFilter={['performance', 'perf']}
-                  />
-                </SettingsScaffold>
-              )}
-
-              {viewId === 'network' && (
-                <SettingsScaffold
-                  title="Network Sniffer"
-                  onBack={handleSubViewBack}
-                  toolbarActions={renderCopyButton('Network')}
-                >
-                  {renderNetworkTab()}
-                  <WarningsInspector
-                    logs={logs}
-                    showToast={showToast}
-                    moduleFilter={['network', 'sync']}
                   />
                 </SettingsScaffold>
               )}

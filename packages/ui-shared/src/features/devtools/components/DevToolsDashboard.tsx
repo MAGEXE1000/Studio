@@ -857,6 +857,113 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     });
   }, [events, eventModuleFilter]);
 
+  // System Storage & Quota Estimation
+  const [storageEstimate, setStorageEstimate] = useState<{
+    usageMB: string;
+    quotaMB: string;
+    percentUsed: string;
+    persisted: boolean | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.storage &&
+      typeof navigator.storage.estimate === 'function'
+    ) {
+      navigator.storage
+        .estimate()
+        .then((est) => {
+          const usageMB = est.usage ? (est.usage / (1024 * 1024)).toFixed(2) : '0';
+          const quotaMB = est.quota ? (est.quota / (1024 * 1024)).toFixed(0) : '0';
+          const percentUsed =
+            est.usage && est.quota ? ((est.usage / est.quota) * 100).toFixed(2) : '0';
+
+          if (typeof navigator.storage.persisted === 'function') {
+            navigator.storage
+              .persisted()
+              .then((persisted) => {
+                setStorageEstimate({ usageMB, quotaMB, percentUsed, persisted });
+              })
+              .catch(() => {
+                setStorageEstimate({ usageMB, quotaMB, percentUsed, persisted: null });
+              });
+          } else {
+            setStorageEstimate({ usageMB, quotaMB, percentUsed, persisted: null });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [subView, activeTab]);
+
+  const parsedUA = useMemo(() => {
+    if (typeof navigator === 'undefined')
+      return { androidVer: 'Unavailable', webviewVer: 'Unavailable' };
+    const ua = navigator.userAgent;
+
+    const androidMatch = /Android\s+([0-9.]+)/i.exec(ua);
+    const androidVer = androidMatch ? `Android ${androidMatch[1]}` : 'Unavailable (Web Sandbox)';
+
+    const chromeMatch = /Chrome\/([0-9.]+)/i.exec(ua);
+    const webviewVer = chromeMatch ? `Chromium ${chromeMatch[1]}` : 'WebKit / Standard';
+
+    return { androidVer, webviewVer };
+  }, []);
+
+  const storageMetrics = useMemo(() => {
+    let totalBytes = 0;
+    const keysCount = localStorage.length;
+    for (let i = 0; i < keysCount; i++) {
+      const k = localStorage.key(i);
+      if (k) {
+        const v = localStorage.getItem(k) || '';
+        totalBytes += (k.length + v.length) * 2;
+      }
+    }
+    const sizeKB = (totalBytes / 1024).toFixed(1);
+    return { keysCount, sizeKB, totalBytes };
+  }, [subView, activeTab]);
+
+  const originBadge = (origin: 'MEASURED' | 'CALCULATED' | 'UNAVAILABLE') => {
+    const config = {
+      MEASURED: {
+        bg: 'rgba(37, 99, 235, 0.12)',
+        border: 'rgba(37, 99, 235, 0.25)',
+        color: 'var(--studio-accent-from, #2563eb)',
+      },
+      CALCULATED: {
+        bg: 'rgba(168, 85, 247, 0.12)',
+        border: 'rgba(168, 85, 247, 0.25)',
+        color: '#a855f7',
+      },
+      UNAVAILABLE: {
+        bg: 'rgba(128, 128, 128, 0.10)',
+        border: 'var(--c-border)',
+        color: 'var(--c-text-secondary)',
+      },
+    };
+    const match = config[origin];
+    return (
+      <span
+        style={{
+          fontSize: '8px',
+          fontWeight: 800,
+          background: match.bg,
+          border: `1px solid ${match.border}`,
+          color: match.color,
+          padding: '2px 6px',
+          borderRadius: '4px',
+          textTransform: 'uppercase',
+          letterSpacing: '0.05em',
+          fontFamily: 'Inter, sans-serif',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {origin}
+      </span>
+    );
+  };
+
   const getUnifiedTimeline = () => {
     const list: Array<{
       time: number;
@@ -1568,16 +1675,45 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       case 'System':
         dump.device = {
           userAgent: navigator.userAgent,
-          platform: navigator.platform,
+          platform: Capacitor.getPlatform(),
           isNative: Capacitor.isNativePlatform(),
-          androidVersion: updateDiagnostics.androidVersion || 'N/A',
-          deviceModel: updateDiagnostics.deviceModel || 'Browser',
+          androidVersion:
+            nativeDeviceInfo?.androidVersion ||
+            updateDiagnostics.androidVersion ||
+            parsedUA.androidVer,
+          apiLevel: nativeDeviceInfo?.apiLevel || 'Unavailable',
+          deviceModel: nativeDeviceInfo?.model || updateDiagnostics.deviceModel || 'Unavailable',
+          appVersion: APP_VERSION,
+          webviewEngine: parsedUA.webviewVer,
+          display: {
+            screen:
+              typeof window !== 'undefined' && window.screen
+                ? `${window.screen.width}x${window.screen.height}`
+                : 'Unavailable',
+            viewport:
+              typeof window !== 'undefined'
+                ? `${window.innerWidth}x${window.innerHeight}`
+                : 'Unavailable',
+            dpr: typeof window !== 'undefined' ? window.devicePixelRatio : 1,
+            colorDepth:
+              typeof window !== 'undefined' && window.screen ? window.screen.colorDepth : 24,
+            orientation:
+              typeof window !== 'undefined' && window.screen?.orientation
+                ? window.screen.orientation.type
+                : 'portrait',
+          },
+        };
+        dump.storage = {
+          localStorageKeys: storageMetrics.keysCount,
+          localStorageSizeKB: storageMetrics.sizeKB,
+          quotaEstimate: storageEstimate || 'Unavailable',
         };
         dump.settings = {
           activeModule: currentApp,
           activeTheme: settings.theme,
           language: settings.language,
           syncAcrossDevices: settings.syncAcrossDevices,
+          developerMode: settings.developerMode,
         };
         // LocalStorage (masked)
         {
@@ -2508,46 +2644,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       if (s >= 90) return '#10b981';
       if (s >= 70) return '#f59e0b';
       return '#ef4444';
-    };
-
-    const originBadge = (origin: 'MEASURED' | 'CALCULATED' | 'UNAVAILABLE') => {
-      const config = {
-        MEASURED: {
-          bg: 'rgba(37, 99, 235, 0.12)',
-          border: 'rgba(37, 99, 235, 0.25)',
-          color: 'var(--studio-accent-from, #2563eb)',
-        },
-        CALCULATED: {
-          bg: 'rgba(168, 85, 247, 0.12)',
-          border: 'rgba(168, 85, 247, 0.25)',
-          color: '#a855f7',
-        },
-        UNAVAILABLE: {
-          bg: 'rgba(128, 128, 128, 0.10)',
-          border: 'var(--c-border)',
-          color: 'var(--c-text-secondary)',
-        },
-      };
-      const match = config[origin];
-      return (
-        <span
-          style={{
-            fontSize: '8px',
-            fontWeight: 800,
-            background: match.bg,
-            border: `1px solid ${match.border}`,
-            color: match.color,
-            padding: '2px 6px',
-            borderRadius: '4px',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            fontFamily: 'Inter, sans-serif',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {origin}
-        </span>
-      );
     };
 
     const cardBg = isLightMode
@@ -3611,470 +3707,749 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
 
   const renderStateTab = () => {
-    const states = [
-      { key: 'Active Module', value: currentApp, icon: 'apps' },
-      { key: 'Theme Mode', value: settings.theme, icon: 'palette' },
-      { key: 'Language', value: settings.language || 'en', icon: 'language' },
-      {
-        key: 'Sync Across Devices',
-        value: settings.syncAcrossDevices ? 'Enabled' : 'Disabled',
-        icon: 'sync',
-        isBoolean: true,
-        boolVal: settings.syncAcrossDevices,
-      },
-    ];
+    const isLightMode =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+
+    const cardBg = isLightMode
+      ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.75))'
+      : 'var(--surface-topbar-bg, rgba(20, 20, 24, 0.70))';
+    const innerCardBg = isLightMode ? 'rgba(0, 0, 0, 0.025)' : 'rgba(255, 255, 255, 0.03)';
+
+    const isNative = Capacitor.isNativePlatform();
+    const androidVer = nativeDeviceInfo?.androidVersion
+      ? `Android ${nativeDeviceInfo.androidVersion}`
+      : parsedUA.androidVer;
+    const apiLevel = nativeDeviceInfo?.apiLevel
+      ? `API Level ${nativeDeviceInfo.apiLevel}`
+      : isNative
+        ? 'Unavailable'
+        : 'N/A (Web Platform)';
+    const deviceModel = nativeDeviceInfo?.model
+      ? nativeDeviceInfo.model
+      : isNative
+        ? 'Android Device'
+        : 'Web Browser Client';
+
+    const screenRes =
+      typeof window !== 'undefined' && window.screen
+        ? `${window.screen.width} × ${window.screen.height} px`
+        : 'Unavailable';
+    const viewportRes =
+      typeof window !== 'undefined'
+        ? `${window.innerWidth} × ${window.innerHeight} px`
+        : 'Unavailable';
+    const dpr = typeof window !== 'undefined' ? `${window.devicePixelRatio}x` : '1x';
+    const colorDepth =
+      typeof window !== 'undefined' && window.screen ? `${window.screen.colorDepth}-bit` : '24-bit';
+    const orientation =
+      typeof window !== 'undefined' && window.screen?.orientation
+        ? window.screen.orientation.type
+        : 'portrait';
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-          App Store Settings & Configurations
-        </span>
+      <SettingsContentContainer style={{ gap: 14 }}>
+        <style>{`
+          .sys-grid-2col {
+            display: grid !important;
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+          @media (min-width: 640px) {
+            .sys-grid-2col {
+              grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+          }
+          @media (min-width: 1024px) {
+            .sys-grid-2col {
+              grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            }
+          }
+        `}</style>
+
+        {/* 1. ANDROID OS & HARDWARE ARCHITECTURE */}
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-            gap: 16,
-            width: '100%',
+            background: cardBg,
+            borderRadius: 18,
+            padding: '16px 18px',
+            border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
           }}
         >
-          {states.map((st, idx) => {
-            const valueColor = st.isBoolean
-              ? st.boolVal
-                ? 'var(--studio-accent-from, #679cff)'
-                : 'var(--c-text-secondary)'
-              : st.key === 'Active Module'
-                ? 'var(--studio-accent-from, #679cff)'
-                : 'var(--c-text-primary)';
-
-            return (
-              <div
-                key={idx}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+              >
+                android
+              </span>
+              <h4
                 style={{
-                  background: 'var(--app-surface-high, var(--app-surface))',
-                  border: '1px solid var(--c-border)',
-                  borderRadius: '16px',
-                  padding: '20px 22px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  minHeight: 110,
-                  boxSizing: 'border-box',
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
                 }}
               >
-                <div
-                  style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <span
-                    style={{
-                      fontSize: '10px',
-                      fontWeight: 700,
-                      textTransform: 'uppercase',
-                      color: 'var(--c-text-secondary)',
-                      fontFamily: 'Inter',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    {st.key}
-                  </span>
-                  <span
-                    className="material-symbols-outlined"
-                    style={{
-                      fontSize: 20,
-                      color: 'var(--c-text-secondary)',
-                    }}
-                  >
-                    {st.icon}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontSize: '18px',
-                    fontWeight: 800,
-                    color: valueColor,
-                    fontFamily: 'Manrope, sans-serif',
-                    marginTop: 12,
-                  }}
-                >
-                  {st.value}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const renderNavTab = () => {
-    const navEntries = getNavigationEntries();
-    let diag = (window as any).__navigationDiagnostics;
-    if (!diag) {
-      try {
-        const stored = localStorage.getItem('studio_black_screen_diagnostics');
-        if (stored) {
-          diag = JSON.parse(stored);
-          (window as any).__navigationDiagnostics = diag;
-        }
-      } catch (_) {}
-    }
-    diag = diag || {
-      returnAttempts: 0,
-      failedReturns: 0,
-      blackScreenDetections: 0,
-      lastBlocker: 'none',
-      history: [],
-    };
-
-    const handleCapture = () => {
-      const statePayload = (window as any).__captureBlackScreenState?.();
-      if (statePayload) {
-        diag.lastPayload = statePayload;
-        showToast('Black screen state captured!');
-        try {
-          localStorage.setItem('studio_black_screen_diagnostics', JSON.stringify(diag));
-        } catch (_) {}
-      } else {
-        showToast('Capture failed: capture function not registered.');
-      }
-    };
-
-    const handleCopy = () => {
-      const payload = {
-        navigationDiagnostics: {
-          returnAttempts: diag.returnAttempts,
-          failedReturns: diag.failedReturns,
-          blackScreenDetections: diag.blackScreenDetections,
-          lastBlocker: diag.lastBlocker,
-          chordex: (window as any).__chordexDiagnostics || null,
-        },
-        capturedPayload: diag.lastPayload || (window as any).__captureBlackScreenState?.() || null,
-      };
-
-      navigator.clipboard
-        .writeText(JSON.stringify(payload, null, 2))
-        .then(() => showToast('Diagnostics copied to clipboard!'))
-        .catch(() => showToast('Copy failed. Please copy manually.'));
-    };
-
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)' }}>
-            Navigation Trace & Lifecycle Diagnostics
-          </span>
-          <button
-            onClick={() => {
-              clearNavigationEntries();
-              showToast('Navigation logs cleared!');
-            }}
-            style={{
-              background: 'var(--app-surface-high, var(--app-surface))',
-              border: '1px solid var(--c-border)',
-              color: 'var(--c-text-primary)',
-              borderRadius: 6,
-              fontSize: 10,
-              padding: '4px 10px',
-              cursor: 'pointer',
-            }}
-          >
-            Clear logs
-          </button>
-        </div>
-
-        <div
-          style={{
-            background: 'var(--app-surface-high, var(--app-surface))',
-            borderRadius: 12,
-            border: '1px solid var(--c-border)',
-            padding: 12,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-          }}
-        >
-          <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b' }}>
-            Black Screen Diagnostics
-          </span>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              gap: 8,
-              fontSize: 11,
-              color: 'var(--c-text-primary)',
-            }}
-          >
-            <div>
-              Return Attempts: <strong>{diag.returnAttempts}</strong>
+                OS & Runtime Architecture
+              </h4>
             </div>
-            <div>
-              Failed Returns: <strong>{diag.failedReturns}</strong>
-            </div>
-            <div>
-              Detections: <strong>{diag.blackScreenDetections}</strong>
-            </div>
-            <div style={{ gridColumn: 'span 2' }}>
-              Topmost Blocker:{' '}
-              <span style={{ fontFamily: 'monospace', color: '#f87171' }}>{diag.lastBlocker}</span>
-            </div>
+            {originBadge('MEASURED')}
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-            <button
-              onClick={handleCapture}
-              style={{
-                flex: 1,
-                background: '#3b82f6',
-                border: 'none',
-                color: '#fff',
-                borderRadius: 6,
-                fontSize: 11,
-                padding: '6px 12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              Capture Black Screen State
-            </button>
-            <button
-              onClick={handleCopy}
-              style={{
-                flex: 1,
-                background: '#10b981',
-                border: 'none',
-                color: '#fff',
-                borderRadius: 6,
-                fontSize: 11,
-                padding: '6px 12px',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              Copy Black Screen Diagnostics
-            </button>
-          </div>
-        </div>
 
-        <div
-          style={{
-            background: 'var(--app-surface-low, var(--app-surface))',
-            borderRadius: 12,
-            border: '1px solid var(--c-border)',
-            padding: 12,
-            fontSize: 12,
-            fontFamily: 'monospace',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              color: '#10b981',
-              marginBottom: 12,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-              play_arrow
-            </span>
-            Current Route Mode:{' '}
-            <strong style={{ color: 'var(--c-text-primary)' }}>{currentApp}</strong>
-          </div>
-          <div style={{ color: 'var(--c-text-secondary)', fontSize: 11, marginBottom: 8 }}>
-            Previous view cache triggers:
-            <ul style={{ margin: '4px 0 0', paddingLeft: 16 }}>
-              <li>
-                Last Active Session Panel:{' '}
-                {useSessionStore.getState().lastSession?.stagexView || 'N/A'}
-              </li>
-              <li>
-                LiquidGlassNav collapsed state:{' '}
-                {String(useChordStore.getState().favorites?.length > 0)}
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            maxHeight: '400px',
-            overflowY: 'auto',
-            paddingRight: 4,
-          }}
-        >
-          {navEntries.length === 0 ? (
+          <div className="sys-grid-2col">
+            {/* OS Version */}
             <div
               style={{
-                color: 'var(--c-text-secondary)',
-                fontSize: 11,
-                textAlign: 'center',
-                padding: '20px 0',
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
               }}
             >
-              No navigation events logged yet.
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Operating System
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {androidVer}
+              </span>
             </div>
-          ) : (
-            navEntries
-              .slice()
-              .reverse()
-              .map((entry) => {
-                const timeStr =
-                  new Date(entry.timestamp).toLocaleTimeString() +
-                  '.' +
-                  String(entry.timestamp % 1000).padStart(3, '0');
 
-                const tags: React.ReactNode[] = [];
-                if (entry.transitionStart)
-                  tags.push(
-                    <span
-                      key="start"
-                      style={{
-                        background: 'rgba(59, 130, 246, 0.1)',
-                        color: '#3b82f6',
-                        padding: '1px 5px',
-                        borderRadius: 4,
-                        fontSize: 9,
-                        fontWeight: 700,
-                      }}
-                    >
-                      START
-                    </span>
-                  );
-                if (entry.transitionComplete)
-                  tags.push(
-                    <span
-                      key="complete"
-                      style={{
-                        background: 'rgba(16, 185, 129, 0.1)',
-                        color: '#10b981',
-                        padding: '1px 5px',
-                        borderRadius: 4,
-                        fontSize: 9,
-                        fontWeight: 700,
-                      }}
-                    >
-                      COMPLETE
-                    </span>
-                  );
-                if (entry.hubMounted)
-                  tags.push(
-                    <span
-                      key="hub"
-                      style={{
-                        background: 'rgba(245, 158, 11, 0.1)',
-                        color: '#f59e0b',
-                        padding: '1px 5px',
-                        borderRadius: 4,
-                        fontSize: 9,
-                        fontWeight: 700,
-                      }}
-                    >
-                      HUB MOUNTED
-                    </span>
-                  );
-                if (entry.subappUnmounted)
-                  tags.push(
-                    <span
-                      key="unmount"
-                      style={{
-                        background: 'rgba(239, 68, 68, 0.1)',
-                        color: '#ef4444',
-                        padding: '1px 5px',
-                        borderRadius: 4,
-                        fontSize: 9,
-                        fontWeight: 700,
-                      }}
-                    >
-                      SUBAPP UNMOUNTED
-                    </span>
-                  );
-                if (entry.fallbackRendered)
-                  tags.push(
-                    <span
-                      key="fallback"
-                      style={{
-                        background: 'rgba(168, 85, 247, 0.1)',
-                        color: '#a855f7',
-                        padding: '1px 5px',
-                        borderRadius: 4,
-                        fontSize: 9,
-                        fontWeight: 700,
-                      }}
-                    >
-                      FALLBACK SHOWN
-                    </span>
-                  );
+            {/* Android API Level */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Android SDK / API Level
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: nativeDeviceInfo?.apiLevel
+                    ? 'var(--c-text-primary)'
+                    : 'var(--c-text-secondary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {apiLevel}
+              </span>
+            </div>
 
-                return (
-                  <div
-                    key={entry.id}
-                    style={{
-                      padding: '10px 12px',
-                      background: 'var(--app-surface-high, var(--app-surface))',
-                      border: '1px solid var(--c-border)',
-                      borderRadius: 10,
-                      fontSize: 11,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6,
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <span style={{ color: 'var(--c-text-secondary)', fontFamily: 'monospace' }}>
-                        {timeStr}
-                      </span>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {tags}
-                        <span
-                          style={{
-                            background: entry.transitionLockState
-                              ? 'rgba(239, 68, 68, 0.1)'
-                              : 'rgba(16, 185, 129, 0.1)',
-                            color: entry.transitionLockState ? '#ef4444' : '#10b981',
-                            padding: '1px 5px',
-                            borderRadius: 4,
-                            fontSize: 9,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {entry.transitionLockState ? 'LOCKED' : 'UNLOCKED'}
-                        </span>
-                      </div>
-                    </div>
+            {/* Device Model */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Hardware Model
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {deviceModel}
+              </span>
+            </div>
 
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <span style={{ color: 'var(--c-text-primary)' }}>
-                        Flow:{' '}
-                        <strong style={{ color: '#3b82f6' }}>{entry.fromApp || 'none'}</strong>{' '}
-                        &rarr; <strong style={{ color: '#10b981' }}>{entry.toApp || 'none'}</strong>
-                      </span>
-                      <span style={{ color: 'var(--c-text-secondary)' }}>
-                        Active:{' '}
-                        <strong style={{ color: 'var(--c-text-primary)' }}>
-                          {entry.activeAppAfterTransition}
-                        </strong>
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-          )}
+            {/* App Version */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                App Package Version
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--studio-accent-from, #2563eb)',
+                  fontFamily: 'monospace',
+                }}
+              >
+                v{APP_VERSION}
+              </span>
+            </div>
+
+            {/* Capacitor Runtime */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Capacitor Platform
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {isNative ? 'Android Native Bridge' : 'Web Browser Portal'}
+              </span>
+            </div>
+
+            {/* WebView / Browser Engine */}
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                WebView / Engine
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+                title={parsedUA.webviewVer}
+              >
+                {parsedUA.webviewVer}
+              </span>
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* 2. SCREEN & DISPLAY CHARACTERISTICS */}
+        <div
+          style={{
+            background: cardBg,
+            borderRadius: 18,
+            padding: '16px 18px',
+            border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+              >
+                display_settings
+              </span>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                Screen & Display Metrics
+              </h4>
+            </div>
+            {originBadge('MEASURED')}
+          </div>
+
+          <div className="sys-grid-2col">
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Screen Resolution
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'monospace',
+                }}
+              >
+                {screenRes}
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Active Window Viewport
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'monospace',
+                }}
+              >
+                {viewportRes}
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Device Pixel Ratio (DPR)
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'monospace',
+                }}
+              >
+                {dpr}
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Color Depth & Orientation
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {colorDepth} • {orientation}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* 3. APP CONFIGURATION & STATE */}
+        <div
+          style={{
+            background: cardBg,
+            borderRadius: 18,
+            padding: '16px 18px',
+            border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+              >
+                settings
+              </span>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                App Runtime State & Settings
+              </h4>
+            </div>
+            {originBadge('MEASURED')}
+          </div>
+
+          <div className="sys-grid-2col">
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Active Module
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--studio-accent-from, #2563eb)',
+                  fontFamily: 'Manrope, sans-serif',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {currentApp}
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Navigation Route Depth
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {useNavigationStore.getState().history.length} active routes
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Theme Mode
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                  textTransform: 'capitalize',
+                }}
+              >
+                {settings.theme} ({isLightMode ? 'Light' : 'Dark'})
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Language / Locale
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {settings.language || 'en'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Sync Across Devices
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: settings.syncAcrossDevices ? '#10b981' : 'var(--c-text-secondary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {settings.syncAcrossDevices ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Developer Tracing
+              </span>
+              <span
+                style={{
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: settings.developerMode ? '#10b981' : 'var(--c-text-secondary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {settings.developerMode ? 'Active (Verbose)' : 'Disabled'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </SettingsContentContainer>
     );
   };
 
@@ -4417,93 +4792,352 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     );
   };
 
-  const renderStorageTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-        LocalStorage Inspector (Masked)
-      </span>
-      <div style={{ display: 'grid', gap: 12 }}>
-        {Object.keys(localStorage).map((key) => {
-          const val = localStorage.getItem(key) || '';
-          return (
+  const renderStorageTab = () => {
+    const isLightMode =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+
+    const cardBg = isLightMode
+      ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.75))'
+      : 'var(--surface-topbar-bg, rgba(20, 20, 24, 0.70))';
+    const innerCardBg = isLightMode ? 'rgba(0, 0, 0, 0.025)' : 'rgba(255, 255, 255, 0.03)';
+
+    return (
+      <SettingsContentContainer style={{ gap: 14 }}>
+        {/* Storage Quota & Telemetry Hero */}
+        <div
+          style={{
+            background: cardBg,
+            borderRadius: 18,
+            padding: '16px 18px',
+            border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)' }}
+              >
+                database
+              </span>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: '14px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                Storage Engine & Quota Profile
+              </h4>
+            </div>
+            {originBadge('MEASURED')}
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+              gap: 10,
+            }}
+          >
             <div
-              key={key}
               style={{
-                padding: '16px 20px',
-                background: 'var(--app-surface-high, var(--app-surface))',
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
                 border: '1px solid var(--c-border)',
-                borderRadius: '16px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 12,
+                gap: 4,
               }}
             >
-              <div
+              <span
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <span
-                  style={{
-                    fontWeight: 800,
-                    fontSize: '13px',
-                    fontFamily: 'monospace',
-                    color: 'var(--studio-accent-from, #679cff)',
-                    wordBreak: 'break-all',
-                  }}
-                >
-                  {key}
-                </span>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(val);
-                    showToast(`Copied value of ${key}`);
-                  }}
-                  style={{
-                    background: 'var(--app-surface-low, var(--app-surface))',
-                    border: '1px solid var(--c-border)',
-                    borderRadius: '8px',
-                    color: 'var(--c-text-secondary)',
-                    padding: '6px 12px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    fontSize: '11px',
-                    fontFamily: 'Inter',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                    content_copy
-                  </span>
-                  Copy Raw
-                </button>
-              </div>
-              <div
-                style={{
-                  fontFamily: 'monospace',
-                  fontSize: '11px',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
                   color: 'var(--c-text-secondary)',
-                  wordBreak: 'break-all',
-                  background: 'var(--app-surface-bright, var(--app-surface))',
-                  border: '1px solid var(--c-border)',
-                  padding: '10px 12px',
-                  borderRadius: '8px',
-                  whiteSpace: 'pre-wrap',
+                  fontFamily: 'Inter',
                 }}
               >
-                {maskSensitiveValue(key, val)}
-              </div>
+                LocalStorage Payload
+              </span>
+              <span
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  fontFamily: 'monospace',
+                }}
+              >
+                {storageMetrics.sizeKB} KB
+              </span>
+              <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>
+                {storageMetrics.keysCount} active stored keys
+              </span>
             </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Origin Storage Quota
+              </span>
+              <span
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  color: storageEstimate ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
+                  fontFamily: 'monospace',
+                }}
+              >
+                {storageEstimate
+                  ? `${storageEstimate.usageMB} MB / ${storageEstimate.quotaMB} MB`
+                  : 'Unavailable'}
+              </span>
+              <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>
+                {storageEstimate
+                  ? `${storageEstimate.percentUsed}% of allocated quota`
+                  : 'Storage manager API not exposed'}
+              </span>
+            </div>
+
+            <div
+              style={{
+                background: innerCardBg,
+                borderRadius: 12,
+                padding: '10px 12px',
+                border: '1px solid var(--c-border)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
+              >
+                Storage Persistence Mode
+              </span>
+              <span
+                style={{
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  color: storageEstimate?.persisted ? '#10b981' : 'var(--c-text-primary)',
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {storageEstimate?.persisted !== null
+                  ? storageEstimate?.persisted
+                    ? 'Persistent Storage Granted'
+                    : 'Standard Storage'
+                  : 'Browser Default'}
+              </span>
+              <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>
+                IndexedDB & CacheStorage engine
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* LocalStorage Inspector List */}
+        <div
+          style={{
+            background: cardBg,
+            borderRadius: 18,
+            padding: '16px 18px',
+            border: '1px solid var(--c-border)',
+            boxShadow: 'var(--surface-topbar-shadow)',
+            backdropFilter: 'var(--surface-float-blur)',
+            WebkitBackdropFilter: 'var(--surface-float-blur)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 8,
+            }}
+          >
+            <h4
+              style={{
+                margin: 0,
+                fontSize: '14px',
+                fontWeight: 800,
+                color: 'var(--c-text-primary)',
+                fontFamily: 'Manrope, sans-serif',
+              }}
+            >
+              LocalStorage Keys ({storageMetrics.keysCount})
+            </h4>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => {
+                  const dump: Record<string, string> = {};
+                  for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k) dump[k] = maskSensitiveValue(k, localStorage.getItem(k) || '');
+                  }
+                  navigator.clipboard.writeText(JSON.stringify(dump, null, 2));
+                  showToast('Storage dump copied!');
+                }}
+                style={{
+                  background: isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: 8,
+                  color: 'var(--c-text-primary)',
+                  padding: '5px 10px',
+                  fontWeight: 700,
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
+                  content_copy
+                </span>
+                Copy Storage Dump
+              </button>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              maxHeight: 340,
+              overflowY: 'auto',
+              paddingRight: 4,
+            }}
+          >
+            {Object.keys(localStorage).map((key) => {
+              const val = localStorage.getItem(key) || '';
+              const masked = maskSensitiveValue(key, val);
+              return (
+                <div
+                  key={key}
+                  style={{
+                    padding: '10px 12px',
+                    background: innerCardBg,
+                    border: '1px solid var(--c-border)',
+                    borderRadius: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '12px',
+                        fontFamily: 'monospace',
+                        color: 'var(--studio-accent-from, #2563eb)',
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      {key}
+                    </span>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(val);
+                        showToast(`Copied value of ${key}`);
+                      }}
+                      style={{
+                        background: isLightMode
+                          ? 'rgba(0, 0, 0, 0.04)'
+                          : 'rgba(255, 255, 255, 0.05)',
+                        border: '1px solid var(--c-border)',
+                        borderRadius: 6,
+                        color: 'var(--c-text-secondary)',
+                        padding: '3px 8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        fontSize: '10px',
+                        fontFamily: 'Inter',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 12 }}>
+                        content_copy
+                      </span>
+                      Copy
+                    </button>
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'monospace',
+                      fontSize: '10.5px',
+                      color: 'var(--c-text-secondary)',
+                      wordBreak: 'break-all',
+                      background: isLightMode ? 'rgba(0, 0, 0, 0.02)' : 'rgba(0, 0, 0, 0.25)',
+                      border: '1px solid var(--c-border)',
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      whiteSpace: 'pre-wrap',
+                      maxHeight: 80,
+                      overflowY: 'auto',
+                    }}
+                  >
+                    {masked}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </SettingsContentContainer>
+    );
+  };
 
   const renderProvidersTab = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -6517,10 +7151,10 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     }}
                   >
                     <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>
-                      App Store State
+                      Environment & Device
                     </button>
                     <button style={tabBtnStyle('storage')} onClick={() => setActiveTab('storage')}>
-                      Storage
+                      Storage & Quota
                     </button>
                     <button
                       style={tabBtnStyle('providers')}

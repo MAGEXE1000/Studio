@@ -1,6 +1,6 @@
 import React, { useMemo, useRef } from 'react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
-import { Button } from '../../../shared/design-system/buttons';
+import { Button, ButtonGroup } from '../../../shared/design-system/buttons';
 import {
   KEYS,
   SCALE_TYPES,
@@ -14,7 +14,7 @@ import {
   getChordById,
   type Key,
   type ScaleType,
-  type Style
+  type Style,
 } from '@workspace/studio-core';
 import { useProgressionState } from './useProgressionState';
 import { PresetPickerSheet } from './ProgressionPickerSheet';
@@ -42,11 +42,36 @@ export default function ProgressionGenerator({
 
   const state = useProgressionState(onClose, defaultKey, defaultScale, defaultStyle, scrollRef);
   const {
-    key, setKey, scale, setScale, style, setStyle, result, swapOpenIdx, setSwapOpenIdx,
-    savePromptOpen, setSavePromptOpen, progName, setProgName, presetPickerOpen,
-    setPresetPickerOpen, presetPickerClosing, loadedToName, closing, activeChordIds, diatonic,
-    handleGenerate, handleRegenerate, handleSwap, handleRemove, handleAppendDiatonic,
-    handleUse, handleSaveConfirm, handleLoadToPreset, requestClose, requestClosePicker
+    key,
+    setKey,
+    scale,
+    setScale,
+    style,
+    setStyle,
+    result,
+    swapOpenIdx,
+    setSwapOpenIdx,
+    savePromptOpen,
+    setSavePromptOpen,
+    progName,
+    setProgName,
+    presetPickerOpen,
+    setPresetPickerOpen,
+    presetPickerClosing,
+    loadedToName,
+    closing,
+    activeChordIds,
+    diatonic,
+    handleGenerate,
+    handleRegenerate,
+    handleSwap,
+    handleRemove,
+    handleAppendDiatonic,
+    handleUse,
+    handleSaveConfirm,
+    handleLoadToPreset,
+    requestClose,
+    requestClosePicker,
   } = state;
 
   useBackHandler(
@@ -296,53 +321,33 @@ export default function ProgressionGenerator({
               Generate Progression
             </AnimatedActionButton>
           ) : (
-            <div className="flex gap-2">
-              <button
+            <ButtonGroup size="md" variant="secondary" className="w-full">
+              <Button
                 data-testid="regenerate-progression-btn"
                 onClick={handleRegenerate}
-                className="btn-smooth flex-1 py-3 font-bold"
-                style={{
-                  background: 'var(--app-surface-high)',
-                  color: accent.from,
-                  borderRadius: 9999,
-                  fontFamily: 'Manrope',
-                  fontSize: 13,
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                }}
+                variant="secondary"
+                className="flex-1"
+                icon={
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                    refresh
+                  </span>
+                }
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  refresh
-                </span>
                 Regenerate
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleGenerate}
-                className="btn-smooth py-3 px-4 font-bold"
+                variant="secondary"
+                isIconOnly={true}
                 aria-label="New random template"
                 title="New random template"
-                style={{
-                  background: 'var(--app-surface-high)',
-                  color: 'var(--c-text-secondary)',
-                  borderRadius: 9999,
-                  fontFamily: 'Manrope',
-                  fontSize: 13,
-                  border: 'none',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  casino
-                </span>
-              </button>
-            </div>
+                icon={
+                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                    casino
+                  </span>
+                }
+              />
+            </ButtonGroup>
           )}
         </div>
 

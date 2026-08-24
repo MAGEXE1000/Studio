@@ -6568,54 +6568,58 @@ export default function SongsPanel() {
         }}
       >
         {/* Import circle — top */}
-        <button
+        <Button
           onClick={() => setShowImport(true)}
           data-testid="import-preset-btn"
-          className="flex items-center justify-center active:scale-90 transition-all duration-200"
+          isIconOnly={true}
+          size="lg"
+          variant="secondary"
+          aria-label="Import Preset"
+          title="Import Preset"
+          icon={
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+              cloud_download
+            </span>
+          }
           style={{
             width: '48px',
             height: '48px',
             borderRadius: '50%',
             background: 'rgba(12, 12, 14, 0.45)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            color: '#ffffff',
             backdropFilter: 'blur(25px)',
             WebkitBackdropFilter: 'blur(25px)',
             boxShadow:
               '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-            cursor: 'pointer',
           }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-            cloud_download
-          </span>
-        </button>
+        />
         {/* New circle — bottom */}
-        <button
+        <Button
           onClick={() => {
             setEditingId(null);
             setShowForm(true);
           }}
           data-testid="new-preset-btn"
-          className="flex items-center justify-center active:scale-90 transition-all duration-200"
+          isIconOnly={true}
+          size="lg"
+          variant="secondary"
+          aria-label="New Preset"
+          title="New Preset"
+          icon={
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+              add
+            </span>
+          }
           style={{
             width: '48px',
             height: '48px',
             borderRadius: '50%',
             background: 'rgba(12, 12, 14, 0.45)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            color: '#ffffff',
             backdropFilter: 'blur(25px)',
             WebkitBackdropFilter: 'blur(25px)',
             boxShadow:
               '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
-            cursor: 'pointer',
           }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-            add
-          </span>
-        </button>
+        />
       </div>
     </div>
   );

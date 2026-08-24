@@ -4573,33 +4573,21 @@ Date: ${new Date().toISOString()}
             : 'If you encounter an issue or unexpected behavior in Studio, please report it! Copy the template below and submit it on our GitHub repository.'}
         </p>
 
-        <motion.button
-          whileTap={{ scale: 0.96 }}
-          whileHover={{ scale: 1.02 }}
-          transition={SpringPresets.soft}
+        <Button
+          variant="primary"
           onClick={handleCopyTemplate}
           style={{
             alignSelf: 'flex-start',
-            padding: '10px 16px',
-            background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-            color: '#fff',
-            fontSize: 13,
-            fontWeight: 750,
             fontFamily: 'Inter, sans-serif',
-            border: 'none',
-            borderRadius: 12,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            boxShadow: `0 4px 14px ${accent.from}35`,
           }}
+          icon={
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              {copiedBugTemplate ? 'check' : 'content_copy'}
+            </span>
+          }
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            {copiedBugTemplate ? 'check' : 'content_copy'}
-          </span>
           {copiedBugTemplate ? 'Copied to Clipboard!' : 'Copy Bug Template'}
-        </motion.button>
+        </Button>
 
         <div
           style={{
@@ -4638,20 +4626,11 @@ User Agent: [Automatically Generated]
             )}`}
             target="_blank"
             rel="noopener noreferrer"
+            className="button button--primary button--md"
             style={{
               textDecoration: 'none',
-              padding: '10px 16px',
-              background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-              color: '#fff',
-              fontSize: 13,
-              fontWeight: 750,
               fontFamily: 'Inter, sans-serif',
-              borderRadius: 12,
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
               gap: 8,
-              boxShadow: `0 4px 14px ${accent.from}35`,
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
@@ -6798,31 +6777,20 @@ User Agent: [Automatically Generated]
                 refresh
               </span>
             ) : updater.updateAvailable ? (
-              <button
+              <Button
+                size="sm"
+                variant="primary"
                 onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
-                className="btn-smooth animate-click"
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 10,
-                  background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                  color: 'white',
-                  border: 'none',
-                  fontSize: 'var(--font-section-label)',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: `0 4px 10px color-mix(in srgb, ${accent.to} 20%, transparent)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
+                icon={
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                    {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(
+                      updater.updateState
+                    )
+                      ? 'install_mobile'
+                      : 'download'}
+                  </span>
+                }
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                  {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(
-                    updater.updateState
-                  )
-                    ? 'install_mobile'
-                    : 'download'}
-                </span>
                 {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(
                   updater.updateState
                 )
@@ -6832,26 +6800,17 @@ User Agent: [Automatically Generated]
                   : lang === 'es'
                     ? 'Continuar'
                     : 'Continue Update'}
-              </button>
+              </Button>
             ) : (
-              <button
+              <Button
+                size="sm"
+                variant="secondary"
                 onClick={async () => {
                   await updater.checkNow();
                 }}
-                className="btn-smooth animate-click"
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 10,
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'var(--c-text-primary)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  fontSize: 'var(--font-section-label)',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
               >
                 {lang === 'es' ? 'Buscar' : 'Check Now'}
-              </button>
+              </Button>
             )}
           </SettingRow>
 
@@ -6876,7 +6835,9 @@ User Agent: [Automatically Generated]
                 : 'Copy debug reports and check recovery logs'
             }
           >
-            <button
+            <Button
+              size="sm"
+              variant="secondary"
               onClick={async () => {
                 try {
                   const report = await updater.getDiagnosticsReport();
@@ -6888,26 +6849,14 @@ User Agent: [Automatically Generated]
                   alert(e instanceof Error ? e.message : String(e));
                 }
               }}
-              className="btn-smooth animate-click"
-              style={{
-                padding: '6px 14px',
-                borderRadius: 10,
-                background: 'rgba(255,255,255,0.06)',
-                color: 'var(--c-text-primary)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                fontSize: 'var(--font-section-label)',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
+              icon={
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  content_copy
+                </span>
+              }
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                content_copy
-              </span>
               {lang === 'es' ? 'Copiar' : 'Copy'}
-            </button>
+            </Button>
           </SettingRow>
 
           {/* Changelog */}

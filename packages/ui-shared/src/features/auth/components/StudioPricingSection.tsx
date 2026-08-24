@@ -1,5 +1,6 @@
 import { UserProfile, AuthUser } from '@workspace/studio-core';
 import React from 'react';
+import { Button } from '../../../shared/design-system/buttons';
 import {
   Circle,
   Layers3,
@@ -502,15 +503,16 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
                   (status === 'available' || status === 'downgraded') && plan.id === 'free';
 
                 return (
-                  <button
-                    type="button"
+                  <Button
+                    variant={plan.isRecommended ? 'primary' : 'secondary'}
+                    fullWidth={true}
+                    disabled={!isInteractive}
                     onClick={isInteractive ? () => handleCheckout(plan.id) : undefined}
                     style={btnStyle}
-                    className={isInteractive ? 'hover-scale' : undefined}
+                    icon={IconComp && <IconComp size={iconSize} style={{ strokeWidth: 2.2 }} />}
                   >
-                    {IconComp && <IconComp size={iconSize} style={{ strokeWidth: 2.2 }} />}
                     {btnText}
-                  </button>
+                  </Button>
                 );
               })()}
             </div>

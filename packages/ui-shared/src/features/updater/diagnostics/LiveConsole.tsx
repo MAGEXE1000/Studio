@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { getLogs, stateTimeline } from '@workspace/studio-core';
+import { Button, ButtonGroup } from '../../../shared/design-system/buttons';
 import { copyToClipboard } from './centralizedClipboard';
 
 interface LiveConsoleProps {
@@ -131,24 +132,30 @@ export default function LiveConsole({
         <h2 className="text-xs font-black text-on-surface-variant uppercase tracking-widest px-1">
           Live Logs
         </h2>
-        <div className="flex gap-2">
-          {/* Clear Logs */}
-          <button
+        <ButtonGroup size="sm" variant="ghost">
+          <Button
+            size="sm"
+            variant="ghost"
+            isIconOnly={true}
             onClick={handleClearLogs}
-            className="p-2 text-on-surface-variant hover:text-on-surface transition-colors outline-none"
+            aria-label="Clear logs"
             title="Clear logs"
-          >
-            <span className="material-symbols-outlined text-sm text-red-400">delete_sweep</span>
-          </button>
-          {/* Copy Logs */}
-          <button
+            icon={
+              <span className="material-symbols-outlined text-sm text-red-400">delete_sweep</span>
+            }
+          />
+          <Button
+            size="sm"
+            variant="ghost"
+            isIconOnly={true}
             onClick={handleCopyLogs}
-            className="p-2 text-on-surface-variant hover:text-on-surface transition-colors outline-none"
+            aria-label="Copy logs"
             title="Copy logs"
-          >
-            <span className="material-symbols-outlined text-sm text-tertiary">content_copy</span>
-          </button>
-        </div>
+            icon={
+              <span className="material-symbols-outlined text-sm text-tertiary">content_copy</span>
+            }
+          />
+        </ButtonGroup>
       </div>
 
       <div className="bg-black border border-outline-variant/10 rounded-xl overflow-hidden flex flex-col h-80 shadow-inner">

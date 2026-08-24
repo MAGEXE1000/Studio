@@ -1,12 +1,27 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useChordStore, setNavLocked, setNavHidden, getChordByName, normalizeChordName, useT, useBackHandler, getChordChart, importChartFromUrl, type NormalizedChordChart, type NormalizedSection, type NormalizedLyricsLine, type NormalizedChordMarker, type SongChart, type SongChartSection, useSettingsStore, SpringPresets } from '@workspace/studio-core';
+import {
+  useChordStore,
+  setNavLocked,
+  setNavHidden,
+  getChordByName,
+  normalizeChordName,
+  useT,
+  useBackHandler,
+  getChordChart,
+  importChartFromUrl,
+  type NormalizedChordChart,
+  type NormalizedSection,
+  type NormalizedLyricsLine,
+  type NormalizedChordMarker,
+  type SongChart,
+  type SongChartSection,
+  useSettingsStore,
+  SpringPresets,
+} from '@workspace/studio-core';
 import ChordDiagram from '../diagrams/ChordDiagram';
 import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
-;
-
-
 interface SongPracticeViewProps {
   song: SongChart;
   onClose: () => void;
@@ -298,7 +313,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
       sec.lines.forEach((line) => {
         line.chords.forEach((c) => {
           const norm = rawToNormalized.get(c.chord) || normalizeChordName(c.chord);
-          let foundExact = getChordByName(norm);
+          const foundExact = getChordByName(norm);
           let isResolved = false;
           let isSlashFallback = false;
 
@@ -1239,54 +1254,31 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
             {t.practice.chartUnavailableDesc}
           </p>
           <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-            <button
+            <Button
+              variant="primary"
               onClick={() => {
                 setImportText('');
                 setShowImportModal(true);
               }}
-              style={{
-                padding: '10px 20px',
-                borderRadius: 8,
-                fontSize: '13px',
-                fontWeight: 700,
-                background: 'var(--c-accent)',
-                border: 'none',
-                color: '#ffffff',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontFamily: 'Inter, sans-serif',
-                boxShadow: '0 4px 12px var(--c-accent)30',
-              }}
+              icon={
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  upload_file
+                </span>
+              }
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                upload_file
-              </span>
               {t.practice.importBtn}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               onClick={handleClearCacheAndRetry}
-              style={{
-                padding: '10px 20px',
-                borderRadius: 8,
-                fontSize: '13px',
-                fontWeight: 700,
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                color: 'var(--c-text-primary)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                fontFamily: 'Inter, sans-serif',
-              }}
+              icon={
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                  sync
+                </span>
+              }
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                sync
-              </span>
               Retry Search
-            </button>
+            </Button>
           </div>
         </div>
       )}

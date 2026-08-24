@@ -1,24 +1,40 @@
 import React, { useState, useEffect, useCallback, useRef, forwardRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import {
-  NavigationDispatcher,
-  useSettingsStore,
-  ACCENT_COLORS,
-  AppKey,
-  SpringPresets,
-} from '@workspace/studio-core';
+  Button as HeroUIButton,
+  ButtonRoot as HeroUIButtonRoot,
+  ButtonGroup as HeroUIButtonGroup,
+  ButtonGroupRoot as HeroUIButtonGroupRoot,
+  ButtonGroupSeparator,
+  buttonVariants,
+  buttonGroupVariants,
+} from '@heroui/react';
+import { SpringPresets } from '@workspace/studio-core';
 import { AnimatedIcon } from '../icons/AnimatedIcon';
-import { EASE_OUT, SPRING_PRESS } from '../../lib/ease';
+import { EASE_OUT } from '../../lib/ease';
 import { useHoverCapable } from '../../lib/hooks/use-hover-capable';
+
+export {
+  HeroUIButton,
+  HeroUIButtonRoot,
+  HeroUIButtonGroup,
+  HeroUIButtonGroupRoot,
+  ButtonGroupSeparator,
+  buttonVariants,
+  buttonGroupVariants,
+};
 
 type Ripple = { id: number; x: number; y: number; size: number };
 
-// ── 1. Button ──────────────────────────────────────────────────────────────
+// ── 1. Button (HeroUI Powered) ─────────────────────────────────────────────
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline';
+  variant?: 'primary' | 'secondary' | 'danger' | 'danger-soft' | 'ghost' | 'outline' | 'tertiary';
   size?: 'sm' | 'md' | 'lg' | 'icon';
   loading?: boolean;
-  icon?: string;
+  isLoading?: boolean;
+  isIconOnly?: boolean;
+  fullWidth?: boolean;
+  icon?: string | React.ReactNode;
   ripple?: boolean;
 }
 
@@ -28,6 +44,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant = 'secondary',
       size = 'md',
       loading = false,
+      isLoading = false,
+      isIconOnly = false,
+      fullWidth = false,
       icon,
       ripple = false,
       children,
@@ -39,6 +58,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    const activeLoading = loading || isLoading;
     const reduce = useReducedMotion();
     const canHover = useHoverCapable();
     const [ripples, setRipples] = useState<Ripple[]>([]);
@@ -46,7 +66,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const handlePointerDown = useCallback(
       (event: React.PointerEvent<HTMLButtonElement>) => {
-        if (ripple && !reduce && !disabled && !loading) {
+        if (ripple && !reduce && !disabled && !activeLoading) {
           const rect = event.currentTarget.getBoundingClientRect();
           const sizeVal = Math.max(rect.width, rect.height) * 2;
           const id = nextId.current++;
@@ -62,25 +82,33 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         }
         onPointerDown?.(event);
       },
-      [ripple, reduce, disabled, loading, onPointerDown]
+      [ripple, reduce, disabled, activeLoading, onPointerDown]
     );
 
     const getColors = () => {
       if (variant === 'primary') {
         return {
-          bg: 'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
+          bg: 'linear-gradient(135deg, var(--c-accent-from, #2563eb), var(--c-accent-to, var(--c-accent-from, #2563eb)))',
           text: '#ffffff',
           border: 'rgba(255, 255, 255, 0.20)',
           shadow:
-            '0 4px 16px var(--c-accent-from, rgba(124, 58, 237, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
+            '0 4px 14px var(--c-accent-from, rgba(37, 99, 235, 0.35)), inset 0 1px 1px rgba(255, 255, 255, 0.35)',
         };
       }
-      if (variant === 'danger') {
+      if (variant === 'danger' || variant === 'danger-soft') {
         return {
-          bg: 'rgba(239, 68, 68, 0.12)',
-          text: '#ef4444',
-          border: 'rgba(239, 68, 68, 0.25)',
-          shadow: '0 2px 10px rgba(239, 68, 68, 0.15)',
+          bg: variant === 'danger' ? 'rgba(239, 68, 68, 0.14)' : 'rgba(239, 68, 68, 0.08)',
+          text: '#ee7d77',
+          border: variant === 'danger' ? 'rgba(239, 68, 68, 0.28)' : 'rgba(239, 68, 68, 0.15)',
+          shadow: variant === 'danger' ? '0 2px 8px rgba(239, 68, 68, 0.15)' : 'none',
+        };
+      }
+      if (variant === 'tertiary') {
+        return {
+          bg: 'rgba(128, 128, 128, 0.06)',
+          text: 'var(--c-text-secondary)',
+          border: '1px solid transparent',
+          shadow: 'none',
         };
       }
       if (variant === 'ghost') {
@@ -93,36 +121,39 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       }
       if (variant === 'outline') {
         return {
-          bg: 'rgba(255, 255, 255, 0.02)',
+          bg: 'transparent',
           text: 'var(--c-text-primary)',
-          border: 'rgba(255, 255, 255, 0.12)',
+          border: 'var(--c-border)',
           shadow: 'none',
         };
       }
       return {
         bg: 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.05))',
         text: 'var(--c-text-primary)',
-        border: 'rgba(255, 255, 255, 0.08)',
+        border: 'var(--c-border)',
         shadow: '0 2px 8px rgba(0, 0, 0, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08)',
       };
     };
 
     const colors = getColors();
 
-    // Size mappings matching modern mobile standards
+    // Size mappings matching HeroUI and modern mobile standards
     const getPaddingAndHeight = () => {
-      if (size === 'icon') {
+      if (size === 'icon' || isIconOnly) {
+        const boxSize = size === 'sm' ? '32px' : size === 'lg' ? '48px' : '40px';
+        const rad = size === 'sm' ? '12px' : size === 'lg' ? '16px' : '14px';
         return {
-          height: '36px',
-          width: '36px',
+          height: boxSize,
+          width: boxSize,
           padding: '0',
           fontSize: '12px',
-          borderRadius: '12px',
+          borderRadius: rad,
         };
       }
       if (size === 'sm') {
         return {
           height: '32px',
+          width: fullWidth ? '100%' : undefined,
           padding: '0 14px',
           fontSize: '12px',
           borderRadius: '16px',
@@ -131,6 +162,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       if (size === 'lg') {
         return {
           height: '48px',
+          width: fullWidth ? '100%' : undefined,
           padding: '0 24px',
           fontSize: '15px',
           borderRadius: '24px',
@@ -138,6 +170,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       }
       return {
         height: '40px',
+        width: fullWidth ? '100%' : undefined,
         padding: '0 18px',
         fontSize: '13.5px',
         borderRadius: '20px',
@@ -145,13 +178,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const dims = getPaddingAndHeight();
+    const resolvedSizeClass = size === 'icon' ? 'button--icon-only button--md' : `button--${size}`;
+    const iconOnlyClass = isIconOnly ? 'button--icon-only' : '';
+    const fullWidthClass = fullWidth ? 'button--full-width' : '';
 
     return (
       <motion.button
         ref={ref}
         type="button"
-        whileTap={disabled || loading || reduce ? undefined : { scale: 0.96 }}
-        whileHover={disabled || loading || reduce || !canHover ? undefined : { scale: 1.015 }}
+        whileTap={disabled || activeLoading || reduce ? undefined : { scale: 0.96 }}
+        whileHover={disabled || activeLoading || reduce || !canHover ? undefined : { scale: 1.015 }}
         transition={SpringPresets.soft}
         onPointerDown={handlePointerDown}
         style={{
@@ -173,8 +209,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           alignItems: 'center',
           justifyContent: 'center',
           gap: '6px',
-          cursor: disabled || loading ? 'not-allowed' : 'pointer',
-          opacity: disabled ? 0.5 : 1,
+          cursor: disabled || activeLoading ? 'not-allowed' : 'pointer',
+          opacity: disabled ? 0.45 : 1,
           outline: 'none',
           boxSizing: 'border-box',
           position: 'relative',
@@ -184,8 +220,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease',
           ...style,
         }}
-        disabled={disabled || loading}
-        className={`btn-smooth ${className}`}
+        disabled={disabled || activeLoading}
+        className={`button button--${variant} ${resolvedSizeClass} ${iconOnlyClass} ${fullWidthClass} btn-smooth ${className}`.trim()}
         {...(props as any)}
       >
         {ripple && !reduce ? (
@@ -216,10 +252,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           </span>
         ) : null}
 
-        {loading ? (
+        {activeLoading ? (
           <AnimatedIcon name="loader-circle" state="loading" size={16} />
         ) : icon ? (
-          <AnimatedIcon name={icon} size={16} />
+          typeof icon === 'string' ? (
+            <AnimatedIcon name={icon} size={16} />
+          ) : (
+            icon
+          )
         ) : null}
         {children}
       </motion.button>
@@ -229,13 +269,63 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
+// ── 1.2. ButtonGroup (HeroUI Powered) ──────────────────────────────────────
+export interface ButtonGroupProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: 'primary' | 'secondary' | 'danger' | 'danger-soft' | 'ghost' | 'outline' | 'tertiary';
+  size?: 'sm' | 'md' | 'lg';
+  orientation?: 'horizontal' | 'vertical';
+  fullWidth?: boolean;
+  isDisabled?: boolean;
+  children: React.ReactNode;
+}
+
+export const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(
+  (
+    {
+      variant = 'secondary',
+      size = 'md',
+      orientation = 'horizontal',
+      fullWidth = false,
+      isDisabled = false,
+      className = '',
+      children,
+      style,
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <HeroUIButtonGroup
+        ref={ref}
+        variant={variant}
+        size={size}
+        orientation={orientation}
+        fullWidth={fullWidth}
+        isDisabled={isDisabled}
+        className={`button-group button-group--${orientation} ${fullWidth ? 'button-group--full-width' : ''} ${className}`.trim()}
+        style={style}
+        {...props}
+      >
+        {children}
+      </HeroUIButtonGroup>
+    );
+  }
+) as React.ForwardRefExoticComponent<ButtonGroupProps & React.RefAttributes<HTMLDivElement>> & {
+  Separator: typeof ButtonGroupSeparator;
+};
+
+ButtonGroup.Separator = ButtonGroupSeparator;
+ButtonGroup.displayName = 'ButtonGroup';
+
 // ── 1.5. IconButton ────────────────────────────────────────────────────────
 export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: string | React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'danger-soft' | 'tertiary' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   shape?: 'squircle' | 'circle';
   loading?: boolean;
+  isLoading?: boolean;
+  'aria-label'?: string;
 }
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(

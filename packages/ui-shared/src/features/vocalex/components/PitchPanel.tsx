@@ -1,6 +1,7 @@
 import { useT, createAudioContext, useChordStore, useSettingsStore } from '@workspace/studio-core';
 import { Capacitor } from '@capacitor/core';
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { Button } from '../../../shared/design-system/buttons';
 import { detectPitch, type PitchResult } from '../services/pitchYin';
 
 const HISTORY_LEN = 12;
@@ -616,80 +617,33 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
           marginTop: 20,
         }}
       >
-        <button
+        <Button
+          variant="secondary"
+          size="lg"
           onClick={handleReset}
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            height: 48,
-            borderRadius: 12,
-            background: 'var(--vx-input-2)',
-            border: 'none',
-            color: 'var(--vx-text-5)',
-            fontSize: 14,
-            fontWeight: 700,
-            fontFamily: 'var(--font-body)',
-            cursor: 'pointer',
-          }}
+          style={{ flex: 1 }}
+          icon={
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              restart_alt
+            </span>
+          }
         >
-          <svg
-            width={16}
-            height={16}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2.2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M1 4v6h6" />
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-          </svg>
           {t.vocalex.reset}
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant={listening ? 'danger' : 'primary'}
+          size="lg"
           onClick={listening ? stopListening : startListening}
-          style={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-            height: 48,
-            borderRadius: 12,
-            background: listening
-              ? 'rgba(239,68,68,0.15)'
-              : 'linear-gradient(135deg, #679cff, #007aff)',
-            border: listening ? '1px solid rgba(239,68,68,0.3)' : 'none',
-            color: listening ? '#ef4444' : '#fff',
-            fontSize: 14,
-            fontWeight: 700,
-            fontFamily: 'var(--font-body)',
-            cursor: 'pointer',
-            boxShadow: listening ? 'none' : '0 4px 16px rgba(0,122,255,0.2)',
-            transition: 'all 200ms ease',
-          }}
+          style={{ flex: 1 }}
+          icon={
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              {listening ? 'mic_off' : 'mic'}
+            </span>
+          }
         >
-          {listening ? (
-            <>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                mic_off
-              </span>
-              {t.vocalex.tunerStop}
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                mic
-              </span>
-              {t.vocalex.tunerStart}
-            </>
-          )}
-        </button>
+          {listening ? t.vocalex.tunerStop : t.vocalex.tunerStart}
+        </Button>
       </div>
 
       {permError && (
@@ -720,7 +674,9 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
               : permError}
           </span>
           {Capacitor.isNativePlatform() ? (
-            <button
+            <Button
+              variant="danger"
+              size="sm"
               onClick={async () => {
                 try {
                   const { AppInstaller } = await import('@workspace/studio-core');
@@ -729,44 +685,20 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
                   console.error('Failed to open app settings:', e);
                 }
               }}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                background: '#ef4444',
-                border: 'none',
-                color: '#fff',
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: 'var(--font-body)',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
-                transition: 'background 150ms ease',
-              }}
             >
               {language === 'es' ? 'Abrir Ajustes de la App' : 'Open App Settings'}
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="danger"
+              size="sm"
               onClick={() => {
                 setPermError(null);
                 startListening();
               }}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                background: '#ef4444',
-                border: 'none',
-                color: '#fff',
-                fontSize: 12,
-                fontWeight: 700,
-                fontFamily: 'var(--font-body)',
-                cursor: 'pointer',
-                boxShadow: '0 2px 8px rgba(239,68,68,0.2)',
-                transition: 'background 150ms ease',
-              }}
             >
               {t.vocalex.tunerGrantStart}
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -1,7 +1,13 @@
 import React from 'react';
 import { type TakeRecord, useT } from '@workspace/studio-core';
 import { useHarmonizerState } from './useHarmonizerState';
-import { HarmonizerHeader, HarmonizerPlayer, LayerCard, SliderRow, AdvSlider } from './HarmonizerUI';
+import {
+  HarmonizerHeader,
+  HarmonizerPlayer,
+  LayerCard,
+  SliderRow,
+  AdvSlider,
+} from './HarmonizerUI';
 import { HARMONIES } from '../services/harmonyEngine';
 
 interface Props {
@@ -16,9 +22,26 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
   const state = useHarmonizerState(take, accent, onClose, onBounce);
 
   const {
-    layers, dryGain, setDryGain, showAdvanced, setShowAdvanced, humanize, setHumanize,
-    formant, setFormant, showAddLayer, setShowAddLayer, addLayer, updateLayer, removeLayer,
-    bounceError, isBouncing, activeCount, doBounce, showExport, setShowExport
+    layers,
+    dryGain,
+    setDryGain,
+    showAdvanced,
+    setShowAdvanced,
+    humanize,
+    setHumanize,
+    formant,
+    setFormant,
+    showAddLayer,
+    setShowAddLayer,
+    addLayer,
+    updateLayer,
+    removeLayer,
+    bounceError,
+    isBouncing,
+    activeCount,
+    doBounce,
+    showExport,
+    setShowExport,
   } = state;
 
   return (
@@ -35,7 +58,15 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
     >
       <HarmonizerHeader state={state} />
 
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }} className="no-scrollbar">
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+        }}
+        className="no-scrollbar"
+      >
         <HarmonizerPlayer state={state} />
 
         <div style={{ padding: '10px 16px 0' }}>

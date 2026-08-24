@@ -7,7 +7,12 @@ import {
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { extractWaveformPeaks, blobToAudioBuffer, type TakeRecord, vocalexRepository } from "@workspace/studio-core";
+import {
+  extractWaveformPeaks,
+  blobToAudioBuffer,
+  type TakeRecord,
+  vocalexRepository,
+} from '@workspace/studio-core';
 import LoadingLottie from '../../../shared/lottie/LoadingLottie';
 import { Loader } from '../../../components/motion/loader';
 import SmartLoading from '../../../shared/loading/SmartLoading';
@@ -18,7 +23,7 @@ import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
-;
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
 function formatDuration(ms: number): string {
   const totalSec = Math.floor(ms / 1000);
   const m = Math.floor(totalSec / 60);
@@ -170,70 +175,73 @@ export default function TakeDetailView({
   const totalTimeSec = take.durationMs / 1000;
 
   return (
-    <div className="spring-in" style={{ padding: '16px 20px', minHeight: '100%' }}>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          marginBottom: 24,
-        }}
-      >
-        <button
-          data-testid="open-harmonizer-btn"
-          onClick={() => {
-            if (audioRef.current && !audioRef.current.paused) {
-              audioRef.current.pause();
-              if (rafRef.current) cancelAnimationFrame(rafRef.current);
-              setPlaying(false);
-            }
-            setShowHarmonizer(true);
-          }}
-          style={{
-            background: 'var(--studio-accent-soft)',
-            border: '1px solid var(--studio-accent-border)',
-            cursor: 'pointer',
-            color: 'var(--studio-accent)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '7px 14px',
-            borderRadius: 9999,
-            fontFamily: 'var(--font-headline)',
-            fontSize: 13,
-            fontWeight: 700,
-          }}
-        >
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: 18, fontVariationSettings: "'FILL' 1" }}
-          >
-            graphic_eq
-          </span>
-          Harmonize
-        </button>
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: '#ef4444',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 4,
-            fontFamily: 'var(--font-body)',
-            fontSize: 13,
-            fontWeight: 600,
-          }}
-        >
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-            delete
-          </span>
-          {t.vocalex.deleteTake}
-        </button>
-      </div>
+    <div
+      className="spring-in relative"
+      style={{
+        padding: '16px 20px',
+        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+        minHeight: '100%',
+      }}
+    >
+      <SharedFloatingHeader
+        title={take.name || 'Take Details'}
+        onBack={onBack}
+        toolbarActions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <button
+              data-testid="open-harmonizer-btn"
+              onClick={() => {
+                if (audioRef.current && !audioRef.current.paused) {
+                  audioRef.current.pause();
+                  if (rafRef.current) cancelAnimationFrame(rafRef.current);
+                  setPlaying(false);
+                }
+                setShowHarmonizer(true);
+              }}
+              style={{
+                background: 'var(--studio-accent-soft)',
+                border: '1px solid var(--studio-accent-border)',
+                cursor: 'pointer',
+                color: 'var(--studio-accent)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '4px 10px',
+                borderRadius: 9999,
+                fontFamily: 'var(--font-headline)',
+                fontSize: 11,
+                fontWeight: 700,
+              }}
+            >
+              <span
+                className="material-symbols-outlined"
+                style={{ fontSize: 15, fontVariationSettings: "'FILL' 1" }}
+              >
+                graphic_eq
+              </span>
+              Harmonize
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#ef4444',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 4,
+              }}
+              title={t.vocalex.deleteTake}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                delete
+              </span>
+            </button>
+          </div>
+        }
+      />
 
       {showHarmonizer && (
         <HarmonizerSheet

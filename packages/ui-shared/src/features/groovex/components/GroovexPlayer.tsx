@@ -38,9 +38,7 @@ import {
   resumeAudioContext,
   type AudioEngine,
 } from '../services/audioEngine';
-import { groovexStemRepository,
-  type DownloadProgress,
- } from "@workspace/studio-core";
+import { groovexStemRepository, type DownloadProgress } from '@workspace/studio-core';
 import StudioProgressBar from '../../../shared/progress/StudioProgressBar';
 import StudioCountUpPercentage from '../../../shared/progress/StudioCountUpPercentage';
 
@@ -61,7 +59,7 @@ function transposeKey(key: string, semitones: number): string {
   if (!key || semitones === 0) return key;
   const match = key.match(/^([A-G][b#]?)(.*)/);
   if (!match) return key;
-  let [, root, suffix] = match;
+  const [, root, suffix] = match;
   const normalized = FLAT_MAP[root] || root;
   const idx = NOTE_NAMES.indexOf(normalized);
   if (idx < 0) return key;
@@ -181,11 +179,15 @@ export default function GroovexPlayer() {
       setCurrentStemLabel(stem.label);
       try {
         resumeAudioContext();
-        const data = await groovexStemRepository.downloadStem(songData.id, stem.name, (p: DownloadProgress) => {
-          if (sessionIdRef.current !== sid) return;
-          const stemProgress = p.percent / 100;
-          setOverallProgress(((i + stemProgress) / total) * 100);
-        });
+        const data = await groovexStemRepository.downloadStem(
+          songData.id,
+          stem.name,
+          (p: DownloadProgress) => {
+            if (sessionIdRef.current !== sid) return;
+            const stemProgress = p.percent / 100;
+            setOverallProgress(((i + stemProgress) / total) * 100);
+          }
+        );
         if (sessionIdRef.current !== sid) return;
         const buffer = await loadAudioBuffer(data);
         if (sessionIdRef.current !== sid) return;
@@ -463,9 +465,7 @@ export default function GroovexPlayer() {
               className="premium-back-btn"
               aria-label="Back to library"
             >
-              <span className="material-symbols-outlined">
-                arrow_back
-              </span>
+              <span className="material-symbols-outlined">arrow_back</span>
             </button>
           </div>
         )}
@@ -473,7 +473,7 @@ export default function GroovexPlayer() {
         <section
           className="gx-hero-enter"
           style={{
-            paddingTop: 12,
+            paddingTop: isWebDesktop ? 12 : 'calc(env(safe-area-inset-top, 0px) + 68px)',
             marginBottom: 36,
             display: 'flex',
             flexDirection: 'column',

@@ -29,6 +29,7 @@ import { useRef, useEffect, useCallback, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { Loader } from '../../../components/motion/loader';
 import { StagexPanelSkeleton } from '../../../shared/loading/StudioSkeleton';
@@ -3085,104 +3086,89 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               flexShrink: 0,
               overflow: collapseHeader ? 'hidden' : 'visible',
               height: collapseHeader ? 0 : 'calc(env(safe-area-inset-top) + 68px)',
-              background: stageHdr,
-              // In the Export view we want the header to disappear instantly on
-              // scroll-down (no animation). In landscape Editor mode we still
-              // animate the collapse for a smooth rotation feel.
+              position: 'relative',
               transition: curView === 'Export' ? 'none' : 'height 260ms cubic-bezier(0.4,0,0.2,1)',
             }}
           >
-            <div
-              style={{
-                height: 'env(safe-area-inset-top)',
-                background: stageHdr,
-                flexShrink: 0,
-              }}
-            />
+            <SharedFloatingHeader
+              title={
+                curView === 'Editor'
+                  ? tr.stagex.navStage || 'Stage'
+                  : curView === 'SetupHub' || curView === 'Setup'
+                    ? tr.stagex.navSetup || 'Stage Setup'
+                    : curView === 'Rider'
+                      ? tr.stagex.techRider || 'Technical Rider'
+                      : curView === 'Setlist'
+                        ? tr.stagex.setlist || 'Setlist'
+                        : curView === 'Gear'
+                          ? tr.stagex.gearInventory || 'Gear Inventory'
+                          : curView === 'Members'
+                            ? tr.stagex.bandMembers || 'Band & Crew'
+                            : curView === 'Preferences'
+                              ? tr.stagex.navPreferences || 'Stage Preferences'
+                              : curView === 'Export'
+                                ? tr.stagex.toolExport || 'Stage Export'
+                                : 'Stage'
+              }
+              onBack={showBack ? () => NavigationDispatcher.pop() : undefined}
+              hideBack={!showBack}
+              toolbarActions={
+                curView === 'Editor' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    {(
+                      [
+                        {
+                          label: tr.stagex.toolMeasure,
+                          icon: 'straighten',
+                          fn: () => callIframe('scActivateMeasure'),
+                        },
+                        {
+                          label: tr.stagex.toolHistory,
+                          icon: 'history',
+                          fn: () => callIframe('openTimelinePanel'),
+                        },
+                      ] as { label: string; icon: string; fn: () => void; testid?: string }[]
+                    ).map(({ label, icon, fn, testid }) => (
+                      <button
+                        key={label}
+                        onClick={fn}
+                        onTouchEnd={(e) => {
+                          e.preventDefault();
+                          fn();
+                        }}
+                        title={label}
+                        aria-label={label}
+                        data-testid={testid}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: 32,
+                          height: 32,
+                          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
+                          color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)',
+                          border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
+                          borderRadius: '50%',
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: 16, lineHeight: 1 }}
+                        >
+                          {icon}
+                        </span>
+                      </button>
+                    ))}
 
-            <div
-              className="spring-in"
-              style={{
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                padding: '24px 24px 4px',
-                background: stageHdr,
-                transition: 'background 180ms ease',
-                gap: showBack ? 8 : 0,
-                position: 'relative',
-              }}
-            >
-              <div
-                style={{
-                  overflow: 'hidden',
-                  flexShrink: 0,
-                  width: showBack ? '46px' : '0px',
-                  opacity: showBack ? 1 : 0,
-                  transition: 'width 300ms cubic-bezier(0.34,1.1,0.64,1), opacity 200ms ease',
-                }}
-              >
-                <button
-                  onClick={() => {
-                    NavigationDispatcher.pop();
-                  }}
-                  className="btn-smooth"
-                  aria-label="Back"
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: '50%',
-                    background: 'var(--app-surface-high)',
-                    border: '1px solid rgba(128,128,128,0.15)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'background 500ms cubic-bezier(0.4,0,0.2,1)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ color: 'var(--c-text-primary)', fontSize: 18 }}
-                  >
-                    arrow_back
-                  </span>
-                </button>
-              </div>
-
-              <div style={{ flex: 1 }} />
-
-              {curView === 'Editor' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  {(
-                    [
-                      // v3.0.56: Auto-arrange removed from top toolbar — its
-                      // function moved into the iframe vertical sidebar slot
-                      // that already shows `auto_fix_high`. Live mode (eye)
-                      // moved out of the top toolbar to a floating button
-                      // anchored above the blue + (FAB) below.
-                      {
-                        label: tr.stagex.toolMeasure,
-                        icon: 'straighten',
-                        fn: () => callIframe('scActivateMeasure'),
-                      },
-                      {
-                        label: tr.stagex.toolHistory,
-                        icon: 'history',
-                        fn: () => callIframe('openTimelinePanel'),
-                      },
-                    ] as { label: string; icon: string; fn: () => void; testid?: string }[]
-                  ).map(({ label, icon, fn, testid }) => (
                     <button
-                      key={label}
-                      onClick={fn}
+                      onClick={() => callIframe('openPresetsPanel')}
                       onTouchEnd={(e) => {
                         e.preventDefault();
-                        fn();
+                        callIframe('openPresetsPanel');
                       }}
-                      title={label}
-                      aria-label={label}
-                      data-testid={testid}
+                      title={tr.stagex.toolPresets}
                       style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -3201,177 +3187,146 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         className="material-symbols-outlined"
                         style={{ fontSize: 16, lineHeight: 1 }}
                       >
-                        {icon}
+                        save
                       </span>
                     </button>
-                  ))}
 
-                  <button
-                    onClick={() => callIframe('openPresetsPanel')}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      callIframe('openPresetsPanel');
-                    }}
-                    title={tr.stagex.toolPresets}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 32,
-                      height: 32,
-                      background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
-                      color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)',
-                      border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                      borderRadius: '50%',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 16, lineHeight: 1 }}
-                    >
-                      save
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => transitionToView('Export')}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      transitionToView('Export');
-                    }}
-                    title={tr.stagex.toolExport}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 32,
-                      height: 32,
-                      background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
-                      color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(180,185,200,0.7)',
-                      border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                      borderRadius: '50%',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 16, lineHeight: 1 }}
-                    >
-                      picture_as_pdf
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => setCollabModalOpen(true)}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      setCollabModalOpen(true);
-                    }}
-                    title="Collaboration"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 32,
-                      height: 32,
-                      background:
-                        collabState === 'connected'
-                          ? isLight
-                            ? 'rgba(16,185,129,0.15)'
-                            : 'rgba(16,185,129,0.20)'
-                          : isLight
-                            ? 'rgba(0,0,0,0.06)'
-                            : 'rgba(255,255,255,0.07)',
-                      color:
-                        collabState === 'connected'
-                          ? '#10b981'
-                          : isLight
-                            ? 'rgba(0,0,0,0.55)'
-                            : 'rgba(180,185,200,0.75)',
-                      border: `1px solid ${collabState === 'connected' ? '#10b981' : isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                      borderRadius: '50%',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 16, lineHeight: 1 }}
-                    >
-                      {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
-                    </span>
-                  </button>
-                </div>
-              )}
-
-              {curView === 'Export' && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <button
-                    onClick={() => callIframe('toggleExportOptions')}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      callIframe('toggleExportOptions');
-                    }}
-                    title="Sections"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 32,
-                      height: 32,
-                      background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
-                      color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)',
-                      border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                      borderRadius: '50%',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 16, lineHeight: 1 }}
-                    >
-                      tune
-                    </span>
-                  </button>
-                  <button
-                    onClick={openPdfSheet}
-                    onTouchEnd={(e) => {
-                      e.preventDefault();
-                      openPdfSheet();
-                    }}
-                    title="Export PDF"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 32,
-                      height: 32,
-                      background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
-                      color: isLight ? '#111' : '#fff',
-                      border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                      borderRadius: '50%',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <span
-                      aria-hidden
-                      style={{
-                        display: 'block',
-                        width: 16,
-                        height: 16,
-                        background: 'currentColor',
-                        WebkitMask: `url(${import.meta.env.BASE_URL}icons/export-pdf.png) center / contain no-repeat`,
-                        mask: `url(${import.meta.env.BASE_URL}icons/export-pdf.png) center / contain no-repeat`,
+                    <button
+                      onClick={() => transitionToView('Export')}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        transitionToView('Export');
                       }}
-                    />
-                  </button>
-                </div>
-              )}
-            </div>
+                      title={tr.stagex.toolExport}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
+                        color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(180,185,200,0.7)',
+                        border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 16, lineHeight: 1 }}
+                      >
+                        picture_as_pdf
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => setCollabModalOpen(true)}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        setCollabModalOpen(true);
+                      }}
+                      title="Collaboration"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        background:
+                          collabState === 'connected'
+                            ? isLight
+                              ? 'rgba(16,185,129,0.15)'
+                              : 'rgba(16,185,129,0.20)'
+                            : isLight
+                              ? 'rgba(0,0,0,0.06)'
+                              : 'rgba(255,255,255,0.07)',
+                        color:
+                          collabState === 'connected'
+                            ? '#10b981'
+                            : isLight
+                              ? 'rgba(0,0,0,0.55)'
+                              : 'rgba(180,185,200,0.75)',
+                        border: `1px solid ${collabState === 'connected' ? '#10b981' : isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 16, lineHeight: 1 }}
+                      >
+                        {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
+                      </span>
+                    </button>
+                  </div>
+                ) : curView === 'Export' ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <button
+                      onClick={() => callIframe('toggleExportOptions')}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        callIframe('toggleExportOptions');
+                      }}
+                      title="Sections"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
+                        color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)',
+                        border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span
+                        className="material-symbols-outlined"
+                        style={{ fontSize: 16, lineHeight: 1 }}
+                      >
+                        tune
+                      </span>
+                    </button>
+                    <button
+                      onClick={openPdfSheet}
+                      onTouchEnd={(e) => {
+                        e.preventDefault();
+                        openPdfSheet();
+                      }}
+                      title="Export PDF"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: 32,
+                        height: 32,
+                        background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
+                        color: isLight ? '#111' : '#fff',
+                        border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
+                        borderRadius: '50%',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span
+                        aria-hidden
+                        style={{
+                          display: 'block',
+                          width: 16,
+                          height: 16,
+                          background: 'currentColor',
+                          WebkitMask: `url(${import.meta.env.BASE_URL}icons/export-pdf.png) center / contain no-repeat`,
+                          mask: `url(${import.meta.env.BASE_URL}icons/export-pdf.png) center / contain no-repeat`,
+                        }}
+                      />
+                    </button>
+                  </div>
+                ) : undefined
+              }
+            />
           </div>
 
           <div

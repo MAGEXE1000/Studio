@@ -36,7 +36,11 @@ import LiveMode from '../../chordex/components/LiveMode';
 import CustomChordBuilder, { CustomMiniDiagram } from '../../chordex/components/CustomChordBuilder';
 import ChordDiagram from '../../chordex/diagrams/ChordDiagram';
 import { StaggeredReveal } from '../../../shared/animation';
-import { ScreenScaffold, ScrollScaffold } from '../../../shared/layout/StudioLayoutSystem';
+import {
+  ScreenScaffold,
+  ScrollScaffold,
+  SharedFloatingHeader,
+} from '../../../shared/layout/StudioLayoutSystem';
 import {
   Button,
   EmptyState,
@@ -1968,45 +1972,10 @@ function ExportModal({
       }}
     >
       {/* ── Header ── */}
-      <div
-        style={{
-          paddingTop: 'env(safe-area-inset-top)',
-          background: 'var(--c-surface-mid)',
-          flexShrink: 0,
-          borderBottom: '1px solid var(--c-border)',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 20px',
-            height: '56px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={handleClose}
-              style={{ borderRadius: '50%', width: 36, height: 36 }}
-              icon="arrow_back"
-            />
-            <p
-              style={{
-                fontFamily: 'var(--font-headline)',
-                fontWeight: 800,
-                fontSize: '14px',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: 'var(--c-text-primary)',
-                lineHeight: 1,
-              }}
-            >
-              Vista previa
-            </p>
-          </div>
+      <SharedFloatingHeader
+        title={preset?.name ? `${preset.name} · PDF` : 'PDF Preview'}
+        onBack={handleClose}
+        toolbarActions={
           <span
             style={{
               fontFamily: 'var(--font-body)',
@@ -2022,11 +1991,18 @@ function ExportModal({
           >
             PDF
           </span>
-        </div>
-      </div>
+        }
+      />
 
       {/* ── Scrollable body ── */}
-      <ScrollScaffold bottomSpacing={false} style={{ flex: 1, padding: 0 }}>
+      <ScrollScaffold
+        bottomSpacing={false}
+        style={{
+          flex: 1,
+          padding: 0,
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+        }}
+      >
         {/* Paper stage */}
         <div
           style={{
@@ -4827,122 +4803,153 @@ export default function SongsPanel() {
           />
         )}
 
+        {!isWebDesktop && (
+          <SharedFloatingHeader
+            title={activePreset.name || 'Song Editor'}
+            onBack={() => setActivePreset(null)}
+            toolbarActions={
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                {(() => {
+                  const hasChords =
+                    activePreset.chords.length > 0 ||
+                    (activePreset.sections ?? []).some((s) => s.chords.length > 0);
+                  return hasChords ? (
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowLive(true)}
+                      data-testid="enter-live-mode"
+                      style={{
+                        height: '32px',
+                        padding: '0 8px',
+                        fontSize: '11px',
+                        background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                        boxShadow: `0 2px 8px ${accent.to}44`,
+                      }}
+                      icon="play_circle"
+                    >
+                      Live
+                    </Button>
+                  ) : null;
+                })()}
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => {
+                    setEditingId(activePreset.id);
+                    setShowForm(true);
+                  }}
+                  style={{ borderRadius: '50%', width: 32, height: 32 }}
+                  icon="edit"
+                />
+              </div>
+            }
+          />
+        )}
+
         {/* Header */}
         <header
           className="flex-none app-bg"
           style={{
-            paddingTop: '18px',
+            paddingTop: !isWebDesktop ? 'calc(env(safe-area-inset-top, 0px) + 68px)' : '18px',
             paddingBottom: '10px',
             paddingLeft: '16px',
             paddingRight: '16px',
           }}
         >
-          {/* â”€â”€ Title row â”€â”€ */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '10px',
-            }}
-          >
-            {/* Back button */}
-            {!isWebDesktop && (
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => setActivePreset(null)}
-                data-testid="preset-back"
-                style={{ borderRadius: '50%', width: 36, height: 36 }}
-                icon="arrow_back"
-              />
-            )}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h2
-                style={{
-                  color: 'var(--c-text-primary)',
-                  fontFamily: 'var(--font-headline)',
-                  fontWeight: 950,
-                  fontSize: isWebDesktop ? '18px' : '22px',
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1.2,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {activePreset.name}
-              </h2>
-              {activePreset.artist && (
-                <p
+          {/* ── Desktop Title row ── */}
+          {isWebDesktop && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '10px',
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h2
                   style={{
-                    color: 'var(--c-text-secondary)',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '12px',
-                    marginTop: '2px',
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'var(--font-headline)',
+                    fontWeight: 950,
+                    fontSize: '18px',
+                    letterSpacing: '-0.02em',
+                    lineHeight: 1.2,
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {activePreset.artist}
-                </p>
-              )}
-            </div>
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
-              {/* Live Mode pill */}
-              {(() => {
-                const hasChords =
-                  activePreset.chords.length > 0 ||
-                  (activePreset.sections ?? []).some((s) => s.chords.length > 0);
-                return hasChords ? (
-                  <Button
-                    variant="primary"
-                    onClick={() => setShowLive(true)}
-                    data-testid="enter-live-mode"
+                  {activePreset.name}
+                </h2>
+                {activePreset.artist && (
+                  <p
                     style={{
-                      height: '34px',
-                      padding: '0 11px 0 9px',
-                      background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                      boxShadow: `0 2px 12px ${accent.to}55`,
+                      color: 'var(--c-text-secondary)',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: '12px',
+                      marginTop: '2px',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
                     }}
-                    icon="play_circle"
                   >
-                    {t.songs.liveMode}
-                  </Button>
-                ) : null;
-              })()}
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() =>
-                  Capacitor.isNativePlatform()
-                    ? setJsonExportPreset(activePreset)
-                    : exportPresetToJSON(activePreset, 'share')
-                }
-                title={t.songs.exportAsJson}
-                style={{ borderRadius: '50%', width: 34, height: 34 }}
-                icon="data_object"
-              />
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => setExportModal(activePreset)}
-                title={t.songs.exportToPdf}
-                style={{ borderRadius: '50%', width: 34, height: 34 }}
-                icon="picture_as_pdf"
-              />
-              <Button
-                variant="secondary"
-                size="icon"
-                onClick={() => {
-                  setEditingId(activePreset.id);
-                  setShowForm(true);
-                }}
-                style={{ borderRadius: '50%', width: 34, height: 34 }}
-                icon="edit"
-              />
-              {isWebDesktop && (
+                    {activePreset.artist}
+                  </p>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexShrink: 0 }}>
+                {(() => {
+                  const hasChords =
+                    activePreset.chords.length > 0 ||
+                    (activePreset.sections ?? []).some((s) => s.chords.length > 0);
+                  return hasChords ? (
+                    <Button
+                      variant="primary"
+                      onClick={() => setShowLive(true)}
+                      data-testid="enter-live-mode"
+                      style={{
+                        height: '34px',
+                        padding: '0 11px 0 9px',
+                        background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                        boxShadow: `0 2px 12px ${accent.to}55`,
+                      }}
+                      icon="play_circle"
+                    >
+                      {t.songs.liveMode}
+                    </Button>
+                  ) : null;
+                })()}
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() =>
+                    Capacitor.isNativePlatform()
+                      ? setJsonExportPreset(activePreset)
+                      : exportPresetToJSON(activePreset, 'share')
+                  }
+                  title={t.songs.exportAsJson}
+                  style={{ borderRadius: '50%', width: 34, height: 34 }}
+                  icon="data_object"
+                />
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => setExportModal(activePreset)}
+                  title={t.songs.exportToPdf}
+                  style={{ borderRadius: '50%', width: 34, height: 34 }}
+                  icon="picture_as_pdf"
+                />
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  onClick={() => {
+                    setEditingId(activePreset.id);
+                    setShowForm(true);
+                  }}
+                  style={{ borderRadius: '50%', width: 34, height: 34 }}
+                  icon="edit"
+                />
                 <Button
                   variant="danger"
                   size="icon"
@@ -4950,9 +4957,9 @@ export default function SongsPanel() {
                   style={{ borderRadius: '50%', width: 34, height: 34 }}
                   icon="delete"
                 />
-              )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* â”€â”€ Meta + transpose row (full width) â”€â”€ */}
           <div

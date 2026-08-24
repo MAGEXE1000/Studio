@@ -3,6 +3,7 @@ import ElasticSlider from '../../../shared/progress/ElasticSlider';
 import { type HarmonizerState } from './useHarmonizerState';
 import { useT } from '@workspace/studio-core';
 import { HARMONIES, layerSemitones, type HarmonyLayerState } from '../services/harmonyEngine';
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
 
 export function fmt(sec: number): string {
   const m = Math.floor(Math.max(0, sec) / 60);
@@ -15,50 +16,14 @@ export function HarmonizerHeader({ state }: { state: HarmonizerState }) {
   const { take, accent, detectedKey, activeCount, stopPlayback, onClose } = state;
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '12px 16px 10px',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        flexShrink: 0,
+    <SharedFloatingHeader
+      title={t.vocalex.harmonizerTitle || 'Harmonizer'}
+      onBack={() => {
+        stopPlayback();
+        onClose();
       }}
-    >
-      <button
-        onClick={() => {
-          stopPlayback();
-          onClose();
-        }}
-        style={{
-          background: 'none',
-          border: 'none',
-          padding: 4,
-          cursor: 'pointer',
-          color: 'var(--vx-text-2, rgba(255,255,255,0.45))',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
-          arrow_back
-        </span>
-      </button>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
+      toolbarActions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <h2
-            style={{
-              fontFamily: 'var(--font-headline)',
-              fontWeight: 800,
-              fontSize: 17,
-              color: 'var(--vx-text, #fff)',
-              margin: 0,
-              letterSpacing: '-0.02em',
-            }}
-          >
-            {t.vocalex.harmonizerTitle || 'Harmonizer'}
-          </h2>
           {detectedKey && (
             <span
               style={{
@@ -77,41 +42,39 @@ export function HarmonizerHeader({ state }: { state: HarmonizerState }) {
               {detectedKey}
             </span>
           )}
+          <div
+            style={{
+              background: 'rgba(255,255,255,0.07)',
+              borderRadius: 8,
+              padding: '4px 9px',
+              fontSize: 11,
+              fontWeight: 700,
+              color: 'rgba(255,255,255,0.5)',
+              flexShrink: 0,
+            }}
+          >
+            {activeCount} layer{activeCount !== 1 ? 's' : ''}
+          </div>
         </div>
-        <p
-          style={{
-            fontSize: 11,
-            color: 'var(--vx-text-2, rgba(255,255,255,0.4))',
-            margin: '1px 0 0',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {take.name}
-        </p>
-      </div>
-
-      <div
-        style={{
-          background: 'rgba(255,255,255,0.07)',
-          borderRadius: 8,
-          padding: '4px 9px',
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'rgba(255,255,255,0.5)',
-          flexShrink: 0,
-        }}
-      >
-        {activeCount} layer{activeCount !== 1 ? 's' : ''}
-      </div>
-    </div>
+      }
+    />
   );
 }
 
 export function HarmonizerPlayer({ state }: { state: HarmonizerState }) {
   const t = useT();
-  const { take, accent, playProgress, isPlaying, isGenerating, isBouncing, handlePlayStop, currentTimeSec, totalDuration, playError } = state;
+  const {
+    take,
+    accent,
+    playProgress,
+    isPlaying,
+    isGenerating,
+    isBouncing,
+    handlePlayStop,
+    currentTimeSec,
+    totalDuration,
+    playError,
+  } = state;
 
   return (
     <div style={{ padding: '14px 16px 0' }}>

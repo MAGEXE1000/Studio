@@ -1,4 +1,20 @@
-import { useChordStore, useT, useBackHandler, useNavCollapsed, useNavHidden, useIsWebDesktop, registerDebugProvider, unregisterDebugProvider, useNavigationStore, NavigationDispatcher, setNavCollapsed, useBottomNavigationStore, setNavHidden, useSettingsStore, useSessionStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  useT,
+  useBackHandler,
+  useNavCollapsed,
+  useNavHidden,
+  useIsWebDesktop,
+  registerDebugProvider,
+  unregisterDebugProvider,
+  useNavigationStore,
+  NavigationDispatcher,
+  setNavCollapsed,
+  useBottomNavigationStore,
+  setNavHidden,
+  useSettingsStore,
+  useSessionStore,
+} from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useGroovexStore, type GroovexView } from '../state/useGroovexStore';
@@ -9,6 +25,8 @@ import {
 } from '../../hub/navigation/navStyles';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
+import { SONG_CATALOG } from '../services/songCatalog';
 import {
   SharedNavigationBar,
   type SharedNavigationItem,
@@ -98,6 +116,8 @@ export default function GroovexApp() {
   }, [view, isWebDesktop]);
 
   useEffect(() => {}, []);
+  const currentSong = SONG_CATALOG.find((s) => s.id === activeSongId);
+
   return (
     <div
       className="groovex-root"
@@ -111,36 +131,8 @@ export default function GroovexApp() {
         overflow: 'hidden',
       }}
     >
-      {!isWebDesktop && (
-        <header
-          style={{
-            display: view === 'player' ? 'flex' : 'none',
-            alignItems: 'center',
-            padding: '24px 24px 4px',
-            flexShrink: 0,
-            background: 'var(--gx-bg)',
-          }}
-        >
-          <div
-            style={{
-              overflow: 'hidden',
-              flexShrink: 0,
-              width: view === 'player' ? '40px' : '0px',
-              opacity: view === 'player' ? 1 : 0,
-              transition: 'width 300ms cubic-bezier(0.34,1.1,0.64,1), opacity 200ms ease',
-            }}
-          >
-            <button
-              onClick={handleBack}
-              className="premium-back-btn"
-              aria-label="Back"
-            >
-              <span className="material-symbols-outlined">
-                arrow_back
-              </span>
-            </button>
-          </div>
-        </header>
+      {!isWebDesktop && view === 'player' && (
+        <SharedFloatingHeader title={currentSong?.title || 'Player'} onBack={handleBack} />
       )}
 
       <div

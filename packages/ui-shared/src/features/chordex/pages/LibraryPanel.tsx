@@ -5,6 +5,7 @@ import { SongPracticeView } from './SongPracticeView';
 import { SaxophonePracticePanel } from './SaxophonePracticePanel';
 import { useLibraryState } from './useLibraryState';
 import { LibraryMainView, LibraryChordDetail } from './LibraryUI';
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
 
 const CustomChordBuilder = lazy(() => import('../components/CustomChordBuilder'));
 const ProgressionGenerator = lazy(() => import('../components/ProgressionGenerator'));
@@ -24,7 +25,7 @@ export default function LibraryPanel() {
     activePracticeSong,
     setActivePracticeSong,
     accent,
-    chord
+    chord,
   } = state;
 
   useScrollHide(state.scrollRef);
@@ -60,22 +61,20 @@ export default function LibraryPanel() {
         </div>
       ) : // Mobile view - either details or main list
       selectedChordId ? (
-        <div className="flex flex-col h-full overflow-hidden">
-          <header className="flex-none px-4 pt-4 pb-2 border-b border-white/5 flex items-center gap-3">
-            <button
-              onClick={() => selectChord(null)}
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-zinc-900 border border-zinc-800 text-zinc-300"
-            >
-              <span className="material-symbols-outlined text-base">arrow_back</span>
-            </button>
-            <span
-              className="font-extrabold text-sm text-zinc-300"
-              style={{ fontFamily: 'var(--font-headline)' }}
-            >
-              Back to Library
-            </span>
-          </header>
-          <LibraryChordDetail state={state} />
+        <div className="flex flex-col h-full overflow-hidden relative">
+          <SharedFloatingHeader
+            title={chord?.name || 'Chord Details'}
+            onBack={() => selectChord(null)}
+          />
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+            }}
+          >
+            <LibraryChordDetail state={state} />
+          </div>
         </div>
       ) : (
         <LibraryMainView state={state} />

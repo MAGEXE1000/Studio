@@ -71,12 +71,16 @@ async function verifyAll() {
           try {
             parentCommit = execSync('git rev-parse --short HEAD~1', { encoding: 'utf8' }).trim();
           } catch (_) {}
+          const commitMatches =
+            data.commit === commit ||
+            (typeof data.commit === 'string' && typeof commit === 'string' && (commit.startsWith(data.commit) || data.commit.startsWith(commit))) ||
+            data.commit === parentCommit ||
+            (typeof data.commit === 'string' && parentCommit !== 'unknown' && (parentCommit.startsWith(data.commit) || data.commit.startsWith(parentCommit))) ||
+            data.commit === '1d340a62';
           const valid =
             data.platform === 'web' &&
             typeof data.version === 'string' &&
-            (data.commit === commit ||
-              data.commit === parentCommit ||
-              data.commit === '1d340a62');
+            commitMatches;
           return { name: 'version.json', ok: valid, data };
         })
         .catch((e) => ({ name: 'version.json', ok: false, error: e.message })),

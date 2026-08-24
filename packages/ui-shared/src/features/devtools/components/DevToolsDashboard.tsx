@@ -2325,284 +2325,410 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     </div>
   );
 
-  const renderErrorsTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)' }}>
-          Captured Exceptions
-        </span>
-        <button
-          onClick={clearErrors}
-          style={{
-            background: 'rgba(239,68,68,0.1)',
-            border: '1px solid rgba(239,68,68,0.2)',
-            color: '#ef4444',
-            borderRadius: 6,
-            fontSize: 10,
-            padding: '4px 10px',
-            cursor: 'pointer',
-          }}
-        >
-          Clear Errors
-        </button>
-      </div>
-      {errors.length === 0 ? (
+  const renderErrorsTab = () => {
+    const isLightMode =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div
           style={{
-            background: 'rgba(16,185,129,0.04)',
-            border: '1px solid rgba(16,185,129,0.12)',
-            padding: '16px 20px',
-            borderRadius: 12,
             display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
-            gap: 10,
-            color: '#10b981',
-            fontSize: 12,
+            flexWrap: 'wrap',
+            gap: 8,
           }}
         >
-          <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
-            check_circle
-          </span>
-          No runtime errors captured in this session.
-        </div>
-      ) : (
-        errors.map((err, i) => (
-          <div
-            key={i}
+          <span
             style={{
-              background: 'rgba(239,68,68,0.04)',
-              border: '1px solid rgba(239,68,68,0.15)',
-              borderRadius: 12,
-              padding: 14,
+              fontSize: '14px',
+              fontWeight: 800,
+              color: 'var(--c-text-primary)',
+              fontFamily: 'Manrope, sans-serif',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 6,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span
-                  style={{
-                    background: err.count && err.count > 1 ? '#10b981' : '#ef4444',
-                    color: '#fff',
-                    fontSize: 10,
-                    fontWeight: 900,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                  }}
-                >
-                  Occurred: x{err.count || 1}
-                </span>
-                <span style={{ fontSize: 11, color: 'var(--c-text-secondary)' }}>
-                  First: {new Date(err.firstSeen || err.timestamp).toLocaleTimeString()} | Last:{' '}
-                  {new Date(err.lastSeen || err.timestamp).toLocaleTimeString()}
-                </span>
-              </div>
-              <span
-                style={{
-                  background: 'var(--app-surface-high)',
-                  border: '1px solid var(--c-border)',
-                  color: 'var(--c-text-secondary)',
-                  fontSize: 9,
-                  fontWeight: 900,
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                }}
-              >
-                {err.module.toUpperCase()}
-              </span>
-            </div>
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 700,
-                color: '#fca5a5',
-                fontFamily: 'monospace',
-                marginBottom: 8,
-              }}
-            >
-              {err.message}
-            </div>
-            {(() => {
-              const codeMatch = /Minified React error #(\d+)/i.exec(err.message);
-              if (codeMatch) {
-                const code = codeMatch[1];
-                const decoded = decodeReactError(code);
-                if (decoded) {
-                  return (
-                    <div
-                      style={{
-                        marginTop: 8,
-                        marginBottom: 8,
-                        padding: 10,
-                        background: 'rgba(59, 91, 219, 0.08)',
-                        border: '1px solid rgba(59, 91, 219, 0.2)',
-                        borderRadius: 8,
-                        fontSize: 11,
-                        color: '#d2d6dc',
-                        lineHeight: 1.4,
-                        textAlign: 'left',
-                      }}
-                    >
-                      <div style={{ fontWeight: 800, color: '#748ffc', marginBottom: 4 }}>
-                        Decoded React Error #${code}:
-                      </div>
-                      <div style={{ fontStyle: 'italic', marginBottom: 6 }}>{decoded.message}</div>
-                      <div style={{ marginBottom: 6 }}>
-                        <strong style={{ color: '#a5b4fc' }}>Potential Cause:</strong>{' '}
-                        {decoded.cause}
-                      </div>
-                      <div style={{ marginBottom: 8 }}>
-                        <strong style={{ color: '#a5b4fc' }}>Recommended Fix:</strong> {decoded.fix}
-                      </div>
-                      <button
-                        onClick={() => {
-                          const explanation = `=== DECODED REACT ERROR #${code} ===\nMessage: ${decoded.message}\n\nPotential Cause: ${decoded.cause}\n\nRecommended Fix: ${decoded.fix}`;
-                          navigator.clipboard.writeText(explanation);
-                          alert('React error explanation copied to clipboard!');
-                        }}
-                        style={{
-                          background: 'rgba(59, 91, 219, 0.2)',
-                          border: '1px solid rgba(59, 91, 219, 0.4)',
-                          color: '#9eb2ff',
-                          borderRadius: 6,
-                          fontSize: 10,
-                          padding: '4px 8px',
-                          cursor: 'pointer',
-                          fontFamily: 'Manrope',
-                          fontWeight: 700,
-                        }}
-                      >
-                        Copy Decoded Explanation
-                      </button>
-                    </div>
-                  );
-                }
-              }
-              return null;
-            })()}
-            {err.stack && (
-              <pre
-                style={{
-                  margin: 0,
-                  padding: 8,
-                  background: 'var(--app-surface-bright, var(--app-surface))',
-                  border: '1px solid var(--c-border)',
-                  borderRadius: 6,
-                  fontSize: 10,
-                  fontFamily: 'monospace',
-                  color: 'var(--c-text-secondary)',
-                  overflowX: 'auto',
-                  whiteSpace: 'pre-wrap',
-                  maxHeight: 150,
-                  overflowY: 'auto',
-                }}
-              >
-                {err.stack}
-              </pre>
-            )}
-          </div>
-        ))
-      )}
-    </div>
-  );
+            Captured Exceptions ({errors.length})
+          </span>
+          <button
+            onClick={clearErrors}
+            style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              color: '#ee7d77',
+              borderRadius: 8,
+              fontSize: '11px',
+              fontWeight: 700,
+              padding: '5px 12px',
+              cursor: 'pointer',
+              fontFamily: 'Manrope, sans-serif',
+            }}
+          >
+            Clear Errors
+          </button>
+        </div>
 
-  const renderEventsTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <select
-          value={eventModuleFilter}
-          onChange={(e) => setEventModuleFilter(e.target.value)}
-          style={{
-            background: 'var(--app-surface)',
-            border: '1px solid var(--c-border)',
-            color: 'var(--c-text-primary)',
-            padding: '4px 8px',
-            borderRadius: 8,
-            fontSize: 11,
-          }}
-        >
-          <option value="all">All Modules</option>
-          <option value="general">general</option>
-          <option value="hub">hub</option>
-          <option value="stage">stage</option>
-          <option value="drums">drums</option>
-          <option value="grooves">grooves</option>
-          <option value="vocals">vocals</option>
-        </select>
-        <button
-          onClick={clearEvents}
-          style={{
-            background: 'var(--app-surface-high, var(--app-surface))',
-            border: '1px solid var(--c-border)',
-            color: 'var(--c-text-primary)',
-            borderRadius: 6,
-            fontSize: 10,
-            padding: '4px 10px',
-            cursor: 'pointer',
-          }}
-        >
-          Clear
-        </button>
-      </div>
-
-      <div
-        style={{
-          background: 'var(--app-surface-low, var(--app-surface))',
-          borderRadius: 12,
-          border: '1px solid var(--c-border)',
-          maxHeight: '60vh',
-          overflowY: 'auto',
-          padding: 8,
-        }}
-      >
-        {filteredEvents.length === 0 ? (
+        {errors.length === 0 ? (
           <div
             style={{
               textAlign: 'center',
-              padding: 20,
-              color: 'var(--c-text-secondary)',
-              fontSize: 12,
+              padding: '24px 20px',
+              color: '#10b981',
+              fontSize: '12px',
+              fontFamily: 'Inter, sans-serif',
+              background: isLightMode ? 'rgba(16, 185, 129, 0.05)' : 'rgba(16, 185, 129, 0.08)',
+              borderRadius: 14,
+              border: '1px solid var(--c-border)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
             }}
           >
-            No gesture events streamed yet. Tap around the UI!
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+              check_circle
+            </span>
+            No runtime errors captured in this session.
           </div>
         ) : (
-          filteredEvents
-            .slice()
-            .reverse()
-            .map((evt, i) => (
+          errors.map((err, i) => (
+            <div
+              key={i}
+              style={{
+                background: isLightMode ? 'rgba(239, 68, 68, 0.04)' : 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.20)',
+                borderRadius: 14,
+                padding: '14px 16px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}
+            >
               <div
-                key={i}
                 style={{
-                  padding: '6px 8px',
-                  borderBottom: '1px solid var(--c-border)',
-                  fontSize: 11,
-                  fontFamily: 'monospace',
                   display: 'flex',
                   justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 6,
                 }}
               >
-                <div>
-                  <span style={{ color: 'var(--c-text-secondary)', marginRight: 8 }}>
-                    [{new Date(evt.timestamp).toLocaleTimeString()}]
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    style={{
+                      background: err.count && err.count > 1 ? '#10b981' : '#ef4444',
+                      color: '#fff',
+                      fontSize: '9.5px',
+                      fontWeight: 800,
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      fontFamily: 'Inter, sans-serif',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    OCCURRED: x{err.count || 1}
                   </span>
-                  <span style={{ color: '#10b981', fontWeight: 700 }}>{evt.type}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.6)', marginLeft: 8 }}>
-                    → {evt.target}
+                  <span
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--c-text-secondary)',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    First: {new Date(err.firstSeen || err.timestamp).toLocaleTimeString()} | Last:{' '}
+                    {new Date(err.lastSeen || err.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
-                <span style={{ color: '#a78bfa' }}>{evt.module}</span>
+                <span
+                  style={{
+                    background: 'var(--app-surface-high, var(--app-surface))',
+                    border: '1px solid var(--c-border)',
+                    color: 'var(--c-text-secondary)',
+                    fontSize: '9.5px',
+                    fontWeight: 800,
+                    padding: '2px 6px',
+                    borderRadius: 4,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {err.module}
+                </span>
               </div>
-            ))
+              <div
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#fca5a5',
+                  fontFamily: 'monospace',
+                  lineHeight: 1.4,
+                  wordBreak: 'break-all',
+                }}
+              >
+                {err.message}
+              </div>
+              {(() => {
+                const codeMatch = /Minified React error #(\d+)/i.exec(err.message);
+                if (codeMatch) {
+                  const code = codeMatch[1];
+                  const decoded = decodeReactError(code);
+                  if (decoded) {
+                    return (
+                      <div
+                        style={{
+                          marginTop: 4,
+                          padding: 12,
+                          background: 'rgba(59, 91, 219, 0.08)',
+                          border: '1px solid rgba(59, 91, 219, 0.2)',
+                          borderRadius: 10,
+                          fontSize: '11px',
+                          color: 'var(--c-text-primary)',
+                          lineHeight: 1.4,
+                          textAlign: 'left',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 6,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontWeight: 800,
+                            color: '#748ffc',
+                            fontFamily: 'Manrope, sans-serif',
+                          }}
+                        >
+                          Decoded React Error #{code}:
+                        </div>
+                        <div style={{ fontStyle: 'italic', color: 'var(--c-text-secondary)' }}>
+                          {decoded.message}
+                        </div>
+                        <div>
+                          <strong style={{ color: '#a5b4fc' }}>Potential Cause:</strong>{' '}
+                          {decoded.cause}
+                        </div>
+                        <div>
+                          <strong style={{ color: '#a5b4fc' }}>Recommended Fix:</strong>{' '}
+                          {decoded.fix}
+                        </div>
+                        <button
+                          onClick={() => {
+                            const explanation = `=== DECODED REACT ERROR #${code} ===\nMessage: ${decoded.message}\n\nPotential Cause: ${decoded.cause}\n\nRecommended Fix: ${decoded.fix}`;
+                            navigator.clipboard.writeText(explanation);
+                            showToast('React error explanation copied!');
+                          }}
+                          style={{
+                            alignSelf: 'flex-start',
+                            background: 'rgba(59, 91, 219, 0.15)',
+                            border: '1px solid rgba(59, 91, 219, 0.3)',
+                            color: '#9eb2ff',
+                            borderRadius: 6,
+                            fontSize: '10.5px',
+                            padding: '4px 10px',
+                            cursor: 'pointer',
+                            fontFamily: 'Manrope, sans-serif',
+                            fontWeight: 700,
+                            marginTop: 4,
+                          }}
+                        >
+                          Copy Decoded Explanation
+                        </button>
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
+              {err.stack && (
+                <pre
+                  style={{
+                    margin: 0,
+                    padding: '8px 10px',
+                    background: isLightMode ? 'rgba(0, 0, 0, 0.03)' : 'rgba(0, 0, 0, 0.3)',
+                    border: '1px solid var(--c-border)',
+                    borderRadius: 8,
+                    fontSize: '10.5px',
+                    fontFamily: 'monospace',
+                    color: 'var(--c-text-secondary)',
+                    overflowX: 'auto',
+                    whiteSpace: 'pre-wrap',
+                    maxHeight: 140,
+                    overflowY: 'auto',
+                  }}
+                >
+                  {err.stack}
+                </pre>
+              )}
+            </div>
+          ))
         )}
       </div>
-    </div>
-  );
+    );
+  };
+
+  const renderEventsTab = () => {
+    const isLightMode =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+    const innerCardBg = isLightMode ? 'rgba(0, 0, 0, 0.025)' : 'rgba(255, 255, 255, 0.03)';
+
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 8,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span
+              style={{
+                fontSize: '14px',
+                fontWeight: 800,
+                color: 'var(--c-text-primary)',
+                fontFamily: 'Manrope, sans-serif',
+              }}
+            >
+              UI Gesture Events ({events.length})
+            </span>
+            <select
+              value={eventModuleFilter}
+              onChange={(e) => setEventModuleFilter(e.target.value)}
+              style={{
+                background: isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--c-border)',
+                color: 'var(--c-text-primary)',
+                padding: '4px 10px',
+                borderRadius: 8,
+                fontSize: '11px',
+                fontFamily: 'Inter, sans-serif',
+                outline: 'none',
+              }}
+            >
+              <option value="all">All Modules</option>
+              <option value="general">general</option>
+              <option value="hub">hub</option>
+              <option value="stage">stage</option>
+              <option value="drums">drums</option>
+              <option value="grooves">grooves</option>
+              <option value="vocals">vocals</option>
+            </select>
+          </div>
+          <button
+            onClick={clearEvents}
+            style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              color: '#ee7d77',
+              borderRadius: 8,
+              fontSize: '11px',
+              fontWeight: 700,
+              padding: '5px 12px',
+              cursor: 'pointer',
+              fontFamily: 'Manrope, sans-serif',
+            }}
+          >
+            Clear Events
+          </button>
+        </div>
+
+        <div
+          style={{
+            background: innerCardBg,
+            borderRadius: 14,
+            border: '1px solid var(--c-border)',
+            maxHeight: '60vh',
+            overflowY: 'auto',
+            padding: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+          }}
+        >
+          {filteredEvents.length === 0 ? (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '24px 20px',
+                color: 'var(--c-text-secondary)',
+                fontSize: '12px',
+                fontFamily: 'Inter, sans-serif',
+              }}
+            >
+              No gesture events streamed yet. Tap around the UI!
+            </div>
+          ) : (
+            filteredEvents
+              .slice()
+              .reverse()
+              .map((evt, i) => (
+                <div
+                  key={i}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: 8,
+                    background: isLightMode ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.02)',
+                    border: '1px solid var(--c-border)',
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                    <span style={{ color: 'var(--c-text-secondary)', flexShrink: 0 }}>
+                      [{new Date(evt.timestamp).toLocaleTimeString()}]
+                    </span>
+                    <span
+                      style={{
+                        color: '#10b981',
+                        fontWeight: 700,
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        padding: '1px 5px',
+                        borderRadius: 4,
+                        fontSize: 10,
+                      }}
+                    >
+                      {evt.type}
+                    </span>
+                    <span
+                      style={{
+                        color: 'var(--c-text-primary)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      → {evt.target}
+                    </span>
+                  </div>
+                  <span
+                    style={{
+                      color: 'var(--studio-accent-from, #2563eb)',
+                      fontWeight: 700,
+                      fontSize: 10,
+                      textTransform: 'uppercase',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {evt.module}
+                  </span>
+                </div>
+              ))
+          )}
+        </div>
+      </div>
+    );
+  };
 
   const renderPerfTab = () => {
     const isLightMode =
@@ -5139,125 +5265,165 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     );
   };
 
-  const renderProvidersTab = () => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
-        App-Specific Debug Panels
-      </span>
-      {activeProviders.length === 0 ? (
+  const renderProvidersTab = () => {
+    const isLightMode =
+      settings.theme === 'light' ||
+      (settings.theme === 'system' &&
+        typeof window !== 'undefined' &&
+        window.matchMedia('(prefers-color-scheme: light)').matches);
+
+    const cardBg = isLightMode
+      ? 'var(--surface-topbar-bg, rgba(255, 255, 255, 0.75))'
+      : 'var(--surface-topbar-bg, rgba(20, 20, 24, 0.70))';
+    const innerCardBg = isLightMode ? 'rgba(0, 0, 0, 0.025)' : 'rgba(255, 255, 255, 0.03)';
+
+    return (
+      <SettingsContentContainer style={{ gap: 14 }}>
         <div
           style={{
-            textAlign: 'center',
-            padding: '36px 20px',
-            background: 'var(--app-surface-high, var(--app-surface))',
-            border: '1px solid var(--c-border)',
-            borderRadius: '16px',
-            color: 'var(--c-text-secondary)',
-            fontSize: '12px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 8,
           }}
         >
-          No app-specific debug panel is currently active. Open Chordex, Stagex, or Drumex to
-          inspect them.
+          <span
+            style={{
+              fontSize: '14px',
+              fontWeight: 800,
+              color: 'var(--c-text-primary)',
+              fontFamily: 'Manrope, sans-serif',
+            }}
+          >
+            App-Specific Debug Panels ({activeProviders.length})
+          </span>
         </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {activeProviders.map((prov) => (
-            <div
-              key={prov.id}
-              style={{
-                background: 'var(--app-surface-high, var(--app-surface))',
-                border: '1px solid var(--c-border)',
-                borderRadius: '16px',
-                padding: '18px 20px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 14,
-              }}
-            >
+
+        {activeProviders.length === 0 ? (
+          <div
+            style={{
+              textAlign: 'center',
+              padding: '32px 20px',
+              background: innerCardBg,
+              border: '1px solid var(--c-border)',
+              borderRadius: 14,
+              color: 'var(--c-text-secondary)',
+              fontSize: '12px',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            No app-specific debug panel is currently active. Open Chordex, Stagex, or Drumex to
+            inspect their live provider state.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            {activeProviders.map((prov) => (
               <div
+                key={prov.id}
                 style={{
+                  background: cardBg,
+                  border: '1px solid var(--c-border)',
+                  borderRadius: 18,
+                  padding: '16px 18px',
+                  boxShadow: 'var(--surface-topbar-shadow)',
+                  backdropFilter: 'var(--surface-float-blur)',
+                  WebkitBackdropFilter: 'var(--surface-float-blur)',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  flexDirection: 'column',
                   gap: 12,
                 }}
               >
-                <h4
+                <div
                   style={{
-                    fontSize: '15px',
-                    fontWeight: 800,
-                    margin: 0,
-                    color: 'var(--studio-accent-from, #679cff)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 12,
                   }}
                 >
-                  {prov.name}
-                </h4>
-                <span
-                  style={{
-                    fontSize: '10px',
-                    fontFamily: 'Inter',
-                    color: 'var(--c-text-secondary)',
-                    background: 'var(--app-surface-low, var(--app-surface))',
-                    border: '1px solid var(--c-border)',
-                    padding: '3px 8px',
-                    borderRadius: '6px',
-                  }}
-                >
-                  {prov.id}
-                </span>
-              </div>
-
-              {/* Provider Actions */}
-              {prov.getActions && prov.getActions().length > 0 && (
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {prov.getActions().map((act, idx) => (
-                    <button
-                      key={idx}
-                      onClick={act.action}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '10px',
-                        background: 'var(--app-surface-low, var(--app-surface))',
-                        border: '1px solid var(--c-border)',
-                        color: 'var(--c-text-primary)',
-                        fontWeight: 700,
-                        fontSize: '11px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        fontFamily: 'Inter',
-                      }}
-                    >
-                      {act.label}
-                    </button>
-                  ))}
+                  <h4
+                    style={{
+                      fontSize: '15px',
+                      fontWeight: 800,
+                      margin: 0,
+                      color: 'var(--studio-accent-from, #2563eb)',
+                      fontFamily: 'Manrope, sans-serif',
+                    }}
+                  >
+                    {prov.name}
+                  </h4>
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontFamily: 'Inter, sans-serif',
+                      color: 'var(--c-text-secondary)',
+                      background: innerCardBg,
+                      border: '1px solid var(--c-border)',
+                      padding: '3px 8px',
+                      borderRadius: 6,
+                    }}
+                  >
+                    {prov.id}
+                  </span>
                 </div>
-              )}
 
-              {/* State */}
-              <pre
-                style={{
-                  margin: 0,
-                  padding: '12px 14px',
-                  background: 'var(--app-surface-bright, var(--app-surface))',
-                  border: '1px solid var(--c-border)',
-                  borderRadius: '10px',
-                  fontFamily: 'monospace',
-                  fontSize: '11px',
-                  color: 'var(--c-text-secondary)',
-                  wordBreak: 'break-all',
-                  whiteSpace: 'pre-wrap',
-                  maxHeight: 250,
-                  overflowY: 'auto',
-                }}
-              >
-                {JSON.stringify(prov.getDebugState(), null, 2)}
-              </pre>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+                {/* Provider Actions */}
+                {prov.getActions && prov.getActions().length > 0 && (
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {prov.getActions().map((act, idx) => (
+                      <button
+                        key={idx}
+                        onClick={act.action}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          background: isLightMode
+                            ? 'rgba(0, 0, 0, 0.04)'
+                            : 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid var(--c-border)',
+                          color: 'var(--c-text-primary)',
+                          fontWeight: 700,
+                          fontSize: '11px',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          fontFamily: 'Manrope, sans-serif',
+                        }}
+                      >
+                        {act.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* State */}
+                <pre
+                  style={{
+                    margin: 0,
+                    padding: '10px 12px',
+                    background: innerCardBg,
+                    border: '1px solid var(--c-border)',
+                    borderRadius: 10,
+                    fontSize: '11px',
+                    fontFamily: 'monospace',
+                    color: 'var(--c-text-secondary)',
+                    overflowX: 'auto',
+                    whiteSpace: 'pre-wrap',
+                    maxHeight: 200,
+                    overflowY: 'auto',
+                  }}
+                >
+                  {typeof prov.getDebugState === 'function'
+                    ? JSON.stringify(prov.getDebugState(), null, 2)
+                    : 'No debug state exported.'}
+                </pre>
+              </div>
+            ))}
+          </div>
+        )}
+      </SettingsContentContainer>
+    );
+  };
 
   const renderAppsView = () => {
     const isLightMode =
@@ -6348,7 +6514,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     </p>
                   </div>
                 </div>
-                <span style={badgeStyle('profiling')}>Profiling...</span>
+                <span style={badgeStyle('profiling')}>
+                  {liveFps > 0 ? `${liveFps} FPS` : 'Profiling'}
+                </span>
               </div>
               <div
                 style={{
@@ -6359,18 +6527,27 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   marginTop: 16,
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-primary)' }}>
-                  60 FPS{' '}
-                  <span
-                    style={{
-                      fontSize: 10,
-                      color: 'var(--c-text-secondary)',
-                      fontWeight: 500,
-                      marginLeft: 4,
-                    }}
-                  >
-                    / 2.4ms jitter
-                  </span>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--c-text-primary)',
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  {liveFps > 0 ? `${liveFps} FPS live` : 'Telemetry Active'}
+                  {memoryMetrics.usedMB !== null && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        color: 'var(--c-text-secondary)',
+                        fontWeight: 500,
+                        marginLeft: 6,
+                      }}
+                    >
+                      • Heap: {memoryMetrics.usedMB} MB
+                    </span>
+                  )}
                 </div>
                 <span
                   className="material-symbols-outlined"
@@ -6534,10 +6711,16 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-primary)' }}>
-                    Connected
+                    {typeof navigator !== 'undefined' && navigator.onLine ? 'Online' : 'Offline'}
                   </span>
-                  <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>
-                    - WebSockets stable
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: 'var(--c-text-secondary)',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    • {network.length} requests logged
                   </span>
                 </div>
                 <span
@@ -6971,14 +7154,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 alignItems: 'center',
                 gap: 6,
                 padding: '8px 14px',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 background: toggle.active
-                  ? 'var(--studio-accent-from, #679cff)'
+                  ? 'var(--studio-accent-from, #2563eb)'
                   : 'var(--app-surface-high, var(--app-surface))',
                 border: toggle.active ? '1px solid transparent' : '1px solid var(--c-border)',
                 color: toggle.active ? '#fff' : 'var(--c-text-secondary)',
+                fontFamily: 'Manrope, sans-serif',
                 fontWeight: 700,
-                fontSize: '11px',
+                fontSize: '12px',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.15s ease',

@@ -1271,8 +1271,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   }, [isLandscape]);
 
   const stageVis = settings.perApp?.stagex ?? {
-    theme: 'dark' as const,
-    amoledMode: false,
+    theme: (settings.theme ?? 'dark') as typeof settings.theme,
+    amoledMode: settings.amoledMode ?? false,
   };
   const accent = ACCENT_COLORS.blue;
   const isLight = (() => {
@@ -2405,7 +2405,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     : isLight
                       ? '1px solid rgba(0,0,0,0.08)'
                       : '1px solid rgba(255,255,255,0.06)',
-                  background: isLight ? 'var(--app-surface-low)' : '#080809',
+                  background: isLight ? 'var(--app-surface-low)' : 'var(--app-bg)',
                   display: 'flex',
                   flexDirection: 'column',
                   height: '100%',
@@ -2716,7 +2716,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     borderTop: isLight
                       ? '1px solid rgba(0,0,0,0.08)'
                       : '1px solid rgba(255,255,255,0.06)',
-                    background: isLight ? 'var(--app-surface-low)' : '#0a0a0c',
+                    background: isLight ? 'var(--app-surface-low)' : 'var(--app-bg)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',

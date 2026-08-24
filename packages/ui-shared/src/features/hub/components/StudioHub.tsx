@@ -1514,7 +1514,7 @@ export default function StudioHub() {
                                     <span
                                       className="material-symbols-outlined"
                                       style={{
-                                        color: accent.from,
+                                        color: 'var(--c-text-secondary)',
                                         fontSize: '22px',
                                       }}
                                     >
@@ -1760,9 +1760,8 @@ export default function StudioHub() {
                                     width: '44px',
                                     height: '44px',
                                     borderRadius: '14px',
-                                    background: `linear-gradient(135deg, ${color}24 0%, ${color}0c 100%)`,
-                                    border: `1px solid ${color}40`,
-                                    boxShadow: `0 4px 14px ${color}22, inset 0 1px 1px rgba(255, 255, 255, 0.35)`,
+                                    background: isLight ? `${color}14` : `${color}18`,
+                                    border: `1px solid ${color}30`,
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
@@ -2332,7 +2331,7 @@ export default function StudioHub() {
                               >
                                 <span
                                   className="material-symbols-outlined"
-                                  style={{ color: accent.from, fontSize: 15 }}
+                                  style={{ color: 'var(--c-text-secondary)', fontSize: 15 }}
                                 >
                                   {opt.icon}
                                 </span>

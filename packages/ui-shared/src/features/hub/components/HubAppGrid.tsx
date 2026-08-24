@@ -96,34 +96,17 @@ export function HubAppGrid() {
             }}
           />
 
-          {/* Ambient colored glow */}
-          <div
-            style={{
-              position: 'absolute',
-              top: -24,
-              right: -24,
-              width: 84,
-              height: 84,
-              borderRadius: '50%',
-              background: app.color,
-              opacity: 0.1,
-              filter: 'blur(20px)', // token-guard-ignore
-              pointerEvents: 'none',
-            }}
-          />
-
           <div
             style={{
               width: 44,
               height: 44,
               borderRadius: 14,
-              background: `linear-gradient(135deg, ${app.color}24 0%, ${app.color}0c 100%)`,
-              border: `1px solid ${app.color}40`,
+              background: `${app.color}18`,
+              border: `1px solid ${app.color}30`,
               color: app.color,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: `0 4px 14px ${app.color}22, inset 0 1px 1px rgba(255, 255, 255, 0.35)`,
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 22 }}>

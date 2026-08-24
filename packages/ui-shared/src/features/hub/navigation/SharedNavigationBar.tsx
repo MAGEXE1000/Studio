@@ -912,8 +912,8 @@ export function SharedNavigationBar({
                   inset: 0,
                   borderRadius: '26px',
                   background: isLight
-                    ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.20) 0%, transparent 100%)'
-                    : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 100%)',
+                    ? 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.12) 0%, transparent 100%)'
+                    : 'radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.04) 0%, transparent 100%)',
                   pointerEvents: 'none',
                   zIndex: 0,
                 }}
@@ -1067,8 +1067,9 @@ export function SharedNavigationBar({
                       position: 'absolute',
                       inset: 0,
                       borderRadius: '26px',
-                      background:
-                        'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.08) 0%, transparent 100%)',
+                      background: isLight
+                        ? 'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.12) 0%, transparent 100%)'
+                        : 'radial-gradient(ellipse 70% 55% at 50% 8%, rgba(255,255,255,0.04) 0%, transparent 100%)',
                       pointerEvents: 'none',
                     }}
                   />

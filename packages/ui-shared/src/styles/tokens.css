@@ -1321,20 +1321,18 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --font-display-lg: 36px; /* full-hero titles (player, lab)      */
 
   /* ── Floating-surface tokens — dark (default) ───────────── */
-  /* Alpha 0.32: very slightly tinted translucent glass on deep-black backgrounds.
-     Lower alpha and darker base tint than before so the glass is nearly invisible
-     against the #09090b body, matching the Settings-screen canonical look.
-     Do NOT raise above 0.40 or the glass reads as a noticeable gray layer.     */
-  --surface-float-bg: rgba(12, 12, 18, 0.32);
-  --surface-topbar-bg: rgba(12, 12, 18, 0.32);
+  /* Alpha 0.18: translucent frosted glass with clearly visible background content.
+     Lighter base opacity allows underlying elements to show through the glass
+     while preserving the authentic frosted backdrop blur.                      */
+  --surface-float-bg: rgba(12, 12, 18, 0.18);
+  --surface-topbar-bg: rgba(12, 12, 18, 0.18);
   /* Outer border: soft, low-contrast translucent rim */
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.1);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.08);
   /* Natural depth separation — lighter to avoid competing with transparent bg */
   --surface-topbar-shadow:
-    0 8px 24px -4px rgba(0, 0, 0, 0.22), 0 2px 6px -2px rgba(0, 0, 0, 0.14),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
-  /* blur(14px): lighter blur so underlying shapes remain recognizable
-     Heavy blur (24px+) defeats visual transparency on Android WebView.       */
+    0 8px 24px -4px rgba(0, 0, 0, 0.2), 0 2px 6px -2px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  /* blur(14px): frosted blur allows underlying shapes/content to remain distinguishable */
   --surface-topbar-blur: blur(14px) saturate(180%);
   --surface-topbar-fallback: rgba(18, 20, 28, 0.96);
   --surface-float-blur: blur(14px) saturate(180%); /* shared backdrop-filter */
@@ -1365,14 +1363,14 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --surface-card-raised: var(--app-surface-high);
 }
 
-/* Light-theme overrides */
+/* Light-theme overrides — translucent frosted white glass */
 :root.light {
-  --surface-float-bg: rgba(255, 255, 255, 0.6);
-  --surface-topbar-bg: rgba(255, 255, 255, 0.6);
+  --surface-float-bg: rgba(255, 255, 255, 0.35);
+  --surface-topbar-bg: rgba(255, 255, 255, 0.35);
   --surface-topbar-border: 1px solid rgba(0, 0, 0, 0.06);
   --surface-topbar-shadow:
-    0 8px 24px -4px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.02),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    0 8px 24px -4px rgba(0, 0, 0, 0.04), 0 2px 6px -2px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   --surface-topbar-blur: blur(14px) saturate(180%);
   --surface-float-blur: blur(14px) saturate(180%);
   --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
@@ -1398,15 +1396,14 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --surface-modal-bg: rgba(0, 0, 0, 0.35);
 }
 
-/* AMOLED overrides — slightly higher alpha so bars stay
-   visible against pure-black (#000) backgrounds.           */
+/* AMOLED overrides — translucent near-black glass over #000 */
 :root.amoled {
-  --surface-float-bg: rgba(10, 10, 14, 0.4);
-  --surface-topbar-bg: rgba(10, 10, 14, 0.4);
-  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.1);
+  --surface-float-bg: rgba(10, 10, 14, 0.2);
+  --surface-topbar-bg: rgba(10, 10, 14, 0.2);
+  --surface-topbar-border: 1px solid rgba(255, 255, 255, 0.08);
   --surface-topbar-shadow:
     0 10px 30px -4px rgba(0, 0, 0, 0.4), 0 2px 8px -2px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   --surface-topbar-blur: blur(14px) saturate(180%);
   --surface-float-blur: blur(14px) saturate(180%);
   --surface-topbar-fallback: rgba(0, 0, 0, 0.98);
@@ -1429,15 +1426,15 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --surface-modal-bg: rgba(0, 0, 0, 0.75);
 }
 
-/* Light + AMOLED (pure-white) — inherits from :root.light, just ensure bottom-rim */
+/* Light + AMOLED (pure-white) — inherits from :root.light */
 :root.light.amoled {
-  --surface-float-bg: rgba(255, 255, 255, 0.7);
-  --surface-topbar-bg: rgba(255, 255, 255, 0.7);
+  --surface-float-bg: rgba(255, 255, 255, 0.35);
+  --surface-topbar-bg: rgba(255, 255, 255, 0.35);
   --surface-topbar-border: 1px solid rgba(0, 0, 0, 0.06);
   --surface-topbar-shadow:
-    0 8px 24px -4px rgba(0, 0, 0, 0.05), 0 2px 6px -2px rgba(0, 0, 0, 0.02),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  --surface-topbar-blur: blur(24px) saturate(160%);
+    0 8px 24px -4px rgba(0, 0, 0, 0.04), 0 2px 6px -2px rgba(0, 0, 0, 0.02),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --surface-topbar-blur: blur(14px) saturate(180%);
   --surface-topbar-fallback: rgba(250, 250, 252, 0.96);
   --surface-glass-rim: linear-gradient(
     90deg,

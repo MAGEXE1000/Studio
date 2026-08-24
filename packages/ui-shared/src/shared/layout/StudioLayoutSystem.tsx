@@ -217,8 +217,8 @@ export function SharedFloatingHeader({
             inset: 0,
             borderRadius: '9999px',
             background: isLight
-              ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.25) 0%, transparent 100%)'
-              : 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.06) 0%, transparent 100%)',
+              ? 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.12) 0%, transparent 100%)'
+              : 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 255, 255, 0.04) 0%, transparent 100%)',
             pointerEvents: 'none',
           }}
         />

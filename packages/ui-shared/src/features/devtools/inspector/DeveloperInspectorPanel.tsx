@@ -52,7 +52,10 @@ export const DeveloperInspectorPanel: React.FC = () => {
   const resetInspector = useDeveloperInspectorStore((s) => s.resetInspector);
 
   const history = useNavigationStore((s) => s.history);
-  const currentRoute = history.length > 0 ? `${history[history.length - 1].app}/${history[history.length - 1].tab || ''}` : 'hub';
+  const currentRoute =
+    history.length > 0
+      ? `${history[history.length - 1].app}/${history[history.length - 1].tab || ''}`
+      : 'hub';
 
   const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
@@ -172,8 +175,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
       <div
         style={{
           padding: '8px 12px',
-          background: 'rgba(255, 255, 255, 0.03)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--app-surface)',
+          borderBottom: '1px solid var(--c-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -184,7 +187,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           {/* Enable Inspector Toggle */}
           <Toggle value={isEnabled} onChange={setIsEnabled} size="sm" />
-          <span style={{ fontWeight: 700, fontSize: '11px', color: '#f8fafc' }}>
+          <span style={{ fontWeight: 700, fontSize: '11px', color: 'var(--c-text-primary)' }}>
             Inspector
           </span>
         </div>
@@ -197,9 +200,11 @@ export const DeveloperInspectorPanel: React.FC = () => {
             style={{
               padding: '4px 10px',
               borderRadius: '999px',
-              border: 'none',
-              background: isLiveSelecting ? '#3b82f6' : 'rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
+              border: isLiveSelecting ? 'none' : '1px solid var(--c-border)',
+              background: isLiveSelecting
+                ? 'var(--studio-accent-from, #3b82f6)'
+                : 'var(--app-surface-high, var(--app-surface))',
+              color: isLiveSelecting ? '#ffffff' : 'var(--c-text-primary)',
               fontSize: '11px',
               fontWeight: 700,
               cursor: 'pointer',
@@ -221,9 +226,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
             style={{
               padding: '4px 10px',
               borderRadius: '999px',
-              border: 'none',
-              background: isFrozen ? '#f59e0b' : 'rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
+              border: isFrozen ? 'none' : '1px solid var(--c-border)',
+              background: isFrozen ? '#f59e0b' : 'var(--app-surface-high, var(--app-surface))',
+              color: isFrozen ? '#ffffff' : 'var(--c-text-primary)',
               fontSize: '11px',
               fontWeight: 700,
               cursor: 'pointer',
@@ -245,7 +250,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
             style={{
               background: 'transparent',
               border: 'none',
-              color: '#94a3b8',
+              color: 'var(--c-text-secondary)',
               cursor: 'pointer',
               padding: '4px',
             }}
@@ -262,8 +267,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
         <div
           style={{
             padding: '6px 12px',
-            background: 'rgba(0, 0, 0, 0.4)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'var(--app-surface-low, var(--app-surface))',
+            borderBottom: '1px solid var(--c-border)',
             display: 'flex',
             alignItems: 'center',
             gap: 4,
@@ -271,7 +276,14 @@ export const DeveloperInspectorPanel: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          <span style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', marginRight: 4 }}>
+          <span
+            style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              color: 'var(--c-text-secondary)',
+              marginRight: 4,
+            }}
+          >
             TRAVERSE:
           </span>
           <button
@@ -324,8 +336,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
         <div
           style={{
             padding: '4px 12px',
-            background: 'rgba(255, 255, 255, 0.02)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'var(--app-surface)',
+            borderBottom: '1px solid var(--c-border)',
             display: 'flex',
             alignItems: 'center',
             gap: 4,
@@ -337,16 +349,17 @@ export const DeveloperInspectorPanel: React.FC = () => {
         >
           {breadcrumbs.map((crumb, idx) => (
             <React.Fragment key={idx}>
-              {idx > 0 && <span style={{ color: '#475569' }}>&gt;</span>}
+              {idx > 0 && <span style={{ color: 'var(--c-text-secondary)' }}>&gt;</span>}
               <span
                 onClick={() => selectNode(crumb.element)}
                 style={{
-                  color: crumb.isReact ? '#10b981' : '#94a3b8',
+                  color: crumb.isReact ? '#10b981' : 'var(--c-text-secondary)',
                   fontWeight: crumb.element === selectedElement ? 800 : 500,
                   cursor: 'pointer',
                   padding: '2px 4px',
                   borderRadius: '4px',
-                  background: crumb.element === selectedElement ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+                  background:
+                    crumb.element === selectedElement ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
                 }}
               >
                 {crumb.isReact ? `<${crumb.name}>` : crumb.name}
@@ -360,8 +373,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
       <div
         style={{
           display: 'flex',
-          background: 'rgba(0, 0, 0, 0.6)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          background: 'var(--app-surface-low, var(--app-surface))',
+          borderBottom: '1px solid var(--c-border)',
           overflowX: 'auto',
           flexShrink: 0,
         }}
@@ -376,10 +389,16 @@ export const DeveloperInspectorPanel: React.FC = () => {
               padding: '8px 12px',
               border: 'none',
               background: activeTab === t.id ? 'rgba(59, 130, 246, 0.15)' : 'transparent',
-              color: activeTab === t.id ? '#3b82f6' : '#94a3b8',
+              color:
+                activeTab === t.id
+                  ? 'var(--studio-accent-from, #3b82f6)'
+                  : 'var(--c-text-secondary)',
               fontWeight: activeTab === t.id ? 700 : 500,
               fontSize: '11px',
-              borderBottom: activeTab === t.id ? '2px solid #3b82f6' : '2px solid transparent',
+              borderBottom:
+                activeTab === t.id
+                  ? '2px solid var(--studio-accent-from, #3b82f6)'
+                  : '2px solid transparent',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -419,7 +438,10 @@ export const DeveloperInspectorPanel: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {!selectedElement ? (
               <div style={{ textAlign: 'center', padding: 24, color: '#64748b' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 36, marginBottom: 8 }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 36, marginBottom: 8 }}
+                >
                   touch_app
                 </span>
                 <div>Tap &quot;Select&quot; or long-press any element to inspect</div>
@@ -431,7 +453,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   <div style={rowStyle}>
                     <span style={labelStyle}>Display Name:</span>
                     <span style={valHighlightStyle}>
-                      &lt;{selectedFiberInfo?.displayName || selectedElement.tagName.toLowerCase()}&gt;
+                      &lt;{selectedFiberInfo?.displayName || selectedElement.tagName.toLowerCase()}
+                      &gt;
                     </span>
                   </div>
                   <div style={rowStyle}>
@@ -454,7 +477,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   )}
                   <div style={rowStyle}>
                     <span style={labelStyle}>Children Count:</span>
-                    <span style={valStyle}>{selectedFiberInfo?.childrenCount ?? selectedElement.children.length}</span>
+                    <span style={valStyle}>
+                      {selectedFiberInfo?.childrenCount ?? selectedElement.children.length}
+                    </span>
                   </div>
                   <div style={rowStyle}>
                     <span style={labelStyle}>Render Depth:</span>
@@ -489,7 +514,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
         {activeTab === 'props' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={cardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <div style={cardTitleStyle}>React Props</div>
                 <CopyButton
                   getTextToCopy={() => JSON.stringify(selectedFiberInfo?.props || {}, null, 2)}
@@ -503,7 +530,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
             </div>
 
             <div style={cardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <div style={cardTitleStyle}>React State</div>
                 <CopyButton
                   getTextToCopy={() => JSON.stringify(selectedFiberInfo?.state || {}, null, 2)}
@@ -522,7 +551,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
         {activeTab === 'styles' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={cardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <div style={cardTitleStyle}>Computed Layout & Styles</div>
                 <CopyButton
                   getTextToCopy={() => JSON.stringify(computedStyles || {}, null, 2)}
@@ -530,9 +561,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   size="sm"
                 />
               </div>
-              <pre style={codeBlockStyle}>
-                {JSON.stringify(computedStyles || {}, null, 2)}
-              </pre>
+              <pre style={codeBlockStyle}>{JSON.stringify(computedStyles || {}, null, 2)}</pre>
             </div>
           </div>
         )}
@@ -556,9 +585,12 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   style={{
                     padding: '3px 8px',
                     borderRadius: '999px',
-                    border: 'none',
-                    background: activeFilter === p.id ? '#3b82f6' : 'rgba(255,255,255,0.06)',
-                    color: '#ffffff',
+                    border: activeFilter === p.id ? 'none' : '1px solid var(--c-border)',
+                    background:
+                      activeFilter === p.id
+                        ? 'var(--studio-accent-from, #3b82f6)'
+                        : 'var(--app-surface-high, var(--app-surface))',
+                    color: activeFilter === p.id ? '#ffffff' : 'var(--c-text-secondary)',
                     fontSize: '10px',
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -578,8 +610,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   style={{
                     padding: '6px 8px',
                     borderRadius: '6px',
-                    background: crumb.element === selectedElement ? 'rgba(59,130,246,0.2)' : 'transparent',
-                    color: crumb.isReact ? '#10b981' : '#f8fafc',
+                    background:
+                      crumb.element === selectedElement ? 'rgba(59,130,246,0.2)' : 'transparent',
+                    color: crumb.isReact ? '#10b981' : 'var(--c-text-primary)',
                     cursor: 'pointer',
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -587,7 +620,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   }}
                 >
                   <span>{crumb.isReact ? `<${crumb.name}>` : crumb.name}</span>
-                  <span style={{ fontSize: '10px', color: '#64748b' }}>
+                  <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>
                     {crumb.element.tagName.toLowerCase()}
                   </span>
                 </div>
@@ -622,25 +655,30 @@ export const DeveloperInspectorPanel: React.FC = () => {
             <div style={cardStyle}>
               <div style={cardTitleStyle}>Grid Overlay Mode</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                {(['none', '4dp', '8dp', 'safeArea', 'touchTargets'] as GridOverlayMode[]).map((mode) => (
-                  <button
-                    key={mode}
-                    type="button"
-                    onClick={() => setGridOverlay(mode)}
-                    style={{
-                      padding: '8px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      background: gridOverlay === mode ? '#3b82f6' : 'rgba(255,255,255,0.06)',
-                      color: '#ffffff',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      fontSize: '11px',
-                    }}
-                  >
-                    {mode}
-                  </button>
-                ))}
+                {(['none', '4dp', '8dp', 'safeArea', 'touchTargets'] as GridOverlayMode[]).map(
+                  (mode) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setGridOverlay(mode)}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '8px',
+                        border: gridOverlay === mode ? 'none' : '1px solid var(--c-border)',
+                        background:
+                          gridOverlay === mode
+                            ? 'var(--studio-accent-from, #3b82f6)'
+                            : 'var(--app-surface-high, var(--app-surface))',
+                        color: gridOverlay === mode ? '#ffffff' : 'var(--c-text-secondary)',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                      }}
+                    >
+                      {mode}
+                    </button>
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -651,8 +689,16 @@ export const DeveloperInspectorPanel: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div style={cardStyle}>
               <div style={cardTitleStyle}>Engineering Diagnostics Export</div>
-              <p style={{ color: '#94a3b8', fontSize: '11px', lineHeight: 1.4, margin: '0 0 12px' }}>
-                Download structured JSON report including React Fiber info, computed styles, device dimensions, navigation history, and app versions.
+              <p
+                style={{
+                  color: 'var(--c-text-secondary)',
+                  fontSize: '11px',
+                  lineHeight: 1.4,
+                  margin: '0 0 12px',
+                }}
+              >
+                Download structured JSON report including React Fiber info, computed styles, device
+                dimensions, navigation history, and app versions.
               </p>
               <button
                 type="button"
@@ -689,8 +735,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
 export default DeveloperInspectorPanel;
 
 const cardStyle: React.CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid rgba(255, 255, 255, 0.08)',
+  background: 'var(--app-surface-high, var(--app-surface))',
+  border: '1px solid var(--c-border)',
   borderRadius: '12px',
   padding: '12px',
   display: 'flex',
@@ -703,7 +749,7 @@ const cardTitleStyle: React.CSSProperties = {
   fontWeight: 800,
   textTransform: 'uppercase',
   letterSpacing: '0.08em',
-  color: '#94a3b8',
+  color: 'var(--c-text-secondary)',
 };
 
 const rowStyle: React.CSSProperties = {
@@ -711,16 +757,16 @@ const rowStyle: React.CSSProperties = {
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '4px 0',
-  borderBottom: '1px dashed rgba(255, 255, 255, 0.04)',
+  borderBottom: '1px dashed var(--c-border)',
 };
 
 const labelStyle: React.CSSProperties = {
-  color: '#94a3b8',
+  color: 'var(--c-text-secondary)',
   fontSize: '11px',
 };
 
 const valStyle: React.CSSProperties = {
-  color: '#f8fafc',
+  color: 'var(--c-text-primary)',
   fontSize: '11px',
   fontWeight: 600,
 };
@@ -734,9 +780,9 @@ const valHighlightStyle: React.CSSProperties = {
 const navBtnStyle: React.CSSProperties = {
   padding: '3px 8px',
   borderRadius: '6px',
-  border: 'none',
-  background: 'rgba(255, 255, 255, 0.08)',
-  color: '#f8fafc',
+  border: '1px solid var(--c-border)',
+  background: 'var(--app-surface-high, var(--app-surface))',
+  color: 'var(--c-text-primary)',
   fontSize: '10px',
   fontWeight: 700,
   cursor: 'pointer',
@@ -755,11 +801,11 @@ const smallBtnStyle: React.CSSProperties = {
 };
 
 const codeBlockStyle: React.CSSProperties = {
-  background: 'rgba(0, 0, 0, 0.5)',
-  border: '1px solid rgba(255, 255, 255, 0.06)',
+  background: 'var(--app-surface-bright, var(--app-surface))',
+  border: '1px solid var(--c-border)',
   borderRadius: '8px',
   padding: '8px',
-  color: '#38bdf8',
+  color: 'var(--studio-accent-from, #38bdf8)',
   fontSize: '10px',
   fontFamily: 'monospace',
   overflowX: 'auto',
@@ -771,9 +817,9 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '8px 12px',
   borderRadius: '8px',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  background: 'rgba(0, 0, 0, 0.4)',
-  color: '#ffffff',
+  border: '1px solid var(--c-border)',
+  background: 'var(--app-surface)',
+  color: 'var(--c-text-primary)',
   fontSize: '11px',
   outline: 'none',
   boxSizing: 'border-box',

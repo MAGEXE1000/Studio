@@ -16,21 +16,27 @@ import {
 } from '@workspace/studio-core';
 import { copyToClipboard } from './centralizedClipboard';
 import { CopyIcon } from '../../../components/ui/copy';
-import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
+import {
+  BouncyAccordion,
+  type BouncyAccordionItem,
+} from '../../../components/motion/bouncy-accordion';
 
 // Simple reactive state hook to poll mutable arrays/objects
 function useForceUpdate() {
   const [, setTick] = useState(0);
-  const update = () => setTick(t => t + 1);
+  const update = () => setTick((t) => t + 1);
   return update;
 }
 
-export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void; hideHeader?: boolean }> = ({ onBack, hideHeader }) => {
+export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void; hideHeader?: boolean }> = ({
+  onBack,
+  hideHeader,
+}) => {
   const forceUpdate = useForceUpdate();
   const [toast, setToast] = useState<string | null>(null);
   const [logSearch, setLogSearch] = useState('');
   const [logFilter, setLogFilter] = useState<'ALL' | 'INFO' | 'DEBUG' | 'ERROR'>('ALL');
-  
+
   const {
     updateState,
     loading,
@@ -64,7 +70,7 @@ export const UpdaterDiagnosticsPage: React.FC<{ onBack?: () => void; hideHeader?
   const handleCopy = () => {
     const report = generateReport();
     copyToClipboard(report, 'Updater Diagnostics')
-      .then(msg => {
+      .then((msg) => {
         setToast(msg);
         setTimeout(() => setToast(null), 2500);
       })
@@ -152,7 +158,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
 
   const handleCopySection = (title: string, text: string) => {
     copyToClipboard(text, title)
-      .then(msg => {
+      .then((msg) => {
         setToast(msg);
         setTimeout(() => setToast(null), 2500);
       })
@@ -193,21 +199,44 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
         localStorage.removeItem('studio:is_simulation_active');
       } catch (_) {}
     }
-    
+
     // Append simulated reset log
-    jsLogs.push({ timestamp: Date.now(), message: '[SIMULATOR] All simulation parameters cleared and reset.' });
+    jsLogs.push({
+      timestamp: Date.now(),
+      message: '[SIMULATOR] All simulation parameters cleared and reset.',
+    });
     forceUpdate();
   };
 
   // Compile active logs from memory
   const filteredLogs = useMemo(() => {
     const combined = [
-      ...jsLogs.map(l => ({ ...l, tag: '[JS]', color: '#679cff', level: l.message.toLowerCase().includes('error') ? 'ERROR' : l.message.toLowerCase().includes('debug') ? 'DEBUG' : 'INFO' })),
-      ...nativeLogs.map(l => ({ ...l, tag: '[Native]', color: '#34d399', level: l.message.toLowerCase().includes('error') ? 'ERROR' : l.message.toLowerCase().includes('debug') ? 'DEBUG' : 'INFO' }))
+      ...jsLogs.map((l) => ({
+        ...l,
+        tag: '[JS]',
+        color: '#679cff',
+        level: l.message.toLowerCase().includes('error')
+          ? 'ERROR'
+          : l.message.toLowerCase().includes('debug')
+            ? 'DEBUG'
+            : 'INFO',
+      })),
+      ...nativeLogs.map((l) => ({
+        ...l,
+        tag: '[Native]',
+        color: '#34d399',
+        level: l.message.toLowerCase().includes('error')
+          ? 'ERROR'
+          : l.message.toLowerCase().includes('debug')
+            ? 'DEBUG'
+            : 'INFO',
+      })),
     ].sort((a, b) => a.timestamp - b.timestamp);
 
-    return combined.filter(log => {
-      const matchesSearch = log.message.toLowerCase().includes(logSearch.toLowerCase()) || log.tag.toLowerCase().includes(logSearch.toLowerCase());
+    return combined.filter((log) => {
+      const matchesSearch =
+        log.message.toLowerCase().includes(logSearch.toLowerCase()) ||
+        log.tag.toLowerCase().includes(logSearch.toLowerCase());
       const matchesFilter = logFilter === 'ALL' || log.level === logFilter;
       return matchesSearch && matchesFilter;
     });
@@ -218,14 +247,16 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
   const isCheckedCompleted = updateState !== 'IDLE' && updateState !== 'INITIALIZING';
   const isAvailableCompleted = !!updateAvailable;
   const isDownloadingActive = updateState === 'DOWNLOAD_APK';
-  const isDownloadingCompleted = isDownloadingActive || [
-    'VERIFY_SHA256',
-    'PREPARING_INSTALL',
-    'WAITING_USER_CONFIRMATION',
-    'PACKAGEINSTALLER_VISIBLE',
-    'INSTALLING',
-    'INSTALL_SUCCESS',
-  ].includes(updateState);
+  const isDownloadingCompleted =
+    isDownloadingActive ||
+    [
+      'VERIFY_SHA256',
+      'PREPARING_INSTALL',
+      'WAITING_USER_CONFIRMATION',
+      'PACKAGEINSTALLER_VISIBLE',
+      'INSTALLING',
+      'INSTALL_SUCCESS',
+    ].includes(updateState);
   const isReadyCompleted = [
     'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE',
@@ -258,22 +289,36 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
             position: 'sticky',
             top: 0,
             zIndex: 50,
-            backgroundColor: '#0e0e0e',
+            backgroundColor: 'var(--app-bg)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '16px 24px',
             boxSizing: 'border-box',
-            borderBottom: '1px solid rgba(128,128,128,0.1)',
+            borderBottom: '1px solid var(--c-border)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-
             <div>
-              <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
+              <h1
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  margin: 0,
+                  letterSpacing: '-0.02em',
+                  color: 'var(--c-text-primary)',
+                }}
+              >
                 Updater Diagnostics
               </h1>
-              <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0', fontWeight: 500 }}>
+              <p
+                style={{
+                  fontSize: '11px',
+                  color: 'var(--c-text-secondary)',
+                  margin: '2px 0 0 0',
+                  fontWeight: 500,
+                }}
+              >
                 OTA Diagnostics & Debug Tools
               </p>
             </div>
@@ -290,9 +335,9 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderRadius: '10px',
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(128,128,128,0.15)',
-                color: '#e7e5e4',
+                background: 'var(--app-surface-high, var(--app-surface))',
+                border: '1px solid var(--c-border)',
+                color: 'var(--c-text-primary)',
                 cursor: 'pointer',
                 transition: 'background-color 200ms ease',
               }}
@@ -361,53 +406,87 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
         >
           <div
             style={{
-              background: 'rgba(25, 26, 26, 0.6)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               backdropFilter: 'blur(10px)',
               padding: '16px',
               borderRadius: '14px',
-              border: '1px solid rgba(128,128,128,0.08)',
+              border: '1px solid var(--c-border)',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
             }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            <span
+              style={{
+                color: 'var(--c-text-secondary)',
+                fontSize: '10px',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+              }}
+            >
               VERSION
             </span>
-            <span style={{ fontSize: '18px', fontWeight: 800, color: '#679cff' }}>{APP_VERSION}</span>
+            <span
+              style={{
+                fontSize: '18px',
+                fontWeight: 800,
+                color: 'var(--studio-accent-from, #679cff)',
+              }}
+            >
+              {APP_VERSION}
+            </span>
           </div>
 
           <div
             style={{
-              background: 'rgba(25, 26, 26, 0.6)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               backdropFilter: 'blur(10px)',
               padding: '16px',
               borderRadius: '14px',
-              border: '1px solid rgba(128,128,128,0.08)',
+              border: '1px solid var(--c-border)',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
             }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            <span
+              style={{
+                color: 'var(--c-text-secondary)',
+                fontSize: '10px',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+              }}
+            >
               CODE
             </span>
-            <span style={{ fontSize: '18px', fontWeight: 800, color: '#e7e5e4' }}>{NATIVE_VERSION_CODE}</span>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
+              {NATIVE_VERSION_CODE}
+            </span>
           </div>
 
           <div
             style={{
-              background: 'rgba(25, 26, 26, 0.6)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               backdropFilter: 'blur(10px)',
               padding: '16px',
               borderRadius: '14px',
-              border: '1px solid rgba(128,128,128,0.08)',
+              border: '1px solid var(--c-border)',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
             }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            <span
+              style={{
+                color: 'var(--c-text-secondary)',
+                fontSize: '10px',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+              }}
+            >
               UPDATE STATUS
             </span>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -419,7 +498,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                   background: updateAvailable ? '#fbbf24' : '#10b981',
                 }}
               />
-              <span style={{ fontSize: '18px', fontWeight: 800, color: '#e7e5e4' }}>
+              <span style={{ fontSize: '18px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
                 {updateAvailable ? 'Update Avail' : 'Up to date'}
               </span>
             </div>
@@ -427,38 +506,56 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
 
           <div
             style={{
-              background: 'rgba(25, 26, 26, 0.6)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               backdropFilter: 'blur(10px)',
               padding: '16px',
               borderRadius: '14px',
-              border: '1px solid rgba(128,128,128,0.08)',
+              border: '1px solid var(--c-border)',
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
             }}
           >
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+            <span
+              style={{
+                color: 'var(--c-text-secondary)',
+                fontSize: '10px',
+                textTransform: 'uppercase',
+                fontWeight: 700,
+                letterSpacing: '0.05em',
+              }}
+            >
               STATE
             </span>
-            <span style={{ fontSize: '18px', fontWeight: 800, color: '#fbbf24' }}>{updateState}</span>
+            <span style={{ fontSize: '18px', fontWeight: 800, color: '#fbbf24' }}>
+              {updateState}
+            </span>
           </div>
 
           {/* System Health Status Block */}
           <div
             style={{
               gridColumn: '1 / -1',
-              background: 'rgba(25, 26, 26, 0.6)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               backdropFilter: 'blur(10px)',
               padding: '20px',
               borderRadius: '14px',
-              border: '1px solid rgba(128,128,128,0.08)',
+              border: '1px solid var(--c-border)',
               display: 'flex',
               flexDirection: 'column',
               gap: '12px',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#e7e5e4', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span
+                style={{
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}
+              >
                 System Health
               </span>
               <span
@@ -474,20 +571,40 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 {error ? 'Failures Detected' : 'All Systems Nominal'}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                gap: '16px',
+              }}
+            >
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    color: 'var(--c-text-secondary)',
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Registry Connection
                 </span>
-                <span style={{ fontSize: '14px', fontWeight: 600 }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--c-text-primary)' }}>
                   {releaseMetadataInspector.sourceUsed ? 'Connected' : 'Offline'}
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
+                <span
+                  style={{
+                    fontSize: '10px',
+                    color: 'var(--c-text-secondary)',
+                    textTransform: 'uppercase',
+                  }}
+                >
                   Storage Availability
                 </span>
-                <span style={{ fontSize: '14px', fontWeight: 600 }}>Optimal</span>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--c-text-primary)' }}>
+                  Optimal
+                </span>
               </div>
             </div>
           </div>
@@ -495,7 +612,6 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
 
         {/* Collapsible details list */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          
           <BouncyAccordion
             defaultValue="live-logs"
             items={[
@@ -503,21 +619,29 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 id: 'production-actions',
                 title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>settings_suggest</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      settings_suggest
+                    </span>
                     <span>Production Actions</span>
                   </div>
                 ),
                 description: (
                   <div style={{ padding: '16px', paddingTop: 0 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '10px' }}>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
+                        gap: '10px',
+                      }}
+                    >
                       <button
                         onClick={() => checkNow()}
                         style={{
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(128,128,128,0.1)',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
                           padding: '16px',
                           borderRadius: '12px',
-                          color: '#fff',
+                          color: 'var(--c-text-primary)',
                           cursor: 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
@@ -526,23 +650,50 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           textAlign: 'left',
                         }}
                       >
-                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>refresh</span>
+                        <div
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '50%',
+                            background: 'rgba(103,156,255,0.1)',
+                            color: '#679cff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: '20px', margin: 'auto' }}
+                          >
+                            refresh
+                          </span>
                         </div>
                         <div>
-                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Check for Updates</span>
-                          <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Poll remote registry</span>
+                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>
+                            Check for Updates
+                          </span>
+                          <span
+                            style={{
+                              display: 'block',
+                              fontSize: '10px',
+                              color: 'var(--c-text-secondary)',
+                              marginTop: '2px',
+                            }}
+                          >
+                            Poll remote registry
+                          </span>
                         </div>
                       </button>
 
                       <button
                         onClick={() => downloadUpdate('diagnostics_manual')}
                         style={{
-                          background: 'rgba(255,255,255,0.04)',
-                          border: '1px solid rgba(128,128,128,0.1)',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
                           padding: '16px',
                           borderRadius: '12px',
-                          color: '#fff',
+                          color: 'var(--c-text-primary)',
                           cursor: 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
@@ -551,12 +702,39 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           textAlign: 'left',
                         }}
                       >
-                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.1)', color: '#679cff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>download</span>
+                        <div
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '50%',
+                            background: 'rgba(103,156,255,0.1)',
+                            color: '#679cff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: '20px', margin: 'auto' }}
+                          >
+                            download
+                          </span>
                         </div>
                         <div>
-                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>Download APK</span>
-                          <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '2px' }}>Fetch latest binary</span>
+                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px' }}>
+                            Download APK
+                          </span>
+                          <span
+                            style={{
+                              display: 'block',
+                              fontSize: '10px',
+                              color: 'var(--c-text-secondary)',
+                              marginTop: '2px',
+                            }}
+                          >
+                            Fetch latest binary
+                          </span>
                         </div>
                       </button>
 
@@ -576,12 +754,46 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           textAlign: 'left',
                         }}
                       >
-                        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(103,156,255,0.2)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <span className="material-symbols-outlined" style={{ fontSize: '20px', margin: 'auto' }}>play_arrow</span>
+                        <div
+                          style={{
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '50%',
+                            background: 'rgba(103,156,255,0.2)',
+                            color: '#679cff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: '20px', margin: 'auto' }}
+                          >
+                            play_arrow
+                          </span>
                         </div>
                         <div>
-                          <span style={{ display: 'block', fontWeight: 700, fontSize: '13px', color: '#fff' }}>Apply Update</span>
-                          <span style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginTop: '2px' }}>Complete flow cycle</span>
+                          <span
+                            style={{
+                              display: 'block',
+                              fontWeight: 700,
+                              fontSize: '13px',
+                              color: '#679cff',
+                            }}
+                          >
+                            Apply Update
+                          </span>
+                          <span
+                            style={{
+                              display: 'block',
+                              fontSize: '10px',
+                              color: 'var(--c-text-secondary)',
+                              marginTop: '2px',
+                            }}
+                          >
+                            Complete flow cycle
+                          </span>
                         </div>
                       </button>
                     </div>
@@ -592,7 +804,9 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 id: 'live-logs',
                 title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>terminal</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      terminal
+                    </span>
                     <span>Live Logs</span>
                   </div>
                 ),
@@ -600,8 +814,8 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                   <div style={{ padding: '16px', paddingTop: 0 }}>
                     <div
                       style={{
-                        background: '#050505',
-                        border: '1px solid rgba(128,128,128,0.1)',
+                        background: 'var(--app-surface-low, #050505)',
+                        border: '1px solid var(--c-border)',
                         borderRadius: '12px',
                         display: 'flex',
                         flexDirection: 'column',
@@ -616,8 +830,8 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           justifyContent: 'space-between',
                           gap: '12px',
                           padding: '10px 14px',
-                          background: 'rgba(25,26,26,0.5)',
-                          borderBottom: '1px solid rgba(128,128,128,0.08)',
+                          background: 'var(--app-surface-high)',
+                          borderBottom: '1px solid var(--c-border)',
                           flexWrap: 'wrap',
                         }}
                       >
@@ -627,24 +841,27 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                             display: 'flex',
                             alignItems: 'center',
                             gap: '8px',
-                            background: 'rgba(0,0,0,0.3)',
+                            background: 'var(--app-surface)',
                             padding: '6px 12px',
                             borderRadius: '8px',
-                            border: '1px solid rgba(128,128,128,0.15)',
+                            border: '1px solid var(--c-border)',
                           }}
                         >
-                          <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'rgba(255,255,255,0.3)' }}>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: '14px', color: 'var(--c-text-secondary)' }}
+                          >
                             search
                           </span>
                           <input
                             value={logSearch}
-                            onChange={e => setLogSearch(e.target.value)}
+                            onChange={(e) => setLogSearch(e.target.value)}
                             placeholder="Search logs..."
                             style={{
                               background: 'transparent',
                               border: 'none',
                               outline: 'none',
-                              color: '#fff',
+                              color: 'var(--c-text-primary)',
                               fontSize: '11px',
                               width: '100%',
                               fontFamily: 'monospace',
@@ -652,7 +869,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           />
                         </div>
                         <div style={{ display: 'flex', gap: '4px' }}>
-                          {(['ALL', 'INFO', 'DEBUG', 'ERROR'] as const).map(lvl => (
+                          {(['ALL', 'INFO', 'DEBUG', 'ERROR'] as const).map((lvl) => (
                             <span
                               key={lvl}
                               onClick={() => setLogFilter(lvl)}
@@ -662,8 +879,9 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                                 padding: '4px 8px',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
-                                background: logFilter === lvl ? '#679cff' : 'rgba(255,255,255,0.04)',
-                                color: logFilter === lvl ? '#000' : 'rgba(255,255,255,0.5)',
+                                background: logFilter === lvl ? '#679cff' : 'var(--app-surface)',
+                                color: logFilter === lvl ? '#ffffff' : 'var(--c-text-secondary)',
+                                border: logFilter === lvl ? 'none' : '1px solid var(--c-border)',
                                 transition: 'all 200ms ease',
                               }}
                             >
@@ -687,13 +905,25 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                         }}
                       >
                         {filteredLogs.length === 0 ? (
-                          <div style={{ color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: '100px' }}>
+                          <div
+                            style={{
+                              color: 'var(--c-text-secondary)',
+                              textAlign: 'center',
+                              marginTop: '100px',
+                            }}
+                          >
                             No logs record matches filters
                           </div>
                         ) : (
                           filteredLogs.map((log, idx) => (
                             <div key={idx} style={{ display: 'flex', gap: '8px' }}>
-                              <span style={{ color: 'rgba(255,255,255,0.25)', flexShrink: 0 }}>
+                              <span
+                                style={{
+                                  color: 'var(--c-text-secondary)',
+                                  flexShrink: 0,
+                                  opacity: 0.7,
+                                }}
+                              >
                                 {formatTime(log.timestamp)}
                               </span>
                               <span style={{ color: log.color, flexShrink: 0, fontWeight: 700 }}>
@@ -701,7 +931,12 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                               </span>
                               <span
                                 style={{
-                                  color: log.level === 'ERROR' ? '#f43f5e' : log.level === 'DEBUG' ? '#a78bfa' : '#e7e5e4',
+                                  color:
+                                    log.level === 'ERROR'
+                                      ? '#f43f5e'
+                                      : log.level === 'DEBUG'
+                                        ? '#a78bfa'
+                                        : 'var(--c-text-primary)',
                                   wordBreak: 'break-word',
                                   whiteSpace: 'pre-wrap',
                                 }}
@@ -720,7 +955,9 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 id: 'diagnostics-traces',
                 title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>analytics</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      analytics
+                    </span>
                     <span>Diagnostics Traces</span>
                   </div>
                 ),
@@ -728,9 +965,17 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                   <div style={{ padding: '16px', paddingTop: 0 }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <div
-                        onClick={() => handleCopySection('Native Logs Trace', nativeLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
+                        onClick={() =>
+                          handleCopySection(
+                            'Native Logs Trace',
+                            nativeLogs
+                              .map((l) => `[${formatTime(l.timestamp)}] ${l.message}`)
+                              .join('\n')
+                          )
+                        }
                         style={{
-                          background: 'rgba(25, 26, 26, 0.5)',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
@@ -741,18 +986,42 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>history</span>
-                          <span style={{ fontSize: '13px', fontWeight: 500 }}>Native Logs Trace</span>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ color: 'var(--c-text-secondary)' }}
+                          >
+                            history
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              color: 'var(--c-text-primary)',
+                            }}
+                          >
+                            Native Logs Trace
+                          </span>
                         </div>
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: '18px', color: 'var(--c-text-secondary)' }}
+                        >
                           content_copy
                         </span>
                       </div>
 
                       <div
-                        onClick={() => handleCopySection('JS Execution Context', jsLogs.map(l => `[${formatTime(l.timestamp)}] ${l.message}`).join('\n'))}
+                        onClick={() =>
+                          handleCopySection(
+                            'JS Execution Context',
+                            jsLogs
+                              .map((l) => `[${formatTime(l.timestamp)}] ${l.message}`)
+                              .join('\n')
+                          )
+                        }
                         style={{
-                          background: 'rgba(25, 26, 26, 0.5)',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
@@ -763,18 +1032,45 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>javascript</span>
-                          <span style={{ fontSize: '13px', fontWeight: 500 }}>JS Execution Context</span>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ color: 'var(--c-text-secondary)' }}
+                          >
+                            javascript
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              color: 'var(--c-text-primary)',
+                            }}
+                          >
+                            JS Execution Context
+                          </span>
                         </div>
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: '18px', color: 'var(--c-text-secondary)' }}
+                        >
                           content_copy
                         </span>
                       </div>
 
                       <div
-                        onClick={() => handleCopySection('Rejected Transitions', rejectedHist.map(h => `[${formatTime(h.timestamp)}] Attempted transition from ${h.from} to ${h.attempted}: ${h.reason}`).join('\n'))}
+                        onClick={() =>
+                          handleCopySection(
+                            'Rejected Transitions',
+                            rejectedHist
+                              .map(
+                                (h) =>
+                                  `[${formatTime(h.timestamp)}] Attempted transition from ${h.from} to ${h.attempted}: ${h.reason}`
+                              )
+                              .join('\n')
+                          )
+                        }
                         style={{
-                          background: 'rgba(25, 26, 26, 0.5)',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
@@ -785,10 +1081,26 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>box</span>
-                          <span style={{ fontSize: '13px', fontWeight: 500 }}>Transition Rejection History</span>
+                          <span
+                            className="material-symbols-outlined"
+                            style={{ color: 'var(--c-text-secondary)' }}
+                          >
+                            box
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 500,
+                              color: 'var(--c-text-primary)',
+                            }}
+                          >
+                            Transition Rejection History
+                          </span>
                         </div>
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: 'rgba(255,255,255,0.4)' }}>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ fontSize: '18px', color: 'var(--c-text-secondary)' }}
+                        >
                           content_copy
                         </span>
                       </div>
@@ -800,18 +1112,30 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 id: 'simulation-lab',
                 title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>science</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      science
+                    </span>
                     <span>Simulation Lab</span>
                   </div>
                 ),
                 description: (
                   <div style={{ padding: '16px', paddingTop: 0 }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px' }}>
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                        gap: '10px',
+                      }}
+                    >
                       <button
                         onClick={() => {
-                          updaterSimulation.forceUpdateAvailable = !updaterSimulation.forceUpdateAvailable;
+                          updaterSimulation.forceUpdateAvailable =
+                            !updaterSimulation.forceUpdateAvailable;
                           updaterSimulation.forceNoUpdate = false;
-                          jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceUpdateAvailable toggled to ${updaterSimulation.forceUpdateAvailable}` });
+                          jsLogs.push({
+                            timestamp: Date.now(),
+                            message: `[SIMULATOR] forceUpdateAvailable toggled to ${updaterSimulation.forceUpdateAvailable}`,
+                          });
                           forceUpdate();
                         }}
                         style={{
@@ -820,22 +1144,37 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           justifyContent: 'space-between',
                           padding: '12px 16px',
                           borderRadius: '10px',
-                          background: 'rgba(25,26,26,0.5)',
-                          border: '1px solid rgba(128,128,128,0.08)',
-                          color: '#fff',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
+                          color: 'var(--c-text-primary)',
                           cursor: 'pointer',
                         }}
                       >
-                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Update Available</span>
-                        <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceUpdateAvailable ? '#10b981' : 'rgba(255,255,255,0.2)' }}>
-                          {updaterSimulation.forceUpdateAvailable ? 'check_circle' : 'chevron_right'}
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                          Simulate Update Available
+                        </span>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            color: updaterSimulation.forceUpdateAvailable
+                              ? '#10b981'
+                              : 'var(--c-text-secondary)',
+                          }}
+                        >
+                          {updaterSimulation.forceUpdateAvailable
+                            ? 'check_circle'
+                            : 'chevron_right'}
                         </span>
                       </button>
 
                       <button
                         onClick={() => {
-                          updaterSimulation.forceDownloadFailure = !updaterSimulation.forceDownloadFailure;
-                          jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] forceDownloadFailure toggled to ${updaterSimulation.forceDownloadFailure}` });
+                          updaterSimulation.forceDownloadFailure =
+                            !updaterSimulation.forceDownloadFailure;
+                          jsLogs.push({
+                            timestamp: Date.now(),
+                            message: `[SIMULATOR] forceDownloadFailure toggled to ${updaterSimulation.forceDownloadFailure}`,
+                          });
                           forceUpdate();
                         }}
                         style={{
@@ -844,22 +1183,35 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           justifyContent: 'space-between',
                           padding: '12px 16px',
                           borderRadius: '10px',
-                          background: 'rgba(25,26,26,0.5)',
-                          border: '1px solid rgba(128,128,128,0.08)',
-                          color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : '#fff',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
+                          color: updaterSimulation.forceDownloadFailure
+                            ? '#f43f5e'
+                            : 'var(--c-text-primary)',
                           cursor: 'pointer',
                         }}
                       >
                         <span style={{ fontSize: '13px', fontWeight: 600 }}>Simulate Failure</span>
-                        <span className="material-symbols-outlined" style={{ color: updaterSimulation.forceDownloadFailure ? '#f43f5e' : 'rgba(255,255,255,0.2)' }}>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{
+                            color: updaterSimulation.forceDownloadFailure
+                              ? '#f43f5e'
+                              : 'var(--c-text-secondary)',
+                          }}
+                        >
                           {updaterSimulation.forceDownloadFailure ? 'warning' : 'chevron_right'}
                         </span>
                       </button>
 
                       <button
                         onClick={() => {
-                          updaterSimulation.simulateDownloadThrottling = !updaterSimulation.simulateDownloadThrottling;
-                          jsLogs.push({ timestamp: Date.now(), message: `[SIMULATOR] simulateDownloadThrottling toggled to ${updaterSimulation.simulateDownloadThrottling}` });
+                          updaterSimulation.simulateDownloadThrottling =
+                            !updaterSimulation.simulateDownloadThrottling;
+                          jsLogs.push({
+                            timestamp: Date.now(),
+                            message: `[SIMULATOR] simulateDownloadThrottling toggled to ${updaterSimulation.simulateDownloadThrottling}`,
+                          });
                           forceUpdate();
                         }}
                         style={{
@@ -868,27 +1220,40 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           justifyContent: 'space-between',
                           padding: '12px 16px',
                           borderRadius: '10px',
-                          background: 'rgba(25,26,26,0.5)',
-                          border: '1px solid rgba(128,128,128,0.08)',
-                          color: '#fff',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
+                          color: 'var(--c-text-primary)',
                           cursor: 'pointer',
                         }}
                       >
-                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Toggle Network Throttling</span>
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                          Toggle Network Throttling
+                        </span>
                         <div
                           style={{
                             width: '32px',
                             height: '16px',
-                            background: updaterSimulation.simulateDownloadThrottling ? '#679cff' : 'rgba(255,255,255,0.08)',
+                            background: updaterSimulation.simulateDownloadThrottling
+                              ? '#679cff'
+                              : 'var(--app-surface-low)',
                             borderRadius: '9999px',
                             display: 'flex',
                             alignItems: 'center',
                             padding: '2px',
-                            justifyContent: updaterSimulation.simulateDownloadThrottling ? 'flex-end' : 'flex-start',
+                            justifyContent: updaterSimulation.simulateDownloadThrottling
+                              ? 'flex-end'
+                              : 'flex-start',
                             transition: 'all 200ms ease',
                           }}
                         >
-                          <div style={{ width: '12px', height: '12px', background: '#000', borderRadius: '50%' }} />
+                          <div
+                            style={{
+                              width: '12px',
+                              height: '12px',
+                              background: '#000',
+                              borderRadius: '50%',
+                            }}
+                          />
                         </div>
                       </button>
 
@@ -900,14 +1265,19 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           justifyContent: 'space-between',
                           padding: '12px 16px',
                           borderRadius: '10px',
-                          background: 'rgba(25,26,26,0.5)',
-                          border: '1px solid rgba(128,128,128,0.08)',
-                          color: '#fff',
+                          background: 'var(--app-surface-high, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
+                          color: 'var(--c-text-primary)',
                           cursor: 'pointer',
                         }}
                       >
-                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Reset Simulator Settings</span>
-                        <span className="material-symbols-outlined" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>
+                          Reset Simulator Settings
+                        </span>
+                        <span
+                          className="material-symbols-outlined"
+                          style={{ color: 'var(--c-text-secondary)' }}
+                        >
                           restart_alt
                         </span>
                       </button>
@@ -919,7 +1289,9 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 id: 'state-machine',
                 title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>account_tree</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      account_tree
+                    </span>
                     <span>Update State Machine</span>
                   </div>
                 ),
@@ -927,7 +1299,8 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                   <div style={{ padding: '16px', paddingTop: 0 }}>
                     <div
                       style={{
-                        background: 'rgba(0,0,0,0.15)',
+                        background: 'var(--app-surface-low, var(--app-surface))',
+                        border: '1px solid var(--c-border)',
                         padding: '24px',
                         borderRadius: '14px',
                         display: 'flex',
@@ -943,103 +1316,213 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                           top: '32px',
                           bottom: '32px',
                           width: '2px',
-                          background: 'rgba(255,255,255,0.05)',
+                          background: 'var(--c-border)',
                         }}
                       />
 
-                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                      <div
+                        style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}
+                      >
                         <div
                           style={{
                             width: '24px',
                             height: '24px',
                             borderRadius: '50%',
-                            background: isCheckedCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
-                            color: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
+                            background: isCheckedCompleted
+                              ? 'rgba(16, 185, 129, 0.15)'
+                              : 'var(--app-surface-high)',
+                            color: isCheckedCompleted ? '#10b981' : 'var(--c-text-secondary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
                         >
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isCheckedCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                          <div
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: isCheckedCompleted
+                                ? '#10b981'
+                                : 'var(--c-text-secondary)',
+                            }}
+                          />
                         </div>
                         <div>
-                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isCheckedCompleted ? '#10b981' : '#e7e5e4' }}>
+                          <h4
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              margin: 0,
+                              color: isCheckedCompleted ? '#10b981' : 'var(--c-text-primary)',
+                            }}
+                          >
                             Update Checked
                           </h4>
-                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                          <p
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--c-text-secondary)',
+                              margin: '4px 0 0 0',
+                            }}
+                          >
                             Registry connection checks finalized
                           </p>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                      <div
+                        style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}
+                      >
                         <div
                           style={{
                             width: '24px',
                             height: '24px',
                             borderRadius: '50%',
-                            background: isAvailableCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
-                            color: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)',
+                            background: isAvailableCompleted
+                              ? 'rgba(16, 185, 129, 0.15)'
+                              : 'var(--app-surface-high)',
+                            color: isAvailableCompleted ? '#10b981' : 'var(--c-text-secondary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
                         >
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isAvailableCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                          <div
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: isAvailableCompleted
+                                ? '#10b981'
+                                : 'var(--c-text-secondary)',
+                            }}
+                          />
                         </div>
                         <div>
-                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isAvailableCompleted ? '#10b981' : '#e7e5e4' }}>
+                          <h4
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              margin: 0,
+                              color: isAvailableCompleted ? '#10b981' : 'var(--c-text-primary)',
+                            }}
+                          >
                             Update Available
                           </h4>
-                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                          <p
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--c-text-secondary)',
+                              margin: '4px 0 0 0',
+                            }}
+                          >
                             Found version: {remoteVersion || 'None'}
                           </p>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                      <div
+                        style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}
+                      >
                         <div
                           style={{
                             width: '24px',
                             height: '24px',
                             borderRadius: '50%',
-                            background: isDownloadingActive ? 'rgba(103,156,255,0.15)' : isDownloadingCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                            background: isDownloadingActive
+                              ? 'rgba(103,156,255,0.15)'
+                              : isDownloadingCompleted
+                                ? 'rgba(16, 185, 129, 0.15)'
+                                : 'var(--app-surface-high)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
                         >
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                          <div
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: isDownloadingActive
+                                ? '#679cff'
+                                : isDownloadingCompleted
+                                  ? '#10b981'
+                                  : 'var(--c-text-secondary)',
+                            }}
+                          />
                         </div>
                         <div>
-                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isDownloadingActive ? '#679cff' : isDownloadingCompleted ? '#10b981' : '#e7e5e4' }}>
+                          <h4
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              margin: 0,
+                              color: isDownloadingActive
+                                ? '#679cff'
+                                : isDownloadingCompleted
+                                  ? '#10b981'
+                                  : 'var(--c-text-primary)',
+                            }}
+                          >
                             Downloading
                           </h4>
-                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                          <p
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--c-text-secondary)',
+                              margin: '4px 0 0 0',
+                            }}
+                          >
                             Progress: {progress}%
                           </p>
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}>
+                      <div
+                        style={{ display: 'flex', gap: '16px', position: 'relative', zIndex: 2 }}
+                      >
                         <div
                           style={{
                             width: '24px',
                             height: '24px',
                             borderRadius: '50%',
-                            background: isReadyCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.05)',
+                            background: isReadyCompleted
+                              ? 'rgba(16, 185, 129, 0.15)'
+                              : 'var(--app-surface-high)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                           }}
                         >
-                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: isReadyCompleted ? '#10b981' : 'rgba(255,255,255,0.3)' }} />
+                          <div
+                            style={{
+                              width: '8px',
+                              height: '8px',
+                              borderRadius: '50%',
+                              background: isReadyCompleted ? '#10b981' : 'var(--c-text-secondary)',
+                            }}
+                          />
                         </div>
                         <div>
-                          <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, color: isReadyCompleted ? '#10b981' : '#e7e5e4' }}>
+                          <h4
+                            style={{
+                              fontSize: '13px',
+                              fontWeight: 700,
+                              margin: 0,
+                              color: isReadyCompleted ? '#10b981' : 'var(--c-text-primary)',
+                            }}
+                          >
                             Ready for Install
                           </h4>
-                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+                          <p
+                            style={{
+                              fontSize: '11px',
+                              color: 'var(--c-text-secondary)',
+                              margin: '4px 0 0 0',
+                            }}
+                          >
                             Package downloaded and verified successfully
                           </p>
                         </div>
@@ -1052,7 +1535,9 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                 id: 'engineering-report',
                 title: (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>description</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+                      description
+                    </span>
                     <span>Engineering Report Preview</span>
                   </div>
                 ),
@@ -1060,35 +1545,84 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
                   <div style={{ padding: '16px', paddingTop: 0 }}>
                     <div
                       style={{
-                        background: 'rgba(25, 26, 26, 0.6)',
+                        background: 'var(--app-surface-high, var(--app-surface))',
                         padding: '20px',
                         borderRadius: '12px',
-                        border: '1px solid rgba(128,128,128,0.08)',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+                        border: '1px solid var(--c-border)',
+                        boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
                       }}
                     >
                       <div
                         style={{
                           fontFamily: 'monospace',
                           fontSize: '11px',
-                          color: 'rgba(255,255,255,0.5)',
+                          color: 'var(--c-text-secondary)',
                           lineHeight: '1.6',
                           whiteSpace: 'pre-wrap',
                           maxHeight: '220px',
                           overflowY: 'auto',
                         }}
                       >
-                        <p style={{ color: '#679cff', margin: '0 0 8px 0' }}># UPDATER_DIAGNOSTICS_REPORT_V1</p>
-                        <p style={{ margin: '0 0 4px 0' }}>VERSION: <span style={{ color: '#fff' }}>{APP_VERSION}</span></p>
-                        <p style={{ margin: '0 0 4px 0' }}>CODE: <span style={{ color: '#fff' }}>{NATIVE_VERSION_CODE}</span></p>
-                        <p style={{ margin: '0 0 4px 0' }}>UPDATE_STATE: <span style={{ color: '#fff' }}>{updateState}</span></p>
-                        <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
-                        <p style={{ color: '#679cff', margin: '0 0 8px 0' }}>## STATE_SNAPSHOT</p>
-                        <p style={{ margin: '0 0 4px 0 16px' }}>• current_state: <span style={{ color: '#679cff' }}>{updateState}</span></p>
-                        <p style={{ margin: '0 0 4px 0 16px' }}>• update_available: <span style={{ color: '#fff' }}>{String(updateAvailable)}</span></p>
-                        <p style={{ margin: '0 0 4px 0 16px' }}>• consecutive_failures: <span style={{ color: '#fff' }}>{consecutiveFailures}</span></p>
-                        <p style={{ margin: '0 0 4px 0 16px' }}>• cache_source: <span style={{ color: '#fff' }}>{releaseMetadataInspector.cacheSource || 'None'}</span></p>
-                        <div style={{ height: '1px', background: 'rgba(128,128,128,0.1)', margin: '12px 0' }} />
+                        <p
+                          style={{
+                            color: 'var(--studio-accent-from, #679cff)',
+                            margin: '0 0 8px 0',
+                          }}
+                        >
+                          # UPDATER_DIAGNOSTICS_REPORT_V1
+                        </p>
+                        <p style={{ margin: '0 0 4px 0' }}>
+                          VERSION:{' '}
+                          <span style={{ color: 'var(--c-text-primary)' }}>{APP_VERSION}</span>
+                        </p>
+                        <p style={{ margin: '0 0 4px 0' }}>
+                          CODE:{' '}
+                          <span style={{ color: 'var(--c-text-primary)' }}>
+                            {NATIVE_VERSION_CODE}
+                          </span>
+                        </p>
+                        <p style={{ margin: '0 0 4px 0' }}>
+                          UPDATE_STATE:{' '}
+                          <span style={{ color: 'var(--c-text-primary)' }}>{updateState}</span>
+                        </p>
+                        <div
+                          style={{ height: '1px', background: 'var(--c-border)', margin: '12px 0' }}
+                        />
+                        <p
+                          style={{
+                            color: 'var(--studio-accent-from, #679cff)',
+                            margin: '0 0 8px 0',
+                          }}
+                        >
+                          ## STATE_SNAPSHOT
+                        </p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>
+                          • current_state:{' '}
+                          <span style={{ color: 'var(--studio-accent-from, #679cff)' }}>
+                            {updateState}
+                          </span>
+                        </p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>
+                          • update_available:{' '}
+                          <span style={{ color: 'var(--c-text-primary)' }}>
+                            {String(updateAvailable)}
+                          </span>
+                        </p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>
+                          • consecutive_failures:{' '}
+                          <span style={{ color: 'var(--c-text-primary)' }}>
+                            {consecutiveFailures}
+                          </span>
+                        </p>
+                        <p style={{ margin: '0 0 4px 0 16px' }}>
+                          • cache_source:{' '}
+                          <span style={{ color: 'var(--c-text-primary)' }}>
+                            {releaseMetadataInspector.cacheSource || 'None'}
+                          </span>
+                        </p>
+                        <div
+                          style={{ height: '1px', background: 'var(--c-border)', margin: '12px 0' }}
+                        />
                         <p style={{ fontStyle: 'italic', fontSize: '10px', margin: 0 }}>
                           Report automatically generated. Confidential technical data.
                         </p>
@@ -1099,7 +1633,6 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
               },
             ]}
           />
-
         </section>
       </main>
     </div>

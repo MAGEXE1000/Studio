@@ -1,9 +1,13 @@
 import CopyButton from './CopyButton';
 import CopyDropdown from './CopyDropdown';
-import { BouncyAccordion, type BouncyAccordionItem } from '../../../components/motion/bouncy-accordion';
+import {
+  BouncyAccordion,
+  type BouncyAccordionItem,
+} from '../../../components/motion/bouncy-accordion';
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { compressReportText,
+import {
+  compressReportText,
   useChordStore,
   subscribeToDevTools,
   getLogs,
@@ -57,16 +61,20 @@ import { compressReportText,
   PerformanceProfiler,
   type ProfilerMetrics,
   type PerformanceWarning,
-  useSettingsStore, useSessionStore } from '@workspace/studio-core';
+  useSettingsStore,
+  useSessionStore,
+} from '@workspace/studio-core';
 
 import { decodeReactError } from '../../../shared/feedback/ErrorBoundary';
-import { SettingsScaffold, SettingsContentContainer } from '../../../shared/layout/StudioLayoutSystem';
+import {
+  SettingsScaffold,
+  SettingsContentContainer,
+} from '../../../shared/layout/StudioLayoutSystem';
 import UpdaterDiagnosticsPage from '../../updater/diagnostics/UpdaterDiagnosticsPage';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
 import MotionPlaygroundView from './MotionPlaygroundView';
 import { DeveloperInspectorPanel } from '../inspector/DeveloperInspectorPanel';
 import { Toggle as StudioToggle } from '../../../shared/design-system/StudioToggle';
-
 
 interface Props {
   accent: { from: string; mid?: string; to: string };
@@ -81,7 +89,6 @@ type TabId =
   | 'events'
   | 'perf'
   | 'state'
-  
   | 'network'
   | 'storage'
   | 'providers';
@@ -110,18 +117,26 @@ const AccordionSection = ({
   icon,
   collapsed,
   onToggle,
-  children}: AccordionSectionProps) => {
+  children,
+}: AccordionSectionProps) => {
   const item: BouncyAccordionItem = {
     id: 'section',
     title: (
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <span
           className="material-symbols-outlined"
-          style={{ color: collapsed ? '#9d9da6' : '#007aff', fontSize: 20 }}
+          style={{ color: collapsed ? 'var(--c-text-secondary)' : '#007aff', fontSize: 20 }}
         >
           {icon}
         </span>
-        <span style={{ fontWeight: 700, fontSize: 14, color: '#e7e5e4', fontFamily: 'Manrope' }}>
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 14,
+            color: 'var(--c-text-primary)',
+            fontFamily: 'Manrope',
+          }}
+        >
           {title}
         </span>
       </div>
@@ -130,7 +145,8 @@ const AccordionSection = ({
       <div
         style={{
           padding: '0 4px 16px 4px',
-          paddingTop: '12px'}}
+          paddingTop: '12px',
+        }}
       >
         {children}
       </div>
@@ -212,7 +228,8 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
           title,
           message: w.message,
           source: w.source || 'unknown',
-          duplicateCount: 1});
+          duplicateCount: 1,
+        });
       }
     });
 
@@ -231,7 +248,8 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
             padding: '12px 14px',
             display: 'flex',
             alignItems: 'center',
-            gap: 6}}
+            gap: 6,
+          }}
         >
           <span className="material-symbols-outlined" style={{ color: '#10b981', fontSize: 18 }}>
             check_circle
@@ -273,7 +291,8 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
         padding: '12px 14px',
         display: 'flex',
         flexDirection: 'column',
-        gap: 10}}
+        gap: 10,
+      }}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -298,7 +317,8 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
             color: '#f59e0b',
             fontWeight: 700,
             fontSize: '11px',
-            cursor: 'pointer'}}
+            cursor: 'pointer',
+          }}
         >
           {showWarnings ? 'Hide Warnings' : 'View Warnings'}
         </button>
@@ -329,20 +349,22 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
               display: 'flex',
               flexDirection: 'column',
               gap: 8,
-              paddingRight: 4}}
+              paddingRight: 4,
+            }}
           >
             {groupedWarnings.map((w, idx) => (
               <div
                 key={w.id || idx}
                 style={{
                   padding: '8px 10px',
-                  background: 'rgba(0,0,0,0.2)',
+                  background: 'var(--app-surface-low, var(--app-surface))',
                   borderRadius: '8px',
-                  border: '1px solid rgba(255,255,255,0.04)',
+                  border: '1px solid var(--c-border)',
                   fontSize: '11px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 4}}
+                  gap: 4,
+                }}
               >
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -355,31 +377,35 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
                         padding: '1px 5px',
                         borderRadius: '4px',
                         fontWeight: 700,
-                        fontSize: '9px'}}
+                        fontSize: '9px',
+                      }}
                     >
                       {w.severity.toUpperCase()}
                     </span>
-                    <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
+                    <span style={{ color: 'var(--c-text-secondary)', fontWeight: 600 }}>
                       Module: {w.module}
                     </span>
-                    <span style={{ color: 'rgba(255,255,255,0.25)', fontWeight: 500 }}>
+                    <span
+                      style={{ color: 'var(--c-text-secondary)', opacity: 0.8, fontWeight: 500 }}
+                    >
                       Source: {w.source}
                     </span>
                     {w.duplicateCount > 1 && (
                       <span
                         style={{
-                          background: 'rgba(255,255,255,0.1)',
-                          color: '#fff',
+                          background: 'var(--app-surface-high)',
+                          color: 'var(--c-text-primary)',
                           padding: '1px 5px',
                           borderRadius: '4px',
                           fontWeight: 700,
-                          fontSize: '9px'}}
+                          fontSize: '9px',
+                        }}
                       >
                         ×{w.duplicateCount}
                       </span>
                     )}
                   </div>
-                  <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: '9px' }}>
+                  <span style={{ color: 'var(--c-text-secondary)', opacity: 0.8, fontSize: '9px' }}>
                     {new Date(w.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
@@ -389,19 +415,21 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
                     color: '#f59e0b',
                     fontWeight: 700,
                     fontSize: '11.5px',
-                    marginTop: 2}}
+                    marginTop: 2,
+                  }}
                 >
                   {w.title}
                 </div>
 
                 <div
                   style={{
-                    color: '#fff',
+                    color: 'var(--c-text-primary)',
                     wordBreak: 'break-word',
                     whiteSpace: 'pre-wrap',
                     lineHeight: 1.3,
                     fontFamily: 'monospace',
-                    marginTop: 2}}
+                    marginTop: 2,
+                  }}
                 >
                   {w.message}
                 </div>
@@ -416,12 +444,13 @@ const WarningsInspector = ({ logs, showToast, moduleFilter, appKey }: WarningsIn
                     style={{
                       padding: '2px 6px',
                       borderRadius: '4px',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid rgba(255,255,255,0.06)',
-                      color: 'rgba(255,255,255,0.6)',
+                      background: 'var(--app-surface-high, var(--app-surface))',
+                      border: '1px solid var(--c-border)',
+                      color: 'var(--c-text-secondary)',
                       fontSize: '9px',
                       fontWeight: 600,
-                      cursor: 'pointer'}}
+                      cursor: 'pointer',
+                    }}
                   >
                     Copy Warning
                   </button>
@@ -468,7 +497,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       app: 'hub',
       tab: 'settings',
       page: 'developer',
-      subView: newSubView});
+      subView: newSubView,
+    });
   }, []);
 
   const getSubViewTitle = () => {
@@ -565,7 +595,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     diagnostics: false,
     simulation: true,
     stateMachine: false,
-    report: true});
+    report: true,
+  });
   const [buttonStates, setButtonStates] = useState<
     Record<string, 'idle' | 'running' | 'success' | 'failure'>
   >({});
@@ -613,8 +644,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             try {
               const parsedLogs = JSON.parse(historyRes.logs);
               setNativeLogsList(Array.isArray(parsedLogs) ? parsedLogs : []);
-            } catch (e) {
-            }
+            } catch (e) {}
           }
         }
 
@@ -626,15 +656,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               const apkDet = await AppInstaller.inspectApk({ filePath: path });
               if (isMountedRef.current) setLocalApkDetails(apkDet);
             }
-          } catch (err) {
-          }
+          } catch (err) {}
         } else {
           if (isMountedRef.current) setLocalApkDetails(null);
         }
       }
       triggerSimRender();
-    } catch (err) {
-    }
+    } catch (err) {}
   };
 
   useEffect(() => {
@@ -679,7 +707,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     const results: typeof selfTestResults = tests.map((t) => ({
       command: t.command,
       arg: t.arg,
-      status: 'pending'}));
+      status: 'pending',
+    }));
     setSelfTestResults(results);
 
     for (let i = 0; i < tests.length; i++) {
@@ -703,7 +732,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               clearTimeout(timer);
               resolve({
                 status: data.status === 'missing' ? 'nack_missing' : 'nack_error',
-                error: data.error || 'NACK received'});
+                error: data.error || 'NACK received',
+              });
             }
           };
 
@@ -720,7 +750,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 type: 'sc-call',
                 fn: test.command,
                 arg: test.arg,
-                msgId},
+                msgId,
+              },
               '*'
             );
           } catch (err: any) {
@@ -738,7 +769,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         ...test,
         status: outcome.status,
         latency,
-        error: outcome.error};
+        error: outcome.error,
+      };
       setSelfTestResults([...results]);
 
       // Delay slightly between commands to let state settle
@@ -841,7 +873,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         time,
         type: 'native',
         text: log.stage || 'Native Step',
-        details: `${log.message || ''} ${log.explanation || ''}`});
+        details: `${log.message || ''} ${log.explanation || ''}`,
+      });
     });
 
     stateTimeline.forEach((t) => {
@@ -849,7 +882,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         time: t.timestamp,
         type: 'state',
         text: `State Transition: ${t.state}`,
-        details: `Reason: ${t.reason}`});
+        details: `Reason: ${t.reason}`,
+      });
     });
     list.sort((a, b) => a.time - b.time);
     return list;
@@ -920,21 +954,24 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     device: false,
     decision: false,
     updater: false,
-    errors: false});
+    errors: false,
+  });
 
   const [stagexCollapsed, setStagexCollapsed] = useState({
     connection: false,
     counters: false,
     trace: false,
     security: false,
-    failures: false});
+    failures: false,
+  });
 
   // Reusable Phone-Responsive Diagnostics Components
   const CollapsibleSection = ({
     title,
     collapsed,
     onToggle,
-    children}: {
+    children,
+  }: {
     title: string;
     collapsed: boolean;
     onToggle: () => void;
@@ -942,11 +979,12 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   }) => (
     <div
       style={{
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--app-surface-high, var(--app-surface))',
+        border: '1px solid var(--c-border)',
         borderRadius: 14,
         marginBottom: 12,
-        overflow: 'hidden'}}
+        overflow: 'hidden',
+      }}
     >
       <button
         onClick={(e) => {
@@ -960,14 +998,15 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'rgba(255,255,255,0.01)',
+          background: 'transparent',
           border: 'none',
-          color: '#fff',
+          color: 'var(--c-text-primary)',
           fontFamily: 'Manrope',
           fontWeight: 800,
           fontSize: '13px',
           cursor: 'pointer',
-          textAlign: 'left'}}
+          textAlign: 'left',
+        }}
       >
         <span>{title}</span>
         <span
@@ -975,7 +1014,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           style={{
             fontSize: 18,
             transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s ease'}}
+            transition: 'transform 0.2s ease',
+          }}
         >
           expand_more
         </span>
@@ -984,8 +1024,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         <div
           style={{
             padding: '14px 16px',
-            borderTop: '1px solid rgba(255,255,255,0.04)',
-            background: 'rgba(0,0,0,0.1)'}}
+            borderTop: '1px solid var(--c-border)',
+            background: 'var(--app-surface-low, var(--app-surface))',
+          }}
         >
           {children}
         </div>
@@ -996,7 +1037,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   const DiagnosticField = ({
     label,
     value,
-    isCode}: {
+    isCode,
+  }: {
     label: string;
     value: string | null;
     isCode?: boolean;
@@ -1008,10 +1050,11 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           fontFamily: 'Manrope',
           fontWeight: 700,
           fontSize: 10,
-          color: 'rgba(255,255,255,0.4)',
+          color: 'var(--c-text-secondary)',
           letterSpacing: '0.08em',
           textTransform: 'uppercase',
-          marginBottom: 4}}
+          marginBottom: 4,
+        }}
       >
         {label}
       </label>
@@ -1020,14 +1063,16 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           fontFamily: isCode ? 'monospace' : 'Inter',
           fontSize: isCode ? 11 : 13,
           lineHeight: 1.4,
-          color: '#fff',
+          color: 'var(--c-text-primary)',
           wordBreak: 'break-word',
           whiteSpace: 'pre-wrap',
-          background: isCode ? 'rgba(0,0,0,0.3)' : 'transparent',
+          background: isCode ? 'var(--app-surface-bright, var(--app-surface))' : 'transparent',
+          border: isCode ? '1px solid var(--c-border)' : 'none',
           padding: isCode ? '6px 10px' : 0,
           borderRadius: isCode ? 6 : 0,
           maxHeight: isCode ? 120 : 'none',
-          overflowY: isCode ? 'auto' : 'visible'}}
+          overflowY: isCode ? 'auto' : 'visible',
+        }}
       >
         {value || 'N/A'}
       </div>
@@ -1043,16 +1088,18 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       <SettingsContentContainer
         style={{
           gap: 4,
-          paddingBottom: 'max(20px, env(safe-area-inset-bottom))'}}
+          paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
+        }}
       >
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 12}}
+            marginBottom: 12,
+          }}
         >
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.4)' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-secondary)' }}>
             Stagex ACK Telemetry
           </span>
           <button
@@ -1070,7 +1117,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               fontFamily: 'Manrope',
               fontWeight: 700,
               fontSize: '11px',
-              cursor: 'pointer'}}
+              cursor: 'pointer',
+            }}
           >
             Reset Stats
           </button>
@@ -1091,7 +1139,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               marginBottom: '12px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 6}}
+              gap: 6,
+            }}
           >
             <div
               style={{
@@ -1100,7 +1149,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 gap: 6,
                 color: '#ef4444',
                 fontWeight: 800,
-                fontSize: 13}}
+                fontSize: 13,
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 warning
@@ -1116,7 +1166,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 color: '#fca5a5',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 4}}
+                gap: 4,
+              }}
             >
               {!stagex.iframeMounted && (
                 <li>
@@ -1133,7 +1184,11 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 <li>
                   <strong>Missing Handlers:</strong> Parent called functions not exported to window:{' '}
                   <code
-                    style={{ background: 'rgba(0,0,0,0.3)', padding: '2px 4px', borderRadius: 4 }}
+                    style={{
+                      background: 'var(--app-surface-bright, var(--app-surface))',
+                      padding: '2px 4px',
+                      borderRadius: 4,
+                    }}
                   >
                     {stagex.missingHandlers.join(', ')}
                   </code>
@@ -1159,12 +1214,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       display: 'block',
                       margin: '4px 0 0',
                       padding: '6px',
-                      background: 'rgba(0,0,0,0.3)',
+                      background: 'var(--app-surface-bright, var(--app-surface))',
+                      border: '1px solid var(--c-border)',
                       borderRadius: 4,
                       fontFamily: 'monospace',
                       fontSize: 10,
                       wordBreak: 'break-all',
-                      whiteSpace: 'pre-wrap'}}
+                      whiteSpace: 'pre-wrap',
+                    }}
                   >
                     {stagex.lastError}
                   </code>
@@ -1177,24 +1234,33 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         {/* SELF TEST SECTION */}
         <div
           style={{
-            background: 'rgba(255, 255, 255, 0.02)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'var(--app-surface-high, var(--app-surface))',
+            border: '1px solid var(--c-border)',
             borderRadius: '14px',
             padding: '14px',
-            marginBottom: '12px'}}
+            marginBottom: '12px',
+          }}
         >
           <div
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: 12}}
+              marginBottom: 12,
+            }}
           >
             <div>
-              <span style={{ fontWeight: 800, fontSize: 13, display: 'block' }}>
+              <span
+                style={{
+                  fontWeight: 800,
+                  fontSize: 13,
+                  display: 'block',
+                  color: 'var(--c-text-primary)',
+                }}
+              >
                 Stagex Bridge Self-Test
               </span>
-              <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>
+              <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>
                 Verifies each runtime command executes & returns ACK/NACK
               </span>
             </div>
@@ -1205,16 +1271,17 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 padding: '8px 14px',
                 borderRadius: '10px',
                 background: selfTestRunning
-                  ? 'rgba(255,255,255,0.1)'
+                  ? 'var(--app-surface)'
                   : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                 border: 'none',
-                color: selfTestRunning ? 'rgba(255,255,255,0.4)' : '#fff',
+                color: selfTestRunning ? 'var(--c-text-secondary)' : '#fff',
                 fontWeight: 700,
                 fontSize: '11px',
                 cursor: selfTestRunning ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6}}
+                gap: 6,
+              }}
             >
               {selfTestRunning ? 'Running...' : 'Run Self-Test'}
             </button>
@@ -1226,9 +1293,11 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 6,
-                background: 'rgba(0,0,0,0.2)',
+                background: 'var(--app-surface-low, var(--app-surface))',
+                border: '1px solid var(--c-border)',
                 padding: 10,
-                borderRadius: 8}}
+                borderRadius: 8,
+              }}
             >
               {selfTestResults.map((res, i) => {
                 let statusColor = '#fbbf24'; // pending
@@ -1263,9 +1332,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       fontSize: 11,
                       padding: '4px 0',
                       borderBottom:
-                        i < selfTestResults.length - 1
-                          ? '1px solid rgba(255,255,255,0.03)'
-                          : 'none'}}
+                        i < selfTestResults.length - 1 ? '1px solid var(--c-border)' : 'none',
+                    }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <span
@@ -1274,7 +1342,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       >
                         {statusIcon}
                       </span>
-                      <span style={{ fontFamily: 'monospace', fontWeight: 700 }}>
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontWeight: 700,
+                          color: 'var(--c-text-primary)',
+                        }}
+                      >
                         {res.command}({res.arg ? `'${res.arg}'` : ''})
                       </span>
                     </div>
@@ -1399,15 +1473,16 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   const tabBtnStyle = (tab: TabId) => ({
     padding: '8px 14px',
     borderRadius: '12px',
-    background: activeTab === tab ? accent.from : 'rgba(255,255,255,0.04)',
-    border: 'none',
-    color: activeTab === tab ? '#fff' : 'rgba(255,255,255,0.6)',
+    background: activeTab === tab ? accent.from : 'var(--app-surface-high, var(--app-surface))',
+    border: activeTab === tab ? 'none' : '1px solid var(--c-border)',
+    color: activeTab === tab ? '#fff' : 'var(--c-text-secondary)',
     fontFamily: 'Manrope',
     fontWeight: 700,
     fontSize: '12px',
     cursor: 'pointer',
     whiteSpace: 'nowrap' as const,
-    transition: 'all 0.2s ease'});
+    transition: 'all 0.2s ease',
+  });
 
   const copyToClipboard = (title: string, data: any) => {
     const content =
@@ -1423,13 +1498,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
   };
 
   // Copy Module Diagnostics (Copy Everything)
-  
 
   const handleCopyModuleDiagnostics = (module: string) => {
     const dump: any = {
       appVersion: APP_VERSION,
       timestamp: new Date().toISOString(),
-      module};
+      module,
+    };
 
     switch (module) {
       case 'Apps':
@@ -1439,12 +1514,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
             activeView: activePanel,
             warnings: logs.filter(
               (l) => l.level === 'warn' && (l.module === 'Hub' || l.module === 'general')
-            ).length},
+            ).length,
+          },
           chordex: {
             status: currentApp === 'chordex' ? 'Active' : 'Suspended',
             activeView: activePanel,
             warnings: logs.filter((l) => l.level === 'warn' && l.module.toLowerCase() === 'chordex')
-              .length},
+              .length,
+          },
           drumex: {
             status: currentApp === 'drumex' ? 'Active' : 'Suspended',
             activeView: settings.defaultDrumTab,
@@ -1452,7 +1529,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               (l) =>
                 l.level === 'warn' &&
                 (l.module.toLowerCase() === 'drumex' || l.module.toLowerCase() === 'drums')
-            ).length},
+            ).length,
+          },
           stagex: {
             status: currentApp === 'stagex' ? 'Active' : 'Suspended',
             activeView: settings.defaultStageView,
@@ -1461,17 +1539,21 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 l.level === 'warn' &&
                 (l.module.toLowerCase() === 'stagex' || l.module.toLowerCase() === 'stage')
             ).length,
-            telemetry: stagex},
+            telemetry: stagex,
+          },
           groovex: {
             status: currentApp === 'groovex' ? 'Active' : 'Suspended',
             activeView: 'library',
             warnings: logs.filter((l) => l.level === 'warn' && l.module.toLowerCase() === 'groovex')
-              .length},
+              .length,
+          },
           vocalex: {
             status: currentApp === 'vocalex' ? 'Active' : 'Suspended',
             activeView: 'practice',
             warnings: logs.filter((l) => l.level === 'warn' && l.module.toLowerCase() === 'vocalex')
-              .length}};
+              .length,
+          },
+        };
         break;
       case 'Stagex':
         dump.stagexDiagnostics = stagex;
@@ -1487,12 +1569,14 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           platform: navigator.platform,
           isNative: Capacitor.isNativePlatform(),
           androidVersion: updateDiagnostics.androidVersion || 'N/A',
-          deviceModel: updateDiagnostics.deviceModel || 'Browser'};
+          deviceModel: updateDiagnostics.deviceModel || 'Browser',
+        };
         dump.settings = {
           activeModule: currentApp,
           activeTheme: settings.theme,
           language: settings.language,
-          syncAcrossDevices: settings.syncAcrossDevices};
+          syncAcrossDevices: settings.syncAcrossDevices,
+        };
         // LocalStorage (masked)
         {
           const storageDump: Record<string, string> = {};
@@ -1509,7 +1593,8 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         dump.modulePanels = activeProviders.map((prov) => ({
           id: prov.id,
           name: prov.name,
-          debugState: typeof prov.getDebugState === 'function' ? prov.getDebugState() : null}));
+          debugState: typeof prov.getDebugState === 'function' ? prov.getDebugState() : null,
+        }));
         break;
       case 'Logs':
         dump.errors = errors;
@@ -1539,7 +1624,6 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
 
   // WarningsInspector moved to file-level
 
-  
   // Unified Diagnostics Generators for Copy Buttons
   const buildCopyEverythingReport = () => {
     const timestamp = new Date().toISOString();
@@ -1614,15 +1698,33 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     let text = '';
     if (activeTab === 'logs') {
       title = `Logs (${logLevelFilter})`;
-      text = filteredLogs.map((l) => `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level.toUpperCase()}] [${l.module}] ${l.message}`).join('\n');
+      text = filteredLogs
+        .map(
+          (l) =>
+            `[${new Date(l.timestamp).toLocaleTimeString()}] [${l.level.toUpperCase()}] [${l.module}] ${l.message}`
+        )
+        .join('\n');
     } else if (activeTab === 'errors') {
       title = 'Errors';
-      text = errors.map((e) => `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] (x${e.count || 1}) ${e.message}\n${e.stack || ''}`).join('\n');
+      text = errors
+        .map(
+          (e) =>
+            `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] (x${e.count || 1}) ${e.message}\n${e.stack || ''}`
+        )
+        .join('\n');
     } else if (activeTab === 'events') {
       title = 'Events';
-      text = events.map((e) => `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] ${e.type} -> ${e.target}`).join('\n');
+      text = events
+        .map(
+          (e) =>
+            `[${new Date(e.timestamp).toLocaleTimeString()}] [${e.module}] ${e.type} -> ${e.target}`
+        )
+        .join('\n');
     }
-    return compressReportText(`========================\n${title}\n========================\n` + (text || 'No data recorded.'));
+    return compressReportText(
+      `========================\n${title}\n========================\n` +
+        (text || 'No data recorded.')
+    );
   };
 
   const buildPerformanceReport = () => {
@@ -1710,8 +1812,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     return <CopyButton getTextToCopy={buildCopyEverythingReport} />;
   };
 
-
-const renderSubViewHeader = (title: string) => {
+  const renderSubViewHeader = (title: string) => {
     if (!isWebDesktop) return null;
     const handleGoBack = () => {
       NavigationDispatcher.pop();
@@ -1762,10 +1863,10 @@ const renderSubViewHeader = (title: string) => {
           background: 'var(--app-surface-low, #131313)',
           position: 'sticky',
           top: 0,
-          zIndex: 100}}
+          zIndex: 100,
+        }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: isWebDesktop ? 16 : 10 }}>
-
           <div>
             <h1
               style={{
@@ -1773,7 +1874,8 @@ const renderSubViewHeader = (title: string) => {
                 fontSize: isWebDesktop ? '20px' : '15px',
                 fontWeight: 800,
                 color: '#fff',
-                letterSpacing: '-0.02em'}}
+                letterSpacing: '-0.02em',
+              }}
             >
               {title}
             </h1>
@@ -1783,7 +1885,8 @@ const renderSubViewHeader = (title: string) => {
                   margin: '2px 0 0',
                   fontSize: isWebDesktop ? '12px' : '10px',
                   color: 'rgba(255,255,255,0.4)',
-                  fontFamily: 'Inter'}}
+                  fontFamily: 'Inter',
+                }}
               >
                 {desc}
               </p>
@@ -1805,7 +1908,8 @@ const renderSubViewHeader = (title: string) => {
                 fontWeight: 700,
                 fontSize: '12px',
                 cursor: 'pointer',
-                transition: 'all 0.15s ease'}}
+                transition: 'all 0.15s ease',
+              }}
             >
               Back
             </button>
@@ -1853,7 +1957,9 @@ const renderSubViewHeader = (title: string) => {
   const renderLogsTab = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>Runtime Logs</span>
+        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
+          Runtime Logs
+        </span>
         <button
           onClick={clearLogs}
           style={{
@@ -1864,7 +1970,8 @@ const renderSubViewHeader = (title: string) => {
             fontSize: '11px',
             fontWeight: 700,
             padding: '6px 12px',
-            cursor: 'pointer'}}
+            cursor: 'pointer',
+          }}
         >
           Clear Logs
         </button>
@@ -1876,11 +1983,12 @@ const renderSubViewHeader = (title: string) => {
             style={{
               textAlign: 'center',
               padding: 24,
-              color: 'rgba(255,255,255,0.4)',
+              color: 'var(--c-text-secondary)',
               fontSize: 12,
-              background: 'rgba(255,255,255,0.02)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.04)'}}
+              border: '1px solid var(--c-border)',
+            }}
           >
             No logs capture matched the filters.
           </div>
@@ -1904,7 +2012,7 @@ const renderSubViewHeader = (title: string) => {
                 onClick={() => setExpandedLogIndices((prev) => ({ ...prev, [i]: !prev[i] }))}
                 style={{
                   padding: '14px',
-                  background: 'var(--app-surface-high, #1c1c1e)',
+                  background: 'var(--app-surface-high, var(--app-surface))',
                   borderLeft: `4px solid ${color}`,
                   borderRadius: '12px',
                   cursor: 'pointer',
@@ -1912,9 +2020,10 @@ const renderSubViewHeader = (title: string) => {
                   flexDirection: 'column',
                   gap: 10,
                   transition: 'all 0.15s ease',
-                  borderTop: '1px solid rgba(255,255,255,0.02)',
-                  borderRight: '1px solid rgba(255,255,255,0.02)',
-                  borderBottom: '1px solid rgba(255,255,255,0.02)'}}
+                  borderTop: '1px solid var(--c-border)',
+                  borderRight: '1px solid var(--c-border)',
+                  borderBottom: '1px solid var(--c-border)',
+                }}
               >
                 <div
                   style={{
@@ -1922,17 +2031,20 @@ const renderSubViewHeader = (title: string) => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     flexWrap: 'wrap',
-                    gap: 6}}
+                    gap: 6,
+                  }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span
                       style={{
                         fontFamily: 'monospace',
                         fontSize: '11px',
-                        color: 'rgba(255,255,255,0.4)',
-                        background: 'rgba(0,0,0,0.2)',
+                        color: 'var(--c-text-secondary)',
+                        background: 'var(--app-surface-low, var(--app-surface))',
+                        border: '1px solid var(--c-border)',
                         padding: '2px 6px',
-                        borderRadius: '4px'}}
+                        borderRadius: '4px',
+                      }}
                     >
                       {timestamp}
                     </span>
@@ -1944,15 +2056,17 @@ const renderSubViewHeader = (title: string) => {
                         background: `${color}15`,
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        letterSpacing: '0.04em'}}
+                        letterSpacing: '0.04em',
+                      }}
                     >
                       {level}
                     </span>
                     <span
                       style={{
                         fontSize: '11px',
-                        color: 'rgba(255,255,255,0.3)',
-                        fontFamily: 'Inter'}}
+                        color: 'var(--c-text-secondary)',
+                        fontFamily: 'Inter',
+                      }}
                     >
                       {thread}
                     </span>
@@ -1961,11 +2075,13 @@ const renderSubViewHeader = (title: string) => {
                     <span
                       style={{
                         fontSize: '9px',
-                        color: 'rgba(255,255,255,0.4)',
-                        background: 'rgba(255,255,255,0.04)',
+                        color: 'var(--c-text-secondary)',
+                        background: 'var(--app-surface-low, var(--app-surface))',
+                        border: '1px solid var(--c-border)',
                         padding: '3px 8px',
                         borderRadius: '6px',
-                        fontFamily: 'Inter'}}
+                        fontFamily: 'Inter',
+                      }}
                     >
                       Caller: {caller}
                     </span>
@@ -1976,9 +2092,10 @@ const renderSubViewHeader = (title: string) => {
                     margin: 0,
                     fontFamily: 'monospace',
                     fontSize: '12px',
-                    color: level === 'ERROR' ? '#fca5a5' : '#e7e5e4',
+                    color: level === 'ERROR' ? '#fca5a5' : 'var(--c-text-primary)',
                     lineHeight: 1.5,
-                    wordBreak: 'break-all'}}
+                    wordBreak: 'break-all',
+                  }}
                 >
                   {isExpanded
                     ? logAny.message
@@ -1990,13 +2107,14 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       margin: 0,
                       padding: 10,
-                      background: '#0a0a0c',
+                      background: 'var(--app-surface-low, var(--app-surface))',
                       borderRadius: '8px',
                       fontSize: '11px',
                       fontFamily: 'monospace',
-                      color: 'rgba(255,255,255,0.6)',
+                      color: 'var(--c-text-secondary)',
                       overflowX: 'auto',
-                      border: '1px solid rgba(255,255,255,0.04)'}}
+                      border: '1px solid var(--c-border)',
+                    }}
                   >
                     {logAny.details}
                   </pre>
@@ -2012,7 +2130,9 @@ const renderSubViewHeader = (title: string) => {
   const renderErrorsTab = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <span style={{ fontSize: 13, fontWeight: 700 }}>Captured Exceptions</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)' }}>
+          Captured Exceptions
+        </span>
         <button
           onClick={clearErrors}
           style={{
@@ -2022,7 +2142,8 @@ const renderSubViewHeader = (title: string) => {
             borderRadius: 6,
             fontSize: 10,
             padding: '4px 10px',
-            cursor: 'pointer'}}
+            cursor: 'pointer',
+          }}
         >
           Clear Errors
         </button>
@@ -2038,7 +2159,8 @@ const renderSubViewHeader = (title: string) => {
             alignItems: 'center',
             gap: 10,
             color: '#10b981',
-            fontSize: 12}}
+            fontSize: 12,
+          }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 20 }}>
             check_circle
@@ -2053,14 +2175,16 @@ const renderSubViewHeader = (title: string) => {
               background: 'rgba(239,68,68,0.04)',
               border: '1px solid rgba(239,68,68,0.15)',
               borderRadius: 12,
-              padding: 14}}
+              padding: 14,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                marginBottom: 6}}
+                marginBottom: 6,
+              }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span
@@ -2070,22 +2194,26 @@ const renderSubViewHeader = (title: string) => {
                     fontSize: 10,
                     fontWeight: 900,
                     padding: '2px 8px',
-                    borderRadius: '999px'}}
+                    borderRadius: '999px',
+                  }}
                 >
                   Occurred: x{err.count || 1}
                 </span>
-                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                  First: {new Date(err.firstSeen || err.timestamp).toLocaleTimeString()} | Last: {new Date(err.lastSeen || err.timestamp).toLocaleTimeString()}
+                <span style={{ fontSize: 11, color: 'var(--c-text-secondary)' }}>
+                  First: {new Date(err.firstSeen || err.timestamp).toLocaleTimeString()} | Last:{' '}
+                  {new Date(err.lastSeen || err.timestamp).toLocaleTimeString()}
                 </span>
               </div>
               <span
                 style={{
-                  background: 'rgba(255,255,255,0.06)',
-                  color: 'rgba(255,255,255,0.7)',
+                  background: 'var(--app-surface-high)',
+                  border: '1px solid var(--c-border)',
+                  color: 'var(--c-text-secondary)',
                   fontSize: 9,
                   fontWeight: 900,
                   padding: '2px 6px',
-                  borderRadius: 4}}
+                  borderRadius: 4,
+                }}
               >
                 {err.module.toUpperCase()}
               </span>
@@ -2096,7 +2224,8 @@ const renderSubViewHeader = (title: string) => {
                 fontWeight: 700,
                 color: '#fca5a5',
                 fontFamily: 'monospace',
-                marginBottom: 8}}
+                marginBottom: 8,
+              }}
             >
               {err.message}
             </div>
@@ -2118,7 +2247,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 11,
                         color: '#d2d6dc',
                         lineHeight: 1.4,
-                        textAlign: 'left'}}
+                        textAlign: 'left',
+                      }}
                     >
                       <div style={{ fontWeight: 800, color: '#748ffc', marginBottom: 4 }}>
                         Decoded React Error #${code}:
@@ -2146,7 +2276,8 @@ const renderSubViewHeader = (title: string) => {
                           padding: '4px 8px',
                           cursor: 'pointer',
                           fontFamily: 'Manrope',
-                          fontWeight: 700}}
+                          fontWeight: 700,
+                        }}
                       >
                         Copy Decoded Explanation
                       </button>
@@ -2161,15 +2292,17 @@ const renderSubViewHeader = (title: string) => {
                 style={{
                   margin: 0,
                   padding: 8,
-                  background: 'rgba(0,0,0,0.3)',
+                  background: 'var(--app-surface-bright, var(--app-surface))',
+                  border: '1px solid var(--c-border)',
                   borderRadius: 6,
                   fontSize: 10,
                   fontFamily: 'monospace',
-                  color: 'rgba(255,255,255,0.6)',
+                  color: 'var(--c-text-secondary)',
                   overflowX: 'auto',
                   whiteSpace: 'pre-wrap',
                   maxHeight: 150,
-                  overflowY: 'auto'}}
+                  overflowY: 'auto',
+                }}
               >
                 {err.stack}
               </pre>
@@ -2187,12 +2320,13 @@ const renderSubViewHeader = (title: string) => {
           value={eventModuleFilter}
           onChange={(e) => setEventModuleFilter(e.target.value)}
           style={{
-            background: '#1c1c1e',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: '#fff',
+            background: 'var(--app-surface)',
+            border: '1px solid var(--c-border)',
+            color: 'var(--c-text-primary)',
             padding: '4px 8px',
             borderRadius: 8,
-            fontSize: 11}}
+            fontSize: 11,
+          }}
         >
           <option value="all">All Modules</option>
           <option value="general">general</option>
@@ -2205,13 +2339,14 @@ const renderSubViewHeader = (title: string) => {
         <button
           onClick={clearEvents}
           style={{
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: '#fff',
+            background: 'var(--app-surface-high, var(--app-surface))',
+            border: '1px solid var(--c-border)',
+            color: 'var(--c-text-primary)',
             borderRadius: 6,
             fontSize: 10,
             padding: '4px 10px',
-            cursor: 'pointer'}}
+            cursor: 'pointer',
+          }}
         >
           Clear
         </button>
@@ -2219,20 +2354,22 @@ const renderSubViewHeader = (title: string) => {
 
       <div
         style={{
-          background: '#000000',
+          background: 'var(--app-surface-low, var(--app-surface))',
           borderRadius: 12,
-          border: '1px solid rgba(255,255,255,0.06)',
+          border: '1px solid var(--c-border)',
           maxHeight: '60vh',
           overflowY: 'auto',
-          padding: 8}}
+          padding: 8,
+        }}
       >
         {filteredEvents.length === 0 ? (
           <div
             style={{
               textAlign: 'center',
               padding: 20,
-              color: 'rgba(255,255,255,0.4)',
-              fontSize: 12}}
+              color: 'var(--c-text-secondary)',
+              fontSize: 12,
+            }}
           >
             No gesture events streamed yet. Tap around the UI!
           </div>
@@ -2245,14 +2382,15 @@ const renderSubViewHeader = (title: string) => {
                 key={i}
                 style={{
                   padding: '6px 8px',
-                  borderBottom: '1px solid rgba(255,255,255,0.03)',
+                  borderBottom: '1px solid var(--c-border)',
                   fontSize: 11,
                   fontFamily: 'monospace',
                   display: 'flex',
-                  justifyContent: 'space-between'}}
+                  justifyContent: 'space-between',
+                }}
               >
                 <div>
-                  <span style={{ color: 'rgba(255,255,255,0.3)', marginRight: 8 }}>
+                  <span style={{ color: 'var(--c-text-secondary)', marginRight: 8 }}>
                     [{new Date(evt.timestamp).toLocaleTimeString()}]
                   </span>
                   <span style={{ color: '#10b981', fontWeight: 700 }}>{evt.type}</span>
@@ -2279,7 +2417,8 @@ const renderSubViewHeader = (title: string) => {
         heapSize: metrics.heapSize,
         usedJSHeapSize: metrics.usedHeap,
         heapGrowthRate: metrics.heapGrowth,
-        origin: 'Browser API (performance.memory)'};
+        origin: 'Browser API (performance.memory)',
+      };
       copyToClipboard('Memory Profile', memoryStats);
     };
 
@@ -2302,7 +2441,8 @@ const renderSubViewHeader = (title: string) => {
         Calculated: { bg: 'rgba(236,72,153,0.12)', text: '#ec4899' },
         'Browser API': { bg: 'rgba(16,185,129,0.12)', text: '#10b981' },
         Native: { bg: 'rgba(139,92,246,0.12)', text: '#8b5cf6' },
-        Unavailable: { bg: 'rgba(239,68,68,0.12)', text: '#ef4444' }};
+        Unavailable: { bg: 'rgba(239,68,68,0.12)', text: '#ef4444' },
+      };
       const match = colors[origin] || colors.Calculated;
       return (
         <span
@@ -2315,7 +2455,8 @@ const renderSubViewHeader = (title: string) => {
             borderRadius: '4px',
             textTransform: 'uppercase',
             letterSpacing: '0.04em',
-            marginLeft: 'auto'}}
+            marginLeft: 'auto',
+          }}
         >
           {origin}
         </span>
@@ -2358,16 +2499,17 @@ const renderSubViewHeader = (title: string) => {
 
         <div
           style={{
-            background: 'var(--app-surface-high, #1c1c1e)',
+            background: 'var(--app-surface-high, var(--app-surface))',
             borderRadius: '16px',
             padding: '20px 24px',
             boxSizing: 'border-box',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
+            border: '1px solid var(--c-border)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            gap: 16}}
+            gap: 16,
+          }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
             <div
@@ -2381,21 +2523,30 @@ const renderSubViewHeader = (title: string) => {
                 justifyContent: 'center',
                 fontWeight: 800,
                 fontSize: '18px',
-                color: '#fff',
-                background: 'rgba(0,0,0,0.2)'}}
+                color: 'var(--c-text-primary)',
+                background: 'var(--app-surface-low, var(--app-surface))',
+              }}
             >
               {score}
             </div>
             <div>
-              <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#fff' }}>
+              <h4
+                style={{
+                  margin: 0,
+                  fontSize: '15px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                }}
+              >
                 Overall Performance Score
               </h4>
               <p
                 style={{
                   margin: '4px 0 0',
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.4)',
-                  fontFamily: 'Inter'}}
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
               >
                 Score calculated from frame stability, dropped frames, main thread blocks, and
                 memory overhead.
@@ -2409,7 +2560,8 @@ const renderSubViewHeader = (title: string) => {
                 fontWeight: 700,
                 color: getScoreColor(score),
                 textTransform: 'uppercase',
-                letterSpacing: '0.04em'}}
+                letterSpacing: '0.04em',
+              }}
             >
               {score >= 90 ? 'Excellent' : score >= 70 ? 'Optimal' : 'Janky / Warning'}
             </span>
@@ -2419,40 +2571,44 @@ const renderSubViewHeader = (title: string) => {
         <div className="perf-metrics-grid">
           <div
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '12px',
               padding: '16px',
+              border: '1px solid var(--c-border)',
               borderLeft: '3px solid var(--studio-accent-from, #679cff)',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
-              gap: 4}}
+              gap: 4,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                width: '100%'}}
+                width: '100%',
+              }}
             >
               <span
                 style={{
                   fontSize: '9px',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter',
-                  letterSpacing: '0.08em'}}
+                  letterSpacing: '0.08em',
+                }}
               >
                 Current FPS
               </span>
               {originBadge('Measured')}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-              <span style={{ fontSize: '28px', fontWeight: 800, color: '#fff' }}>
+              <span style={{ fontSize: '28px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
                 {metrics.currentFps}
               </span>
               <span
-                style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontFamily: 'Inter' }}
+                style={{ fontSize: '10px', color: 'var(--c-text-secondary)', fontFamily: 'Inter' }}
               >
                 / {metrics.refreshRate}Hz
               </span>
@@ -2461,35 +2617,39 @@ const renderSubViewHeader = (title: string) => {
 
           <div
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '12px',
               padding: '16px',
+              border: '1px solid var(--c-border)',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
-              gap: 4}}
+              gap: 4,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                width: '100%'}}
+                width: '100%',
+              }}
             >
               <span
                 style={{
                   fontSize: '9px',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter',
-                  letterSpacing: '0.08em'}}
+                  letterSpacing: '0.08em',
+                }}
               >
                 Avg FPS
               </span>
               {originBadge('Calculated')}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: '#fff' }}>
+              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
                 {metrics.averageFps}
               </span>
             </div>
@@ -2497,35 +2657,39 @@ const renderSubViewHeader = (title: string) => {
 
           <div
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '12px',
               padding: '16px',
+              border: '1px solid var(--c-border)',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
-              gap: 4}}
+              gap: 4,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                width: '100%'}}
+                width: '100%',
+              }}
             >
               <span
                 style={{
                   fontSize: '9px',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter',
-                  letterSpacing: '0.08em'}}
+                  letterSpacing: '0.08em',
+                }}
               >
                 1% Low FPS
               </span>
               {originBadge('Calculated')}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: '#fff' }}>
+              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
                 {metrics.low1PercentFps}
               </span>
             </div>
@@ -2533,75 +2697,83 @@ const renderSubViewHeader = (title: string) => {
 
           <div
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '12px',
               padding: '16px',
+              border: '1px solid var(--c-border)',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
-              gap: 4}}
+              gap: 4,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                width: '100%'}}
+                width: '100%',
+              }}
             >
               <span
                 style={{
                   fontSize: '9px',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter',
-                  letterSpacing: '0.08em'}}
+                  letterSpacing: '0.08em',
+                }}
               >
                 Frame Time
               </span>
               {originBadge('Measured')}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: '#fff' }}>
+              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
                 {metrics.frameTime}
               </span>
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>ms</span>
+              <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>ms</span>
             </div>
           </div>
 
           <div
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '12px',
               padding: '16px',
+              border: '1px solid var(--c-border)',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
-              gap: 4}}
+              gap: 4,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                width: '100%'}}
+                width: '100%',
+              }}
             >
               <span
                 style={{
                   fontSize: '9px',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter',
-                  letterSpacing: '0.08em'}}
+                  letterSpacing: '0.08em',
+                }}
               >
                 Jitter
               </span>
               {originBadge('Calculated')}
             </div>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 2, marginTop: 4 }}>
-              <span style={{ fontSize: '24px', fontWeight: 800, color: '#fff' }}>
+              <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
                 {metrics.frameVariance}
               </span>
-              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)' }}>ms</span>
+              <span style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>ms</span>
             </div>
           </div>
         </div>
@@ -2610,22 +2782,30 @@ const renderSubViewHeader = (title: string) => {
           <div
             className="perf-card-memory"
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '16px',
               padding: '24px',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
               gap: 20,
-              border: '1px solid rgba(255, 255, 255, 0.05)'}}
+              border: '1px solid var(--c-border)',
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', margin: 0 }}>
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  margin: 0,
+                }}
+              >
                 Memory Profile
               </h3>
               <span
                 className="material-symbols-outlined"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: 'var(--c-text-secondary)' }}
               >
                 memory
               </span>
@@ -2636,20 +2816,24 @@ const renderSubViewHeader = (title: string) => {
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
-                  paddingBottom: 10}}
+                  borderBottom: '1px solid var(--c-border)',
+                  paddingBottom: 10,
+                }}
               >
                 <div>
                   <span
                     style={{
                       fontSize: '10px',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'var(--c-text-secondary)',
                       display: 'block',
-                      marginBottom: 2}}
+                      marginBottom: 2,
+                    }}
                   >
                     Heap Size
                   </span>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
+                  <span
+                    style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-text-primary)' }}
+                  >
                     {metrics.heapSize}
                   </span>
                 </div>
@@ -2660,20 +2844,24 @@ const renderSubViewHeader = (title: string) => {
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  borderBottom: '1px solid rgba(255,255,255,0.06)',
-                  paddingBottom: 10}}
+                  borderBottom: '1px solid var(--c-border)',
+                  paddingBottom: 10,
+                }}
               >
                 <div>
                   <span
                     style={{
                       fontSize: '10px',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'var(--c-text-secondary)',
                       display: 'block',
-                      marginBottom: 2}}
+                      marginBottom: 2,
+                    }}
                   >
                     Used Heap
                   </span>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
+                  <span
+                    style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-text-primary)' }}
+                  >
                     {metrics.usedHeap}
                   </span>
                 </div>
@@ -2685,13 +2873,16 @@ const renderSubViewHeader = (title: string) => {
                   <span
                     style={{
                       fontSize: '10px',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'var(--c-text-secondary)',
                       display: 'block',
-                      marginBottom: 2}}
+                      marginBottom: 2,
+                    }}
                   >
                     Heap Growth
                   </span>
-                  <span style={{ fontSize: '16px', fontWeight: 700, color: '#fff' }}>
+                  <span
+                    style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-text-primary)' }}
+                  >
                     {metrics.heapGrowth}
                   </span>
                 </div>
@@ -2703,10 +2894,10 @@ const renderSubViewHeader = (title: string) => {
               onClick={copyMemoryMap}
               style={{
                 width: '100%',
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.06)',
+                background: 'var(--app-surface-high, var(--app-surface))',
+                border: '1px solid var(--c-border)',
                 borderRadius: '10px',
-                color: '#fff',
+                color: 'var(--c-text-primary)',
                 padding: '12px',
                 fontWeight: 700,
                 fontSize: '12px',
@@ -2716,7 +2907,8 @@ const renderSubViewHeader = (title: string) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
-                transition: 'all 0.15s ease'}}
+                transition: 'all 0.15s ease',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
                 content_copy
@@ -2728,17 +2920,25 @@ const renderSubViewHeader = (title: string) => {
           <div
             className="perf-card-pipeline"
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '16px',
               padding: '24px',
               boxSizing: 'border-box',
               display: 'flex',
               flexDirection: 'column',
               gap: 16,
-              border: '1px solid rgba(255, 255, 255, 0.05)'}}
+              border: '1px solid var(--c-border)',
+            }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', margin: 0 }}>
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  margin: 0,
+                }}
+              >
                 Rendering Pipeline
               </h3>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -2750,7 +2950,8 @@ const renderSubViewHeader = (title: string) => {
                     color: 'var(--studio-accent-from, #679cff)',
                     padding: '2px 6px',
                     borderRadius: '4px',
-                    textTransform: 'uppercase'}}
+                    textTransform: 'uppercase',
+                  }}
                 >
                   V-Sync On
                 </span>
@@ -2758,11 +2959,13 @@ const renderSubViewHeader = (title: string) => {
                   style={{
                     fontSize: '9px',
                     fontWeight: 700,
-                    background: 'rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.4)',
+                    background: 'var(--app-surface-low, var(--app-surface))',
+                    border: '1px solid var(--c-border)',
+                    color: 'var(--c-text-secondary)',
                     padding: '2px 6px',
                     borderRadius: '4px',
-                    textTransform: 'uppercase'}}
+                    textTransform: 'uppercase',
+                  }}
                 >
                   Refresh: {metrics.refreshRate}Hz
                 </span>
@@ -2773,7 +2976,7 @@ const renderSubViewHeader = (title: string) => {
               style={{
                 flexGrow: 1,
                 minHeight: 180,
-                background: '#0a0a0c',
+                background: 'var(--app-surface-low, #0a0a0c)',
                 borderRadius: '12px',
                 padding: '16px 20px',
                 position: 'relative',
@@ -2781,8 +2984,9 @@ const renderSubViewHeader = (title: string) => {
                 flexDirection: 'column',
                 justifyContent: 'flex-end',
                 gap: 8,
-                border: '1px solid rgba(255,255,255,0.02)',
-                overflow: 'hidden'}}
+                border: '1px solid var(--c-border)',
+                overflow: 'hidden',
+              }}
             >
               <div
                 style={{
@@ -2791,7 +2995,8 @@ const renderSubViewHeader = (title: string) => {
                   opacity: 0.06,
                   backgroundSize: '20px 20px',
                   backgroundImage:
-                    'linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)'}}
+                    'linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px)',
+                }}
               />
 
               <div
@@ -2802,7 +3007,8 @@ const renderSubViewHeader = (title: string) => {
                   height: '100%',
                   width: '100%',
                   zIndex: 10,
-                  gap: 4}}
+                  gap: 4,
+                }}
               >
                 {chartBars.map((val, idx) => (
                   <div
@@ -2813,7 +3019,8 @@ const renderSubViewHeader = (title: string) => {
                       width: '100%',
                       borderRadius: '2px 2px 0 0',
                       opacity: 0.3 + (idx / chartBars.length) * 0.7,
-                      transition: 'height 0.3s ease'}}
+                      transition: 'height 0.3s ease',
+                    }}
                   />
                 ))}
               </div>
@@ -2824,11 +3031,12 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   fontSize: '9px',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   textTransform: 'uppercase',
                   fontFamily: 'Inter',
                   letterSpacing: '0.04em',
-                  marginTop: 6}}
+                  marginTop: 6,
+                }}
               >
                 <span>Last 20 Samples</span>
                 <span>UI Thread Delay: {metrics.eventLoopDelay.toFixed(1)}ms</span>
@@ -2841,16 +3049,18 @@ const renderSubViewHeader = (title: string) => {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
                 gap: 12,
-                paddingTop: 8}}
+                paddingTop: 8,
+              }}
             >
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                   <span
                     style={{
                       fontSize: '9px',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'var(--c-text-secondary)',
                       textTransform: 'uppercase',
-                      fontFamily: 'Inter'}}
+                      fontFamily: 'Inter',
+                    }}
                   >
                     Rasterization
                   </span>
@@ -2860,9 +3070,11 @@ const renderSubViewHeader = (title: string) => {
                   style={{
                     fontSize: '13px',
                     fontWeight: 700,
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'var(--c-text-secondary)',
+                    opacity: 0.6,
                     display: 'block',
-                    marginTop: 4}}
+                    marginTop: 4,
+                  }}
                 >
                   Unavailable
                 </span>
@@ -2872,9 +3084,10 @@ const renderSubViewHeader = (title: string) => {
                   <span
                     style={{
                       fontSize: '9px',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'var(--c-text-secondary)',
                       textTransform: 'uppercase',
-                      fontFamily: 'Inter'}}
+                      fontFamily: 'Inter',
+                    }}
                   >
                     Compositing
                   </span>
@@ -2884,9 +3097,11 @@ const renderSubViewHeader = (title: string) => {
                   style={{
                     fontSize: '13px',
                     fontWeight: 700,
-                    color: 'rgba(255,255,255,0.3)',
+                    color: 'var(--c-text-secondary)',
+                    opacity: 0.6,
                     display: 'block',
-                    marginTop: 4}}
+                    marginTop: 4,
+                  }}
                 >
                   Unavailable
                 </span>
@@ -2896,9 +3111,10 @@ const renderSubViewHeader = (title: string) => {
                   <span
                     style={{
                       fontSize: '9px',
-                      color: 'rgba(255,255,255,0.4)',
+                      color: 'var(--c-text-secondary)',
                       textTransform: 'uppercase',
-                      fontFamily: 'Inter'}}
+                      fontFamily: 'Inter',
+                    }}
                   >
                     UI Loop Lag
                   </span>
@@ -2908,9 +3124,10 @@ const renderSubViewHeader = (title: string) => {
                   style={{
                     fontSize: '13px',
                     fontWeight: 700,
-                    color: '#fff',
+                    color: 'var(--c-text-primary)',
                     display: 'block',
-                    marginTop: 4}}
+                    marginTop: 4,
+                  }}
                 >
                   {metrics.eventLoopDelay.toFixed(1)}ms
                 </span>
@@ -2923,26 +3140,29 @@ const renderSubViewHeader = (title: string) => {
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: 16}}
+            gap: 16,
+          }}
         >
           <div
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '12px',
               padding: '16px 20px',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--c-border)',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'}}
+              alignItems: 'center',
+            }}
           >
             <div>
               <span
                 style={{
                   fontSize: '10px',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter',
-                  letterSpacing: '0.04em'}}
+                  letterSpacing: '0.04em',
+                }}
               >
                 Thermal State
               </span>
@@ -2950,18 +3170,22 @@ const renderSubViewHeader = (title: string) => {
                 style={{
                   fontSize: '15px',
                   fontWeight: 700,
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--c-text-secondary)',
+                  opacity: 0.6,
                   display: 'block',
-                  marginTop: 4}}
+                  marginTop: 4,
+                }}
               >
                 Unavailable
               </span>
               <span
                 style={{
                   fontSize: '10px',
-                  color: 'rgba(255,255,255,0.25)',
+                  color: 'var(--c-text-secondary)',
+                  opacity: 0.7,
                   display: 'block',
-                  marginTop: 2}}
+                  marginTop: 2,
+                }}
               >
                 Reason: Metric not exposed by current platform.
               </span>
@@ -2970,22 +3194,24 @@ const renderSubViewHeader = (title: string) => {
           </div>
           <div
             style={{
-              background: 'var(--app-surface-high, #1c1c1e)',
+              background: 'var(--app-surface-high, var(--app-surface))',
               borderRadius: '12px',
               padding: '16px 20px',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--c-border)',
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center'}}
+              alignItems: 'center',
+            }}
           >
             <div>
               <span
                 style={{
                   fontSize: '10px',
                   textTransform: 'uppercase',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   fontFamily: 'Inter',
-                  letterSpacing: '0.04em'}}
+                  letterSpacing: '0.04em',
+                }}
               >
                 Battery Optimization
               </span>
@@ -2993,18 +3219,22 @@ const renderSubViewHeader = (title: string) => {
                 style={{
                   fontSize: '15px',
                   fontWeight: 700,
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--c-text-secondary)',
+                  opacity: 0.6,
                   display: 'block',
-                  marginTop: 4}}
+                  marginTop: 4,
+                }}
               >
                 Unavailable
               </span>
               <span
                 style={{
                   fontSize: '10px',
-                  color: 'rgba(255,255,255,0.25)',
+                  color: 'var(--c-text-secondary)',
+                  opacity: 0.7,
                   display: 'block',
-                  marginTop: 2}}
+                  marginTop: 2,
+                }}
               >
                 Reason: Metric not exposed by current platform.
               </span>
@@ -3015,24 +3245,26 @@ const renderSubViewHeader = (title: string) => {
 
         <div
           style={{
-            background: 'var(--app-surface-high, #1c1c1e)',
+            background: 'var(--app-surface-high, var(--app-surface))',
             borderRadius: '16px',
             padding: '24px',
             boxSizing: 'border-box',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
+            border: '1px solid var(--c-border)',
             display: 'flex',
             flexDirection: 'column',
-            gap: 16}}
+            gap: 16,
+          }}
         >
           <h3
             style={{
               fontSize: '18px',
               fontWeight: 800,
-              color: '#fff',
+              color: 'var(--c-text-primary)',
               margin: 0,
               display: 'flex',
               alignItems: 'center',
-              gap: 8}}
+              gap: 8,
+            }}
           >
             <span
               className="material-symbols-outlined"
@@ -3048,14 +3280,15 @@ const renderSubViewHeader = (title: string) => {
               <div
                 style={{
                   fontSize: '13px',
-                  color: 'rgba(255,255,255,0.4)',
+                  color: 'var(--c-text-secondary)',
                   padding: '12px',
                   background: 'rgba(16,185,129,0.05)',
                   border: '1px solid rgba(16,185,129,0.1)',
                   borderRadius: '10px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8}}
+                  gap: 8,
+                }}
               >
                 <span
                   className="material-symbols-outlined"
@@ -3071,20 +3304,25 @@ const renderSubViewHeader = (title: string) => {
                   key={idx}
                   style={{
                     padding: '16px',
-                    background: 'rgba(255, 255, 255, 0.02)',
+                    background: 'var(--app-surface-bright, var(--app-surface))',
+                    border: '1px solid var(--c-border)',
                     borderLeft: `4px solid ${w.severity === 'Critical' ? '#ef4444' : '#fbbf24'}`,
                     borderRadius: '4px 12px 12px 4px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 6}}
+                    gap: 6,
+                  }}
                 >
                   <div
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center'}}
+                      alignItems: 'center',
+                    }}
                   >
-                    <span style={{ fontWeight: 800, fontSize: '14px', color: '#fff' }}>
+                    <span
+                      style={{ fontWeight: 800, fontSize: '14px', color: 'var(--c-text-primary)' }}
+                    >
                       {w.title}
                     </span>
                     <span
@@ -3098,7 +3336,8 @@ const renderSubViewHeader = (title: string) => {
                         color: w.severity === 'Critical' ? '#ef4444' : '#fbbf24',
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        textTransform: 'uppercase'}}
+                        textTransform: 'uppercase',
+                      }}
                     >
                       {w.severity}
                     </span>
@@ -3107,8 +3346,9 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       margin: 0,
                       fontSize: '12px',
-                      color: 'rgba(255,255,255,0.7)',
-                      lineHeight: 1.4}}
+                      color: 'var(--c-text-secondary)',
+                      lineHeight: 1.4,
+                    }}
                   >
                     {w.description}
                   </p>
@@ -3119,25 +3359,28 @@ const renderSubViewHeader = (title: string) => {
                       gap: 8,
                       marginTop: 4,
                       fontSize: '11px',
-                      borderTop: '1px solid rgba(255,255,255,0.04)',
-                      paddingTop: 8}}
+                      borderTop: '1px solid var(--c-border)',
+                      paddingTop: 8,
+                    }}
                   >
                     <div>
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>Measured: </span>
-                      <span style={{ color: '#fff', fontWeight: 600 }}>{w.measured}</span>
+                      <span style={{ color: 'var(--c-text-secondary)' }}>Measured: </span>
+                      <span style={{ color: 'var(--c-text-primary)', fontWeight: 600 }}>
+                        {w.measured}
+                      </span>
                     </div>
                     <div>
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>Expected: </span>
-                      <span style={{ color: 'rgba(255,255,255,0.6)' }}>{w.expected}</span>
+                      <span style={{ color: 'var(--c-text-secondary)' }}>Expected: </span>
+                      <span style={{ color: 'var(--c-text-secondary)' }}>{w.expected}</span>
                     </div>
                   </div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>
+                  <div style={{ fontSize: '11px', color: 'var(--c-text-secondary)', marginTop: 4 }}>
                     <span style={{ fontWeight: 700, color: 'var(--studio-accent-from, #679cff)' }}>
                       Possible Cause:{' '}
                     </span>
                     {w.possibleCause}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--c-text-secondary)' }}>
                     <span style={{ fontWeight: 700, color: 'var(--studio-accent-from, #679cff)' }}>
                       Investigation:{' '}
                     </span>
@@ -3151,14 +3394,15 @@ const renderSubViewHeader = (title: string) => {
 
         <div
           style={{
-            background: 'var(--app-surface-high, #1c1c1e)',
+            background: 'var(--app-surface-high, var(--app-surface))',
             borderRadius: '16px',
             padding: '24px',
             boxSizing: 'border-box',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
+            border: '1px solid var(--c-border)',
             display: 'flex',
             flexDirection: 'column',
-            gap: 16}}
+            gap: 16,
+          }}
         >
           <div
             style={{
@@ -3166,18 +3410,27 @@ const renderSubViewHeader = (title: string) => {
               justifyContent: 'space-between',
               alignItems: 'center',
               flexWrap: 'wrap',
-              gap: 12}}
+              gap: 12,
+            }}
           >
             <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#fff', margin: 0 }}>
+              <h3
+                style={{
+                  fontSize: '18px',
+                  fontWeight: 800,
+                  color: 'var(--c-text-primary)',
+                  margin: 0,
+                }}
+              >
                 Component Rendering Profiler
               </h3>
               <p
                 style={{
                   margin: '4px 0 0',
                   fontSize: '11px',
-                  color: 'rgba(255,255,255,0.4)',
-                  fontFamily: 'Inter'}}
+                  color: 'var(--c-text-secondary)',
+                  fontFamily: 'Inter',
+                }}
               >
                 Tracks mounts, unmounts, and render frequencies for heavy layout components in the
                 active session.
@@ -3186,10 +3439,10 @@ const renderSubViewHeader = (title: string) => {
             <button
               onClick={copyComponentRenderStats}
               style={{
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.06)',
+                background: 'var(--app-surface-high, var(--app-surface))',
+                border: '1px solid var(--c-border)',
                 borderRadius: '8px',
-                color: '#fff',
+                color: 'var(--c-text-primary)',
                 padding: '6px 14px',
                 fontWeight: 700,
                 fontSize: '11px',
@@ -3197,7 +3450,8 @@ const renderSubViewHeader = (title: string) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                transition: 'all 0.15s ease'}}
+                transition: 'all 0.15s ease',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                 content_copy
@@ -3213,15 +3467,17 @@ const renderSubViewHeader = (title: string) => {
               gap: 10,
               maxHeight: 300,
               overflowY: 'auto',
-              paddingRight: 4}}
+              paddingRight: 4,
+            }}
           >
             {perf.size === 0 ? (
               <div
                 style={{
                   fontSize: '12px',
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'var(--c-text-secondary)',
                   textAlign: 'center',
-                  padding: '24px 0'}}
+                  padding: '24px 0',
+                }}
               >
                 No active component render telemetry captured in this session.
               </div>
@@ -3233,30 +3489,33 @@ const renderSubViewHeader = (title: string) => {
                     key={comp}
                     style={{
                       padding: '12px 16px',
-                      background: 'rgba(255,255,255,0.02)',
+                      background: 'var(--app-surface-low, var(--app-surface))',
                       border: isHighRerender
                         ? '1px solid rgba(251,191,36,0.25)'
-                        : '1px solid rgba(255,255,255,0.05)',
+                        : '1px solid var(--c-border)',
                       borderRadius: 12,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between'}}
+                      justifyContent: 'space-between',
+                    }}
                   >
                     <div>
                       <span
                         style={{
                           fontWeight: 800,
                           fontSize: '13px',
-                          color: isHighRerender ? '#fbbf24' : '#fff'}}
+                          color: isHighRerender ? '#fbbf24' : 'var(--c-text-primary)',
+                        }}
                       >
                         {comp}
                       </span>
                       <div
                         style={{
                           fontSize: '10px',
-                          color: 'rgba(255,255,255,0.4)',
+                          color: 'var(--c-text-secondary)',
                           marginTop: 4,
-                          fontFamily: 'Inter'}}
+                          fontFamily: 'Inter',
+                        }}
                       >
                         Last render: {new Date(stats.lastRenderTime).toLocaleTimeString()}
                       </div>
@@ -3266,20 +3525,22 @@ const renderSubViewHeader = (title: string) => {
                         display: 'flex',
                         gap: 12,
                         fontSize: '11px',
-                        fontFamily: 'monospace'}}
+                        fontFamily: 'monospace',
+                      }}
                     >
-                      <div style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <div style={{ color: 'var(--c-text-secondary)' }}>
                         Mounts:{' '}
                         <span style={{ color: '#10b981', fontWeight: 800 }}>{stats.mounts}</span>
                       </div>
-                      <div style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <div style={{ color: 'var(--c-text-secondary)' }}>
                         Renders:{' '}
                         <span
                           style={{
                             color: isHighRerender
                               ? '#f59e0b'
                               : 'var(--studio-accent-from, #679cff)',
-                            fontWeight: 800}}
+                            fontWeight: 800,
+                          }}
                         >
                           {stats.renders}
                         </span>
@@ -3305,12 +3566,13 @@ const renderSubViewHeader = (title: string) => {
         value: settings.syncAcrossDevices ? 'Enabled' : 'Disabled',
         icon: 'sync',
         isBoolean: true,
-        boolVal: settings.syncAcrossDevices},
+        boolVal: settings.syncAcrossDevices,
+      },
     ];
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
+        <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
           App Store Settings & Configurations
         </span>
         <div
@@ -3318,30 +3580,32 @@ const renderSubViewHeader = (title: string) => {
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
             gap: 16,
-            width: '100%'}}
+            width: '100%',
+          }}
         >
           {states.map((st, idx) => {
             const valueColor = st.isBoolean
               ? st.boolVal
                 ? 'var(--studio-accent-from, #679cff)'
-                : 'rgba(255,255,255,0.4)'
+                : 'var(--c-text-secondary)'
               : st.key === 'Active Module'
                 ? 'var(--studio-accent-from, #679cff)'
-                : '#fff';
+                : 'var(--c-text-primary)';
 
             return (
               <div
                 key={idx}
                 style={{
-                  background: 'var(--app-surface-high, #1c1c1e)',
-                  border: '1px solid rgba(255, 255, 255, 0.05)',
+                  background: 'var(--app-surface-high, var(--app-surface))',
+                  border: '1px solid var(--c-border)',
                   borderRadius: '16px',
                   padding: '20px 22px',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   minHeight: 110,
-                  boxSizing: 'border-box'}}
+                  boxSizing: 'border-box',
+                }}
               >
                 <div
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
@@ -3351,9 +3615,10 @@ const renderSubViewHeader = (title: string) => {
                       fontSize: '10px',
                       fontWeight: 700,
                       textTransform: 'uppercase',
-                      color: 'rgba(255, 255, 255, 0.4)',
+                      color: 'var(--c-text-secondary)',
                       fontFamily: 'Inter',
-                      letterSpacing: '0.04em'}}
+                      letterSpacing: '0.04em',
+                    }}
                   >
                     {st.key}
                   </span>
@@ -3361,7 +3626,8 @@ const renderSubViewHeader = (title: string) => {
                     className="material-symbols-outlined"
                     style={{
                       fontSize: 20,
-                      color: 'rgba(255, 255, 255, 0.25)'}}
+                      color: 'var(--c-text-secondary)',
+                    }}
                   >
                     {st.icon}
                   </span>
@@ -3372,7 +3638,8 @@ const renderSubViewHeader = (title: string) => {
                     fontWeight: 800,
                     color: valueColor,
                     fontFamily: 'Manrope, sans-serif',
-                    marginTop: 12}}
+                    marginTop: 12,
+                  }}
                 >
                   {st.value}
                 </div>
@@ -3401,7 +3668,8 @@ const renderSubViewHeader = (title: string) => {
       failedReturns: 0,
       blackScreenDetections: 0,
       lastBlocker: 'none',
-      history: []};
+      history: [],
+    };
 
     const handleCapture = () => {
       const statePayload = (window as any).__captureBlackScreenState?.();
@@ -3423,8 +3691,10 @@ const renderSubViewHeader = (title: string) => {
           failedReturns: diag.failedReturns,
           blackScreenDetections: diag.blackScreenDetections,
           lastBlocker: diag.lastBlocker,
-          chordex: (window as any).__chordexDiagnostics || null},
-        capturedPayload: diag.lastPayload || (window as any).__captureBlackScreenState?.() || null};
+          chordex: (window as any).__chordexDiagnostics || null,
+        },
+        capturedPayload: diag.lastPayload || (window as any).__captureBlackScreenState?.() || null,
+      };
 
       navigator.clipboard
         .writeText(JSON.stringify(payload, null, 2))
@@ -3435,7 +3705,7 @@ const renderSubViewHeader = (title: string) => {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 13, fontWeight: 700 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--c-text-primary)' }}>
             Navigation Trace & Lifecycle Diagnostics
           </span>
           <button
@@ -3444,13 +3714,14 @@ const renderSubViewHeader = (title: string) => {
               showToast('Navigation logs cleared!');
             }}
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              color: '#fff',
+              background: 'var(--app-surface-high, var(--app-surface))',
+              border: '1px solid var(--c-border)',
+              color: 'var(--c-text-primary)',
               borderRadius: 6,
               fontSize: 10,
               padding: '4px 10px',
-              cursor: 'pointer'}}
+              cursor: 'pointer',
+            }}
           >
             Clear logs
           </button>
@@ -3458,13 +3729,14 @@ const renderSubViewHeader = (title: string) => {
 
         <div
           style={{
-            background: '#181820',
+            background: 'var(--app-surface-high, var(--app-surface))',
             borderRadius: 12,
-            border: '1px solid rgba(255,255,255,0.08)',
+            border: '1px solid var(--c-border)',
             padding: 12,
             display: 'flex',
             flexDirection: 'column',
-            gap: 10}}
+            gap: 10,
+          }}
         >
           <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b' }}>
             Black Screen Diagnostics
@@ -3474,7 +3746,9 @@ const renderSubViewHeader = (title: string) => {
               display: 'grid',
               gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
               gap: 8,
-              fontSize: 11}}
+              fontSize: 11,
+              color: 'var(--c-text-primary)',
+            }}
           >
             <div>
               Return Attempts: <strong>{diag.returnAttempts}</strong>
@@ -3502,7 +3776,8 @@ const renderSubViewHeader = (title: string) => {
                 fontSize: 11,
                 padding: '6px 12px',
                 cursor: 'pointer',
-                fontWeight: 600}}
+                fontWeight: 600,
+              }}
             >
               Capture Black Screen State
             </button>
@@ -3517,7 +3792,8 @@ const renderSubViewHeader = (title: string) => {
                 fontSize: 11,
                 padding: '6px 12px',
                 cursor: 'pointer',
-                fontWeight: 600}}
+                fontWeight: 600,
+              }}
             >
               Copy Black Screen Diagnostics
             </button>
@@ -3526,12 +3802,13 @@ const renderSubViewHeader = (title: string) => {
 
         <div
           style={{
-            background: '#000000',
+            background: 'var(--app-surface-low, var(--app-surface))',
             borderRadius: 12,
-            border: '1px solid rgba(255,255,255,0.06)',
+            border: '1px solid var(--c-border)',
             padding: 12,
             fontSize: 12,
-            fontFamily: 'monospace'}}
+            fontFamily: 'monospace',
+          }}
         >
           <div
             style={{
@@ -3539,14 +3816,16 @@ const renderSubViewHeader = (title: string) => {
               alignItems: 'center',
               gap: 8,
               color: '#10b981',
-              marginBottom: 12}}
+              marginBottom: 12,
+            }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
               play_arrow
             </span>
-            Current Route Mode: <strong style={{ color: '#fff' }}>{currentApp}</strong>
+            Current Route Mode:{' '}
+            <strong style={{ color: 'var(--c-text-primary)' }}>{currentApp}</strong>
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11, marginBottom: 8 }}>
+          <div style={{ color: 'var(--c-text-secondary)', fontSize: 11, marginBottom: 8 }}>
             Previous view cache triggers:
             <ul style={{ margin: '4px 0 0', paddingLeft: 16 }}>
               <li>
@@ -3568,15 +3847,17 @@ const renderSubViewHeader = (title: string) => {
             gap: 8,
             maxHeight: '400px',
             overflowY: 'auto',
-            paddingRight: 4}}
+            paddingRight: 4,
+          }}
         >
           {navEntries.length === 0 ? (
             <div
               style={{
-                color: 'rgba(255,255,255,0.3)',
+                color: 'var(--c-text-secondary)',
                 fontSize: 11,
                 textAlign: 'center',
-                padding: '20px 0'}}
+                padding: '20px 0',
+              }}
             >
               No navigation events logged yet.
             </div>
@@ -3601,7 +3882,8 @@ const renderSubViewHeader = (title: string) => {
                         padding: '1px 5px',
                         borderRadius: 4,
                         fontSize: 9,
-                        fontWeight: 700}}
+                        fontWeight: 700,
+                      }}
                     >
                       START
                     </span>
@@ -3616,7 +3898,8 @@ const renderSubViewHeader = (title: string) => {
                         padding: '1px 5px',
                         borderRadius: 4,
                         fontSize: 9,
-                        fontWeight: 700}}
+                        fontWeight: 700,
+                      }}
                     >
                       COMPLETE
                     </span>
@@ -3631,7 +3914,8 @@ const renderSubViewHeader = (title: string) => {
                         padding: '1px 5px',
                         borderRadius: 4,
                         fontSize: 9,
-                        fontWeight: 700}}
+                        fontWeight: 700,
+                      }}
                     >
                       HUB MOUNTED
                     </span>
@@ -3646,7 +3930,8 @@ const renderSubViewHeader = (title: string) => {
                         padding: '1px 5px',
                         borderRadius: 4,
                         fontSize: 9,
-                        fontWeight: 700}}
+                        fontWeight: 700,
+                      }}
                     >
                       SUBAPP UNMOUNTED
                     </span>
@@ -3661,7 +3946,8 @@ const renderSubViewHeader = (title: string) => {
                         padding: '1px 5px',
                         borderRadius: 4,
                         fontSize: 9,
-                        fontWeight: 700}}
+                        fontWeight: 700,
+                      }}
                     >
                       FALLBACK SHOWN
                     </span>
@@ -3672,21 +3958,23 @@ const renderSubViewHeader = (title: string) => {
                     key={entry.id}
                     style={{
                       padding: '10px 12px',
-                      background: 'rgba(255,255,255,0.02)',
-                      border: '1px solid rgba(255,255,255,0.05)',
+                      background: 'var(--app-surface-high, var(--app-surface))',
+                      border: '1px solid var(--c-border)',
                       borderRadius: 10,
                       fontSize: 11,
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 6}}
+                      gap: 6,
+                    }}
                   >
                     <div
                       style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'}}
+                        alignItems: 'center',
+                      }}
                     >
-                      <span style={{ color: 'rgba(255,255,255,0.3)', fontFamily: 'monospace' }}>
+                      <span style={{ color: 'var(--c-text-secondary)', fontFamily: 'monospace' }}>
                         {timeStr}
                       </span>
                       <div style={{ display: 'flex', gap: 4 }}>
@@ -3700,7 +3988,8 @@ const renderSubViewHeader = (title: string) => {
                             padding: '1px 5px',
                             borderRadius: 4,
                             fontSize: 9,
-                            fontWeight: 700}}
+                            fontWeight: 700,
+                          }}
                         >
                           {entry.transitionLockState ? 'LOCKED' : 'UNLOCKED'}
                         </span>
@@ -3711,16 +4000,19 @@ const renderSubViewHeader = (title: string) => {
                       style={{
                         display: 'flex',
                         justifyContent: 'space-between',
-                        alignItems: 'center'}}
+                        alignItems: 'center',
+                      }}
                     >
-                      <span style={{ color: '#fff' }}>
+                      <span style={{ color: 'var(--c-text-primary)' }}>
                         Flow:{' '}
                         <strong style={{ color: '#3b82f6' }}>{entry.fromApp || 'none'}</strong>{' '}
                         &rarr; <strong style={{ color: '#10b981' }}>{entry.toApp || 'none'}</strong>
                       </span>
-                      <span style={{ color: 'rgba(255,255,255,0.4)' }}>
+                      <span style={{ color: 'var(--c-text-secondary)' }}>
                         Active:{' '}
-                        <strong style={{ color: '#fff' }}>{entry.activeAppAfterTransition}</strong>
+                        <strong style={{ color: 'var(--c-text-primary)' }}>
+                          {entry.activeAppAfterTransition}
+                        </strong>
                       </span>
                     </div>
                   </div>
@@ -3779,7 +4071,8 @@ const renderSubViewHeader = (title: string) => {
               firstSeen: req.timestamp,
               lastSeen: req.timestamp,
               module,
-              suggestedCause});
+              suggestedCause,
+            });
           }
         }
         return acc;
@@ -3797,7 +4090,7 @@ const renderSubViewHeader = (title: string) => {
     return (
       <SettingsContentContainer style={{ gap: 16 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
+          <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
             HTTP Requests Sniffer
           </span>
           <button
@@ -3810,7 +4103,8 @@ const renderSubViewHeader = (title: string) => {
               fontSize: '11px',
               fontWeight: 700,
               padding: '6px 12px',
-              cursor: 'pointer'}}
+              cursor: 'pointer',
+            }}
           >
             Clear Requests
           </button>
@@ -3820,13 +4114,14 @@ const renderSubViewHeader = (title: string) => {
         {missingAssets.length > 0 && (
           <div
             style={{
-              background: 'rgba(127, 41, 39, 0.12)',
-              border: '1px solid rgba(238, 125, 119, 0.15)',
+              background: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
               borderRadius: '12px',
               padding: '16px',
               display: 'flex',
               flexDirection: 'column',
-              gap: 12}}
+              gap: 12,
+            }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span
@@ -3845,26 +4140,29 @@ const renderSubViewHeader = (title: string) => {
                 flexDirection: 'column',
                 gap: 8,
                 maxHeight: 180,
-                overflowY: 'auto'}}
+                overflowY: 'auto',
+              }}
             >
               {missingAssets.map((asset, idx) => (
                 <div
                   key={idx}
                   style={{
                     padding: '10px 12px',
-                    background: 'rgba(0,0,0,0.25)',
+                    background: 'var(--app-surface-low, var(--app-surface))',
                     borderRadius: '8px',
-                    border: '1px solid rgba(255,255,255,0.03)',
+                    border: '1px solid var(--c-border)',
                     fontSize: '11px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 6}}
+                    gap: 6,
+                  }}
                 >
                   <div
                     style={{
                       display: 'flex',
                       justifyContent: 'space-between',
-                      alignItems: 'center'}}
+                      alignItems: 'center',
+                    }}
                   >
                     <div
                       style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}
@@ -3877,28 +4175,31 @@ const renderSubViewHeader = (title: string) => {
                           borderRadius: '4px',
                           fontWeight: 800,
                           fontSize: '9px',
-                          fontFamily: 'Inter'}}
+                          fontFamily: 'Inter',
+                        }}
                       >
                         404
                       </span>
                       <span
                         style={{
-                          color: 'rgba(255,255,255,0.4)',
+                          color: 'var(--c-text-secondary)',
                           fontWeight: 700,
-                          fontFamily: 'Inter'}}
+                          fontFamily: 'Inter',
+                        }}
                       >
                         Module: {asset.module}
                       </span>
                       {asset.count > 1 && (
                         <span
                           style={{
-                            background: 'rgba(255,255,255,0.08)',
-                            color: '#fff',
+                            background: 'var(--app-surface-high)',
+                            color: 'var(--c-text-primary)',
                             padding: '1px 5px',
                             borderRadius: '4px',
                             fontWeight: 800,
                             fontSize: '9px',
-                            fontFamily: 'Inter'}}
+                            fontFamily: 'Inter',
+                          }}
                         >
                           ×{asset.count}
                         </span>
@@ -3906,20 +4207,22 @@ const renderSubViewHeader = (title: string) => {
                     </div>
                     <span
                       style={{
-                        color: 'rgba(255,255,255,0.25)',
+                        color: 'var(--c-text-secondary)',
                         fontSize: '9px',
-                        fontFamily: 'Inter'}}
+                        fontFamily: 'Inter',
+                      }}
                     >
                       Seen: {new Date(asset.lastSeen).toLocaleTimeString()}
                     </span>
                   </div>
                   <div
                     style={{
-                      color: '#fff',
+                      color: 'var(--c-text-primary)',
                       wordBreak: 'break-all',
                       fontFamily: 'monospace',
                       fontWeight: 600,
-                      fontSize: '11.5px'}}
+                      fontSize: '11.5px',
+                    }}
                   >
                     {asset.path}
                   </div>
@@ -3929,7 +4232,8 @@ const renderSubViewHeader = (title: string) => {
                       opacity: 0.9,
                       fontSize: '10.5px',
                       fontFamily: 'Inter',
-                      lineHeight: 1.4}}
+                      lineHeight: 1.4,
+                    }}
                   >
                     <strong>Suggested Cause:</strong> {asset.suggestedCause}
                   </div>
@@ -3946,11 +4250,12 @@ const renderSubViewHeader = (title: string) => {
               style={{
                 textAlign: 'center',
                 padding: 24,
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--c-text-secondary)',
                 fontSize: 12,
-                background: 'rgba(255,255,255,0.02)',
+                background: 'var(--app-surface-high, var(--app-surface))',
                 borderRadius: 12,
-                border: '1px solid rgba(255,255,255,0.04)'}}
+                border: '1px solid var(--c-border)',
+              }}
             >
               No HTTP requests logged.
             </div>
@@ -3966,15 +4271,16 @@ const renderSubViewHeader = (title: string) => {
                     key={i}
                     style={{
                       padding: '14px',
-                      background: 'var(--app-surface-high, #1c1c1e)',
+                      background: 'var(--app-surface-high, var(--app-surface))',
                       borderLeft: `3px solid ${color}`,
                       borderRadius: '12px',
-                      borderTop: '1px solid rgba(255,255,255,0.02)',
-                      borderRight: '1px solid rgba(255,255,255,0.02)',
-                      borderBottom: '1px solid rgba(255,255,255,0.02)',
+                      borderTop: '1px solid var(--c-border)',
+                      borderRight: '1px solid var(--c-border)',
+                      borderBottom: '1px solid var(--c-border)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: 8}}
+                      gap: 8,
+                    }}
                   >
                     <div
                       style={{
@@ -3982,7 +4288,8 @@ const renderSubViewHeader = (title: string) => {
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         fontSize: '11px',
-                        fontFamily: 'monospace'}}
+                        fontFamily: 'monospace',
+                      }}
                     >
                       <span
                         style={{
@@ -3990,7 +4297,8 @@ const renderSubViewHeader = (title: string) => {
                           fontWeight: 800,
                           background: 'rgba(103,124,255,0.12)',
                           padding: '2px 6px',
-                          borderRadius: '4px'}}
+                          borderRadius: '4px',
+                        }}
                       >
                         {req.method}
                       </span>
@@ -4000,7 +4308,8 @@ const renderSubViewHeader = (title: string) => {
                           fontWeight: 700,
                           background: `${color}12`,
                           padding: '2px 6px',
-                          borderRadius: '4px'}}
+                          borderRadius: '4px',
+                        }}
                       >
                         {req.status ? `HTTP ${req.status}` : req.error ? 'FAILED' : 'PENDING'}
                       </span>
@@ -4010,8 +4319,9 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: '12px',
                         wordBreak: 'break-all',
                         fontFamily: 'monospace',
-                        color: '#fff',
-                        lineHeight: 1.4}}
+                        color: 'var(--c-text-primary)',
+                        lineHeight: 1.4,
+                      }}
                     >
                       {req.url}
                     </div>
@@ -4020,12 +4330,14 @@ const renderSubViewHeader = (title: string) => {
                         style={{
                           marginTop: 4,
                           fontSize: '10px',
-                          color: 'rgba(255,255,255,0.35)',
+                          color: 'var(--c-text-secondary)',
                           fontFamily: 'monospace',
                           wordBreak: 'break-all',
-                          background: 'rgba(0,0,0,0.15)',
+                          background: 'var(--app-surface-low, var(--app-surface))',
+                          border: '1px solid var(--c-border)',
                           padding: 6,
-                          borderRadius: 6}}
+                          borderRadius: 6,
+                        }}
                       >
                         Headers: {JSON.stringify(req.headers)}
                       </div>
@@ -4036,7 +4348,8 @@ const renderSubViewHeader = (title: string) => {
                           marginTop: 4,
                           fontSize: '11px',
                           color: '#fca5a5',
-                          fontFamily: 'monospace'}}
+                          fontFamily: 'monospace',
+                        }}
                       >
                         Error: {req.error}
                       </div>
@@ -4052,7 +4365,7 @@ const renderSubViewHeader = (title: string) => {
 
   const renderStorageTab = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
+      <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
         LocalStorage Inspector (Masked)
       </span>
       <div style={{ display: 'grid', gap: 12 }}>
@@ -4063,19 +4376,21 @@ const renderSubViewHeader = (title: string) => {
               key={key}
               style={{
                 padding: '16px 20px',
-                background: 'var(--app-surface-high, #1c1c1e)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
+                background: 'var(--app-surface-high, var(--app-surface))',
+                border: '1px solid var(--c-border)',
                 borderRadius: '16px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 12}}
+                gap: 12,
+              }}
             >
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: 12}}
+                  gap: 12,
+                }}
               >
                 <span
                   style={{
@@ -4083,7 +4398,8 @@ const renderSubViewHeader = (title: string) => {
                     fontSize: '13px',
                     fontFamily: 'monospace',
                     color: 'var(--studio-accent-from, #679cff)',
-                    wordBreak: 'break-all'}}
+                    wordBreak: 'break-all',
+                  }}
                 >
                   {key}
                 </span>
@@ -4093,10 +4409,10 @@ const renderSubViewHeader = (title: string) => {
                     showToast(`Copied value of ${key}`);
                   }}
                   style={{
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
+                    background: 'var(--app-surface-low, var(--app-surface))',
+                    border: '1px solid var(--c-border)',
                     borderRadius: '8px',
-                    color: 'rgba(255,255,255,0.6)',
+                    color: 'var(--c-text-secondary)',
                     padding: '6px 12px',
                     cursor: 'pointer',
                     display: 'flex',
@@ -4104,7 +4420,8 @@ const renderSubViewHeader = (title: string) => {
                     gap: 6,
                     fontSize: '11px',
                     fontFamily: 'Inter',
-                    transition: 'all 0.15s ease'}}
+                    transition: 'all 0.15s ease',
+                  }}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                     content_copy
@@ -4116,13 +4433,14 @@ const renderSubViewHeader = (title: string) => {
                 style={{
                   fontFamily: 'monospace',
                   fontSize: '11px',
-                  color: '#a7a3c4',
+                  color: 'var(--c-text-secondary)',
                   wordBreak: 'break-all',
-                  background: 'rgba(0,0,0,0.25)',
-                  border: '1px solid rgba(255,255,255,0.03)',
+                  background: 'var(--app-surface-bright, var(--app-surface))',
+                  border: '1px solid var(--c-border)',
                   padding: '10px 12px',
                   borderRadius: '8px',
-                  whiteSpace: 'pre-wrap'}}
+                  whiteSpace: 'pre-wrap',
+                }}
               >
                 {maskSensitiveValue(key, val)}
               </div>
@@ -4135,7 +4453,7 @@ const renderSubViewHeader = (title: string) => {
 
   const renderProvidersTab = () => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>
+      <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)' }}>
         App-Specific Debug Panels
       </span>
       {activeProviders.length === 0 ? (
@@ -4143,11 +4461,12 @@ const renderSubViewHeader = (title: string) => {
           style={{
             textAlign: 'center',
             padding: '36px 20px',
-            background: 'var(--app-surface-high, #1c1c1e)',
-            border: '1px solid rgba(255, 255, 255, 0.05)',
+            background: 'var(--app-surface-high, var(--app-surface))',
+            border: '1px solid var(--c-border)',
             borderRadius: '16px',
-            color: 'rgba(255,255,255,0.4)',
-            fontSize: '12px'}}
+            color: 'var(--c-text-secondary)',
+            fontSize: '12px',
+          }}
         >
           No app-specific debug panel is currently active. Open Chordex, Stagex, or Drumex to
           inspect them.
@@ -4158,27 +4477,30 @@ const renderSubViewHeader = (title: string) => {
             <div
               key={prov.id}
               style={{
-                background: 'var(--app-surface-high, #1c1c1e)',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
+                background: 'var(--app-surface-high, var(--app-surface))',
+                border: '1px solid var(--c-border)',
                 borderRadius: '16px',
                 padding: '18px 20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 14}}
+                gap: 14,
+              }}
             >
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
-                  gap: 12}}
+                  gap: 12,
+                }}
               >
                 <h4
                   style={{
                     fontSize: '15px',
                     fontWeight: 800,
                     margin: 0,
-                    color: 'var(--studio-accent-from, #679cff)'}}
+                    color: 'var(--studio-accent-from, #679cff)',
+                  }}
                 >
                   {prov.name}
                 </h4>
@@ -4186,10 +4508,12 @@ const renderSubViewHeader = (title: string) => {
                   style={{
                     fontSize: '10px',
                     fontFamily: 'Inter',
-                    color: 'rgba(255,255,255,0.4)',
-                    background: 'rgba(0,0,0,0.2)',
+                    color: 'var(--c-text-secondary)',
+                    background: 'var(--app-surface-low, var(--app-surface))',
+                    border: '1px solid var(--c-border)',
                     padding: '3px 8px',
-                    borderRadius: '6px'}}
+                    borderRadius: '6px',
+                  }}
                 >
                   {prov.id}
                 </span>
@@ -4205,14 +4529,15 @@ const renderSubViewHeader = (title: string) => {
                       style={{
                         padding: '8px 14px',
                         borderRadius: '10px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.08)',
-                        color: '#fff',
+                        background: 'var(--app-surface-low, var(--app-surface))',
+                        border: '1px solid var(--c-border)',
+                        color: 'var(--c-text-primary)',
                         fontWeight: 700,
                         fontSize: '11px',
                         cursor: 'pointer',
                         transition: 'all 0.15s ease',
-                        fontFamily: 'Inter'}}
+                        fontFamily: 'Inter',
+                      }}
                     >
                       {act.label}
                     </button>
@@ -4225,16 +4550,17 @@ const renderSubViewHeader = (title: string) => {
                 style={{
                   margin: 0,
                   padding: '12px 14px',
-                  background: 'rgba(0,0,0,0.25)',
-                  border: '1px solid rgba(255, 255, 255, 0.03)',
+                  background: 'var(--app-surface-bright, var(--app-surface))',
+                  border: '1px solid var(--c-border)',
                   borderRadius: '10px',
                   fontFamily: 'monospace',
                   fontSize: '11px',
-                  color: '#a7a3c4',
+                  color: 'var(--c-text-secondary)',
                   wordBreak: 'break-all',
                   whiteSpace: 'pre-wrap',
                   maxHeight: 250,
-                  overflowY: 'auto'}}
+                  overflowY: 'auto',
+                }}
               >
                 {JSON.stringify(prov.getDebugState(), null, 2)}
               </pre>
@@ -4272,7 +4598,8 @@ const renderSubViewHeader = (title: string) => {
         view: activePanel,
         memory: '24.5 MB',
         warnings: getAppWarningsCount('hub'),
-        pid: '8842'},
+        pid: '8842',
+      },
       {
         key: 'chordex',
         name: 'Chordex',
@@ -4280,7 +4607,8 @@ const renderSubViewHeader = (title: string) => {
         view: activePanel,
         memory: '32.1 MB',
         warnings: getAppWarningsCount('chordex'),
-        pid: '9102'},
+        pid: '9102',
+      },
       {
         key: 'drumex',
         name: 'Drumex',
@@ -4288,7 +4616,8 @@ const renderSubViewHeader = (title: string) => {
         view: settings.defaultDrumTab || 'songs',
         memory: '45.8 MB',
         warnings: getAppWarningsCount('drumex'),
-        pid: '9421'},
+        pid: '9421',
+      },
       {
         key: 'stagex',
         name: 'Stagex',
@@ -4297,7 +4626,8 @@ const renderSubViewHeader = (title: string) => {
         memory: '58.2 MB',
         warnings: getAppWarningsCount('stagex'),
         pid: '9885',
-        hasTelemetry: true},
+        hasTelemetry: true,
+      },
       {
         key: 'groovex',
         name: 'Groovex',
@@ -4305,7 +4635,8 @@ const renderSubViewHeader = (title: string) => {
         view: 'Library',
         memory: '18.4 MB',
         warnings: getAppWarningsCount('groovex'),
-        pid: '1014'},
+        pid: '1014',
+      },
       {
         key: 'vocalex',
         name: 'Vocalex',
@@ -4313,7 +4644,8 @@ const renderSubViewHeader = (title: string) => {
         view: 'Practice',
         memory: '22.9 MB',
         warnings: getAppWarningsCount('vocalex'),
-        pid: '1044'},
+        pid: '1044',
+      },
     ];
 
     const copyAppDiagnostics = (appName: string, appData: any) => {
@@ -4326,7 +4658,8 @@ const renderSubViewHeader = (title: string) => {
         view: appData.view,
         memory: appData.memory,
         warnings: appData.warnings,
-        pid: appData.pid};
+        pid: appData.pid,
+      };
       copyToClipboard(`${appName} Diagnostics`, dump);
     };
 
@@ -4385,7 +4718,8 @@ const renderSubViewHeader = (title: string) => {
               border: '1px solid rgba(238, 125, 119, 0.1)',
               borderRadius: '12px',
               padding: '14px 18px',
-              boxSizing: 'border-box'}}
+              boxSizing: 'border-box',
+            }}
           >
             <div
               style={{
@@ -4397,7 +4731,8 @@ const renderSubViewHeader = (title: string) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#ee7d77'}}
+                color: '#ee7d77',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 22 }}>
                 warning
@@ -4412,7 +4747,8 @@ const renderSubViewHeader = (title: string) => {
                   margin: '2px 0 0',
                   color: 'var(--c-text-secondary)',
                   fontSize: '12px',
-                  fontFamily: 'Inter'}}
+                  fontFamily: 'Inter',
+                }}
               >
                 Vocalex is experiencing higher than usual latency in the neural synthesis thread.
                 Recommended restart.
@@ -4423,12 +4759,13 @@ const renderSubViewHeader = (title: string) => {
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--c-text-secondary)',
                 cursor: 'pointer',
                 padding: 4,
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'}}
+                justifyContent: 'center',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 close
@@ -4446,7 +4783,7 @@ const renderSubViewHeader = (title: string) => {
               ? '#ee7d77'
               : isActive
                 ? 'var(--studio-accent-from, #679cff)'
-                : 'rgba(255,255,255,0.3)';
+                : 'var(--c-text-secondary)';
             const statusLabel = hasWarnings ? 'Warning' : app.status;
 
             return (
@@ -4454,25 +4791,34 @@ const renderSubViewHeader = (title: string) => {
                 key={app.key}
                 className={`bento-card-${app.key}`}
                 style={{
-                  background: 'var(--app-surface-high, #1c1c1e)',
+                  background: 'var(--app-surface-high, var(--app-surface))',
                   borderRadius: '16px',
                   padding: '20px 22px',
                   boxSizing: 'border-box',
                   border: hasWarnings
                     ? '1px solid rgba(238, 125, 119, 0.2)'
-                    : '1px solid rgba(255, 255, 255, 0.05)',
+                    : '1px solid var(--c-border)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 16}}
+                  gap: 16,
+                }}
               >
                 <div
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    alignItems: 'flex-start'}}
+                    alignItems: 'flex-start',
+                  }}
                 >
                   <div>
-                    <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#fff', margin: 0 }}>
+                    <h3
+                      style={{
+                        fontSize: '17px',
+                        fontWeight: 800,
+                        color: 'var(--c-text-primary)',
+                        margin: 0,
+                      }}
+                    >
                       {app.name}
                     </h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
@@ -4483,7 +4829,8 @@ const renderSubViewHeader = (title: string) => {
                           height: 8,
                           borderRadius: '50%',
                           background: statusColor,
-                          display: 'inline-block'}}
+                          display: 'inline-block',
+                        }}
                       />
                       <span
                         style={{
@@ -4492,7 +4839,8 @@ const renderSubViewHeader = (title: string) => {
                           textTransform: 'uppercase',
                           color: statusColor,
                           fontFamily: 'Inter',
-                          letterSpacing: '0.04em'}}
+                          letterSpacing: '0.04em',
+                        }}
                       >
                         {statusLabel}
                       </span>
@@ -4502,10 +4850,12 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       fontSize: '10px',
                       fontFamily: 'Inter',
-                      color: 'rgba(255,255,255,0.4)',
-                      background: 'rgba(0,0,0,0.2)',
+                      color: 'var(--c-text-secondary)',
+                      background: 'var(--app-surface-low, var(--app-surface))',
+                      border: '1px solid var(--c-border)',
                       padding: '3px 8px',
-                      borderRadius: '6px'}}
+                      borderRadius: '6px',
+                    }}
                   >
                     PID: {isActive ? app.pid : '--'}
                   </span>
@@ -4516,24 +4866,28 @@ const renderSubViewHeader = (title: string) => {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
                     gap: 12,
-                    background: 'rgba(0,0,0,0.15)',
+                    background: 'var(--app-surface-low, var(--app-surface))',
                     padding: 12,
                     borderRadius: '10px',
-                    border: '1px solid rgba(255,255,255,0.02)'}}
+                    border: '1px solid var(--c-border)',
+                  }}
                 >
                   <div>
                     <span
                       style={{
                         fontSize: '10px',
                         textTransform: 'uppercase',
-                        color: 'rgba(255,255,255,0.4)',
+                        color: 'var(--c-text-secondary)',
                         display: 'block',
                         marginBottom: 2,
-                        fontFamily: 'Inter'}}
+                        fontFamily: 'Inter',
+                      }}
                     >
                       Memory
                     </span>
-                    <span style={{ fontSize: '15px', fontWeight: 700, color: '#fff' }}>
+                    <span
+                      style={{ fontSize: '15px', fontWeight: 700, color: 'var(--c-text-primary)' }}
+                    >
                       {app.memory}
                     </span>
                   </div>
@@ -4542,10 +4896,11 @@ const renderSubViewHeader = (title: string) => {
                       style={{
                         fontSize: '10px',
                         textTransform: 'uppercase',
-                        color: 'rgba(255,255,255,0.4)',
+                        color: 'var(--c-text-secondary)',
                         display: 'block',
                         marginBottom: 2,
-                        fontFamily: 'Inter'}}
+                        fontFamily: 'Inter',
+                      }}
                     >
                       Warnings
                     </span>
@@ -4553,7 +4908,8 @@ const renderSubViewHeader = (title: string) => {
                       style={{
                         fontSize: '15px',
                         fontWeight: 700,
-                        color: hasWarnings ? '#ee7d77' : '#fff'}}
+                        color: hasWarnings ? '#ee7d77' : 'var(--c-text-primary)',
+                      }}
                     >
                       {app.warnings}
                     </span>
@@ -4567,13 +4923,14 @@ const renderSubViewHeader = (title: string) => {
                       flex: 1,
                       padding: '10px 14px',
                       borderRadius: '10px',
-                      background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.06)',
+                      background: 'var(--app-surface-high, var(--app-surface))',
+                      border: '1px solid var(--c-border)',
                       color: 'var(--studio-accent-from, #679cff)',
                       fontWeight: 700,
                       fontSize: '11px',
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease'}}
+                      transition: 'all 0.15s ease',
+                    }}
                   >
                     Copy Section
                   </button>
@@ -4590,7 +4947,8 @@ const renderSubViewHeader = (title: string) => {
                         fontWeight: 700,
                         fontSize: '11px',
                         cursor: 'pointer',
-                        transition: 'all 0.15s ease'}}
+                        transition: 'all 0.15s ease',
+                      }}
                     >
                       Telemetry
                     </button>
@@ -4619,7 +4977,8 @@ const renderSubViewHeader = (title: string) => {
     boxSizing: 'border-box',
     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     textAlign: 'left',
-    outline: 'none'});
+    outline: 'none',
+  });
 
   const badgeStyle = (type: string): React.CSSProperties => {
     let bg = 'rgba(128,128,128,0.08)';
@@ -4644,7 +5003,8 @@ const renderSubViewHeader = (title: string) => {
       background: bg,
       color: color,
       flexShrink: 0,
-      marginLeft: 8};
+      marginLeft: 8,
+    };
   };
 
   const initialBadgeStyle: React.CSSProperties = {
@@ -4658,14 +5018,16 @@ const renderSubViewHeader = (title: string) => {
     fontSize: 8,
     fontWeight: 800,
     color: 'var(--c-text-primary)',
-    border: '1px solid rgba(128, 128, 128, 0.12)'};
+    border: '1px solid rgba(128, 128, 128, 0.12)',
+  };
 
   const renderDashboardBody = () => (
     <SettingsContentContainer
       style={{
         flex: 1,
         overflowY: isWebDesktop ? 'auto' : 'visible',
-        gap: 20}}
+        gap: 20,
+      }}
     >
       <div style={{ padding: isWebDesktop ? '0 20px' : '0', marginTop: 16 }}>
         <div
@@ -4673,7 +5035,8 @@ const renderSubViewHeader = (title: string) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: 12}}
+            marginBottom: 12,
+          }}
         >
           <h2
             style={{
@@ -4682,7 +5045,8 @@ const renderSubViewHeader = (title: string) => {
               textTransform: 'uppercase',
               letterSpacing: '0.15em',
               color: 'var(--c-text-secondary)',
-              margin: 0}}
+              margin: 0,
+            }}
           >
             System Health
           </h2>
@@ -4695,7 +5059,8 @@ const renderSubViewHeader = (title: string) => {
               fontWeight: 800,
               borderRadius: 6,
               textTransform: 'uppercase',
-              letterSpacing: '0.08em'}}
+              letterSpacing: '0.08em',
+            }}
           >
             Live Stream
           </span>
@@ -4705,7 +5070,8 @@ const renderSubViewHeader = (title: string) => {
           style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gap: 12}}
+            gap: 12,
+          }}
           className="dev-grid-4col"
         >
           {/* App Version */}
@@ -4717,14 +5083,16 @@ const renderSubViewHeader = (title: string) => {
               border: '1px solid rgba(128, 128, 128, 0.08)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 8}}
+              gap: 8,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                color: 'var(--c-text-secondary)'}}
+                color: 'var(--c-text-secondary)',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 terminal
@@ -4734,7 +5102,8 @@ const renderSubViewHeader = (title: string) => {
                   fontSize: 10,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.05em'}}
+                  letterSpacing: '0.05em',
+                }}
               >
                 App Version
               </span>
@@ -4753,14 +5122,16 @@ const renderSubViewHeader = (title: string) => {
               border: '1px solid rgba(128, 128, 128, 0.08)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 8}}
+              gap: 8,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                color: 'var(--c-text-secondary)'}}
+                color: 'var(--c-text-secondary)',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 android
@@ -4770,7 +5141,8 @@ const renderSubViewHeader = (title: string) => {
                   fontSize: 10,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.05em'}}
+                  letterSpacing: '0.05em',
+                }}
               >
                 Android
               </span>
@@ -4789,14 +5161,16 @@ const renderSubViewHeader = (title: string) => {
               border: '1px solid rgba(128, 128, 128, 0.08)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 8}}
+              gap: 8,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                color: 'var(--c-text-secondary)'}}
+                color: 'var(--c-text-secondary)',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 report_problem
@@ -4806,7 +5180,8 @@ const renderSubViewHeader = (title: string) => {
                   fontSize: 10,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.05em'}}
+                  letterSpacing: '0.05em',
+                }}
               >
                 Alerts
               </span>
@@ -4814,7 +5189,8 @@ const renderSubViewHeader = (title: string) => {
             <div style={{ fontSize: 16, fontWeight: 800, display: 'flex', gap: 6 }}>
               <span
                 style={{
-                  color: errorCount > 0 ? 'var(--studio-error, #ee7d77)' : 'var(--c-text-primary)'}}
+                  color: errorCount > 0 ? 'var(--studio-error, #ee7d77)' : 'var(--c-text-primary)',
+                }}
               >
                 {errorCount} E
               </span>
@@ -4834,14 +5210,16 @@ const renderSubViewHeader = (title: string) => {
               border: '1px solid rgba(128, 128, 128, 0.08)',
               display: 'flex',
               flexDirection: 'column',
-              gap: 8}}
+              gap: 8,
+            }}
           >
             <div
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                color: 'var(--c-text-secondary)'}}
+                color: 'var(--c-text-secondary)',
+              }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                 published_with_changes
@@ -4851,7 +5229,8 @@ const renderSubViewHeader = (title: string) => {
                   fontSize: 10,
                   fontWeight: 700,
                   textTransform: 'uppercase',
-                  letterSpacing: '0.05em'}}
+                  letterSpacing: '0.05em',
+                }}
               >
                 Status
               </span>
@@ -4863,7 +5242,8 @@ const renderSubViewHeader = (title: string) => {
                 color: 'var(--studio-accent-from, #679cff)',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'}}
+                whiteSpace: 'nowrap',
+              }}
             >
               {otaStatus || 'Up to date'}
             </div>
@@ -4876,14 +5256,16 @@ const renderSubViewHeader = (title: string) => {
         style={{
           padding: isWebDesktop ? '0 20px' : '0',
           marginTop: 8,
-          paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
+          paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)',
+        }}
       >
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            marginBottom: 16}}
+            marginBottom: 16,
+          }}
         >
           <h2
             style={{
@@ -4892,7 +5274,8 @@ const renderSubViewHeader = (title: string) => {
               textTransform: 'uppercase',
               letterSpacing: '0.15em',
               color: 'var(--c-text-secondary)',
-              margin: 0}}
+              margin: 0,
+            }}
           >
             Engineering Tools
           </h2>
@@ -4903,7 +5286,8 @@ const renderSubViewHeader = (title: string) => {
               color: 'var(--c-text-secondary)',
               display: 'flex',
               alignItems: 'center',
-              gap: 6}}
+              gap: 6,
+            }}
           >
             <span
               style={{
@@ -4911,7 +5295,8 @@ const renderSubViewHeader = (title: string) => {
                 height: 6,
                 borderRadius: '50%',
                 background: 'var(--studio-accent-from, #679cff)',
-                display: 'inline-block'}}
+                display: 'inline-block',
+              }}
             />
             <span>6 Modules Active</span>
           </div>
@@ -4925,7 +5310,8 @@ const renderSubViewHeader = (title: string) => {
               alignItems: 'center',
               justifyContent: 'center',
               padding: 40,
-              textAlign: 'center'}}
+              textAlign: 'center',
+            }}
           >
             <span
               className="material-symbols-outlined"
@@ -4942,7 +5328,8 @@ const renderSubViewHeader = (title: string) => {
                 color: 'var(--c-text-secondary)',
                 maxWidth: 280,
                 lineHeight: 1.4,
-                margin: 0}}
+                margin: 0,
+              }}
             >
               Toggle the status above to activate diagnostics tracking, capture logs, and view
               app-specific states.
@@ -4953,7 +5340,8 @@ const renderSubViewHeader = (title: string) => {
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(1, minmax(0, 1fr))',
-              gap: 16}}
+              gap: 16,
+            }}
             className="dev-tools-grid"
           >
             {/* Apps */}
@@ -4967,7 +5355,8 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   alignItems: 'start',
                   justifyContent: 'space-between',
-                  width: '100%'}}
+                  width: '100%',
+                }}
               >
                 <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                   <span
@@ -4975,7 +5364,8 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       fontSize: 32,
                       color: 'var(--studio-accent-from, #679cff)',
-                      fontVariationSettings: "'FILL' 1"}}
+                      fontVariationSettings: "'FILL' 1",
+                    }}
                   >
                     grid_view
                   </span>
@@ -4985,7 +5375,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 16,
                         fontWeight: 800,
                         color: 'var(--c-text-primary)',
-                        margin: '0 0 4px'}}
+                        margin: '0 0 4px',
+                      }}
                     >
                       Apps
                     </h3>
@@ -4994,7 +5385,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
                         margin: 0,
-                        lineHeight: 1.3}}
+                        lineHeight: 1.3,
+                      }}
                     >
                       View diagnostics and runtime status for Livex applications.
                     </p>
@@ -5008,7 +5400,8 @@ const renderSubViewHeader = (title: string) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  marginTop: 16}}
+                  marginTop: 16,
+                }}
               >
                 <div style={{ display: 'flex', gap: 4 }}>
                   <div style={initialBadgeStyle}>CH</div>
@@ -5018,7 +5411,8 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       ...initialBadgeStyle,
                       background: 'var(--studio-accent-from, #679cff)',
-                      color: '#fff'}}
+                      color: '#fff',
+                    }}
                   >
                     +2
                   </div>
@@ -5046,7 +5440,8 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   alignItems: 'start',
                   justifyContent: 'space-between',
-                  width: '100%'}}
+                  width: '100%',
+                }}
               >
                 <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                   <span
@@ -5061,7 +5456,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 16,
                         fontWeight: 800,
                         color: 'var(--c-text-primary)',
-                        margin: '0 0 4px'}}
+                        margin: '0 0 4px',
+                      }}
                     >
                       Performance
                     </h3>
@@ -5070,7 +5466,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
                         margin: 0,
-                        lineHeight: 1.3}}
+                        lineHeight: 1.3,
+                      }}
                     >
                       Inspect memory, rendering and performance metrics.
                     </p>
@@ -5084,7 +5481,8 @@ const renderSubViewHeader = (title: string) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  marginTop: 16}}
+                  marginTop: 16,
+                }}
               >
                 <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--c-text-primary)' }}>
                   60 FPS{' '}
@@ -5093,7 +5491,8 @@ const renderSubViewHeader = (title: string) => {
                       fontSize: 10,
                       color: 'var(--c-text-secondary)',
                       fontWeight: 500,
-                      marginLeft: 4}}
+                      marginLeft: 4,
+                    }}
                   >
                     / 2.4ms jitter
                   </span>
@@ -5121,7 +5520,8 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   alignItems: 'start',
                   justifyContent: 'space-between',
-                  width: '100%'}}
+                  width: '100%',
+                }}
               >
                 <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                   <span
@@ -5129,7 +5529,8 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       fontSize: 32,
                       color: 'var(--c-text-secondary)',
-                      fontVariationSettings: "'FILL' 1"}}
+                      fontVariationSettings: "'FILL' 1",
+                    }}
                   >
                     list_alt
                   </span>
@@ -5139,7 +5540,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 16,
                         fontWeight: 800,
                         color: 'var(--c-text-primary)',
-                        margin: '0 0 4px'}}
+                        margin: '0 0 4px',
+                      }}
                     >
                       Logs
                     </h3>
@@ -5148,7 +5550,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
                         margin: 0,
-                        lineHeight: 1.3}}
+                        lineHeight: 1.3,
+                      }}
                     >
                       View runtime logs, warnings and system errors.
                     </p>
@@ -5163,7 +5566,8 @@ const renderSubViewHeader = (title: string) => {
                   justifyContent: 'space-between',
                   width: '100%',
                   marginTop: 16,
-                  minWidth: 0}}
+                  minWidth: 0,
+                }}
               >
                 <div
                   style={{
@@ -5175,7 +5579,8 @@ const renderSubViewHeader = (title: string) => {
                     whiteSpace: 'nowrap',
                     flex: 1,
                     textAlign: 'left',
-                    marginRight: 16}}
+                    marginRight: 16,
+                  }}
                 >
                   {logs.length > 0
                     ? `[${logs[logs.length - 1].level.toUpperCase()}] ${logs[logs.length - 1].message}`
@@ -5204,7 +5609,8 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   alignItems: 'start',
                   justifyContent: 'space-between',
-                  width: '100%'}}
+                  width: '100%',
+                }}
               >
                 <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                   <span
@@ -5212,7 +5618,8 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       fontSize: 32,
                       color: 'var(--studio-accent-from, #679cff)',
-                      fontVariationSettings: "'FILL' 1"}}
+                      fontVariationSettings: "'FILL' 1",
+                    }}
                   >
                     wifi
                   </span>
@@ -5222,7 +5629,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 16,
                         fontWeight: 800,
                         color: 'var(--c-text-primary)',
-                        margin: '0 0 4px'}}
+                        margin: '0 0 4px',
+                      }}
                     >
                       Network
                     </h3>
@@ -5231,7 +5639,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
                         margin: 0,
-                        lineHeight: 1.3}}
+                        lineHeight: 1.3,
+                      }}
                     >
                       Inspect network traffic, latency, and endpoint requests.
                     </p>
@@ -5245,7 +5654,8 @@ const renderSubViewHeader = (title: string) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  marginTop: 16}}
+                  marginTop: 16,
+                }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--c-text-primary)' }}>
@@ -5279,7 +5689,8 @@ const renderSubViewHeader = (title: string) => {
                   style={{
                     fontSize: 32,
                     color: 'var(--c-text-secondary)',
-                    fontVariationSettings: "'FILL' 1"}}
+                    fontVariationSettings: "'FILL' 1",
+                  }}
                 >
                   developer_board
                 </span>
@@ -5289,7 +5700,8 @@ const renderSubViewHeader = (title: string) => {
                       fontSize: 16,
                       fontWeight: 800,
                       color: 'var(--c-text-primary)',
-                      margin: '0 0 4px'}}
+                      margin: '0 0 4px',
+                    }}
                   >
                     System
                   </h3>
@@ -5298,7 +5710,8 @@ const renderSubViewHeader = (title: string) => {
                       fontSize: 12,
                       color: 'var(--c-text-secondary)',
                       margin: 0,
-                      lineHeight: 1.3}}
+                      lineHeight: 1.3,
+                    }}
                   >
                     View device, runtime and environment architecture information.
                   </p>
@@ -5310,7 +5723,8 @@ const renderSubViewHeader = (title: string) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  marginTop: 16}}
+                  marginTop: 16,
+                }}
               >
                 <span
                   style={{
@@ -5318,7 +5732,8 @@ const renderSubViewHeader = (title: string) => {
                     fontWeight: 700,
                     color: 'var(--c-text-secondary)',
                     textTransform: 'uppercase',
-                    letterSpacing: '0.05em'}}
+                    letterSpacing: '0.05em',
+                  }}
                 >
                   Environment: {Capacitor.isNativePlatform() ? 'ANDROID-NATIVE' : 'WEB-PORTAL'}
                 </span>
@@ -5342,7 +5757,8 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   alignItems: 'start',
                   justifyContent: 'space-between',
-                  width: '100%'}}
+                  width: '100%',
+                }}
               >
                 <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                   <span
@@ -5350,7 +5766,8 @@ const renderSubViewHeader = (title: string) => {
                     style={{
                       fontSize: 32,
                       color: 'var(--studio-accent-from, #679cff)',
-                      fontVariationSettings: "'FILL' 0"}}
+                      fontVariationSettings: "'FILL' 0",
+                    }}
                   >
                     system_update
                   </span>
@@ -5360,7 +5777,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 16,
                         fontWeight: 800,
                         color: 'var(--c-text-primary)',
-                        margin: '0 0 4px'}}
+                        margin: '0 0 4px',
+                      }}
                     >
                       Updater Diagnostics
                     </h3>
@@ -5369,7 +5787,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
                         margin: 0,
-                        lineHeight: 1.3}}
+                        lineHeight: 1.3,
+                      }}
                     >
                       Inspect update and native APK diagnostics.
                     </p>
@@ -5383,7 +5802,8 @@ const renderSubViewHeader = (title: string) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  marginTop: 16}}
+                  marginTop: 16,
+                }}
               >
                 <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>
                   Updater system initialized
@@ -5408,7 +5828,8 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   alignItems: 'start',
                   justifyContent: 'space-between',
-                  width: '100%'}}
+                  width: '100%',
+                }}
               >
                 <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                   <span
@@ -5423,7 +5844,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 16,
                         fontWeight: 800,
                         color: 'var(--c-text-primary)',
-                        margin: '0 0 4px'}}
+                        margin: '0 0 4px',
+                      }}
                     >
                       Developer Inspector
                     </h3>
@@ -5432,7 +5854,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
                         margin: 0,
-                        lineHeight: 1.3}}
+                        lineHeight: 1.3,
+                      }}
                     >
                       Inspect live DOM elements, React Fiber, styles & Box Model.
                     </p>
@@ -5446,7 +5869,8 @@ const renderSubViewHeader = (title: string) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  marginTop: 16}}
+                  marginTop: 16,
+                }}
               >
                 <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>
                   Chrome DevTools / Layout Inspector for Android
@@ -5471,7 +5895,8 @@ const renderSubViewHeader = (title: string) => {
                   display: 'flex',
                   alignItems: 'start',
                   justifyContent: 'space-between',
-                  width: '100%'}}
+                  width: '100%',
+                }}
               >
                 <div style={{ display: 'flex', gap: 16, textAlign: 'left' }}>
                   <span
@@ -5486,7 +5911,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 16,
                         fontWeight: 800,
                         color: 'var(--c-text-primary)',
-                        margin: '0 0 4px'}}
+                        margin: '0 0 4px',
+                      }}
                     >
                       Motion Playground
                     </h3>
@@ -5495,7 +5921,8 @@ const renderSubViewHeader = (title: string) => {
                         fontSize: 12,
                         color: 'var(--c-text-secondary)',
                         margin: 0,
-                        lineHeight: 1.3}}
+                        lineHeight: 1.3,
+                      }}
                     >
                       Prototype and compare different launch animations.
                     </p>
@@ -5509,7 +5936,8 @@ const renderSubViewHeader = (title: string) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   width: '100%',
-                  marginTop: 16}}
+                  marginTop: 16,
+                }}
               >
                 <span style={{ fontSize: 10, color: 'var(--c-text-secondary)' }}>
                   5 Flagship concepts loaded
@@ -5538,7 +5966,8 @@ const renderSubViewHeader = (title: string) => {
           display: 'flex',
           flexDirection: 'column',
           gap: 12,
-          borderBottom: '1px solid rgba(128,128,128,0.08)'}}
+          borderBottom: '1px solid var(--c-border)',
+        }}
       >
         {/* Search Input & Copy Section button */}
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', width: '100%' }}>
@@ -5550,9 +5979,10 @@ const renderSubViewHeader = (title: string) => {
                 left: 16,
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: 'rgba(255,255,255,0.4)',
+                color: 'var(--c-text-secondary)',
                 pointerEvents: 'none',
-                fontSize: 20}}
+                fontSize: 20,
+              }}
             >
               search
             </span>
@@ -5564,15 +5994,16 @@ const renderSubViewHeader = (title: string) => {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                background: 'var(--app-surface-high, #1c1c1e)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--app-surface-high, var(--app-surface))',
+                border: '1px solid var(--c-border)',
                 borderRadius: '999px',
                 padding: '12px 20px 12px 46px',
-                color: '#fff',
+                color: 'var(--c-text-primary)',
                 fontSize: '13px',
                 fontFamily: 'Inter, sans-serif',
                 outline: 'none',
-                transition: 'all 0.15s ease'}}
+                transition: 'all 0.15s ease',
+              }}
             />
           </div>
         </div>
@@ -5586,7 +6017,8 @@ const renderSubViewHeader = (title: string) => {
             overflowX: 'auto',
             scrollbarWidth: 'none',
             padding: '4px 0',
-            width: '100%'}}
+            width: '100%',
+          }}
         >
           {[
             {
@@ -5597,7 +6029,8 @@ const renderSubViewHeader = (title: string) => {
               onClick: () => {
                 setActiveTab('logs');
                 setLogLevelFilter('all');
-              }},
+              },
+            },
             {
               label: 'Info',
               id: 'info_logs',
@@ -5606,7 +6039,8 @@ const renderSubViewHeader = (title: string) => {
               onClick: () => {
                 setActiveTab('logs');
                 setLogLevelFilter('info');
-              }},
+              },
+            },
             {
               label: 'Warnings',
               id: 'warn_logs',
@@ -5615,7 +6049,8 @@ const renderSubViewHeader = (title: string) => {
               onClick: () => {
                 setActiveTab('logs');
                 setLogLevelFilter('warn');
-              }},
+              },
+            },
             {
               label: `Errors (${errors.length})`,
               id: 'errors_tab',
@@ -5623,7 +6058,8 @@ const renderSubViewHeader = (title: string) => {
               color: '#ee7d77',
               onClick: () => {
                 setActiveTab('errors');
-              }},
+              },
+            },
             {
               label: `Events (${events.length})`,
               id: 'events_tab',
@@ -5631,7 +6067,8 @@ const renderSubViewHeader = (title: string) => {
               color: '#10b981',
               onClick: () => {
                 setActiveTab('events');
-              }},
+              },
+            },
           ].map((toggle) => (
             <button
               key={toggle.id}
@@ -5644,14 +6081,15 @@ const renderSubViewHeader = (title: string) => {
                 borderRadius: '10px',
                 background: toggle.active
                   ? 'var(--studio-accent-from, #679cff)'
-                  : 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.02)',
-                color: toggle.active ? '#fff' : 'rgba(255,255,255,0.6)',
+                  : 'var(--app-surface-high, var(--app-surface))',
+                border: toggle.active ? '1px solid transparent' : '1px solid var(--c-border)',
+                color: toggle.active ? '#fff' : 'var(--c-text-secondary)',
                 fontWeight: 700,
                 fontSize: '11px',
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
-                transition: 'all 0.15s ease'}}
+                transition: 'all 0.15s ease',
+              }}
             >
               <span
                 style={{
@@ -5659,7 +6097,8 @@ const renderSubViewHeader = (title: string) => {
                   height: 6,
                   borderRadius: '50%',
                   background: toggle.active ? '#fff' : toggle.color,
-                  display: 'inline-block'}}
+                  display: 'inline-block',
+                }}
               />
               {toggle.label}
             </button>
@@ -5674,12 +6113,13 @@ const renderSubViewHeader = (title: string) => {
           paddingTop: 16,
           paddingLeft: isMobile ? 0 : 20,
           paddingRight: isMobile ? 0 : 20,
-          paddingBottom: isMobile ? 20 : 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
+          paddingBottom: isMobile ? 20 : 'calc(var(--content-bottom-pad, 96px) + 20px)',
+        }}
       >
         {activeTab === 'logs' && renderLogsTab()}
         {activeTab === 'errors' && renderErrorsTab()}
         {activeTab === 'events' && renderEventsTab()}
-        
+
         <WarningsInspector logs={logs} showToast={showToast} />
       </div>
     </>
@@ -5725,526 +6165,177 @@ const renderSubViewHeader = (title: string) => {
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-                background: 'var(--app-bg)'}}
+                background: 'var(--app-bg)',
+              }}
             >
               {viewId === 'dashboard' && (
-                <>
-                  {/* HEADER */}
-                  {false && isWebDesktop && (
-                    <div
-                      style={{
-                        paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-                        paddingBottom: '16px',
-                        paddingLeft: '20px',
-                        paddingRight: '20px',
-                        borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        background: 'var(--app-bg)',
-                        position: 'sticky',
-                        top: 0,
-                        zIndex: 100}}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-
-                        <div>
-                          <h2
-                            style={{
-                              fontSize: '18px',
-                              fontWeight: 800,
-                              color: 'var(--c-text-primary)',
-                              margin: 0}}
-                          >
-                            Developer Panel
-                          </h2>
-                          <p
-                            style={{
-                              fontSize: '11px',
-                              color: 'var(--c-text-secondary)',
-                              margin: 0}}
-                          >
-                            System Diagnostics & Runtime Tools
-                          </p>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          background: 'var(--app-surface-high)',
-                          borderRadius: '999px',
-                          padding: '4px 10px',
-                          gap: 8,
-                          border: '1px solid rgba(128, 128, 128, 0.08)'}}
-                      >
-                        <span
-                          style={{
-                            fontSize: 10,
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.08em',
-                            color: 'var(--studio-accent-from, #679cff)'}}
-                        >
-                          Dev Mode
-                        </span>
-                        <StudioToggle
-                          size="sm"
-                          value={settings.developerMode}
-                          onChange={(next) => {
-                            useSettingsStore.getState().updateSettings({ developerMode: next });
-                            showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* SYSTEM HEALTH GRID */}
-                  {true ? (
-                    <SettingsScaffold
-                      title="Developer Options"
-                      onBack={onBack}
-                      toolbarActions={
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span
-                            style={{
-                              fontSize: 9,
-                              fontWeight: 700,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.08em',
-                              color: 'var(--studio-accent-from, #679cff)'}}
-                          >
-                            Dev Mode
-                          </span>
-                          <StudioToggle
-                            size="sm"
-                            value={settings.developerMode}
-                            onChange={(next) => {
-                              useSettingsStore.getState().updateSettings({ developerMode: next });
-                              showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
-                            }}
-                          />
-                        </div>
-                      }
-                    >
-                      {renderDashboardBody()}
-                    </SettingsScaffold>
-                  ) : (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        height: '100%',
-                        background: 'var(--app-bg)'}}
-                    >
-                      {isWebDesktop && (
-                        <div
-                          style={{
-                            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-                            paddingBottom: '16px',
-                            paddingLeft: '20px',
-                            paddingRight: '20px',
-                            borderBottom: '1px solid rgba(128, 128, 128, 0.08)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            background: 'var(--app-bg)',
-                            position: 'sticky',
-                            top: 0,
-                            zIndex: 100}}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-
-                            <div>
-                              <h2
-                                style={{
-                                  fontSize: '18px',
-                                  fontWeight: 800,
-                                  color: 'var(--c-text-primary)',
-                                  margin: 0}}
-                              >
-                                Developer Panel
-                              </h2>
-                              <p
-                                style={{
-                                  fontSize: '11px',
-                                  color: 'var(--c-text-secondary)',
-                                  margin: 0}}
-                              >
-                                System Diagnostics & Runtime Tools
-                              </p>
-                            </div>
-                          </div>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              background: 'var(--app-surface-high)',
-                              borderRadius: '999px',
-                              padding: '4px 10px',
-                              gap: 8,
-                              border: '1px solid rgba(128, 128, 128, 0.08)'}}
-                          >
-                            <span
-                              style={{
-                                fontSize: 10,
-                                fontWeight: 700,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.08em',
-                                color: 'var(--studio-accent-from, #679cff)'}}
-                            >
-                              Dev Mode
-                            </span>
-                            <StudioToggle
-                              size="sm"
-                              value={settings.developerMode}
-                              onChange={(next) => {
-                                useSettingsStore.getState().updateSettings({ developerMode: next });
-                                showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                      <div
-                        ref={mainScrollRef}
-                        style={{ flex: 1, overflowY: 'auto' }}
-                        className="no-scrollbar"
-                      >
-                        {renderDashboardBody()}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {viewId === 'apps' &&
-                (true ? (
-                  <SettingsScaffold
-                    title="Apps Diagnostics"
-                    onBack={handleSubViewBack}
-                    toolbarActions={renderCopyButton('Apps')}
-                  >
-                    {renderAppsView()}
-                  </SettingsScaffold>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      background: 'var(--app-bg)'}}
-                  >
-                    {renderSubViewHeader('Apps Diagnostics')}
-                    <div
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        paddingTop: 16,
-                        paddingLeft: 20,
-                        paddingRight: 20,
-                        paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
-                    >
-                      {renderAppsView()}
-                    </div>
-                  </div>
-                ))}
-
-              {viewId === 'stagex' &&
-                (true ? (
-                  <SettingsScaffold
-                    title="Stagex Diagnostics"
-                    onBack={handleSubViewBack}
-                    toolbarActions={renderCopyButton('Stagex')}
-                  >
-                    {renderStagexView()}
-                  </SettingsScaffold>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      background: 'var(--app-bg)'}}
-                  >
-                    {renderSubViewHeader('Stagex Diagnostics')}
-                    <div
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        paddingTop: 16,
-                        paddingLeft: 20,
-                        paddingRight: 20,
-                        paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
-                    >
-                      {renderStagexView()}
-                    </div>
-                  </div>
-                ))}
-
-              {viewId === 'updater_diagnostics' &&
-                (true ? (
-                  <SettingsScaffold
-                    title="Updater Diagnostics"
-                    onBack={handleSubViewBack}
-                    toolbarActions={renderCopyButton('Updater')}
-                  >
-                    <SettingsContentContainer
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        paddingTop: 16,
-                        paddingBottom:
-                          'calc(env(safe-area-inset-bottom, 0px) + var(--content-bottom-pad, 96px) + 20px)'}}
-                    >
-                      <UpdaterDiagnosticsPage hideHeader={true} />
-                    </SettingsContentContainer>
-                  </SettingsScaffold>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      background: 'var(--app-bg)'}}
-                  >
-                    {renderSubViewHeader('Updater Diagnostics')}
-                    <div
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        paddingTop: 16,
-                        paddingLeft: 20,
-                        paddingRight: 20,
-                        paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
-                    >
-                      <UpdaterDiagnosticsPage hideHeader={true} />
-                    </div>
-                  </div>
-                ))}
-
-              {viewId === 'system' &&
-                (true ? (
-                  <SettingsScaffold
-                    title="System Diagnostics"
-                    onBack={handleSubViewBack}
-                    toolbarActions={renderCopyButton('System')}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: 8,
-                        overflowX: 'auto',
-                        padding: '12px 0',
-                        borderBottom: '1px solid rgba(128,128,128,0.08)',
-                        background: 'var(--app-bg)',
-                        scrollbarWidth: 'none'}}
-                    >
-                      <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>
-                        App Store State
-                      </button>
-                      <button
-                        style={tabBtnStyle('storage')}
-                        onClick={() => setActiveTab('storage')}
-                      >
-                        Storage
-                      </button>
-                      <button
-                        style={tabBtnStyle('providers')}
-                        onClick={() => setActiveTab('providers')}
-                      >
-                        Module Panels ({activeProviders.length})
-                      </button>
-                    </div>
-                    <div style={{ paddingTop: 16 }}>
-                      {activeTab === 'state' && renderStateTab()}
-                      {activeTab === 'storage' && renderStorageTab()}
-                      {activeTab === 'providers' && renderProvidersTab()}
-                      <WarningsInspector
-                        logs={logs}
-                        showToast={showToast}
-                        moduleFilter={['system', 'general']}
-                      />
-                    </div>
-                  </SettingsScaffold>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      background: 'var(--app-bg)'}}
-                  >
-                    {renderSubViewHeader('System Diagnostics')}
-                    <div
-                      style={{
-                        display: 'flex',
-                        gap: 8,
-                        overflowX: 'auto',
-                        padding: '12px 20px',
-                        borderBottom: '1px solid rgba(128,128,128,0.08)',
-                        background: 'var(--app-bg)',
-                        scrollbarWidth: 'none'}}
-                    >
-                      <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>
-                        App Store State
-                      </button>
-                      <button
-                        style={tabBtnStyle('storage')}
-                        onClick={() => setActiveTab('storage')}
-                      >
-                        Storage
-                      </button>
-                      <button
-                        style={tabBtnStyle('providers')}
-                        onClick={() => setActiveTab('providers')}
-                      >
-                        Module Panels ({activeProviders.length})
-                      </button>
-                    </div>
-                    <div
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        paddingTop: 16,
-                        paddingLeft: 20,
-                        paddingRight: 20,
-                        paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
-                    >
-                      {activeTab === 'state' && renderStateTab()}
-                      {activeTab === 'storage' && renderStorageTab()}
-                      {activeTab === 'providers' && renderProvidersTab()}
-                      <WarningsInspector
-                        logs={logs}
-                        showToast={showToast}
-                        moduleFilter={['system', 'general']}
-                      />
-                    </div>
-                  </div>
-                ))}
-
-              {viewId === 'logs' &&
-                (true ? (
-                  <SettingsScaffold
-                    title="Logs"
-                    onBack={handleSubViewBack}
-                    toolbarActions={renderCopyButton('Logs')}
-                  >
-                    {renderLogsBody(true)}
-                  </SettingsScaffold>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      background: 'var(--app-bg)'}}
-                  >
-                    {renderSubViewHeader('Logs')}
-                    {renderLogsBody(false)}
-                  </div>
-                ))}
-
-              {viewId === 'performance' &&
-                (true ? (
-                  <SettingsScaffold
-                    title="Performance Diagnostics"
-                    onBack={handleSubViewBack}
-                    toolbarActions={renderCopyButton('Performance')}
-                  >
-                    {renderPerfTab()}
-                    <WarningsInspector
-                      logs={logs}
-                      showToast={showToast}
-                      moduleFilter={['performance', 'perf']}
-                    />
-                  </SettingsScaffold>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      background: 'var(--app-bg)'}}
-                  >
-                    {renderSubViewHeader('Performance Diagnostics')}
-                    <div
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        paddingTop: 16,
-                        paddingLeft: 20,
-                        paddingRight: 20,
-                        paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
-                    >
-                      {renderPerfTab()}
-                      <WarningsInspector
-                        logs={logs}
-                        showToast={showToast}
-                        moduleFilter={['performance', 'perf']}
-                      />
-                    </div>
-                  </div>
-                ))}
-
-              {viewId === 'network' &&
-                (true ? (
-                  <SettingsScaffold
-                    title="Network Sniffer"
-                    onBack={handleSubViewBack}
-                    toolbarActions={renderCopyButton('Network')}
-                  >
-                    {renderNetworkTab()}
-                    <WarningsInspector
-                      logs={logs}
-                      showToast={showToast}
-                      moduleFilter={['network', 'sync']}
-                    />
-                  </SettingsScaffold>
-                ) : (
-                  <div
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                      background: 'var(--app-bg)'}}
-                  >
-                    {renderSubViewHeader('Network Sniffer')}
-                    <div
-                      style={{
-                        flex: 1,
-                        overflowY: 'auto',
-                        paddingTop: 16,
-                        paddingLeft: 20,
-                        paddingRight: 20,
-                        paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
-                    >
-                      {renderNetworkTab()}
-                      <WarningsInspector
-                        logs={logs}
-                        showToast={showToast}
-                        moduleFilter={['network', 'sync']}
-                      />
-                    </div>
-                  </div>
-                ))}
-
-              {viewId === 'motion_playground' && (
-                <MotionPlaygroundView accent={accent} onBack={handleSubViewBack} />
-              )}
-
-              {viewId === 'developer_inspector' && (
                 <SettingsScaffold
-                  title="Developer Inspector"
+                  title="Developer Options"
+                  onBack={onBack}
+                  toolbarActions={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.08em',
+                          color: 'var(--studio-accent-from, #679cff)',
+                        }}
+                      >
+                        Dev Mode
+                      </span>
+                      <StudioToggle
+                        size="sm"
+                        value={settings.developerMode}
+                        onChange={(next) => {
+                          useSettingsStore.getState().updateSettings({ developerMode: next });
+                          showToast(`Developer Mode: ${next ? 'ON' : 'OFF'}`);
+                        }}
+                      />
+                    </div>
+                  }
+                >
+                  {renderDashboardBody()}
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'apps' && (
+                <SettingsScaffold
+                  title="Apps Diagnostics"
                   onBack={handleSubViewBack}
+                  toolbarActions={renderCopyButton('Apps')}
+                >
+                  {renderAppsView()}
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'stagex' && (
+                <SettingsScaffold
+                  title="Stagex Diagnostics"
+                  onBack={handleSubViewBack}
+                  toolbarActions={renderCopyButton('Stagex')}
+                >
+                  {renderStagexView()}
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'updater_diagnostics' && (
+                <SettingsScaffold
+                  title="Updater Diagnostics"
+                  onBack={handleSubViewBack}
+                  toolbarActions={renderCopyButton('Updater')}
                 >
                   <SettingsContentContainer
                     style={{
                       flex: 1,
                       overflowY: 'auto',
                       paddingTop: 16,
-                      paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)'}}
+                      paddingBottom:
+                        'calc(env(safe-area-inset-bottom, 0px) + var(--content-bottom-pad, 96px) + 20px)',
+                    }}
+                  >
+                    <UpdaterDiagnosticsPage hideHeader={true} />
+                  </SettingsContentContainer>
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'system' && (
+                <SettingsScaffold
+                  title="System Diagnostics"
+                  onBack={handleSubViewBack}
+                  toolbarActions={renderCopyButton('System')}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: 8,
+                      overflowX: 'auto',
+                      padding: '12px 0',
+                      borderBottom: '1px solid rgba(128,128,128,0.08)',
+                      background: 'var(--app-bg)',
+                      scrollbarWidth: 'none',
+                    }}
+                  >
+                    <button style={tabBtnStyle('state')} onClick={() => setActiveTab('state')}>
+                      App Store State
+                    </button>
+                    <button style={tabBtnStyle('storage')} onClick={() => setActiveTab('storage')}>
+                      Storage
+                    </button>
+                    <button
+                      style={tabBtnStyle('providers')}
+                      onClick={() => setActiveTab('providers')}
+                    >
+                      Module Panels ({activeProviders.length})
+                    </button>
+                  </div>
+                  <div style={{ paddingTop: 16 }}>
+                    {activeTab === 'state' && renderStateTab()}
+                    {activeTab === 'storage' && renderStorageTab()}
+                    {activeTab === 'providers' && renderProvidersTab()}
+                    <WarningsInspector
+                      logs={logs}
+                      showToast={showToast}
+                      moduleFilter={['system', 'general']}
+                    />
+                  </div>
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'logs' && (
+                <SettingsScaffold
+                  title="Logs"
+                  onBack={handleSubViewBack}
+                  toolbarActions={renderCopyButton('Logs')}
+                >
+                  {renderLogsBody(true)}
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'performance' && (
+                <SettingsScaffold
+                  title="Performance Diagnostics"
+                  onBack={handleSubViewBack}
+                  toolbarActions={renderCopyButton('Performance')}
+                >
+                  {renderPerfTab()}
+                  <WarningsInspector
+                    logs={logs}
+                    showToast={showToast}
+                    moduleFilter={['performance', 'perf']}
+                  />
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'network' && (
+                <SettingsScaffold
+                  title="Network Sniffer"
+                  onBack={handleSubViewBack}
+                  toolbarActions={renderCopyButton('Network')}
+                >
+                  {renderNetworkTab()}
+                  <WarningsInspector
+                    logs={logs}
+                    showToast={showToast}
+                    moduleFilter={['network', 'sync']}
+                  />
+                </SettingsScaffold>
+              )}
+
+              {viewId === 'motion_playground' && (
+                <MotionPlaygroundView accent={accent} onBack={handleSubViewBack} />
+              )}
+
+              {viewId === 'developer_inspector' && (
+                <SettingsScaffold title="Developer Inspector" onBack={handleSubViewBack}>
+                  <SettingsContentContainer
+                    style={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      paddingTop: 16,
+                      paddingBottom: 'calc(var(--content-bottom-pad, 96px) + 20px)',
+                    }}
                   >
                     <DeveloperInspectorPanel />
                   </SettingsContentContainer>
@@ -6283,18 +6374,19 @@ const renderSubViewHeader = (title: string) => {
             bottom: 24,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'rgba(12,12,14,0.95)',
-            border: '1px solid rgba(255,255,255,0.12)',
+            background: 'var(--app-surface)',
+            border: '1px solid var(--c-border)',
             padding: '10px 20px',
             borderRadius: '999px',
             fontSize: '12px',
             fontWeight: 700,
-            boxShadow: '0 8px 32px rgba(0,0,0,0.8)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
             zIndex: 999999,
-            color: '#fff',
+            color: 'var(--c-text-primary)',
             display: 'flex',
             alignItems: 'center',
-            gap: 8}}
+            gap: 8,
+          }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#10b981' }}>
             done

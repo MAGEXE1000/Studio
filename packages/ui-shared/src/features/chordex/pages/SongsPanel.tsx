@@ -2000,7 +2000,7 @@ function ExportModal({
         style={{
           flex: 1,
           padding: 0,
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
         }}
       >
         {/* Paper stage */}
@@ -4850,7 +4850,7 @@ export default function SongsPanel() {
         <header
           className="flex-none app-bg"
           style={{
-            paddingTop: !isWebDesktop ? 'calc(env(safe-area-inset-top, 0px) + 68px)' : '18px',
+            paddingTop: !isWebDesktop ? 'calc(env(safe-area-inset-top, 0px) + 78px)' : '18px',
             paddingBottom: '10px',
             paddingLeft: '16px',
             paddingRight: '16px',

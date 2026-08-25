@@ -2,8 +2,6 @@
 
 Release Date: 2026-08-25
 
-Release Date: 2026-08-25
-
 ### Fixed
 
 - Modal Surface Transparency: Eliminated excessive transparency across modal, alert, and dialog surfaces across all five Livex applications (Chordex, Drumex, Stagex, Groovex, Vocalex) by introducing canonical `--surface-dialog-bg` and `--surface-modal-surface` theme tokens and multi-layered elevation shadows.

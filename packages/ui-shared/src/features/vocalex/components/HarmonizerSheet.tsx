@@ -63,7 +63,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
           flex: 1,
           overflowY: 'auto',
           overflowX: 'hidden',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
         }}
         className="no-scrollbar"
       >

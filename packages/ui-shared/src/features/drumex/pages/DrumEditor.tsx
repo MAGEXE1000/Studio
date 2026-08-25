@@ -4778,7 +4778,7 @@ export default function DrumEditor() {
         <div
           style={{
             flexShrink: 0,
-            height: inEditor ? (isLandscape ? 40 : 52) : 0,
+            height: inEditor ? (isLandscape ? 40 : 58) : 0,
             display: inEditor ? 'flex' : 'none',
             alignItems: 'center',
             padding: isLandscape && inEditor ? '0 10px' : inEditor ? '0 20px' : '0',
@@ -4794,8 +4794,8 @@ export default function DrumEditor() {
                 className="btn-smooth"
                 aria-label="Back"
                 style={{
-                  width: isLandscape ? 30 : 36,
-                  height: isLandscape ? 30 : 36,
+                  width: isLandscape ? 30 : 40,
+                  height: isLandscape ? 30 : 40,
                   borderRadius: '50%',
                   background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)',
                   border: isLight

@@ -193,7 +193,7 @@ export function SharedFloatingHeader({
         style={{
           width: '100%',
           maxWidth: 'calc(var(--content-max-w) - calc(var(--page-inset-h, 24px) * 2))',
-          height: '52px',
+          height: '58px',
           borderRadius: '9999px',
           display: 'flex',
           alignItems: 'center',
@@ -233,8 +233,8 @@ export function SharedFloatingHeader({
             whileHover={{ scale: 1.05 }}
             transition={SpringPresets.soft}
             style={{
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
@@ -267,7 +267,7 @@ export function SharedFloatingHeader({
             </svg>
           </motion.button>
         ) : (
-          <div style={{ width: 38, height: 38, flexShrink: 0 }} />
+          <div style={{ width: 40, height: 40, flexShrink: 0 }} />
         )}
 
         {/* Mathematically Centered Section Title */}
@@ -275,8 +275,8 @@ export function SharedFloatingHeader({
           ref={titleRef}
           style={{
             position: 'absolute',
-            left: 48,
-            right: 48,
+            left: 52,
+            right: 52,
             top: 0,
             bottom: 0,
             display: 'flex',
@@ -288,7 +288,7 @@ export function SharedFloatingHeader({
         >
           <span
             style={{
-              fontSize: '15.5px',
+              fontSize: '16px',
               fontWeight: 750,
               color: 'var(--c-text-primary)',
               letterSpacing: '-0.015em',
@@ -319,7 +319,7 @@ export function SharedFloatingHeader({
             {toolbarActions}
           </div>
         ) : (
-          <div style={{ width: 38, height: 38, flexShrink: 0 }} />
+          <div style={{ width: 40, height: 40, flexShrink: 0 }} />
         )}
       </header>
     </div>
@@ -374,7 +374,7 @@ export function SettingsScaffold({
           WebkitOverflowScrolling: 'touch',
           boxSizing: 'border-box',
           padding: '0',
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 72px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 96px)',
         }}
         className="no-scrollbar"

@@ -473,7 +473,7 @@ export default function GroovexPlayer() {
         <section
           className="gx-hero-enter"
           style={{
-            paddingTop: isWebDesktop ? 12 : 'calc(env(safe-area-inset-top, 0px) + 68px)',
+            paddingTop: isWebDesktop ? 12 : 'calc(env(safe-area-inset-top, 0px) + 78px)',
             marginBottom: 36,
             display: 'flex',
             flexDirection: 'column',

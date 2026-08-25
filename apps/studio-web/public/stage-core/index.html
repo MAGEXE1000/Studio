@@ -120,7 +120,10 @@
         var s = document.createElement('style');
         s.id = 'embedded-hide';
         s.textContent =
-          '#sc-fab-btn{opacity:0!important;pointer-events:none!important}#mobile-nav-bar{opacity:0!important;pointer-events:none!important}';
+          '#sc-fab-btn{opacity:0!important;pointer-events:none!important}' +
+          '#mobile-nav-bar{opacity:0!important;pointer-events:none!important}' +
+          '.sc-back-btn{display:none!important;}' +
+          '#view-Rider,#view-Setlist,#view-Gear,#view-Members{padding-top:calc(env(safe-area-inset-top, 0px) + 78px)!important;}';
         document.head.appendChild(s);
       }
     </script>

@@ -22,6 +22,7 @@ import {
 } from '@workspace/studio-core';
 import ChordDiagram from '../diagrams/ChordDiagram';
 import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
 interface SongPracticeViewProps {
   song: SongChart;
   onClose: () => void;
@@ -888,33 +889,12 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
         </motion.div>
       )}
 
-      {/* Top Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 20px',
-          borderBottom: '1px solid rgba(128,128,128,0.1)',
-          background: 'rgba(15,15,20,0.4)',
-          backdropFilter: 'blur(10px)',
-          flexShrink: 0,
-        }}
-      >
-        <div style={{ minWidth: 0, flex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <h1
-              style={{
-                fontSize: '16px',
-                fontWeight: 900,
-                margin: 0,
-                letterSpacing: '-0.02em',
-                color: 'var(--c-text-primary)',
-              }}
-              className="truncate"
-            >
-              {song.title}
-            </h1>
+      {/* Canonical Subsection Top Bar */}
+      <SharedFloatingHeader
+        title={song.title}
+        onBack={onClose}
+        toolbarActions={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span
               style={{
                 fontSize: '9px',
@@ -942,57 +922,9 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
             >
               {statusInfo.text}
             </span>
-            {chartDiagnostics?.type === 'plain' && (
-              <span
-                style={{
-                  fontSize: '8px',
-                  fontWeight: 800,
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  background: 'rgba(239, 143, 8, 0.15)',
-                  color: 'rgb(239, 143, 8)',
-                  border: '1px solid rgba(239, 143, 8, 0.3)',
-                }}
-              >
-                {isSpanish ? 'Tiempo Estimado (BPM)' : 'Estimated Timing Mode'}
-              </span>
-            )}
           </div>
-          <p
-            style={{
-              fontSize: '11px',
-              color: 'var(--c-text-secondary)',
-              margin: '2px 0 0',
-              fontWeight: 500,
-            }}
-          >
-            {song.artist} {song.capo ? `· Capo ${song.capo}` : ''}
-          </p>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <button
-            onClick={onClose}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 8,
-              fontSize: '11px',
-              fontWeight: 700,
-              background: 'var(--c-accent)',
-              border: 'none',
-              color: '#ffffff',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 4,
-            }}
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
-              arrow_back
-            </span>
-            {t.practice.exit}
-          </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Main Lyrics Viewport */}
       {chartLoading ? (
@@ -1004,6 +936,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
             alignItems: 'center',
             justifyContent: 'center',
             gap: 16,
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
           }}
         >
           <div
@@ -1027,7 +960,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '32px 20px 120px',
+            padding: 'calc(env(safe-area-inset-top, 0px) + 78px) 20px 120px',
             boxSizing: 'border-box',
             scrollBehavior: 'smooth',
           }}

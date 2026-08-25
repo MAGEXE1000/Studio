@@ -3099,186 +3099,25 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             position: 'relative',
           }}
         >
-          <div
-            style={{
-              flexShrink: 0,
-              overflow: collapseHeader ? 'hidden' : 'visible',
-              height: collapseHeader ? 0 : 'calc(env(safe-area-inset-top) + 68px)',
-              position: 'relative',
-              transition: curView === 'Export' ? 'none' : 'height 260ms cubic-bezier(0.4,0,0.2,1)',
-            }}
-          >
+          {showBack && !isStageExpanded && (
             <SharedFloatingHeader
               title={
-                curView === 'Editor'
-                  ? tr.stagex.navStage || 'Stage'
-                  : curView === 'SetupHub' || curView === 'Setup'
-                    ? tr.stagex.navSetup || 'Stage Setup'
-                    : curView === 'Rider'
-                      ? tr.stagex.techRider || 'Technical Rider'
-                      : curView === 'Setlist'
-                        ? tr.stagex.setlist || 'Setlist'
-                        : curView === 'Gear'
-                          ? tr.stagex.gearInventory || 'Gear Inventory'
-                          : curView === 'Members'
-                            ? tr.stagex.bandMembers || 'Band & Crew'
-                            : curView === 'Preferences'
-                              ? tr.stagex.navPreferences || 'Stage Preferences'
-                              : curView === 'Export'
-                                ? tr.stagex.toolExport || 'Stage Export'
-                                : 'Stage'
+                curView === 'Rider'
+                  ? (tr.stagex as any).techRider || 'Technical Rider'
+                  : curView === 'Setlist'
+                    ? (tr.stagex as any).setlist || 'Setlist'
+                    : curView === 'Gear'
+                      ? (tr.stagex as any).gearInventory || 'Gear Inventory'
+                      : curView === 'Members'
+                        ? (tr.stagex as any).bandMembers || 'Band & Crew'
+                        : curView === 'Export'
+                          ? tr.stagex.toolExport || 'Stage Export'
+                          : 'Stage'
               }
-              onBack={showBack ? () => NavigationDispatcher.pop() : undefined}
-              hideBack={!showBack}
+              onBack={() => NavigationDispatcher.pop()}
+              hideBack={false}
               toolbarActions={
-                curView === 'Editor' ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                    {(
-                      [
-                        {
-                          label: tr.stagex.toolMeasure,
-                          icon: 'straighten',
-                          fn: () => callIframe('scActivateMeasure'),
-                        },
-                        {
-                          label: tr.stagex.toolHistory,
-                          icon: 'history',
-                          fn: () => callIframe('openTimelinePanel'),
-                        },
-                      ] as { label: string; icon: string; fn: () => void; testid?: string }[]
-                    ).map(({ label, icon, fn, testid }) => (
-                      <button
-                        key={label}
-                        onClick={fn}
-                        onTouchEnd={(e) => {
-                          e.preventDefault();
-                          fn();
-                        }}
-                        title={label}
-                        aria-label={label}
-                        data-testid={testid}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: 32,
-                          height: 32,
-                          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
-                          color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)',
-                          border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                          borderRadius: '50%',
-                          cursor: 'pointer',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <span
-                          className="material-symbols-outlined"
-                          style={{ fontSize: 16, lineHeight: 1 }}
-                        >
-                          {icon}
-                        </span>
-                      </button>
-                    ))}
-
-                    <button
-                      onClick={() => callIframe('openPresetsPanel')}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        callIframe('openPresetsPanel');
-                      }}
-                      title={tr.stagex.toolPresets}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 32,
-                        height: 32,
-                        background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
-                        color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)',
-                        border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                        borderRadius: '50%',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: 16, lineHeight: 1 }}
-                      >
-                        save
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() => transitionToView('Export')}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        transitionToView('Export');
-                      }}
-                      title={tr.stagex.toolExport}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 32,
-                        height: 32,
-                        background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
-                        color: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(180,185,200,0.7)',
-                        border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                        borderRadius: '50%',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: 16, lineHeight: 1 }}
-                      >
-                        picture_as_pdf
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() => setCollabModalOpen(true)}
-                      onTouchEnd={(e) => {
-                        e.preventDefault();
-                        setCollabModalOpen(true);
-                      }}
-                      title="Collaboration"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: 32,
-                        height: 32,
-                        background:
-                          collabState === 'connected'
-                            ? isLight
-                              ? 'rgba(16,185,129,0.15)'
-                              : 'rgba(16,185,129,0.20)'
-                            : isLight
-                              ? 'rgba(0,0,0,0.06)'
-                              : 'rgba(255,255,255,0.07)',
-                        color:
-                          collabState === 'connected'
-                            ? '#10b981'
-                            : isLight
-                              ? 'rgba(0,0,0,0.55)'
-                              : 'rgba(180,185,200,0.75)',
-                        border: `1px solid ${collabState === 'connected' ? '#10b981' : isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
-                        borderRadius: '50%',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span
-                        className="material-symbols-outlined"
-                        style={{ fontSize: 16, lineHeight: 1 }}
-                      >
-                        {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
-                      </span>
-                    </button>
-                  </div>
-                ) : curView === 'Export' ? (
+                curView === 'Export' ? (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     <button
                       onClick={() => callIframe('toggleExportOptions')}
@@ -3291,14 +3130,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: 32,
-                        height: 32,
+                        width: 34,
+                        height: 34,
                         background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
                         color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(180,185,200,0.75)',
                         border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
                         borderRadius: '50%',
                         cursor: 'pointer',
-                        flexShrink: 0,
                       }}
                     >
                       <span
@@ -3319,14 +3157,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        width: 32,
-                        height: 32,
+                        width: 34,
+                        height: 34,
                         background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.07)',
                         color: isLight ? '#111' : '#fff',
                         border: `1px solid ${isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.10)'}`,
                         borderRadius: '50%',
                         cursor: 'pointer',
-                        flexShrink: 0,
                       }}
                     >
                       <span
@@ -3345,7 +3182,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 ) : undefined
               }
             />
-          </div>
+          )}
 
           <div
             style={{

@@ -70,7 +70,7 @@ export default function LibraryPanel() {
             style={{
               flex: 1,
               overflowY: 'auto',
-              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
             }}
           >
             <LibraryChordDetail state={state} />

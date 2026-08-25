@@ -1,15 +1,25 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
-import { createLayer, createDefaultEffects, type LabSession, type LabLayer, type TrackEffect, type TakeRecord, useT, createAudioContext, useNavigationStore, NavigationDispatcher, vocalexRepository } from "@workspace/studio-core";
+import {
+  createLayer,
+  createDefaultEffects,
+  type LabSession,
+  type LabLayer,
+  type TrackEffect,
+  type TakeRecord,
+  useT,
+  createAudioContext,
+  useNavigationStore,
+  NavigationDispatcher,
+  vocalexRepository,
+  useBackHandler,
+} from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import ElasticSlider from '../../../shared/progress/ElasticSlider';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import MicWavesLottie from '../../../shared/lottie/MicWavesLottie';
-import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
-;
-
 const SESSION_ICONS = [
   'graphic_eq',
   'layers',
@@ -804,7 +814,6 @@ function TrackChannel({
             </div>
           </div>
         </Dialog>
-
       </div>
 
       <div
@@ -1441,14 +1450,15 @@ function MixerView({
     };
   }, [stopPlayback]);
 
-  useEffect(() => {
-    const handler = () => {
+  useBackHandler(
+    'nested',
+    () => {
       stopPlayback();
       onBack();
-    };
-    setVocalexBack(handler);
-    return () => setVocalexBack(null);
-  }, [onBack, stopPlayback]);
+      return true;
+    },
+    [onBack, stopPlayback]
+  );
 
   // Format the session number with a leading zero (01, 02, ...) so it always
   // takes the same visual space — the header tag stays consistent in width.

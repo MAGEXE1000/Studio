@@ -7,17 +7,20 @@ import {
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { extractWaveformPeaks, blobToAudioBuffer, type TakeRecord, vocalexRepository } from "@workspace/studio-core";
+import {
+  extractWaveformPeaks,
+  blobToAudioBuffer,
+  type TakeRecord,
+  vocalexRepository,
+} from '@workspace/studio-core';
 import LoadingLottie from '../../../shared/lottie/LoadingLottie';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { VocalexTakesSkeleton } from '../../../shared/loading/StudioSkeleton';
 import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
 import { analyzeAudio, type VocalAnalysis, type AnalysisLabels } from '../services/vocalAnalysis';
-import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
-;
 
 import RecordingView from './RecordingView';
 import TakeDetailView from './TakeDetailView';
@@ -363,7 +366,6 @@ function TakeListItem({
           </p>
           <div style={{ display: 'flex', gap: 10 }}>
             <Button onClick={() => setConfirming(false)} style={{ flex: 1 }}>
-
               {t.vocalex.cancelAction}
             </Button>
             <Button
@@ -379,7 +381,6 @@ function TakeListItem({
           </div>
         </div>
       </Dialog>
-
     </div>
   );
 }

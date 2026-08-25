@@ -1,6 +1,5 @@
-import { useT } from '@workspace/studio-core';
+import { useT, useBackHandler } from '@workspace/studio-core';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { setVocalexBack } from '../utils/headerBack';
 import { StaggeredReveal } from '../../../shared/animation';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
 
@@ -286,14 +285,17 @@ export default function PracticePanel() {
     }, 250);
   }, []);
 
-  useEffect(() => {
-    if (!displaySection) {
-      setVocalexBack(null);
-      return;
-    }
-    setVocalexBack(() => goBack());
-    return () => setVocalexBack(null);
-  }, [displaySection, goBack]);
+  useBackHandler(
+    'nested',
+    () => {
+      if (displaySection) {
+        goBack();
+        return true;
+      }
+      return false;
+    },
+    [displaySection, goBack]
+  );
 
   if (displaySection) {
     const section = sections.find((s) => s.id === displaySection)!;
@@ -368,10 +370,7 @@ export default function PracticePanel() {
 
   return (
     <div style={{ padding: '0 24px', minHeight: '100%' }}>
-      <StudioHeader
-        title={t.vocalex.tipsTitle}
-        subtitle={t.vocalex.tipsSubtitle}
-      />
+      <StudioHeader title={t.vocalex.tipsTitle} subtitle={t.vocalex.tipsSubtitle} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <StaggeredReveal staggerInterval={40}>

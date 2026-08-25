@@ -4,6 +4,7 @@ import {
   createAudioContext,
   useNavigationStore,
   NavigationDispatcher,
+  useBackHandler,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
@@ -19,7 +20,6 @@ import SmartLoading from '../../../shared/loading/SmartLoading';
 import { VocalexTakesSkeleton } from '../../../shared/loading/StudioSkeleton';
 import EmptyStateLottie from '../../../shared/lottie/EmptyStateLottie';
 import { analyzeAudio, type VocalAnalysis, type AnalysisLabels } from '../services/vocalAnalysis';
-import { setVocalexBack } from '../utils/headerBack';
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
@@ -71,10 +71,14 @@ export default function TakeDetailView({
   const urlRef = useRef<string | null>(null);
   const rafRef = useRef<number>(0);
 
-  useEffect(() => {
-    setVocalexBack(() => onBack());
-    return () => setVocalexBack(null);
-  }, [onBack]);
+  useBackHandler(
+    'nested',
+    () => {
+      onBack();
+      return true;
+    },
+    [onBack]
+  );
 
   useEffect(() => {
     const url = URL.createObjectURL(take.audioBlob);

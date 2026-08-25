@@ -1,7 +1,16 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { useT, createAudioContext, NavigationDispatcher } from '@workspace/studio-core';
-import { blobToAudioBuffer, extractWaveformPeaks, type TakeRecord, vocalexRepository } from "@workspace/studio-core";
-import { setVocalexBack } from '../utils/headerBack';
+import {
+  useT,
+  createAudioContext,
+  NavigationDispatcher,
+  useBackHandler,
+} from '@workspace/studio-core';
+import {
+  blobToAudioBuffer,
+  extractWaveformPeaks,
+  type TakeRecord,
+  vocalexRepository,
+} from '@workspace/studio-core';
 
 const SMOOTHING_FACTOR = 0.8;
 const VIZ_BARS = 64;
@@ -28,10 +37,14 @@ export default function RecordingView({
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setVocalexBack(onCancel);
-    return () => setVocalexBack(null);
-  }, [onCancel]);
+  useBackHandler(
+    'nested',
+    () => {
+      onCancel();
+      return true;
+    },
+    [onCancel]
+  );
 
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);

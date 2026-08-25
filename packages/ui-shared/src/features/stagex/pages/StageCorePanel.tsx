@@ -604,7 +604,6 @@ export default function StagexPanel() {
   }>({ count: 1, currentIdx: 0, names: ['Scene 1'] });
   const [pdfSceneChoice, setPdfSceneChoice] = useState<'current' | 'all' | number>('current');
   const [isStageExpanded, setIsStageExpanded] = useState(false);
-  const [isExiting, setIsExiting] = useState(false);
   const [landscapeNavHidden, setLandscapeNavHidden] = useState(false);
 
   // ── Collaboration State ────────────────────────────────────
@@ -1934,12 +1933,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
   const transitionToView = useCallback(
     (targetView: string) => {
-      setIsExiting(true);
-      setTimeout(() => {
-        setCurView(targetView);
-        callIframe('switchView', targetView);
-        setIsExiting(false);
-      }, 150);
+      setCurView(targetView);
+      callIframe('switchView', targetView);
     },
     [callIframe, setCurView]
   );
@@ -3201,10 +3196,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                 height: '100%',
                 position: 'relative',
                 backgroundColor: stageBg,
-                opacity: isExiting ? 0 : 1,
-                transform: isExiting ? 'scale(0.97) translateY(8px)' : 'scale(1) translateY(0px)',
-                transition:
-                  'opacity 150ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms cubic-bezier(0.4, 0, 0.2, 1)',
               }}
             >
               <iframe

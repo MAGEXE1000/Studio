@@ -18,17 +18,14 @@ export function SharedNavigationContainer({
   children,
   className = '',
   style,
-  variant,
+  variant = 'tab',
 }: SharedNavigationContainerProps) {
-  // If activeView is a sub-page/drilldown section (not 'main'), use drilldown transition by default
-  const effectiveVariant = variant ?? (activeView !== 'main' ? 'drilldown' : 'tab');
-
   return (
     <div
       className={`relative w-full h-full overflow-hidden ${className}`}
       style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', ...style }}
     >
-      <StudioPageTransition pageKey={activeView} variant={effectiveVariant}>
+      <StudioPageTransition pageKey={activeView} variant={variant}>
         {children(activeView)}
       </StudioPageTransition>
       <InspectorOverlayRenderer />

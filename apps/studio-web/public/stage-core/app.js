@@ -1662,13 +1662,9 @@ function switchView(view) {
   const page = document.getElementById('view-' + view);
   if (page) {
     page.style.display = view === 'Assistant' || view === 'Export' ? 'flex' : 'block';
-    // The Editor view contains position:fixed children (sidebar, cat-bar).
-    // Applying opacity to the parent traps those children in its stacking
-    // context and causes them to disappear — so Editor snaps in immediately.
-    // All other views are safe to fade because they have no fixed children.
-    if (prevView !== view && view !== 'Editor') {
+    if (prevView !== view) {
       page.style.opacity = '0';
-      page.style.transform = 'translateY(10px) scale(0.985)';
+      page.style.transform = 'translateY(6px) scale(0.995)';
       page.classList.add('view-entering');
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {

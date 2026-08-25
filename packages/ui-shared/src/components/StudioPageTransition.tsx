@@ -2,17 +2,33 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export const UNIFIED_NAV_TRANSITION = {
-  initial: { opacity: 0, y: 6, scale: 0.995 },
-  animate: { opacity: 1, y: 0, scale: 1 },
-  exit: { opacity: 0, y: -4, scale: 0.995 },
-  transition: {
-    duration: 0.2,
-    ease: [0.22, 1, 0.36, 1] as const, // Linear/Apple smooth ease-out curve
+  initial: {
+    opacity: 0,
+    y: 6,
+    scale: 0.995,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.2,
+      ease: [0.22, 1, 0.36, 1] as const, // Linear/Apple smooth ease-out curve
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -4,
+    scale: 0.995,
+    transition: {
+      duration: 0.15,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
   },
 };
 
 /**
- * SECTION_DRILLDOWN_TRANSITION — High-end Yui540-inspired physical section entrance
+ * SECTION_DRILLDOWN_TRANSITION — High-end physical section entrance
  * Uses quintic deceleration, subtle 3D depth scaling (0.965 -> 1.0), and clip-path card expansion
  * for opening standalone sections (Appearance, About, Settings subsections, etc.).
  */
@@ -50,7 +66,7 @@ interface StudioPageTransitionProps {
   children: React.ReactNode;
   className?: string;
   style?: React.CSSProperties;
-  variant?: 'tab' | 'drilldown';
+  variant?: 'tab' | 'drilldown' | 'fade-through' | 'slide';
 }
 
 export const StudioPageTransition: React.FC<StudioPageTransitionProps> = ({
@@ -67,10 +83,10 @@ export const StudioPageTransition: React.FC<StudioPageTransitionProps> = ({
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
         key={pageKey}
-        initial={transitionConfig.initial}
-        animate={transitionConfig.animate}
-        exit={transitionConfig.exit}
-        transition={transitionConfig.transition}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={transitionConfig}
         className={className}
         style={{
           width: '100%',

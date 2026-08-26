@@ -168,6 +168,34 @@ export const NavigationMotionVariants: Record<string, IconVariantGetter> = {
     inactive: { scale: 1 },
   }),
 
+  // Drum: Punchy rhythmic scale pulse
+  drum: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { scale: 1, rotate: 0 },
+      active: {
+        scale: [1, 1.22, 0.94, 1.06, 1],
+        rotate: [0, -6 * dirSign, 4 * dirSign, 0],
+        transition: snappySpringConfig,
+      },
+      inactive: { scale: 1, rotate: 0 },
+    };
+  },
+
+  // Disc / Groove: Spin pulse
+  disc: (direction: NavDirection = 'forward') => {
+    const dirSign = direction === 'reverse' ? -1 : 1;
+    return {
+      initial: { scale: 1, rotate: 0 },
+      active: {
+        scale: [1, 1.15, 1],
+        rotate: [0, 45 * dirSign, 0],
+        transition: slowSpringConfig,
+      },
+      inactive: { scale: 1, rotate: 0 },
+    };
+  },
+
   // Generic fallback for any unrecognized icon
   generic: (direction: NavDirection = 'forward') => {
     const dirSign = direction === 'reverse' ? -1 : 1;
@@ -187,16 +215,24 @@ export const NavigationMotionVariants: Record<string, IconVariantGetter> = {
 /**
  * Helper to match an icon name/key to its personality variant
  */
-export function getMotionVariantForIcon(iconName: string, direction: NavDirection = 'forward'): IconVariantGetter {
+export function getMotionVariantForIcon(
+  iconName: string,
+  direction: NavDirection = 'forward'
+): IconVariantGetter {
   const lower = iconName.toLowerCase();
-  
+
   if (lower.includes('setting') || lower.includes('gear') || lower.includes('preference')) {
     return () => NavigationMotionVariants.settings(direction);
   }
   if (lower.includes('search') || lower.includes('magnifier')) {
     return () => NavigationMotionVariants.search(direction);
   }
-  if (lower.includes('profile') || lower.includes('user') || lower.includes('avatar') || lower.includes('account')) {
+  if (
+    lower.includes('profile') ||
+    lower.includes('user') ||
+    lower.includes('avatar') ||
+    lower.includes('account')
+  ) {
     return () => NavigationMotionVariants.profile(direction);
   }
   if (lower.includes('library') || lower.includes('book')) {
@@ -205,19 +241,56 @@ export function getMotionVariantForIcon(iconName: string, direction: NavDirectio
   if (lower.includes('favorite') || lower.includes('heart')) {
     return () => NavigationMotionVariants.favorite();
   }
-  if (lower.includes('music') || lower.includes('note') || lower.includes('song') || lower.includes('chord')) {
+  if (
+    lower.includes('music') ||
+    lower.includes('note') ||
+    lower.includes('song') ||
+    lower.includes('chord') ||
+    lower.includes('audio-lines')
+  ) {
     return () => NavigationMotionVariants.music(direction);
   }
-  if (lower.includes('practice') || lower.includes('metronome') || lower.includes('graphic_eq') || lower.includes('coach')) {
+  if (
+    lower.includes('practice') ||
+    lower.includes('metronome') ||
+    lower.includes('graphic_eq') ||
+    lower.includes('coach')
+  ) {
     return () => NavigationMotionVariants.practice(direction);
   }
-  if (lower.includes('stage') || lower.includes('spotlight') || lower.includes('setup')) {
+  if (
+    lower.includes('stage') ||
+    lower.includes('spotlight') ||
+    lower.includes('setup') ||
+    lower.includes('layout-panel-top')
+  ) {
     return () => NavigationMotionVariants.stage(direction);
   }
-  if (lower.includes('record') || lower.includes('mic') || lower.includes('takes')) {
+  if (
+    lower.includes('record') ||
+    lower.includes('mic') ||
+    lower.includes('takes') ||
+    lower.includes('clap')
+  ) {
     return () => NavigationMotionVariants.record();
   }
-  if (lower.includes('home')) {
+  if (
+    lower.includes('drum') ||
+    lower.includes('beat') ||
+    lower.includes('pattern') ||
+    lower.includes('block')
+  ) {
+    return () => NavigationMotionVariants.drum(direction);
+  }
+  if (
+    lower.includes('disc') ||
+    lower.includes('groove') ||
+    lower.includes('layer') ||
+    lower.includes('rhythm')
+  ) {
+    return () => NavigationMotionVariants.disc(direction);
+  }
+  if (lower.includes('home') || lower.includes('hub')) {
     return () => NavigationMotionVariants.home(direction);
   }
 

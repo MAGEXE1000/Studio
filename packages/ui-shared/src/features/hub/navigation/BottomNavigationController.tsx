@@ -418,6 +418,7 @@ export function BottomNavigationController() {
     currentApp,
     activeTab,
     activePage,
+    instrument,
     getTranslation,
     profileIcon,
     setProfileMenuOpen,

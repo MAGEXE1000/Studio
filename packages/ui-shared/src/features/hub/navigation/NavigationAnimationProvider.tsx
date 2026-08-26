@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo } from 'react';
 
 export type NavDirection = 'forward' | 'reverse' | 'none';
 
@@ -31,6 +31,8 @@ export const NavigationAnimationProvider: React.FC<NavigationAnimationProviderPr
   items,
   children,
 }) => {
+  const prevTabRef = useRef(activeTab);
+
   const [state, setState] = useState<{
     currentTab: string | null;
     previousTab: string | null;
@@ -47,38 +49,37 @@ export const NavigationAnimationProvider: React.FC<NavigationAnimationProviderPr
   const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    setState((prev) => {
-      // Only update if the tab actually changed
-      if (prev.currentTab === activeTab) {
-        return prev;
-      }
-      
-      let direction: NavDirection = 'none';
-      let indexDelta = 0;
+    if (prevTabRef.current === activeTab) {
+      return;
+    }
+    const oldTab = prevTabRef.current;
+    prevTabRef.current = activeTab;
 
-      if (items && items.length > 0) {
-        const prevIdx = items.findIndex((i) => (i.key || i.id) === prev.currentTab);
-        const currIdx = items.findIndex((i) => (i.key || i.id) === activeTab);
-        if (prevIdx !== -1 && currIdx !== -1) {
-          indexDelta = currIdx - prevIdx;
-          if (indexDelta > 0) direction = 'forward';
-          else if (indexDelta < 0) direction = 'reverse';
-        }
-      }
+    let direction: NavDirection = 'none';
+    let indexDelta = 0;
 
-      return {
-        currentTab: activeTab,
-        previousTab: prev.currentTab,
-        direction,
-        indexDelta,
-      };
+    if (items && items.length > 0) {
+      const prevIdx = items.findIndex((i) => (i.key || i.id) === oldTab);
+      const currIdx = items.findIndex((i) => (i.key || i.id) === activeTab);
+      if (prevIdx !== -1 && currIdx !== -1) {
+        indexDelta = currIdx - prevIdx;
+        if (indexDelta > 0) direction = 'forward';
+        else if (indexDelta < 0) direction = 'reverse';
+      }
+    }
+
+    setState({
+      currentTab: activeTab,
+      previousTab: oldTab,
+      direction,
+      indexDelta,
     });
 
     setIsTransitioning(true);
     if (transitionTimeoutRef.current) {
       clearTimeout(transitionTimeoutRef.current);
     }
-    
+
     transitionTimeoutRef.current = setTimeout(() => {
       setIsTransitioning(false);
     }, 600);
@@ -90,16 +91,19 @@ export const NavigationAnimationProvider: React.FC<NavigationAnimationProviderPr
     };
   }, [activeTab, items]);
 
+  const contextValue = useMemo<NavigationAnimationContextValue>(
+    () => ({
+      currentTab: state.currentTab,
+      previousTab: state.previousTab,
+      isTransitioning,
+      direction: state.direction,
+      indexDelta: state.indexDelta,
+    }),
+    [state.currentTab, state.previousTab, isTransitioning, state.direction, state.indexDelta]
+  );
+
   return (
-    <NavigationAnimationContext.Provider
-      value={{
-        currentTab: state.currentTab,
-        previousTab: state.previousTab,
-        isTransitioning,
-        direction: state.direction,
-        indexDelta: state.indexDelta,
-      }}
-    >
+    <NavigationAnimationContext.Provider value={contextValue}>
       {children}
     </NavigationAnimationContext.Provider>
   );

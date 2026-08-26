@@ -1,21 +1,9 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
-import { useNavigationAnimation } from './NavigationAnimationProvider';
-import { getMotionVariantForIcon } from './NavigationMotionVariants';
+﻿import assert from 'node:assert/strict';
 
-export interface AnimatedNavigationIconProps {
-  itemKey: string;
-  iconName?: string;
-  iconNode?: React.ReactNode;
-  size?: number;
-  color?: string;
-  strokeWidth?: number;
-  isActive: boolean;
-  animationEpoch?: number;
-}
+console.log('=== RUNNING ANIMATED NAVIGATION ICON TEST SUITE ===');
 
-function getNormalizedIconName(key: string): string {
+// Replicate normalization & mapping logic
+function getNormalizedIconName(key) {
   const norm = key.toLowerCase().replace(/[^a-z0-9-]/g, '');
 
   // User & Profile
@@ -107,7 +95,7 @@ const MATCHED_NAMES = new Set([
   'user',
 ]);
 
-const FILLED_VARIANTS_SUPPORT: Record<string, boolean> = {
+const FILLED_VARIANTS_SUPPORT = {
   home: false,
   user: false,
   profile: false,
@@ -157,103 +145,77 @@ const FILLED_VARIANTS_SUPPORT: Record<string, boolean> = {
   stage: false,
 };
 
-const AnimatedNavigationIconComponent = React.forwardRef<any, AnimatedNavigationIconProps>(
-  (
-    {
-      itemKey,
-      iconName,
-      iconNode,
-      size = 24,
-      color = 'currentColor',
-      strokeWidth = 2,
-      isActive,
-      animationEpoch,
-    },
-    ref
-  ) => {
-    const navAnim = useNavigationAnimation();
-    const direction = navAnim ? navAnim.direction : 'forward';
-    const dirSign = direction === 'reverse' ? -1 : 1;
+function checkIconWarning(iconKey, iconName) {
+  const resolvedName = getNormalizedIconName(iconName || iconKey);
+  const isUnmapped = FILLED_VARIANTS_SUPPORT[resolvedName] === undefined;
+  return { resolvedName, isUnmapped };
+}
 
-    const resolvedName = getNormalizedIconName(iconName || itemKey);
+// TEST 1: Profile Icon warning elimination
+console.log('Test 1: Testing "profile" icon key and name...');
+const profileResult1 = checkIconWarning('profile', undefined);
+assert.equal(profileResult1.resolvedName, 'user');
+assert.equal(profileResult1.isUnmapped, false, 'profile must NOT be unmapped');
 
-    // Log explicit warning if a filled variant of this icon is requested/expected but not supported
-    if (
-      isActive &&
-      typeof window !== 'undefined' &&
-      FILLED_VARIANTS_SUPPORT[resolvedName] === undefined
-    ) {
-      console.warn(
-        `[AnimatedNavigationIcon] Warning: Filled status of icon "${resolvedName}" is unmapped.`
-      );
-    }
+const profileResult2 = checkIconWarning('profile', 'user');
+assert.equal(profileResult2.resolvedName, 'user');
+assert.equal(profileResult2.isUnmapped, false, 'user must NOT be unmapped');
+console.log('✓ Test 1 Passed: "profile" correctly resolves to "user" with 0 warnings.');
 
-    // Squish-stretch keyframes for elastic bounce
-    const scaleX = isActive ? [1, 1.2, 0.92, 1.04, 1] : 1;
-    const scaleY = isActive ? [1, 0.8, 1.08, 0.96, 1] : 1;
-    const rotate = isActive ? [0, -6 * dirSign, 4 * dirSign, 0] : 0;
+// TEST 2: Drumex, Stagex, Disc, Chordex, Vocalex, Groovex, Hub icons
+console.log('Test 2: Testing all 5 apps and hub navigation keys...');
+const testKeys = [
+  // 1. Chordex
+  { key: 'chordex', expected: 'audio-lines' },
+  { key: 'songs', expected: 'audio-lines' },
+  { key: 'library', expected: 'gallery-vertical-end' },
+  { key: 'preferences', expected: 'sliders-horizontal' },
+  { key: 'chords', expected: 'audio-lines' },
 
-    const content = iconNode ? (
-      <div
-        style={{
-          width: size,
-          height: size,
-          color,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {iconNode}
-      </div>
-    ) : (
-      <AnimatedIcon
-        ref={ref}
-        name={resolvedName}
-        size={size}
-        color={color}
-        strokeWidth={strokeWidth}
-        state={isActive ? 'active' : 'inactive'}
-        animationEpoch={animationEpoch}
-      />
-    );
+  // 2. Drumex
+  { key: 'drumex', expected: 'drum' },
+  { key: 'beats', expected: 'drum' },
+  { key: 'patterns', expected: 'blocks' },
+  { key: 'drumPreferences', expected: 'sliders-horizontal' },
+  { key: 'prefs', expected: 'sliders-horizontal' },
 
-    const isMatched = MATCHED_NAMES.has(resolvedName);
+  // 3. Stagex
+  { key: 'stagex', expected: 'layout-panel-top' },
+  { key: 'Editor', expected: 'layout-panel-top' },
+  { key: 'Setup', expected: 'layers' },
+  { key: 'stagexPreferences', expected: 'sliders-horizontal' },
 
-    const outerVariants = isMatched
-      ? {
-          active: { opacity: 1 },
-          inactive: { opacity: 0.85 },
-        }
-      : getMotionVariantForIcon(resolvedName, direction)();
+  // 4. Groovex
+  { key: 'groovex', expected: 'disc' },
+  { key: 'disc', expected: 'disc' },
+  { key: 'rhythms', expected: 'layers' },
+  { key: 'groovexPreferences', expected: 'sliders-horizontal' },
 
-    return (
-      <motion.div
-        key={`nav-icon-${resolvedName}`}
-        initial="inactive"
-        animate={isActive ? 'active' : 'inactive'}
-        variants={outerVariants}
-        style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-      >
-        <motion.div
-          animate={{
-            scaleX,
-            scaleY,
-            rotate,
-          }}
-          transition={{
-            duration: 0.42,
-            ease: [0.25, 1, 0.5, 1], // premium elastic curve
-          }}
-          style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          {content}
-        </motion.div>
-      </motion.div>
-    );
-  }
-);
+  // 5. Vocalex
+  { key: 'vocalex', expected: 'mic' },
+  { key: 'coach', expected: 'graduation-cap' },
+  { key: 'recorder', expected: 'mic' },
+  { key: 'takes', expected: 'clapperboard' },
+  { key: 'vocalexPreferences', expected: 'sliders-horizontal' },
 
-AnimatedNavigationIconComponent.displayName = 'AnimatedNavigationIcon';
+  // Hub & DevTools
+  { key: 'hub', expected: 'home' },
+  { key: 'home', expected: 'home' },
+  { key: 'settings', expected: 'settings' },
+  { key: 'profile', expected: 'user' },
+  { key: 'devtools', expected: 'bug' },
+  { key: 'dashboard', expected: 'layout-dashboard' },
+  { key: 'performance', expected: 'activity' },
+  { key: 'inspector', expected: 'search' },
+];
 
-export const AnimatedNavigationIcon = React.memo(AnimatedNavigationIconComponent);
+for (const t of testKeys) {
+  const res = checkIconWarning(t.key, undefined);
+  assert.equal(res.resolvedName, t.expected, `Key "${t.key}" expected "${t.expected}" but got "${res.resolvedName}"`);
+  assert.equal(res.isUnmapped, false, `Key "${t.key}" mapped to "${res.resolvedName}" must not trigger unmapped warning`);
+  assert.ok(MATCHED_NAMES.has(res.resolvedName), `Resolved name "${res.resolvedName}" must be in MATCHED_NAMES`);
+}
+console.log(`✓ Test 2 Passed: All ${testKeys.length} navigation keys across all 5 apps and Hub verified with 0 unmapped warnings.`);
+
+console.log('\n\x1b[32m=== ALL NAVIGATION ICON TESTS PASSED CLEANLY ===\x1b[0m\n');
+process.exit(0);

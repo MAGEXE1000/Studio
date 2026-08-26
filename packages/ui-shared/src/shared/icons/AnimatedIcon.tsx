@@ -20,21 +20,21 @@ import { SlidersHorizontalIcon } from '../../components/ui/sliders-horizontal';
 import { UserIcon } from '../../components/ui/user';
 
 const localAnimatedIcons: Record<string, any> = {
-  'activity': ActivityIcon,
+  activity: ActivityIcon,
   'audio-lines': AudioLinesIcon,
-  'blocks': BlocksIcon,
-  'cog': CogIcon,
-  'drum': DrumIcon,
+  blocks: BlocksIcon,
+  cog: CogIcon,
+  drum: DrumIcon,
   'gallery-vertical-end': GalleryVerticalEndIcon,
   'graduation-cap': GraduationCapIcon,
-  'home': HomeIcon,
-  'layers': LayersIcon,
+  home: HomeIcon,
+  layers: LayersIcon,
   'layout-panel-top': LayoutPanelTopIcon,
-  'mic': MicIcon,
-  'search': SearchIcon,
-  'settings': SettingsIcon,
+  mic: MicIcon,
+  search: SearchIcon,
+  settings: SettingsIcon,
   'sliders-horizontal': SlidersHorizontalIcon,
-  'user': UserIcon,
+  user: UserIcon,
 };
 
 export type IconState =
@@ -66,9 +66,15 @@ export interface AnimatedIconHandle {
   stopAnimation: () => void;
 }
 
+const iconComponentCache = new Map<string, any>();
+
 // Map helper to resolve names to Lucide icons
 function getAnimatedIconComponent(name: string) {
-  // Normalize names that are Material symbols to their Lucide counterparts
+  if (iconComponentCache.has(name)) {
+    return iconComponentCache.get(name);
+  }
+
+  // Normalize names that are Material symbols or aliases to their Lucide counterparts
   let normName = name.toLowerCase();
   if (normName === 'system_update' || normName === 'sync' || normName === 'refresh') {
     normName = 'refresh-cw';
@@ -78,11 +84,21 @@ function getAnimatedIconComponent(name: string) {
     normName = 'badge-alert';
   } else if (normName === 'code') {
     normName = 'terminal';
-  } else if (normName === 'check_circle' || normName === 'check-circle' || normName === 'task_alt' || normName === 'verified') {
+  } else if (
+    normName === 'check_circle' ||
+    normName === 'check-circle' ||
+    normName === 'task_alt' ||
+    normName === 'verified'
+  ) {
     normName = 'check';
   } else if (normName === 'close') {
     normName = 'x';
-  } else if (normName === 'account_circle') {
+  } else if (
+    normName === 'account_circle' ||
+    normName === 'profile' ||
+    normName === 'account' ||
+    normName === 'person'
+  ) {
     normName = 'user';
   } else if (normName === 'notifications') {
     normName = 'bell';
@@ -140,7 +156,9 @@ function getAnimatedIconComponent(name: string) {
 
   // 1. Try local custom animated icons first
   if (localAnimatedIcons[normName]) {
-    return localAnimatedIcons[normName];
+    const comp = localAnimatedIcons[normName];
+    iconComponentCache.set(name, comp);
+    return comp;
   }
 
   // Convert to PascalCase (e.g. "refresh-cw" -> "RefreshCw")
@@ -152,27 +170,37 @@ function getAnimatedIconComponent(name: string) {
   // 2. Try LucideAnimated with Icon suffix (e.g. RefreshCwIcon)
   const animatedKey = `${pascalName}Icon`;
   if ((LucideAnimated as any)[animatedKey]) {
-    return (LucideAnimated as any)[animatedKey];
+    const comp = (LucideAnimated as any)[animatedKey];
+    iconComponentCache.set(name, comp);
+    return comp;
   }
 
   // 3. Try LucideAnimated without Icon suffix (e.g. RefreshCw)
   if ((LucideAnimated as any)[pascalName]) {
-    return (LucideAnimated as any)[pascalName];
+    const comp = (LucideAnimated as any)[pascalName];
+    iconComponentCache.set(name, comp);
+    return comp;
   }
 
   // 4. Try LucideReact with Icon suffix (e.g. RefreshCwIcon)
   const staticKey = `${pascalName}Icon`;
   if ((LucideReact as any)[staticKey]) {
-    return (LucideReact as any)[staticKey];
+    const comp = (LucideReact as any)[staticKey];
+    iconComponentCache.set(name, comp);
+    return comp;
   }
 
   // 5. Try LucideReact without Icon suffix (e.g. RefreshCw)
   if ((LucideReact as any)[pascalName]) {
-    return (LucideReact as any)[pascalName];
+    const comp = (LucideReact as any)[pascalName];
+    iconComponentCache.set(name, comp);
+    return comp;
   }
 
   // Default fallback
-  return LucideReact.HelpCircle || LucideReact.CircleHelp;
+  const fallback = LucideReact.HelpCircle || LucideReact.CircleHelp;
+  iconComponentCache.set(name, fallback);
+  return fallback;
 }
 
 export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
@@ -206,9 +234,12 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
         if (innerIconRef.current && !isAnimatingRef.current) {
           isAnimatingRef.current = true;
           innerIconRef.current.startAnimation?.();
-          setTimeout(() => {
-            isAnimatingRef.current = false;
-          }, name === 'settings' || name === 'cog' ? 1000 : 600);
+          setTimeout(
+            () => {
+              isAnimatingRef.current = false;
+            },
+            name === 'settings' || name === 'cog' ? 1000 : 600
+          );
         }
       },
       stopAnimation: () => {
@@ -229,22 +260,28 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       if (isActiveState) {
         if (innerIconRef.current && (!isAnimatingRef.current || epochChanged)) {
           isAnimatingRef.current = true;
-          console.log(`[AnimatedIcon] START ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`);
+          console.log(
+            `[AnimatedIcon] START ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`
+          );
           innerIconRef.current.stopAnimation?.();
           innerIconRef.current.startAnimation?.();
-          setTimeout(() => {
-            isAnimatingRef.current = false;
-          }, name === 'settings' || name === 'cog' ? 1000 : 600);
+          setTimeout(
+            () => {
+              isAnimatingRef.current = false;
+            },
+            name === 'settings' || name === 'cog' ? 1000 : 600
+          );
         }
       } else {
         if (innerIconRef.current) {
-          console.log(`[AnimatedIcon] STOP (REVERSE) ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`);
+          console.log(
+            `[AnimatedIcon] STOP (REVERSE) ANIMATION -> icon: ${name}, state: ${state}, epoch: ${animationEpoch ?? 0}`
+          );
           innerIconRef.current.stopAnimation?.();
           isAnimatingRef.current = false;
         }
       }
     }, [state, name, animationEpoch, isSpinning]);
-
 
     // Hover configuration based on icon type (for static/unmatched icons only)
     const getIconSpecificHover = () => {
@@ -352,21 +389,23 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
       };
     };
 
-    const outerVariants: any = isMatched ? {
-      active: { opacity: 1 },
-      inactive: { opacity: 0.85 },
-      pressed: { scale: 0.95 },
-    } : {
-      active: getActiveStateVariants(),
-      inactive: { scale: 1, rotate: 0, y: 0, opacity: 0.85 },
-      loading: { scale: 1, rotate: 360, opacity: 0.85 },
-      success: { scale: [1, 1.28, 1], rotate: [0, -10, 0], opacity: 1 },
-      warning: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
-      error: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
-      disabled: { scale: 0.94, rotate: 0, y: 0, opacity: 0.38 },
-      pressed: { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 },
-      selected: getActiveStateVariants(),
-    };
+    const outerVariants: any = isMatched
+      ? {
+          active: { opacity: 1 },
+          inactive: { opacity: 0.85 },
+          pressed: { scale: 0.95 },
+        }
+      : {
+          active: getActiveStateVariants(),
+          inactive: { scale: 1, rotate: 0, y: 0, opacity: 0.85 },
+          loading: { scale: 1, rotate: 360, opacity: 0.85 },
+          success: { scale: [1, 1.28, 1], rotate: [0, -10, 0], opacity: 1 },
+          warning: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
+          error: { scale: 1.15, rotate: [0, -8, 8, -4, 0], opacity: 1 },
+          disabled: { scale: 0.94, rotate: 0, y: 0, opacity: 0.38 },
+          pressed: { scale: 0.86, rotate: -4, y: 1.5, opacity: 0.9 },
+          selected: getActiveStateVariants(),
+        };
 
     const IconComponent = getAnimatedIconComponent(name);
 
@@ -385,12 +424,14 @@ export const AnimatedIcon = forwardRef<AnimatedIconHandle, AnimatedIconProps>(
         }}
         animate={isSpinning ? { rotate: [0, 360] } : controls}
         initial="inactive"
-        whileHover={isSpinning ? undefined : (isMatched ? undefined : getIconSpecificHover())}
+        whileHover={isSpinning ? undefined : isMatched ? undefined : getIconSpecificHover()}
         variants={outerVariants}
         transition={
           isSpinning
             ? { repeat: Infinity, duration: 1.1, ease: 'linear' }
-            : (isMatched ? { duration: 0.25 } : { type: 'spring', stiffness: 480, damping: 26, mass: 0.75 })
+            : isMatched
+              ? { duration: 0.25 }
+              : { type: 'spring', stiffness: 480, damping: 26, mass: 0.75 }
         }
         onClick={onClick}
       >

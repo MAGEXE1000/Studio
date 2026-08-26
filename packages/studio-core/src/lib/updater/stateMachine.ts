@@ -22,7 +22,14 @@ export interface ActiveUpdateSession {
   updateType: 'updater' | 'apk' | 'both' | 'none';
   changelog: string | null;
   releaseNotes: string[] | StructuredReleaseNotes | null;
-  installStep?: 'idle' | 'downloading' | 'downloaded' | 'permission_settings' | 'installing' | 'completed' | 'failed';
+  installStep?:
+    | 'idle'
+    | 'downloading'
+    | 'downloaded'
+    | 'permission_settings'
+    | 'installing'
+    | 'completed'
+    | 'failed';
   downloadVerification?: 'pending' | 'verified' | 'failed';
   apkPath?: string | null;
   nativeInstallerTriggered?: boolean;
@@ -62,9 +69,11 @@ export function verifyAndCleanCaches() {
       if (!sem || downloadedVer === 'V' || downloadedVer === 'v') {
         localStorage.removeItem('studio:downloadedApkVersion');
         localStorage.removeItem('studio:downloadedApkPath');
-        releaseMetadataInspector.cacheSource = (releaseMetadataInspector.cacheSource || '') + ' | invalidated_apk';
+        releaseMetadataInspector.cacheSource =
+          (releaseMetadataInspector.cacheSource || '') + ' | invalidated_apk';
       } else {
-        releaseMetadataInspector.cacheSource = (releaseMetadataInspector.cacheSource || '') + ' | valid_apk';
+        releaseMetadataInspector.cacheSource =
+          (releaseMetadataInspector.cacheSource || '') + ' | valid_apk';
       }
     }
 
@@ -74,7 +83,9 @@ export function verifyAndCleanCaches() {
       try {
         const list = JSON.parse(dismissed);
         if (Array.isArray(list)) {
-          const cleanList = list.filter(v => typeof v === 'string' && parseSemver(v) !== null && v !== 'V' && v !== 'v');
+          const cleanList = list.filter(
+            (v) => typeof v === 'string' && parseSemver(v) !== null && v !== 'V' && v !== 'v'
+          );
           if (cleanList.length !== list.length) {
             localStorage.setItem('studio:dismissedVersions', JSON.stringify(cleanList));
           }
@@ -88,14 +99,22 @@ export function verifyAndCleanCaches() {
 
     // 4. Verify recovery versions
     const lastDismissedRecoveryVer = localStorage.getItem('studio:lastDismissedRecoveryVersion');
-    if (lastDismissedRecoveryVer && (!parseSemver(lastDismissedRecoveryVer) || lastDismissedRecoveryVer === 'V' || lastDismissedRecoveryVer === 'v')) {
+    if (
+      lastDismissedRecoveryVer &&
+      (!parseSemver(lastDismissedRecoveryVer) ||
+        lastDismissedRecoveryVer === 'V' ||
+        lastDismissedRecoveryVer === 'v')
+    ) {
       localStorage.removeItem('studio:lastDismissedRecoveryVersion');
       localStorage.removeItem('studio:lastDismissedRecoveryTimestamp');
     }
 
     // 5. Verify later version
     const laterUpdateVer = localStorage.getItem('studio:laterUpdateVersion');
-    if (laterUpdateVer && (!parseSemver(laterUpdateVer) || laterUpdateVer === 'V' || laterUpdateVer === 'v')) {
+    if (
+      laterUpdateVer &&
+      (!parseSemver(laterUpdateVer) || laterUpdateVer === 'V' || laterUpdateVer === 'v')
+    ) {
       localStorage.removeItem('studio:laterUpdateVersion');
     }
   } catch (e) {
@@ -133,8 +152,7 @@ export function loadPersistedSession(): ActiveUpdateSession | null {
         return parsed;
       }
     }
-  } catch (e) {
-  }
+  } catch (e) {}
   return null;
 }
 
@@ -238,15 +256,18 @@ const POST_INSTALL_SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes safety
       if (elapsed < POST_INSTALL_SESSION_TIMEOUT_MS) {
         postInstallSessionActive = true;
         postInstallSessionTimestamp = storedTimestamp;
-        postInstallSessionTimer = setTimeout(() => {
-          postInstallSessionActive = false;
-          postInstallSessionTimestamp = null;
-          postInstallSessionTimer = null;
-          try {
-            localStorage.removeItem(POST_INSTALL_VERSION_KEY);
-            localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
-          } catch (_) {}
-        }, Math.max(0, POST_INSTALL_SESSION_TIMEOUT_MS - elapsed));
+        postInstallSessionTimer = setTimeout(
+          () => {
+            postInstallSessionActive = false;
+            postInstallSessionTimestamp = null;
+            postInstallSessionTimer = null;
+            try {
+              localStorage.removeItem(POST_INSTALL_VERSION_KEY);
+              localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
+            } catch (_) {}
+          },
+          Math.max(0, POST_INSTALL_SESSION_TIMEOUT_MS - elapsed)
+        );
       } else {
         localStorage.removeItem(POST_INSTALL_VERSION_KEY);
         localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
@@ -257,8 +278,7 @@ const POST_INSTALL_SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes safety
       localStorage.removeItem(POST_INSTALL_VERSION_KEY);
       localStorage.removeItem(POST_INSTALL_TIMESTAMP_KEY);
     }
-  } catch (e) {
-  }
+  } catch (e) {}
 })();
 
 /**
@@ -310,17 +330,24 @@ export function isPostInstallSessionActive(): boolean {
     // (e.g., module re-evaluation in HMR). This is a safety net.
     try {
       if (storedVersion && storedVersion === APP_VERSION) {
-        const storedTimestamp = parseInt(localStorage.getItem(POST_INSTALL_TIMESTAMP_KEY) || '0', 10);
+        const storedTimestamp = parseInt(
+          localStorage.getItem(POST_INSTALL_TIMESTAMP_KEY) || '0',
+          10
+        );
         const elapsed = Date.now() - storedTimestamp;
         if (elapsed < POST_INSTALL_SESSION_TIMEOUT_MS) {
           postInstallSessionActive = true;
           postInstallSessionTimestamp = storedTimestamp;
-          logStateCheck(`isPostInstallSessionActive() RETURN true (restored from localStorage, elapsed=${elapsed}ms)`);
+          logStateCheck(
+            `isPostInstallSessionActive() RETURN true (restored from localStorage, elapsed=${elapsed}ms)`
+          );
           return true;
         }
       }
     } catch (_) {}
-    logStateCheck(`isPostInstallSessionActive() RETURN false (postInstallSessionActive=false, storedVersion=${storedVersion})`);
+    logStateCheck(
+      `isPostInstallSessionActive() RETURN false (postInstallSessionActive=false, storedVersion=${storedVersion})`
+    );
     return false;
   }
   logStateCheck('isPostInstallSessionActive() RETURN true (in-memory active)');
@@ -422,7 +449,7 @@ export function startUpdateSession(startedBy: string, trigger: string) {
     }
     return activeUpdateSession;
   }
-  
+
   let sId = 'session_' + Date.now();
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
     sId += '_' + crypto.randomUUID();
@@ -451,7 +478,7 @@ export function startUpdateSession(startedBy: string, trigger: string) {
     changelog: globalUpdateState.changelog,
     releaseNotes: globalUpdateState.releaseNotes,
   };
-  
+
   saveSession();
   return activeUpdateSession;
 }
@@ -544,7 +571,7 @@ export function updateGlobalState(patch: Partial<CentralizedUpdateState>) {
         workflowId: activePipelineContext ? String(activePipelineContext.checkId) : null,
         eventType: 'downloadProgress',
         caller: 'updateGlobalState',
-        reason: `Download progress: ${Math.round(patch.progress * 100)}%`
+        reason: `Download progress: ${Math.round(patch.progress * 100)}%`,
       });
     }
   }
@@ -593,7 +620,6 @@ export function setActivePipelineContext(ctx: typeof activePipelineContext) {
 
 function recordRejectedTransition(from: string, attempted: string, reason: string) {
   const now = Date.now();
-  
 
   UpdaterFlightRecorder.record({
     thread: 'js',
@@ -606,17 +632,21 @@ function recordRejectedTransition(from: string, attempted: string, reason: strin
     newState: attempted,
     reason: reason,
     warning: 'REJECTED_TRANSITION',
-    details: `Transition from ${from} to ${attempted} was rejected. Reason: ${reason}`
+    details: `Transition from ${from} to ${attempted} was rejected. Reason: ${reason}`,
   });
 }
 
 export function transitionToState(state: AppUpdateState, reason: string, failureReason?: string) {
-  console.log(`[UPDATER-TRACE] transitionToState() CALLED at ${performance.now().toFixed(0)}ms, state=${state}, reason=${reason}, failureReason=${failureReason || 'none'}`);
+  console.log(
+    `[UPDATER-TRACE] transitionToState() CALLED at ${performance.now().toFixed(0)}ms, state=${state}, reason=${reason}, failureReason=${failureReason || 'none'}`
+  );
   // Never allow transitioning to INSTALL_FAILED from IDLE or INSTALL_SUCCESS
   if (state === 'INSTALL_FAILED') {
     const current = globalUpdateState.updateState;
     if (current === 'IDLE' || current === 'INSTALL_SUCCESS') {
-      console.log(`[UPDATER-TRACE] transitionToState() RETURN blocked invalid INSTALL_FAILED from ${current}`);
+      console.log(
+        `[UPDATER-TRACE] transitionToState() RETURN blocked invalid INSTALL_FAILED from ${current}`
+      );
       return;
     }
   }
@@ -638,7 +668,7 @@ export function transitionToState(state: AppUpdateState, reason: string, failure
 
 function commitTransition(state: AppUpdateState, reason: string, failureReason?: string) {
   const current = globalUpdateState.updateState;
-  
+
   UpdaterFlightRecorder.record({
     eventType: 'fsmTransition',
     caller: 'commitTransition',
@@ -649,11 +679,10 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     previousState: current,
     newState: state,
     reason: reason,
-    details: JSON.stringify({ reason, failureReason })
+    details: JSON.stringify({ reason, failureReason }),
   });
 
-  
-  transitionListeners.forEach(l => l(current, state, reason));
+  transitionListeners.forEach((l) => l(current, state, reason));
   stopWatchdog();
 
   const now = Date.now();
@@ -688,7 +717,13 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
         isValid = ['FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'FETCH_APK_INFORMATION':
-        isValid = ['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL', 'RECOVERY', 'IDLE'].includes(state);
+        isValid = [
+          'DOWNLOAD_APK',
+          'VERIFY_SHA256',
+          'PREPARING_INSTALL',
+          'RECOVERY',
+          'IDLE',
+        ].includes(state);
         break;
       case 'DOWNLOAD_APK':
         isValid = ['VERIFY_SHA256', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
@@ -697,13 +732,23 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
         isValid = ['PREPARING_INSTALL', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
         break;
       case 'PREPARING_INSTALL':
-        isValid = ['WAITING_USER_CONFIRMATION', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        isValid = ['WAITING_USER_CONFIRMATION', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(
+          state
+        );
         break;
       case 'WAITING_USER_CONFIRMATION':
-        isValid = ['PACKAGEINSTALLER_VISIBLE', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        isValid = ['PACKAGEINSTALLER_VISIBLE', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(
+          state
+        );
         break;
       case 'PACKAGEINSTALLER_VISIBLE':
-        isValid = ['INSTALLING', 'INSTALL_CANCELLED', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
+        isValid = [
+          'INSTALLING',
+          'INSTALL_CANCELLED',
+          'INSTALL_FAILED',
+          'RECOVERY',
+          'IDLE',
+        ].includes(state);
         break;
       case 'INSTALLING':
         isValid = ['INSTALL_SUCCESS', 'INSTALL_FAILED', 'RECOVERY', 'IDLE'].includes(state);
@@ -718,7 +763,13 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
         isValid = ['RECOVERY', 'IDLE'].includes(state);
         break;
       case 'RECOVERY':
-        isValid = ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'DOWNLOAD_APK', 'WAITING_USER_CONFIRMATION', 'IDLE'].includes(state);
+        isValid = [
+          'INITIALIZING',
+          'FETCH_REMOTE_METADATA',
+          'DOWNLOAD_APK',
+          'WAITING_USER_CONFIRMATION',
+          'IDLE',
+        ].includes(state);
         break;
       default:
         isValid = false;
@@ -732,7 +783,7 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     'PREPARING_INSTALL',
     'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE',
-    'INSTALLING'
+    'INSTALLING',
   ];
   const checkInitStates = [
     'INITIALIZING',
@@ -741,7 +792,7 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     'VALIDATE_METADATA',
     'COMPARE_VERSION',
     'UPDATE_AVAILABLE',
-    'NO_UPDATE_AVAILABLE'
+    'NO_UPDATE_AVAILABLE',
   ];
 
   // ==================================================
@@ -750,12 +801,16 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   // While an installation session is active, NO transition may move the FSM to
   // IDLE, NO_UPDATE_AVAILABLE, or UPDATE_AVAILABLE unless explicitly closed.
   const isNode = typeof process !== 'undefined' && process.versions && !!process.versions.node;
-  if ((downloadInstallStates.includes(current) || isPostInstallSessionActive()) &&
-      !isNode &&
-      reason !== 'Reset update state' &&
-      reason !== 'Maximum recovery attempts reached') {
+  if (
+    (downloadInstallStates.includes(current) || isPostInstallSessionActive()) &&
+    !isNode &&
+    reason !== 'Reset update state' &&
+    reason !== 'Maximum recovery attempts reached'
+  ) {
     if (state === 'IDLE' || state === 'NO_UPDATE_AVAILABLE' || state === 'UPDATE_AVAILABLE') {
-      console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] FSM Hard Guarantee Violation: Blocked attempt to transition from ${current} to ${state} while an installation session is active. Reason: ${reason}`);
+      console.error(
+        `[HIGH SEVERITY UPDATE STATE BLOCK] FSM Hard Guarantee Violation: Blocked attempt to transition from ${current} to ${state} while an installation session is active. Reason: ${reason}`
+      );
       recordRejectedTransition(current, state, `FSM_HARD_GUARANTEE_VIOLATION: ${reason}`);
       state = current;
       isValid = true; // We intercepted it; treat the preservation of current state as the final resolution
@@ -763,7 +818,9 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   }
 
   if (!isValid) {
-    console.error(`[HIGH SEVERITY UPDATE STATE BLOCK] Invalid transition blocked: ${current} -> ${state} (Reason: ${reason}). Keeping current state.`);
+    console.error(
+      `[HIGH SEVERITY UPDATE STATE BLOCK] Invalid transition blocked: ${current} -> ${state} (Reason: ${reason}). Keeping current state.`
+    );
     recordRejectedTransition(current, state, `INVALID_TRANSITION_BLOCKED: ${reason}`);
     // DESTRUCTIVE FALLBACK REMOVED.
     // Invalid transitions must NEVER destroy active session state.
@@ -786,11 +843,17 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   }
   // Calculate duration of previous state
 
-  const isUnexpectedResetToIdle = state === 'IDLE' && [
-    'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256',
-    'PREPARING_INSTALL', 'WAITING_USER_CONFIRMATION',
-    'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'
-  ].includes(current);
+  const isUnexpectedResetToIdle =
+    state === 'IDLE' &&
+    [
+      'FETCH_APK_INFORMATION',
+      'DOWNLOAD_APK',
+      'VERIFY_SHA256',
+      'PREPARING_INSTALL',
+      'WAITING_USER_CONFIRMATION',
+      'PACKAGEINSTALLER_VISIBLE',
+      'INSTALLING',
+    ].includes(current);
 
   const durationVal = 0;
 
@@ -804,16 +867,23 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     newState: state,
     reason: reason + (isUnexpectedResetToIdle ? ' [UNEXPECTED_RESET_TO_IDLE]' : ''),
     duration: durationVal,
-    warning: (isUnexpectedResetToIdle || !isValid) ? (isUnexpectedResetToIdle ? 'UNEXPECTED_RESET_TO_IDLE' : 'INVALID_TRANSITION') : null,
+    warning:
+      isUnexpectedResetToIdle || !isValid
+        ? isUnexpectedResetToIdle
+          ? 'UNEXPECTED_RESET_TO_IDLE'
+          : 'INVALID_TRANSITION'
+        : null,
     error: failureReason || null,
     stack: stackTrace,
-    details: `Transition from ${current} to ${state}. isUnexpectedResetToIdle=${isUnexpectedResetToIdle}, isValid=${isValid}`
+    details: `Transition from ${current} to ${state}. isUnexpectedResetToIdle=${isUnexpectedResetToIdle}, isValid=${isValid}`,
   });
 
-  
-
   // Setup watchdog timers for transient states
-  if (state === 'INITIALIZING' || state === 'FETCH_REMOTE_METADATA' || state === 'VALIDATE_METADATA') {
+  if (
+    state === 'INITIALIZING' ||
+    state === 'FETCH_REMOTE_METADATA' ||
+    state === 'VALIDATE_METADATA'
+  ) {
     watchdogTimer = setTimeout(() => {
       if (globalUpdateState.updateState === state) {
         handleWatchdogTimeout(`App Update initialization/fetch timed out (15s) at state ${state}.`);
@@ -830,41 +900,52 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   } else if (state === 'WAITING_USER_CONFIRMATION') {
     // P4: 5-minute watchdog for user confirmation screen.
     // If the user never taps Update/Install, recover after 5 minutes.
-    watchdogTimer = setTimeout(() => {
-      if (globalUpdateState.updateState === 'WAITING_USER_CONFIRMATION') {
-        handleWatchdogTimeout('User did not confirm update within 5 minutes.');
-      }
-    }, 5 * 60 * 1000);
+    watchdogTimer = setTimeout(
+      () => {
+        if (globalUpdateState.updateState === 'WAITING_USER_CONFIRMATION') {
+          handleWatchdogTimeout('User did not confirm update within 5 minutes.');
+        }
+      },
+      5 * 60 * 1000
+    );
   } else if (state === 'PACKAGEINSTALLER_VISIBLE') {
     // P4: 3-minute watchdog for native PackageInstaller dialog.
     // Checks native state before timing out to prevent false positives.
-    watchdogTimer = setTimeout(async () => {
-      if (globalUpdateState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
-        try {
-          const { AppInstaller } = await import('../apkDownloader');
-          const check = await AppInstaller.isInstallActive();
-          if (check.active) {
-            watchdogTimer = setTimeout(() => {
-              if (globalUpdateState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
-                handleWatchdogTimeout('PackageInstaller dialog timed out (5min total).');
-              }
-            }, 2 * 60 * 1000);
-            return;
-          }
-          // Not active — check if there's already a result
-          const result = await AppInstaller.getLastInstallResult();
-          if (result.statusCode === 0) {
-            transitionToState('INSTALL_SUCCESS', 'Watchdog detected install success');
-            return;
-          } else if (result.statusCode > 0) {
-            transitionToState('INSTALL_FAILED', `Watchdog detected install failure: ${result.statusMessage || result.statusCode}`);
-            return;
-          }
-        } catch (err) {
+    watchdogTimer = setTimeout(
+      async () => {
+        if (globalUpdateState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+          try {
+            const { AppInstaller } = await import('../apkDownloader');
+            const check = await AppInstaller.isInstallActive();
+            if (check.active) {
+              watchdogTimer = setTimeout(
+                () => {
+                  if (globalUpdateState.updateState === 'PACKAGEINSTALLER_VISIBLE') {
+                    handleWatchdogTimeout('PackageInstaller dialog timed out (5min total).');
+                  }
+                },
+                2 * 60 * 1000
+              );
+              return;
+            }
+            // Not active — check if there's already a result
+            const result = await AppInstaller.getLastInstallResult();
+            if (result.statusCode === 0) {
+              transitionToState('INSTALL_SUCCESS', 'Watchdog detected install success');
+              return;
+            } else if (result.statusCode > 0) {
+              transitionToState(
+                'INSTALL_FAILED',
+                `Watchdog detected install failure: ${result.statusMessage || result.statusCode}`
+              );
+              return;
+            }
+          } catch (err) {}
+          handleWatchdogTimeout('PackageInstaller dialog confirmation timed out (3min).');
         }
-        handleWatchdogTimeout('PackageInstaller dialog confirmation timed out (3min).');
-      }
-    }, 3 * 60 * 1000);
+      },
+      3 * 60 * 1000
+    );
   } else if (state === 'INSTALLING') {
     watchdogTimer = setTimeout(async () => {
       if (globalUpdateState.updateState === 'INSTALLING') {
@@ -874,13 +955,14 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
           if (check.active) {
             watchdogTimer = setTimeout(() => {
               if (globalUpdateState.updateState === 'INSTALLING') {
-                handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
+                handleWatchdogTimeout(
+                  'PackageInstaller installation confirmation timed out (120s).'
+                );
               }
             }, 120000);
             return;
           }
-        } catch (err) {
-        }
+        } catch (err) {}
         handleWatchdogTimeout('PackageInstaller installation confirmation timed out (120s).');
       }
     }, 120000);
@@ -895,7 +977,7 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     'PREPARING_INSTALL',
     'WAITING_USER_CONFIRMATION',
     'PACKAGEINSTALLER_VISIBLE',
-    'INSTALLING'
+    'INSTALLING',
   ];
   if (!activeUpdateSession && activeFlowStates.includes(state)) {
     startUpdateSession('automatic', `FSM Transition to ${state}`);
@@ -904,13 +986,17 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   if (activeUpdateSession) {
     activeUpdateSession.previousState = current;
     activeUpdateSession.currentState = state;
-    if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY', 'IDLE'].includes(state)) {
+    if (
+      ['INSTALL_SUCCESS', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY', 'IDLE'].includes(state)
+    ) {
       activeUpdateSession = null;
       try {
         localStorage.removeItem('studio:active_update_session');
       } catch (_) {}
     } else {
-      console.log(`[UPDATER-TRACE] transitionToState() COMMITTED ${current} -> ${state} (reason=${reason})`);
+      console.log(
+        `[UPDATER-TRACE] transitionToState() COMMITTED ${current} -> ${state} (reason=${reason})`
+      );
       saveSession();
     }
   }
@@ -923,7 +1009,15 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
     activatePostInstallSession(); // Persists target version to localStorage for cold-start detection
     try {
       if (globalUpdateState.releaseNotes) {
-        localStorage.setItem('studio:last_installed_release_notes', JSON.stringify(globalUpdateState.releaseNotes));
+        localStorage.setItem(
+          'studio:last_installed_release_notes',
+          JSON.stringify(globalUpdateState.releaseNotes)
+        );
+      } else if (globalUpdateState.changelog) {
+        localStorage.setItem(
+          'studio:last_installed_release_notes',
+          JSON.stringify(globalUpdateState.changelog)
+        );
       }
     } catch (_) {}
   }
@@ -946,20 +1040,41 @@ function commitTransition(state: AppUpdateState, reason: string, failureReason?:
   globalUpdateState = {
     ...globalUpdateState,
     updateState: state,
-    loading: ['INITIALIZING', 'FETCH_REMOTE_METADATA', 'VALIDATE_METADATA', 'COMPARE_VERSION', 'FETCH_APK_INFORMATION', 'DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL', 'INSTALLING'].includes(state),
+    loading: [
+      'INITIALIZING',
+      'FETCH_REMOTE_METADATA',
+      'VALIDATE_METADATA',
+      'COMPARE_VERSION',
+      'FETCH_APK_INFORMATION',
+      'DOWNLOAD_APK',
+      'VERIFY_SHA256',
+      'PREPARING_INSTALL',
+      'INSTALLING',
+    ].includes(state),
     error: ['INSTALL_FAILED', 'RECOVERY'].includes(state)
-      ? (failureReason || globalUpdateState.error)
-      : (state === 'IDLE'
-          ? (failureReason || null)
-          : (failureReason || globalUpdateState.error)),
+      ? failureReason || globalUpdateState.error
+      : state === 'IDLE'
+        ? failureReason || null
+        : failureReason || globalUpdateState.error,
   };
 
   try {
     if (typeof localStorage !== 'undefined') {
-      const isActive = ['DOWNLOAD_APK', 'VERIFY_SHA256', 'PREPARING_INSTALL', 'WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE', 'INSTALLING'].includes(state);
+      const isActive = [
+        'DOWNLOAD_APK',
+        'VERIFY_SHA256',
+        'PREPARING_INSTALL',
+        'WAITING_USER_CONFIRMATION',
+        'PACKAGEINSTALLER_VISIBLE',
+        'INSTALLING',
+      ].includes(state);
       if (isActive) {
         localStorage.setItem('studio:install_in_progress', 'true');
-      } else if (['INSTALL_SUCCESS', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY', 'IDLE'].includes(state)) {
+      } else if (
+        ['INSTALL_SUCCESS', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY', 'IDLE'].includes(
+          state
+        )
+      ) {
         localStorage.removeItem('studio:install_in_progress');
       }
     }
@@ -998,7 +1113,7 @@ export function handleWatchdogTimeout(errorMsg: string) {
   updateGlobalState({
     error: errorMsg,
     consecutiveFailures: newFailureCount,
-    recoveryMode: true
+    recoveryMode: true,
   });
   transitionToState('RECOVERY', 'Watchdog timeout', errorMsg);
 }
@@ -1013,7 +1128,7 @@ export function isUpdateDismissed(version: string, isManual = false): boolean {
     if (!Array.isArray(dismissedList) || !dismissedList.includes(version)) {
       return false;
     }
-    
+
     // Checked if version is dismissed, check exponential timeout
     const storedVer = localStorage.getItem('studio:dismissed_update_version');
     if (storedVer === version) {
@@ -1022,7 +1137,7 @@ export function isUpdateDismissed(version: string, isManual = false): boolean {
       const timestampStr = localStorage.getItem('studio:dismissed_update_timestamp');
       const timestamp = timestampStr ? parseInt(timestampStr, 10) : 0;
       const elapsed = Date.now() - timestamp;
-      
+
       let interval = 0;
       if (count === 1) {
         interval = 15 * 60 * 1000; // 15 min
@@ -1031,7 +1146,7 @@ export function isUpdateDismissed(version: string, isManual = false): boolean {
       } else {
         interval = 24 * 60 * 60 * 1000; // 24 hours
       }
-      
+
       return elapsed < interval;
     }
     return false;
@@ -1048,4 +1163,3 @@ registerStateMachineAccessors({
   getTransitionListeners: () => transitionListeners,
   startUpdateSession: (triggerType, reason) => startUpdateSession(triggerType, reason),
 });
-

@@ -188,8 +188,40 @@ for (const script of qualityScripts) {
 }
 console.log('release-firebase: ✓ All preflight code quality & version consistency checks passed.');
 
-const releaseNotesPath = path.join(repoRoot, 'release-notes.md');
-const sectionContent = existsSync(releaseNotesPath) ? readFileSync(releaseNotesPath, 'utf8') : '';
+// Extract section for target version directly from CHANGELOG.md as single source of truth
+const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
+let sectionContent = '';
+if (existsSync(changelogPath)) {
+  const changelogText = readFileSync(changelogPath, 'utf8');
+  const changelogRawLines = changelogText.split(/\r?\n/);
+  let inSection = false;
+  const sectionLines = [];
+
+  for (const rawLine of changelogRawLines) {
+    const isHeader = rawLine.match(/^(?:#|##)\s+(?:Version\s+)?v?(\d+\.\d+\.\d+)/i);
+    if (isHeader) {
+      if (inSection) break;
+      if (isHeader[1] === version) {
+        inSection = true;
+        continue;
+      }
+    }
+    if (inSection) {
+      sectionLines.push(rawLine);
+    }
+  }
+  if (inSection && sectionLines.length > 0) {
+    sectionContent = sectionLines.join('\n').trim();
+  }
+}
+
+if (!sectionContent) {
+  const releaseNotesPath = path.join(repoRoot, 'release-notes.md');
+  if (existsSync(releaseNotesPath)) {
+    sectionContent = readFileSync(releaseNotesPath, 'utf8').trim();
+  }
+}
+
 const sectionLines = sectionContent.split('\n');
 const categories = { added: [], improved: [], fixed: [], changed: [], security: [] };
 let currentCategory = null;
@@ -216,7 +248,7 @@ for (const rawLine of sectionLines) {
     continue;
   }
 
-  const bMatch = line.match(/^[-*]\s+(.*)$/);
+  const bMatch = line.match(/^[-*•]\s+(.*)$/);
   if (bMatch) {
     const bulletContent = bMatch[1].trim();
     if (currentCategory) {
@@ -228,12 +260,12 @@ for (const rawLine of sectionLines) {
 
 if (flatBullets.length === 0) {
   console.error(
-    `\x1b[31mrelease-firebase: âœ— Release blocked: changelog entry for version ${version} has no meaningful bullet points. Add real release notes before publishing.\x1b[0m`
+    `\x1b[31mrelease-firebase: ✗ Release blocked: changelog entry for version ${version} has no meaningful bullet points. Add real release notes before publishing.\x1b[0m`
   );
   process.exit(1);
 }
 
-const changelog = flatBullets.map((b) => `â€¢ ${b}`).join('\n');
+const changelog = flatBullets.map((b) => `• ${b}`).join('\n');
 const releaseNotes = {
   added: categories.added.length > 0 ? categories.added : undefined,
   improved: categories.improved.length > 0 ? categories.improved : undefined,
@@ -242,23 +274,22 @@ const releaseNotes = {
 };
 
 console.log(
-  `release-firebase: âœ“ Validated changelog for version ${version}. Found ${flatBullets.length} bullets.`
+  `release-firebase: ✓ Validated changelog for version ${version}. Found ${flatBullets.length} bullets.`
 );
 
-// Idempotent write: only update release-notes.md if content would actually change.
-// sectionContent is read from release-notes.md (line 191) which already ends with '\n'.
-// Appending '\n' directly always produces sectionContent + '\n\n', which never equals
-// the existing file content — making the comparison always fire and the file always dirty.
-// Fix: normalise with trimEnd() to strip any trailing whitespace before appending the
-// canonical single trailing newline. Invariant: release-notes.md has exactly one trailing '\n'.
+// Idempotent write: format canonical release-notes.md
+const releaseDateMatch = sectionContent.match(/Release Date:\s*(.+)/);
+const releaseDate = releaseDateMatch ? releaseDateMatch[1].trim() : new Date().toISOString().slice(0, 10);
+const bodyAfterDate = sectionContent.replace(/^Release Date:[^\n]*\n*/, '').trim();
+const canonicalReleaseNotesMd = `# Version ${version}\n\nRelease Date: ${releaseDate}\n\n${bodyAfterDate}\n`;
+
 const releaseNotesMdPath = path.join(repoRoot, 'release-notes.md');
-const releaseNotesMdContent = sectionContent.trimEnd() + '\n';
 const existingReleaseNotesMd = existsSync(releaseNotesMdPath) ? readFileSync(releaseNotesMdPath, 'utf8') : null;
-if (existingReleaseNotesMd !== releaseNotesMdContent) {
-  writeFileSync(releaseNotesMdPath, releaseNotesMdContent, 'utf8');
-  console.log(`release-firebase: \u2713 Wrote ${path.relative(repoRoot, releaseNotesMdPath)} (content changed)`);
+if (existingReleaseNotesMd !== canonicalReleaseNotesMd) {
+  writeFileSync(releaseNotesMdPath, canonicalReleaseNotesMd, 'utf8');
+  console.log(`release-firebase: ✓ Wrote ${path.relative(repoRoot, releaseNotesMdPath)} (content changed)`);
 } else {
-  console.log(`release-firebase: \u2713 ${path.relative(repoRoot, releaseNotesMdPath)} already up to date (idempotent skip)`);
+  console.log(`release-firebase: ✓ ${path.relative(repoRoot, releaseNotesMdPath)} already up to date (idempotent skip)`);
 }
 
 // Write temp notes file (gitignored, untracked — safe to write unconditionally)
@@ -268,7 +299,7 @@ writeFileSync(
   JSON.stringify({ changelog, releaseNotes, description: changelog }, null, 2) + '\n',
   'utf8'
 );
-console.log(`release-firebase: âœ“ Wrote temporary notes to ${tempNotesPath}`);
+console.log(`release-firebase: ✓ Wrote temporary notes to ${tempNotesPath}`);
 
 // C. Verify build.gradle consistency and cross-check against previous release
 let gradleVersionName = '';

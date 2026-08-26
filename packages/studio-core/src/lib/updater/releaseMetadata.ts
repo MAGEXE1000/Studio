@@ -1,9 +1,155 @@
 import { Capacitor } from '@capacitor/core';
-import { APP_VERSION, compareSemver, parseAndNormalizeVersion, parseSemver } from '../appVersion';
+import {
+  APP_VERSION,
+  compareSemver,
+  parseAndNormalizeVersion,
+  parseSemver,
+  sanitizeUTF8String,
+} from '../appVersion';
 import { updateDebugLogs } from './diagnostics';
 import { StructuredReleaseNotes, globalUpdateState, activeUpdateSession } from './stateMachine';
 import { logRawSource } from './versionLogger';
 import { UpdaterFlightRecorder } from './flightRecorder';
+
+/**
+ * Normalizes and extracts structured release notes, bullet items, and formatted changelog
+ * from any input format (StructuredReleaseNotes object, string array, markdown text, or bulleted string).
+ */
+export function extractStructuredReleaseNotes(input: unknown): {
+  releaseNotes: StructuredReleaseNotes;
+  bullets: string[];
+  formattedChangelog: string;
+} {
+  const categories: Required<StructuredReleaseNotes> = {
+    added: [],
+    improved: [],
+    fixed: [],
+    changed: [],
+  };
+  const flatBullets: string[] = [];
+
+  if (!input) {
+    return { releaseNotes: {}, bullets: [], formattedChangelog: '' };
+  }
+
+  // 1. StructuredReleaseNotes object format
+  if (typeof input === 'object' && !Array.isArray(input)) {
+    const obj = input as any;
+    const catKeys: (keyof StructuredReleaseNotes)[] = ['added', 'improved', 'fixed', 'changed'];
+    for (const key of catKeys) {
+      if (Array.isArray(obj[key])) {
+        for (const item of obj[key]) {
+          if (typeof item === 'string') {
+            const clean = sanitizeUTF8String(item).trim();
+            if (clean) {
+              categories[key].push(clean);
+              const label = key.charAt(0).toUpperCase() + key.slice(1);
+              flatBullets.push(`[${label}] ${clean}`);
+            }
+          }
+        }
+      }
+    }
+  } else if (Array.isArray(input)) {
+    // 2. Array of strings
+    for (const raw of input) {
+      if (typeof raw !== 'string') continue;
+      const clean = sanitizeUTF8String(raw).trim();
+      if (!clean) continue;
+
+      const tagMatch = clean.match(
+        /^\[(Added|Improved|Fixed|Changed|Bug\s*Fixes|Fixes)\]\s*(.*)$/i
+      );
+      if (tagMatch) {
+        const tag = tagMatch[1].toLowerCase();
+        const content = tagMatch[2].trim();
+        if (tag.startsWith('add')) categories.added.push(content);
+        else if (tag.startsWith('improv')) categories.improved.push(content);
+        else if (tag.startsWith('fix') || tag.startsWith('bug')) categories.fixed.push(content);
+        else categories.changed.push(content);
+        flatBullets.push(clean);
+      } else {
+        categories.changed.push(clean);
+        flatBullets.push(clean);
+      }
+    }
+  } else if (typeof input === 'string') {
+    // 3. String (Markdown, bullet points, or raw changelog body)
+    const cleanedText = sanitizeUTF8String(input);
+    const lines = cleanedText.split(/\r?\n/);
+    let currentCategory: keyof StructuredReleaseNotes = 'changed';
+    let hadExplicitHeading = false;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) continue;
+
+      // Skip version headers e.g. # Version 4.5.43 or ## 4.5.43
+      if (/^(?:#|##)\s*(?:Version\s+)?v?\d+\.\d+\.\d+/i.test(line)) continue;
+      // Skip Release Date: line
+      if (/^Release\s+Date:/i.test(line)) continue;
+
+      // Check category headings e.g. ### Fixed, ### Added, etc.
+      const hMatch = line.match(
+        /^(?:###|##|\*\*)\s*(Added|Improved|Fixed|Changes|Bug\s*Fixes|Fixes|Changed|Features|Security)\b/i
+      );
+      if (hMatch) {
+        const heading = hMatch[1].toLowerCase();
+        hadExplicitHeading = true;
+        if (heading.startsWith('add') || heading.startsWith('feat')) currentCategory = 'added';
+        else if (heading.startsWith('improv')) currentCategory = 'improved';
+        else if (heading.startsWith('fix') || heading.startsWith('bug')) currentCategory = 'fixed';
+        else if (heading.startsWith('change')) currentCategory = 'changed';
+        else currentCategory = 'changed';
+        continue;
+      }
+
+      // Check bullet items e.g. - item, * item, • item, or numbered 1. item
+      const bulletMatch = line.match(/^[-*•\d.]+\s*(.*)$/);
+      const bulletContent = (bulletMatch ? bulletMatch[1] : line).trim();
+      if (!bulletContent) continue;
+
+      // Check if bullet content has inline tag e.g. [Fixed] or Category:
+      const inlineTagMatch = bulletContent.match(
+        /^\[(Added|Improved|Fixed|Changed|Bug\s*Fixes|Fixes)\]\s*(.*)$/i
+      );
+      if (inlineTagMatch) {
+        const tag = inlineTagMatch[1].toLowerCase();
+        const content = inlineTagMatch[2].trim();
+        let targetCat: keyof StructuredReleaseNotes = currentCategory;
+        if (tag.startsWith('add')) targetCat = 'added';
+        else if (tag.startsWith('improv')) targetCat = 'improved';
+        else if (tag.startsWith('fix') || tag.startsWith('bug')) targetCat = 'fixed';
+        else targetCat = 'changed';
+
+        categories[targetCat].push(content);
+        flatBullets.push(bulletContent);
+      } else {
+        categories[currentCategory].push(bulletContent);
+        if (hadExplicitHeading) {
+          const label = currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1);
+          flatBullets.push(`[${label}] ${bulletContent}`);
+        } else {
+          flatBullets.push(bulletContent);
+        }
+      }
+    }
+  }
+
+  const structuredResult: StructuredReleaseNotes = {};
+  if (categories.added.length > 0) structuredResult.added = categories.added;
+  if (categories.improved.length > 0) structuredResult.improved = categories.improved;
+  if (categories.fixed.length > 0) structuredResult.fixed = categories.fixed;
+  if (categories.changed.length > 0) structuredResult.changed = categories.changed;
+
+  const formattedChangelog = flatBullets.map((b) => (b.startsWith('•') ? b : `• ${b}`)).join('\n');
+
+  return {
+    releaseNotes: structuredResult,
+    bullets: flatBullets,
+    formattedChangelog,
+  };
+}
 
 export interface RemoteVersionInfo {
   version: string;
@@ -64,8 +210,8 @@ async function fetchOne(url: string, signal: AbortSignal): Promise<RemoteVersion
       cache: 'no-store',
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
+        Pragma: 'no-cache',
+        Expires: '0',
       },
       signal,
     });
@@ -114,12 +260,16 @@ async function fetchOne(url: string, signal: AbortSignal): Promise<RemoteVersion
       updateDebugLogs.fetchedAppReleaseJson = normalizedVersion;
     }
 
+    const rawNotesInput = obj.releaseNotes || obj.changelog || obj.description || obj.whatsNew;
+    const extractedNotes = extractStructuredReleaseNotes(rawNotesInput);
+
     const changelog =
-      typeof obj.description === 'string'
-        ? obj.description
-        : typeof obj.changelog === 'string'
-          ? obj.changelog
-          : undefined;
+      typeof obj.changelog === 'string' && obj.changelog.trim().length > 0
+        ? sanitizeUTF8String(obj.changelog).trim()
+        : typeof obj.description === 'string' && obj.description.trim().length > 0
+          ? sanitizeUTF8String(obj.description).trim()
+          : extractedNotes.formattedChangelog || undefined;
+
     const downloadUrl =
       typeof obj.downloadUrl === 'string'
         ? obj.downloadUrl
@@ -221,36 +371,8 @@ async function fetchOne(url: string, signal: AbortSignal): Promise<RemoteVersion
               ? parseInt(obj.version_code, 10)
               : undefined;
 
-    let parsedReleaseNotes: string[] | StructuredReleaseNotes | undefined = undefined;
-    if (obj.releaseNotes) {
-      if (Array.isArray(obj.releaseNotes)) {
-        parsedReleaseNotes = obj.releaseNotes.filter(
-          (item: any) => typeof item === 'string'
-        ) as string[];
-      } else if (typeof obj.releaseNotes === 'object') {
-        const rnObj = obj.releaseNotes as any;
-        const notesObj: StructuredReleaseNotes = {};
-        if (Array.isArray(rnObj.added)) {
-          notesObj.added = rnObj.added.filter((item: any) => typeof item === 'string') as string[];
-        }
-        if (Array.isArray(rnObj.improved)) {
-          notesObj.improved = rnObj.improved.filter(
-            (item: any) => typeof item === 'string'
-          ) as string[];
-        }
-        if (Array.isArray(rnObj.fixed)) {
-          notesObj.fixed = rnObj.fixed.filter((item: any) => typeof item === 'string') as string[];
-        }
-        if (Array.isArray(rnObj.changed)) {
-          notesObj.changed = rnObj.changed.filter(
-            (item: any) => typeof item === 'string'
-          ) as string[];
-        }
-        if (notesObj.added || notesObj.improved || notesObj.fixed || notesObj.changed) {
-          parsedReleaseNotes = notesObj;
-        }
-      }
-    }
+    const parsedReleaseNotes: StructuredReleaseNotes | undefined =
+      Object.keys(extractedNotes.releaseNotes).length > 0 ? extractedNotes.releaseNotes : undefined;
 
     const resultObj: RemoteVersionInfo = {
       version: normalizedVersion,
@@ -428,14 +550,16 @@ async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersion
             apkSha256 = match[1].toLowerCase();
           }
         }
-      } catch (shaErr) {
-      }
+      } catch (shaErr) {}
     }
+
+    const rawNotesInput = targetRelease.body || targetRelease.name || '';
+    const extractedNotes = extractStructuredReleaseNotes(rawNotesInput);
 
     const info: RemoteVersionInfo = {
       version,
       versionCode,
-      changelog: targetRelease.body || '',
+      changelog: extractedNotes.formattedChangelog || targetRelease.body || '',
       mandatory: false,
       downloadUrl: apkAsset.browser_download_url,
       apkUrl: apkAsset.browser_download_url,
@@ -446,6 +570,10 @@ async function fetchLatestFromGitHub(signal: AbortSignal): Promise<RemoteVersion
       updateType: 'apk',
       tag_name: targetRelease.tag_name,
       name: targetRelease.name || `Studio v${version}`,
+      releaseNotes:
+        Object.keys(extractedNotes.releaseNotes).length > 0
+          ? extractedNotes.releaseNotes
+          : undefined,
     };
 
     logPipelineTrace(caller, 'RELEASE_METADATA_OBJECT', { source: 'github' }, info);
@@ -512,24 +640,32 @@ export async function fetchRemoteVersion(signal?: AbortSignal): Promise<RemoteVe
             });
         });
       });
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   // 2. Query GitHub releases to ensure we pick the highest available release
   let githubRes: RemoteVersionInfo | null = null;
   try {
     githubRes = await fetchLatestFromGitHub(sig);
-  } catch (err) {
-  }
+  } catch (err) {}
 
   if (firebaseRes && githubRes && firebaseRes.version && githubRes.version) {
     const comp = compareSemver(githubRes.version, firebaseRes.version);
     if (comp > 0) {
-      logPipelineTrace(caller, 'METADATA_SOURCE_SELECTION', { firebase: firebaseRes.version, github: githubRes.version }, { selected: 'github' });
+      logPipelineTrace(
+        caller,
+        'METADATA_SOURCE_SELECTION',
+        { firebase: firebaseRes.version, github: githubRes.version },
+        { selected: 'github' }
+      );
       return githubRes;
     }
-    logPipelineTrace(caller, 'METADATA_SOURCE_SELECTION', { firebase: firebaseRes.version, github: githubRes.version }, { selected: 'firebase' });
+    logPipelineTrace(
+      caller,
+      'METADATA_SOURCE_SELECTION',
+      { firebase: firebaseRes.version, github: githubRes.version },
+      { selected: 'firebase' }
+    );
     return firebaseRes;
   }
 

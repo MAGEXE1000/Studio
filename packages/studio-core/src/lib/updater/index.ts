@@ -83,6 +83,7 @@ export {
   versionJsonUrls,
   validateRemoteMetadata,
   logPipelineTrace,
+  extractStructuredReleaseNotes,
 } from './releaseMetadata';
 export type { RemoteVersionInfo } from './releaseMetadata';
 

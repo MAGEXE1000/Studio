@@ -128,8 +128,10 @@ export function validateChangelog(options = {}) {
     }
   }
 
-  // 8. Update release-notes.md to match
-  fs.writeFileSync(releaseNotesPath, `# Version ${versionName}\n\nRelease Date: ${dateMatch[1]}\n\n` + sectionText + '\n', 'utf8');
+  // 8. Update release-notes.md to match canonical format
+  const bodyAfterDate = sectionText.replace(/^Release Date:[^\n]*\n*/, '').trim();
+  const canonicalContent = `# Version ${versionName}\n\nRelease Date: ${dateMatch[1]}\n\n${bodyAfterDate}\n`;
+  fs.writeFileSync(releaseNotesPath, canonicalContent, 'utf8');
   console.log(`✓ release-notes.md synced with CHANGELOG.md entry for v${versionName}`);
   console.log(`✓ RELEASE CHANGELOG VALIDATION PASSED for v${versionName}`);
 

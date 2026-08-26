@@ -52,9 +52,74 @@ const versionInfo = getAppVersionInfo();
 const version = versionInfo.nativeVersion;
 const webVersion = versionInfo.webVersion;
 
-// Read changelog description and releaseNotes from temp notes JSON if it exists, otherwise from version.json
+// Function to extract release notes directly from CHANGELOG.md for the target version
+function parseChangelogForVersion(targetVersion) {
+  const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
+  if (!fs.existsSync(changelogPath)) return null;
+
+  const rawText = fs.readFileSync(changelogPath, 'utf8');
+  const lines = rawText.split(/\r?\n/);
+  let inSection = false;
+  const sectionLines = [];
+
+  for (const rawLine of lines) {
+    const isHeader = rawLine.match(/^(?:#|##)\s+(?:Version\s+)?v?(\d+\.\d+\.\d+)/i);
+    if (isHeader) {
+      if (inSection) break;
+      if (isHeader[1] === targetVersion) {
+        inSection = true;
+        continue;
+      }
+    }
+    if (inSection) {
+      sectionLines.push(rawLine);
+    }
+  }
+
+  if (!inSection || sectionLines.length === 0) return null;
+
+  const categories = { added: [], improved: [], fixed: [], changed: [] };
+  let currentCategory = null;
+  const flatBullets = [];
+
+  for (const rawLine of sectionLines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const hMatch = line.match(/^###\s+(Added|Improved|Fixed|Changes|Bug\s*Fixes|Fixes|Changed)\b/i);
+    if (hMatch) {
+      const heading = hMatch[1].toLowerCase();
+      if (heading.startsWith('add')) currentCategory = 'added';
+      else if (heading.startsWith('improv')) currentCategory = 'improved';
+      else if (heading.startsWith('fix') || heading.startsWith('bug')) currentCategory = 'fixed';
+      else if (heading.startsWith('change')) currentCategory = 'changed';
+      else currentCategory = null;
+      continue;
+    }
+    const bMatch = line.match(/^[-*•]\s+(.*)$/);
+    if (bMatch) {
+      const bulletContent = bMatch[1].trim();
+      if (currentCategory) categories[currentCategory].push(bulletContent);
+      flatBullets.push(bulletContent);
+    }
+  }
+
+  if (flatBullets.length === 0) return null;
+
+  return {
+    changelog: flatBullets.map((b) => `• ${b}`).join('\n'),
+    releaseNotes: {
+      added: categories.added.length > 0 ? categories.added : undefined,
+      improved: categories.improved.length > 0 ? categories.improved : undefined,
+      fixed: categories.fixed.length > 0 ? categories.fixed : undefined,
+      changed: categories.changed.length > 0 ? categories.changed : undefined,
+    },
+  };
+}
+
+// Read changelog description and releaseNotes from temp notes JSON if it exists, otherwise from version.json or CHANGELOG.md
 let description = `Release v${version}`;
 let releaseNotes = undefined;
+let loaded = false;
 const tempNotesPath = path.join(appRoot, '.release-temp-notes.json');
 
 if (fs.existsSync(tempNotesPath)) {
@@ -66,15 +131,17 @@ if (fs.existsSync(tempNotesPath)) {
     if (tempNotes.releaseNotes) {
       releaseNotes = tempNotes.releaseNotes;
     }
+    loaded = true;
     console.log(
-      'generate-release-metadata: âœ“ Loaded release notes from .release-temp-notes.json'
+      'generate-release-metadata: ✓ Loaded release notes from .release-temp-notes.json'
     );
   } catch (err) {
-    console.warn('generate-release-metadata: âš  Could not parse .release-temp-notes.json', err);
+    console.warn('generate-release-metadata: ⚠ Could not parse .release-temp-notes.json', err);
   }
-} else {
+}
+
+if (!loaded) {
   const localPath = path.join(appRoot, 'public/version.json');
-  let loaded = false;
   if (fs.existsSync(localPath)) {
     try {
       const localJson = JSON.parse(fs.readFileSync(localPath, 'utf8'));
@@ -83,28 +150,40 @@ if (fs.existsSync(tempNotesPath)) {
         releaseNotes = localJson.releaseNotes;
         loaded = true;
         console.log(
-          'generate-release-metadata: âœ“ Loaded release notes from local public/version.json'
+          'generate-release-metadata: ✓ Loaded release notes from local public/version.json'
         );
       }
     } catch (err) {
-      console.warn('generate-release-metadata: âš  Could not parse local public/version.json', err);
+      console.warn('generate-release-metadata: ⚠ Could not parse local public/version.json', err);
     }
   }
+}
 
-  if (!loaded && fs.existsSync(versionJsonPath)) {
-    try {
-      const versionJson = JSON.parse(fs.readFileSync(versionJsonPath, 'utf8'));
-      if (versionJson.changelog) {
-        description = versionJson.changelog;
-        releaseNotes = versionJson.releaseNotes;
-        loaded = true;
-        console.log(
-          'generate-release-metadata: âœ“ Loaded release notes from firebase-public/version.json'
-        );
-      }
-    } catch (err) {
-      console.warn('generate-release-metadata: âš  Could not parse version.json', err);
+if (!loaded && fs.existsSync(versionJsonPath)) {
+  try {
+    const versionJson = JSON.parse(fs.readFileSync(versionJsonPath, 'utf8'));
+    if (versionJson.version === version && versionJson.changelog) {
+      description = versionJson.changelog;
+      releaseNotes = versionJson.releaseNotes;
+      loaded = true;
+      console.log(
+        'generate-release-metadata: ✓ Loaded release notes from firebase-public/version.json'
+      );
     }
+  } catch (err) {
+    console.warn('generate-release-metadata: ⚠ Could not parse version.json', err);
+  }
+}
+
+if (!loaded) {
+  const fromChangelog = parseChangelogForVersion(version);
+  if (fromChangelog) {
+    description = fromChangelog.changelog;
+    releaseNotes = fromChangelog.releaseNotes;
+    loaded = true;
+    console.log(
+      `generate-release-metadata: ✓ Extracted canonical release notes for version ${version} directly from CHANGELOG.md`
+    );
   }
 }
 

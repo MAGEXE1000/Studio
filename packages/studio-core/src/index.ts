@@ -88,6 +88,7 @@ export * from './hooks/useAppUpdate';
 export * from './lib/updater/pipeline';
 export * from './lib/updater/installActions';
 export * from './lib/updater/recovery';
+export * from './lib/updater/releaseMetadata';
 
 export * from './lib/updater/updateHistory';
 export * from './lib/nativePlatform';

@@ -1,6 +1,26 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
 import { Capacitor } from '@capacitor/core';
-import { useAppUpdate, type StructuredReleaseNotes, updateDiagnostics, updateDebugLogs, APP_VERSION_LABEL, compareSemver, normalizeSemver, applyUpdate, fadeToBlackAndReload, useChordStore, isAppInstallerAvailable, AppInstaller, UpdaterFlightRecorder, useSettingsStore, DurationPresets, EasingPresets, SpringPresets } from '@workspace/studio-core';
+import {
+  useAppUpdate,
+  type StructuredReleaseNotes,
+  updateDiagnostics,
+  updateDebugLogs,
+  APP_VERSION_LABEL,
+  compareSemver,
+  normalizeSemver,
+  applyUpdate,
+  fadeToBlackAndReload,
+  useChordStore,
+  isAppInstallerAvailable,
+  AppInstaller,
+  UpdaterFlightRecorder,
+  useSettingsStore,
+  DurationPresets,
+  EasingPresets,
+  SpringPresets,
+  extractStructuredReleaseNotes,
+  sanitizeUTF8String,
+} from '@workspace/studio-core';
 import {
   applyUpdateDirect,
   shareDownloadedApk,
@@ -49,7 +69,6 @@ import AnimatedActionButton from '../../../shared/animata/container/animated-bor
 import StudioUpdateScreen from './StudioUpdateScreen';
 
 import ChangelogSheet from '../../chordex/components/ChangelogSheet';
-;
 import { DownloadIcon } from '../../../shared/icons/DownloadIcon';
 import { Progress } from '@base-ui/react/progress';
 
@@ -228,7 +247,7 @@ function getSavedReleaseNotesAsSections(): any[] | undefined {
       if (Array.isArray(rn)) {
         return [{ heading: "What's New", items: rn }];
       }
-      if (typeof rn === 'object') {
+      if (typeof rn === 'object' && rn !== null) {
         const sections: any[] = [];
         if (rn.added && rn.added.length > 0) {
           sections.push({ heading: 'Added', items: rn.added });
@@ -242,6 +261,19 @@ function getSavedReleaseNotesAsSections(): any[] | undefined {
         if (rn.changed && rn.changed.length > 0) {
           sections.push({ heading: 'Changed', items: rn.changed });
         }
+        return sections.length > 0 ? sections : undefined;
+      }
+      if (typeof rn === 'string') {
+        const extracted = extractStructuredReleaseNotes(rn);
+        const sections: any[] = [];
+        if (extracted.releaseNotes.added?.length)
+          sections.push({ heading: 'Added', items: extracted.releaseNotes.added });
+        if (extracted.releaseNotes.improved?.length)
+          sections.push({ heading: 'Improved', items: extracted.releaseNotes.improved });
+        if (extracted.releaseNotes.fixed?.length)
+          sections.push({ heading: 'Fixed', items: extracted.releaseNotes.fixed });
+        if (extracted.releaseNotes.changed?.length)
+          sections.push({ heading: 'Changed', items: extracted.releaseNotes.changed });
         return sections.length > 0 ? sections : undefined;
       }
     }
@@ -340,8 +372,7 @@ export default function UpdateIndicator({
               }
             }
           }
-        } catch (e) {
-        }
+        } catch (e) {}
       })();
     }
 
@@ -425,7 +456,7 @@ export default function UpdateIndicator({
 
   // WEB-ONLY: track whether the user dismissed the web refresh banner this session
   const [webBannerDismissed, setWebBannerDismissed] = useState(() => {
-    if (true) return false;
+    if (Capacitor.isNativePlatform()) return false;
     try {
       const dismissed = sessionStorage.getItem('studio:web-update-dismissed');
       return dismissed === updater.remoteVersion;
@@ -491,7 +522,7 @@ export default function UpdateIndicator({
   if (!updater.updateAvailable) {
     if (!open) return null;
     // Only show the full update modal on native
-    if (!true) return null;
+    if (!Capacitor.isNativePlatform()) return null;
     return (
       <UpdateModal
         fromLabel={APP_VERSION_LABEL}
@@ -511,7 +542,7 @@ export default function UpdateIndicator({
   }
 
   /* ── WEB-ONLY: slim non-blocking refresh banner ─────────────────────── */
-  if (!true) {
+  if (!Capacitor.isNativePlatform()) {
     if (webBannerDismissed) return null;
     return (
       <>
@@ -620,8 +651,7 @@ export default function UpdateIndicator({
           list.push(updater.remoteVersion);
           localStorage.setItem(key, JSON.stringify(list));
         }
-      } catch (err) {
-      }
+      } catch (err) {}
     }
     setPhase('pill');
     markBannerShown();
@@ -673,7 +703,9 @@ export default function UpdateIndicator({
                 zIndex: 99999,
                 width: 'min(360px, calc(100vw - 32px))',
                 background: isLight ? 'rgba(255, 255, 255, 0.90)' : 'rgba(20, 20, 25, 0.85)',
-                border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+                border: isLight
+                  ? '1px solid rgba(0, 0, 0, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
                 borderRadius: 16,
                 padding: '12px 16px',
                 boxSizing: 'border-box',
@@ -789,7 +821,7 @@ export default function UpdateIndicator({
   }
 
   // Only show the full update modal on native
-  if (!true) return null;
+  if (!Capacitor.isNativePlatform()) return null;
 
   return (
     <>
@@ -1148,7 +1180,7 @@ function UpdateModal({
 
   const handleInstallApk = async () => {
     try {
-      if (true) {
+      if (Capacitor.isNativePlatform()) {
         const { AppInstaller, updateActiveSession } = await import('@workspace/studio-core');
         const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
         if (!hasPerm) {
@@ -1189,8 +1221,7 @@ function UpdateModal({
           setPermissionBlocked(false);
           await updater.applyUpdate('UpdateIndicator: UpdateModal');
         }
-      } catch (err) {
-      }
+      } catch (err) {}
     };
 
     import('@capacitor/app')
@@ -1215,13 +1246,13 @@ function UpdateModal({
   let iconColor = purpleFrom;
   let title = 'Update available';
   let description: React.ReactNode = '';
-  let showProgress = isUpdateInProgress(updater.updateState);
-  let progressVal = updater.progress;
+  const showProgress = isUpdateInProgress(updater.updateState);
+  const progressVal = updater.progress;
   let showButtons = true;
   let showSpinner = false;
 
   const displayState = (() => {
-    let s = updater.updateState;
+    const s = updater.updateState;
     if (
       s === 'INITIALIZING' ||
       s === 'FETCH_REMOTE_METADATA' ||
@@ -1722,7 +1753,12 @@ function UpdateModal({
                 }}
                 style={primaryButtonStyle}
               >
-                <AnimatedIcon name="play-circle" size={18} color="currentColor" style={{ marginRight: 6 }} />
+                <AnimatedIcon
+                  name="play-circle"
+                  size={18}
+                  color="currentColor"
+                  style={{ marginRight: 6 }}
+                />
                 Continue Installation
               </ActionButton>
               <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
@@ -1731,11 +1767,7 @@ function UpdateModal({
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
-              <button
-                type="button"
-                onClick={handleStartUpdate}
-                style={primaryButtonStyle}
-              >
+              <button type="button" onClick={handleStartUpdate} style={primaryButtonStyle}>
                 Update Now
               </button>
               <button type="button" onClick={onLater} style={secondaryButtonStyle}>
@@ -1928,7 +1960,12 @@ function UpdateModal({
               }}
               style={primaryButtonStyle}
             >
-              <AnimatedIcon name="refresh" size={18} color="currentColor" style={{ marginRight: 6 }} />
+              <AnimatedIcon
+                name="refresh"
+                size={18}
+                color="currentColor"
+                style={{ marginRight: 6 }}
+              />
               Retry Installation
             </ActionButton>
 
@@ -1971,8 +2008,7 @@ function UpdateModal({
               textAlign: 'left',
             }}
           >
-            {updater.error ||
-              'Studio could not complete the update automatically.'}
+            {updater.error || 'Studio could not complete the update automatically.'}
           </p>
 
           <ActionButton
@@ -1986,7 +2022,12 @@ function UpdateModal({
             }}
             style={primaryButtonStyle}
           >
-            <AnimatedIcon name="refresh" size={18} color="currentColor" style={{ marginRight: 6 }} />
+            <AnimatedIcon
+              name="refresh"
+              size={18}
+              color="currentColor"
+              style={{ marginRight: 6 }}
+            />
             Retry Update
           </ActionButton>
 
@@ -2010,7 +2051,7 @@ function UpdateModal({
                 clearInstallationJustCompleted();
                 onClose();
                 updater.dismissUpdate();
-                if (true) {
+                if (Capacitor.isNativePlatform()) {
                   await AppInstaller.clearInstallerLogHistory();
                   const { App: CapApp } = await import('@capacitor/app');
                   await CapApp.exitApp();
@@ -2155,7 +2196,6 @@ function UpdateModal({
     );
   };
 
-
   // Render buttons
   const actionButtons = renderButtons();
 
@@ -2173,36 +2213,46 @@ function UpdateModal({
   }
 
   // Construct What's New changelog content
+  const targetVer = toVersion || updater.remoteVersion;
   const notesList: string[] = (() => {
-    if (!updater.releaseNotes) return [];
-    if (Array.isArray(updater.releaseNotes)) {
-      return updater.releaseNotes;
-    }
-    if (typeof updater.releaseNotes === 'object') {
-      const rn = updater.releaseNotes as any;
-      const list: string[] = [];
-      const categories = ['added', 'improved', 'fixed', 'changed'];
-      for (const cat of categories) {
-        if (Array.isArray(rn[cat])) {
-          const label = cat.charAt(0).toUpperCase() + cat.slice(1);
-          for (const item of rn[cat]) {
-            list.push(`[${label}] ${item}`);
-          }
+    // 1. Try structured releaseNotes or string array from updater
+    if (updater.releaseNotes) {
+      if (Array.isArray(updater.releaseNotes)) {
+        const filtered = updater.releaseNotes
+          .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+          .map((item) => sanitizeUTF8String(item.trim()));
+        if (filtered.length > 0) return filtered;
+      } else if (typeof updater.releaseNotes === 'object') {
+        const extracted = extractStructuredReleaseNotes(updater.releaseNotes);
+        if (extracted.bullets.length > 0) {
+          return extracted.bullets;
         }
       }
-      return list;
     }
+
+    // 2. Fallback to parsing updater.changelog / description if releaseNotes was empty
+    if (
+      updater.changelog &&
+      typeof updater.changelog === 'string' &&
+      updater.changelog.trim().length > 0
+    ) {
+      const extracted = extractStructuredReleaseNotes(updater.changelog);
+      if (extracted.bullets.length > 0) {
+        return extracted.bullets;
+      }
+    }
+
+    // 3. Dynamic per-version default (never display old hardcoded notes from prior versions)
+    if (targetVer) {
+      return [
+        `Studio update v${targetVer} includes performance optimizations, UI refinements, and stability improvements.`,
+      ];
+    }
+
     return [];
   })();
 
-  const fallbackNotes = [
-    'Completely separated Chordex preferences from Hub/Studio Settings.',
-    'Redesigned floating top bar capsule geometry aligned with section cards.',
-    'Accelerated app entrance animations by 30% across all 6 applications.',
-    'Made Developer Inspector compact (floating drawer panel) and repaired debug controls.',
-  ];
-
-  const finalNotes = notesList.length > 0 ? notesList : fallbackNotes;
+  const finalNotes = notesList;
 
   const changelogContent = (
     <div
@@ -2253,7 +2303,15 @@ function UpdateModal({
     </div>
   );
 
-  const showChangelog = updater.updateAvailable && ['available', 'downloading', 'readyForInstallPrompt', 'installing', 'installedOrReady'].includes(state);
+  const showChangelog =
+    updater.updateAvailable &&
+    [
+      'available',
+      'downloading',
+      'readyForInstallPrompt',
+      'installing',
+      'installedOrReady',
+    ].includes(state);
 
   return (
     <StudioUpdateScreen

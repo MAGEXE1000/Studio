@@ -305,7 +305,7 @@ export const ButtonGroup = forwardRef<HTMLDivElement, ButtonGroupProps>(
         isDisabled={isDisabled}
         className={`button-group button-group--${orientation} ${fullWidth ? 'button-group--full-width' : ''} ${className}`.trim()}
         style={style}
-        {...props}
+        {...(props as any)}
       >
         {children}
       </HeroUIButtonGroup>

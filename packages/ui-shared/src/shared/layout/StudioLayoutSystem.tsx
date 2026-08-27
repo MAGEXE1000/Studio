@@ -438,7 +438,8 @@ export const STAGGER_ITEM_VARIANTS = {
   },
 };
 
-export interface SettingsContentContainerProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface SettingsContentContainerProps
+  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> {
   children: React.ReactNode;
   disableStagger?: boolean;
 }
@@ -485,7 +486,7 @@ export function SettingsContentContainer({
         ...style,
       }}
       className={`studio-settings-content-container ${className}`}
-      {...props}
+      {...(props as any)}
     >
       {React.Children.map(children, (child, idx) => {
         if (!child) return null;

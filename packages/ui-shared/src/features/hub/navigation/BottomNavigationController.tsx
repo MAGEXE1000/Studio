@@ -437,7 +437,6 @@ export function BottomNavigationController() {
         isSwitcherOpen={isSwitcherOpen}
         setIsSwitcherOpen={setIsSwitcherOpen}
         currentApp={currentApp}
-        onOpenSearch={() => setProfileMenuOpen(false)}
         onOpenProfile={() => toggleProfileMenu()}
         user={user}
         customPhoto={customPhoto}

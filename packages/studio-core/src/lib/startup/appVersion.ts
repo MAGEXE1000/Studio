@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.43';
-export const NATIVE_VERSION_CODE = 40543;
-export const WEB_VERSION = '4.5.43';
+export const NATIVE_VERSION = '4.5.44';
+export const NATIVE_VERSION_CODE = 40544;
+export const WEB_VERSION = '4.5.44';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '99201b19';
+export const APP_COMMIT_SHA = 'b0c240dd';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/24/2026, 6:44:16 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/26/2026, 6:56:10 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,10 +98,12 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Fixed',
     items: [
-      'Modal Surface Transparency: Eliminated excessive transparency across modal, alert, and dialog surfaces across all five Livex applications (Chordex, Drumex, Stagex, Groovex, Vocalex) by introducing canonical `--surface-dialog-bg` and `--surface-modal-surface` theme tokens and multi-layered elevation shadows.',
-      'Navigation Icon Mapping: Resolved unmapped icon warnings for `drumex`, `stagex`, and `disc` in `AnimatedNavigationIcon` through normalized routing and complete filled variant support tables.',
-      "Deprecated Vocalex Back Navigation: Migrated legacy `setVocalexBack` calls across Practice, Recording, Take Detail, and Mixer Lab panels to canonical priority-based `useBackHandler('nested', ...)` hooks.",
-      'Theme System Integration: Standardized CSS token inheritance for interactive controls and floating headers across Light, Dark, and AMOLED themes.',
+      'Android Updater Changelog Correlation: Resolved long-standing static update dialog changelog display across releases. Implemented dynamic per-version release notes extraction in `studio-core` and wired `UpdateIndicator` to display release notes specific to the version being offered.',
+      'Navigation Icon Mapping: Eliminated remaining `AnimatedNavigationIcon` unmapped warnings for `profile`, `user`, `account`, `drumex`, `stagex`, and `disc` by standardizing normalization routes and comprehensive `FILLED_VARIANTS_SUPPORT` coverage.',
+      'Navigation Re-Render Optimization: Memoized animation context and tab icons in `NavigationAnimationProvider` and `AnimatedNavigationIcon`, eliminating redundant re-renders and false transition triggers during tab changes.',
+      'Component Resolution Cache: Implemented module-level $O(1)$ component lookup caching in `AnimatedIcon`, removing per-render string parsing and Lucide reflection overhead.',
+      'Livex Tab Animation Parity: Standardized tab-change animations to a unified 200ms cubic-bezier transition across all five Livex applications.',
+      'Unified Subsection Top Bar: Finalized and unified the shared top bar structure across Chordex, Drumex, Stagex, Groovex, and Vocalex.',
     ],
   },
 ];

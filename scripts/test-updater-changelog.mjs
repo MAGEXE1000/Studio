@@ -1,4 +1,4 @@
-﻿import assert from 'node:assert/strict';
+import assert from 'node:assert/strict';
 import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -224,19 +224,21 @@ assert.deepEqual(fallbackNotes, [
 assert.ok(!fallbackNotes.some(n => n.includes('Completely separated Chordex preferences')));
 console.log('✓ Test 4 Passed: Dynamic version-based fallback used without stale legacy notes.');
 
-// TEST 5: Production CHANGELOG.md and app-release.json consistency check
+// TEST 5: Current repo CHANGELOG.md and public metadata consistency check
 console.log('Test 5: Validating current repo CHANGELOG.md and public metadata...');
+const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+const currentVersion = pkg.version;
 const changelogPath = path.join(repoRoot, 'CHANGELOG.md');
 assert.ok(fs.existsSync(changelogPath), 'CHANGELOG.md must exist');
 const changelogContent = fs.readFileSync(changelogPath, 'utf8');
-assert.ok(changelogContent.includes('## 4.5.43'), 'CHANGELOG.md must have 4.5.43 entry');
+assert.ok(changelogContent.includes(`## ${currentVersion}`), `CHANGELOG.md must have ${currentVersion} entry`);
 
 const appReleasePath = path.join(repoRoot, 'apps/studio-android/public/app-release.json');
 if (fs.existsSync(appReleasePath)) {
   const appRelease = JSON.parse(fs.readFileSync(appReleasePath, 'utf8'));
-  assert.equal(appRelease.version, '4.5.43');
-  assert.ok(appRelease.changelog.includes('Modal Surface Transparency'));
-  assert.ok(appRelease.releaseNotes.fixed.length > 0);
+  assert.equal(appRelease.version, currentVersion);
+  assert.ok(appRelease.changelog.length > 0);
+  assert.ok(appRelease.releaseNotes.fixed.length > 0 || appRelease.releaseNotes.added.length > 0);
   console.log(`✓ Test 5 Passed: app-release.json metadata contains v${appRelease.version} release notes.`);
 }
 

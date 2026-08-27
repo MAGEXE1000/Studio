@@ -4603,7 +4603,7 @@ function HubSettings({
                 margin: 0,
               }}
             >
-              {sSets.dockDescription}
+              {(sSets as any).dockDescription || ''}
             </p>
           </div>
 
@@ -4616,10 +4616,17 @@ function HubSettings({
             />
           </SettingRow>
 
-          <SettingRow label={sSets.swipeBack} desc={sSets.swipeBackDesc}>
+          <SettingRow
+            label={(sSets as any).swipeBack || 'Swipe Back'}
+            desc={(sSets as any).swipeBackDesc || 'Allow swiping from edge to return to previous screen'}
+          >
             <Toggle
-              value={settings.swipeBackBehavior ?? 'both'}
-              onChange={(v) => settingsController.updateSettings({ swipeBackBehavior: v })}
+              value={settings.swipeBackBehavior === 'exit-to-hub'}
+              onChange={(v) =>
+                settingsController.updateSettings({
+                  swipeBackBehavior: v ? 'exit-to-hub' : 'manual-only',
+                })
+              }
               accentFrom={accent.from}
               accentTo={accent.to}
             />

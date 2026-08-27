@@ -59,6 +59,20 @@ overrides:
   '@tailwindcss/oxide>@tailwindcss/oxide-linux-x64-musl': '-'
   '@tailwindcss/oxide>@tailwindcss/oxide-win32-arm64-msvc': '-'
   '@tailwindcss/oxide>@tailwindcss/oxide-win32-x64-msvc': '-'
+  'path-to-regexp@8.3.0': '8.4.0'
+  'picomatch@2.3.1': '2.3.2'
+  'picomatch@4.0.3': '4.0.4'
+  'lodash@4.17.23': '4.18.0'
+  'brace-expansion@2.0.2': '2.0.3'
+  'esbuild@0.18.20': '0.25.0'
+  'yaml@2.8.2': '2.8.3'
+  '@xmldom/xmldom': '0.8.13'
+  'dompurify': '3.4.0'
+  'fast-uri': '3.1.2'
+  'fast-xml-builder': '1.1.7'
+  'fast-xml-parser': '5.7.0'
+  'postcss': '8.5.10'
+  'tar': '6.2.1'
   esbuild: 0.27.3
   esbuild>@esbuild/aix-ppc64: '-'
   esbuild>@esbuild/android-arm: '-'
@@ -119,3 +133,8 @@ overrides:
   rollup>@rollup/rollup-win32-ia32-msvc: '-'
   rollup>@rollup/rollup-win32-x64-gnu: '-'
   rollup>@rollup/rollup-win32-x64-msvc: '-'
+
+packageExtensions:
+  '@capacitor/cli@6.2.1':
+    dependencies:
+      tar: '^6.2.1'

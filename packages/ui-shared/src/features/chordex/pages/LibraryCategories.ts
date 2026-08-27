@@ -1,6 +1,6 @@
 import { type ChordType } from '@workspace/studio-core';
 
-export const CATEGORIES: {
+export interface CategoryItem {
   type: ChordType;
   icon: string;
   label: string;
@@ -8,8 +8,12 @@ export const CATEGORIES: {
   wide?: boolean;
   noDecor?: boolean;
   color: string;
-  variations?: string;
-}[] = [
+  variations: string;
+  dots: { stringPercent: number; fretPercent: number }[];
+  sampleChordId?: string;
+}
+
+export const CATEGORIES: CategoryItem[] = [
   {
     type: 'major',
     icon: 'piano',
@@ -19,6 +23,11 @@ export const CATEGORIES: {
     noDecor: true,
     color: '#679cff',
     variations: '84 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 50, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-major',
   },
   {
     type: 'minor',
@@ -27,6 +36,11 @@ export const CATEGORIES: {
     desc: 'Moody & emotional.',
     color: '#bb5551',
     variations: '72 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 50, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-minor',
   },
   {
     type: '7th',
@@ -35,6 +49,8 @@ export const CATEGORIES: {
     desc: 'Jazz & blues backbone.',
     color: '#9d9da6',
     variations: '64 Variations',
+    dots: [{ stringPercent: 50, fretPercent: 33 }],
+    sampleChordId: 'C-7th',
   },
   {
     type: 'maj7',
@@ -43,6 +59,8 @@ export const CATEGORIES: {
     desc: 'Lush & dreamy.',
     color: '#679cff',
     variations: '56 Variations',
+    dots: [{ stringPercent: 84, fretPercent: 66 }],
+    sampleChordId: 'C-maj7',
   },
   {
     type: 'min7',
@@ -51,22 +69,34 @@ export const CATEGORIES: {
     desc: 'Smooth & introspective.',
     color: '#bb5551',
     variations: '56 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-min7',
   },
   {
     type: 'dim',
     icon: 'warning',
-    label: 'Diminished',
+    label: 'Dim',
     desc: 'Tense & dissonant.',
     color: '#ee7d77',
-    variations: '36 Variations',
+    variations: '24 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 50, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-dim',
   },
   {
     type: 'aug',
     icon: 'trending_up',
-    label: 'Augmented',
+    label: 'Aug',
     desc: 'Mysterious & floating.',
     color: '#9d9da6',
-    variations: '24 Variations',
+    variations: '18 Variations',
+    dots: [{ stringPercent: 84, fretPercent: 33 }],
+    sampleChordId: 'C-aug',
   },
   {
     type: 'sus2',
@@ -75,6 +105,11 @@ export const CATEGORIES: {
     desc: 'Open & airy.',
     color: '#2dd4bf',
     variations: '42 Variations',
+    dots: [
+      { stringPercent: 50, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-sus2',
   },
   {
     type: 'sus4',
@@ -83,6 +118,11 @@ export const CATEGORIES: {
     desc: 'Suspended tension.',
     color: '#2dd4bf',
     variations: '42 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-sus4',
   },
   {
     type: '9th',
@@ -91,6 +131,12 @@ export const CATEGORIES: {
     desc: 'Rich & funky.',
     color: '#b57bee',
     variations: '48 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 50, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-9th',
   },
   {
     type: 'maj9',
@@ -99,6 +145,11 @@ export const CATEGORIES: {
     desc: 'Romantic & complex.',
     color: '#b57bee',
     variations: '36 Variations',
+    dots: [
+      { stringPercent: 50, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-maj9',
   },
   {
     type: 'min9',
@@ -107,6 +158,11 @@ export const CATEGORIES: {
     desc: 'Dark & jazzy.',
     color: '#b57bee',
     variations: '36 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-min9',
   },
   {
     type: 'add9',
@@ -115,6 +171,11 @@ export const CATEGORIES: {
     desc: 'Major with color.',
     color: '#34d399',
     variations: '30 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-add9',
   },
   {
     type: '6th',
@@ -123,6 +184,12 @@ export const CATEGORIES: {
     desc: 'Sweet & vintage.',
     color: '#fbbf24',
     variations: '32 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 50, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-6th',
   },
   {
     type: 'min6',
@@ -131,6 +198,11 @@ export const CATEGORIES: {
     desc: 'Bittersweet.',
     color: '#fbbf24',
     variations: '32 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 50, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-min6',
   },
   {
     type: 'halfdim',
@@ -139,6 +211,11 @@ export const CATEGORIES: {
     desc: 'Jazz & classical tension.',
     color: '#ee7d77',
     variations: '28 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-halfdim',
   },
   {
     type: 'dim7',
@@ -147,6 +224,11 @@ export const CATEGORIES: {
     desc: 'Symmetrical & eerie.',
     color: '#ee7d77',
     variations: '24 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 50, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-dim7',
   },
   {
     type: '11th',
@@ -155,6 +237,11 @@ export const CATEGORIES: {
     desc: 'Dense & modern.',
     color: '#b57bee',
     variations: '24 Variations',
+    dots: [
+      { stringPercent: 50, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-11th',
   },
   {
     type: 'min11',
@@ -163,6 +250,11 @@ export const CATEGORIES: {
     desc: 'Mellow minor 11th.',
     color: '#b57bee',
     variations: '24 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 50, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-min11',
   },
   {
     type: '13th',
@@ -171,6 +263,11 @@ export const CATEGORIES: {
     desc: 'Full jazz voicing.',
     color: '#b57bee',
     variations: '24 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-13th',
   },
   {
     type: 'min13',
@@ -179,6 +276,11 @@ export const CATEGORIES: {
     desc: 'Rich minor 13th.',
     color: '#b57bee',
     variations: '24 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 50, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-min13',
   },
   {
     type: '7sus4',
@@ -187,6 +289,11 @@ export const CATEGORIES: {
     desc: 'Funky & unresolved.',
     color: '#34d399',
     variations: '20 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-7sus4',
   },
   {
     type: '7sus2',
@@ -195,6 +302,11 @@ export const CATEGORIES: {
     desc: 'Open dominant.',
     color: '#34d399',
     variations: '20 Variations',
+    dots: [
+      { stringPercent: 50, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-7sus2',
   },
   {
     type: 'maj6',
@@ -203,6 +315,11 @@ export const CATEGORIES: {
     desc: 'Vintage & melodic.',
     color: '#fbbf24',
     variations: '24 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 50, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-maj6',
   },
   {
     type: 'power',
@@ -211,6 +328,11 @@ export const CATEGORIES: {
     desc: 'Rock & metal essential.',
     color: '#ee7d77',
     variations: '16 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 50, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-power',
   },
   {
     type: 'minmaj7',
@@ -219,6 +341,11 @@ export const CATEGORIES: {
     desc: 'Jazz sophistication.',
     color: '#b57bee',
     variations: '18 Variations',
+    dots: [
+      { stringPercent: 50, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-minmaj7',
   },
   {
     type: 'aug7',
@@ -227,6 +354,11 @@ export const CATEGORIES: {
     desc: 'Tense jazz transition.',
     color: '#2dd4bf',
     variations: '16 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-aug7',
   },
   {
     type: '7b9',
@@ -235,6 +367,12 @@ export const CATEGORIES: {
     desc: 'Dark Spanish-jazz tension.',
     color: '#ee7d77',
     variations: '18 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 50, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-7b9',
   },
   {
     type: '7s9',
@@ -243,6 +381,11 @@ export const CATEGORIES: {
     desc: 'The Hendrix chord.',
     color: '#9d9da6',
     variations: '18 Variations',
+    dots: [
+      { stringPercent: 50, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 33 },
+    ],
+    sampleChordId: 'C-7s9',
   },
   {
     type: '69',
@@ -251,6 +394,12 @@ export const CATEGORIES: {
     desc: 'Jazz & bossa nova color.',
     color: '#fbbf24',
     variations: '20 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 66 },
+      { stringPercent: 50, fretPercent: 66 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-69',
   },
   {
     type: '9sus4',
@@ -259,5 +408,10 @@ export const CATEGORIES: {
     desc: 'Soulful & unresolved.',
     color: '#34d399',
     variations: '16 Variations',
+    dots: [
+      { stringPercent: 16, fretPercent: 33 },
+      { stringPercent: 84, fretPercent: 66 },
+    ],
+    sampleChordId: 'C-9sus4',
   },
 ];

@@ -96,6 +96,60 @@
   color: #00285c !important;
 }
 
+/* ===== Chordex Bento & Fretboard Recess System ===== */
+.bento-card {
+  background: var(--c-surface-low);
+  border: 1px solid var(--c-border);
+  border-radius: 1.5rem;
+  transition: background-color var(--motion-duration-short, 180ms) ease,
+              border-color var(--motion-duration-short, 180ms) ease,
+              box-shadow var(--motion-duration-short, 180ms) ease,
+              transform var(--motion-duration-short, 180ms) ease;
+}
+.bento-card:hover {
+  background: var(--c-surface-high);
+}
+:root.light .bento-card {
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.04);
+}
+.fretboard-recess {
+  background-color: var(--c-surface-lowest);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.45);
+  position: relative;
+}
+:root.light .fretboard-recess {
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.fret-line {
+  position: absolute;
+  width: 100%;
+  height: 1px;
+  background-color: var(--c-border);
+  opacity: 0.55;
+}
+.string-line {
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background-color: var(--c-border);
+  box-shadow: 0 0 2px rgba(255, 255, 255, 0.1);
+}
+:root.light .string-line {
+  box-shadow: none;
+}
+.finger-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--c-accent-from, #679cff);
+  box-shadow: 0 0 8px var(--c-accent-from, #679cff), 0 2px 4px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+:root.light .finger-dot {
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--c-accent-from, #2563eb) 40%, transparent);
+}
+
 /* ===== Typed CSS custom properties — enables native color animation ===== */
 @property --app-bg {
   syntax: '<color>';

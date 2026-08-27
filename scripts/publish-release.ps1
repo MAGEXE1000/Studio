@@ -30,27 +30,7 @@ $BranchName = (git symbolic-ref --short HEAD).Trim()
 Write-Host "Current branch: $BranchName"
 
 Write-Host "3. Committing and pushing version changes to Git..."
-git add package.json
-git add CHANGELOG.md
-git add apps/studio-android/package.json
-git add apps/studio-android/android/app/build.gradle
-git add apps/studio-android/android/app/src/main/java/com/chordex/app/MainActivity.kt
-git add apps/studio-android/src/main.tsx
-git add apps/studio-android/public/app-release.json
-git add apps/studio-android/public/version.json
-git add apps/studio-web/public/version.json
-git add apps/studio-web/package.json
-git add packages/studio-core/src/lib/startup/appVersion.ts
-git add packages/ui-shared/src/features/hub/navigation/SharedNavigationBar.tsx
-git add packages/ui-shared/src/shared/layout/SharedAppShell.tsx
-git add eslint.config.mjs
-git add scripts/check-hook-order.mjs
-git add .github/workflows/android-ci.yml
-git add .github/workflows/release.yml
-git add .github/workflows/web-ci.yml
-git add release-manifest.json
-git add release-notes.md
-git add scripts/publish-release.ps1
+git add -A
 
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."

@@ -41,7 +41,9 @@ export default function LibraryPanel() {
           {/* Left Column: Explorer */}
           <div
             style={{
-              width: '380px',
+              width: '420px',
+              minWidth: '380px',
+              maxWidth: '480px',
               borderRight: '1px solid var(--c-border)',
               display: 'flex',
               flexDirection: 'column',
@@ -50,10 +52,15 @@ export default function LibraryPanel() {
           >
             <LibraryMainView state={state} />
           </div>
-          {/* Right Column: Details */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Right Column: Interactive Chord Preview */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
             {chord ? (
               <LibraryChordDetail state={state} />
+            ) : state.chordOfTheDay ? (
+              <LibraryChordDetail
+                state={{ ...state, chord: state.chordOfTheDay }}
+                isDefaultPreview={true}
+              />
             ) : (
               <EmptyState message="Select a chord to view details" icon="music_note" />
             )}
@@ -63,7 +70,7 @@ export default function LibraryPanel() {
       selectedChordId ? (
         <div className="flex flex-col h-full overflow-hidden relative">
           <SharedFloatingHeader
-            title={chord?.name || 'Chord Details'}
+            title={chord?.name || 'Chord Preview'}
             onBack={() => selectChord(null)}
           />
           <div

@@ -13,9 +13,12 @@ import {
   NavigationDispatcher,
   type ActivePanel,
   useSettingsStore,
+  type Instrument,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { CATEGORIES } from './LibraryCategories';
+
+export const ROOT_NOTES = ['ALL', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 export function useLibraryState() {
   const isWebDesktop = useIsWebDesktop();
@@ -43,6 +46,10 @@ export function useLibraryState() {
   const [chordPlaying, setChordPlaying] = useState(false);
   const [query, setQuery] = useState('');
   const [showTuningMenu, setShowTuningMenu] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [selectedRootFilter, setSelectedRootFilter] = useState<string>('ALL');
+  const [previewInstrument, setPreviewInstrument] = useState<Instrument>(settings.instrument || 'guitar');
+  const [diagramDisplayMode, setDiagramDisplayMode] = useState<'notes' | 'intervals'>('notes');
 
   const [showFinder, setShowFinder] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
@@ -64,11 +71,16 @@ export function useLibraryState() {
 
   const searchResults = useMemo(() => {
     if (!query) return [];
-    return searchChords(query);
-  }, [query]);
+    const results = searchChords(query);
+    if (selectedRootFilter !== 'ALL') {
+      return results.filter((c) => c.root.toUpperCase() === selectedRootFilter.toUpperCase());
+    }
+    return results;
+  }, [query, selectedRootFilter]);
 
   const chordOfTheDay = useMemo(() => {
-    return getChordById('d-maj7') || allChords[0] || null;
+    // Return C Major by default (as featured in design specification) or active day rotation
+    return getChordById('C-major') || getChordById('d-maj7') || allChords[0] || null;
   }, [allChords]);
 
   const selectChord = useCallback(
@@ -148,17 +160,27 @@ export function useLibraryState() {
 
   const filteredByType = useMemo(() => {
     if (!activeType) return [];
-    return allChords.filter((c) => c.type === activeType);
-  }, [activeType, allChords]);
+    let list = allChords.filter((c) => c.type === activeType);
+    if (selectedRootFilter !== 'ALL') {
+      list = list.filter((c) => c.root.toUpperCase() === selectedRootFilter.toUpperCase());
+    }
+    return list;
+  }, [activeType, allChords, selectedRootFilter]);
 
   const activeCategoryObject = CATEGORIES.find((c) => c.type === activeType);
   
+  const toggleShowAllCategories = useCallback(() => {
+    setShowAllCategories((prev) => !prev);
+  }, []);
+
   return {
     isWebDesktop, currentRoute, selectedChordId, activePanel, recentChords, favorites,
     settings, toggleFavorite, addToProgression, activeType, setActiveType, chordPlaying,
     setChordPlaying, query, setQuery, showTuningMenu, setShowTuningMenu, showFinder,
     setShowFinder, showGenerator, setShowGenerator, allChords, accent, isLight, scrollRef,
     chord, searchResults, chordOfTheDay, selectChord, handleChordClick, activePracticeSong,
-    setActivePracticeSong, filteredByType, activeCategoryObject
+    setActivePracticeSong, filteredByType, activeCategoryObject, showAllCategories,
+    toggleShowAllCategories, selectedRootFilter, setSelectedRootFilter, previewInstrument,
+    setPreviewInstrument, diagramDisplayMode, setDiagramDisplayMode
   };
 }

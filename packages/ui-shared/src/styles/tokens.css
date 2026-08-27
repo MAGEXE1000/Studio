@@ -101,10 +101,11 @@
   background: var(--c-surface-low);
   border: 1px solid var(--c-border);
   border-radius: 1.5rem;
-  transition: background-color var(--motion-duration-short, 180ms) ease,
-              border-color var(--motion-duration-short, 180ms) ease,
-              box-shadow var(--motion-duration-short, 180ms) ease,
-              transform var(--motion-duration-short, 180ms) ease;
+  transition:
+    background-color var(--motion-duration-short, 180ms) ease,
+    border-color var(--motion-duration-short, 180ms) ease,
+    box-shadow var(--motion-duration-short, 180ms) ease,
+    transform var(--motion-duration-short, 180ms) ease;
 }
 .bento-card:hover {
   background: var(--c-surface-high);
@@ -142,7 +143,9 @@
   height: 12px;
   border-radius: 50%;
   background-color: var(--c-accent-from, #679cff);
-  box-shadow: 0 0 8px var(--c-accent-from, #679cff), 0 2px 4px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    0 0 8px var(--c-accent-from, #679cff),
+    0 2px 4px rgba(0, 0, 0, 0.5);
   position: absolute;
   transform: translate(-50%, -50%);
 }
@@ -221,6 +224,9 @@
   --app-surface: var(--c-surface-mid, #111115);
   --app-surface-high: var(--c-surface-high, #151518);
   --app-surface-highest: var(--c-surface-highest, #1a1a1f);
+  --app-surface-scrim: rgba(0, 0, 0, 0.65);
+  --app-surface-scrim-opaque: rgba(0, 0, 0, 0.85);
+  --app-surface-scrim-solid: #000000;
 
   --c-background: #09090b;
   --c-surface-lowest: #0c0c0f;
@@ -318,6 +324,9 @@
   --app-surface: #080808;
   --app-surface-high: #0d0d0d;
   --app-surface-highest: #121212;
+  --app-surface-scrim: rgba(0, 0, 0, 0.85);
+  --app-surface-scrim-opaque: rgba(0, 0, 0, 0.95);
+  --app-surface-scrim-solid: #000000;
 
   --c-background: #000000;
   --c-surface-lowest: #000000;
@@ -382,6 +391,9 @@
   --app-surface: #f4f4f5;
   --app-surface-high: #fafafa;
   --app-surface-highest: #ffffff;
+  --app-surface-scrim: rgba(0, 0, 0, 0.45);
+  --app-surface-scrim-opaque: rgba(0, 0, 0, 0.7);
+  --app-surface-scrim-solid: #151518;
 
   --c-background: #f4f4f5;
   --c-surface-lowest: #e4e4e7;
@@ -2685,13 +2697,13 @@ html.web-desktop.light.amoled .app-sub-app-container {
 
 .alert-dialog__backdrop--blur,
 .alert-dialog__backdrop {
-  background: var(--app-surface-scrim, rgba(0, 0, 0, 0.55));
+  background: var(--app-surface-scrim, rgba(0, 0, 0, 0.65));
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .alert-dialog__backdrop--opaque {
-  background: var(--app-surface-scrim, rgba(0, 0, 0, 0.75));
+  background: var(--app-surface-scrim-opaque, rgba(0, 0, 0, 0.85));
 }
 
 .alert-dialog__backdrop--transparent {

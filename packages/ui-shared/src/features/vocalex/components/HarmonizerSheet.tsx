@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { type TakeRecord, useT } from '@workspace/studio-core';
 import { useHarmonizerState } from './useHarmonizerState';
 import {
@@ -44,7 +45,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
     setShowExport,
   } = state;
 
-  return (
+  const content = (
     <div
       style={{
         position: 'fixed',
@@ -459,4 +460,7 @@ export default function HarmonizerSheet({ take, accent = '#007aff', onClose, onB
       `}</style>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(content, document.body);
 }

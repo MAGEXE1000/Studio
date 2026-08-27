@@ -1,6 +1,13 @@
-import { useChordStore, ACCENT_COLORS, type CustomChord, type BarreDef, setNavHidden, useScrollHide, type GuitarChordData, useT, useSettingsStore } from '@workspace/studio-core';
-import { useState, useCallback, useMemo, useRef } from 'react';
 import {
+  useChordStore,
+  ACCENT_COLORS,
+  type CustomChord,
+  type BarreDef,
+  setNavHidden,
+  useScrollHide,
+  type GuitarChordData,
+  useT,
+  useSettingsStore,
   detectChordName,
   chromaticToName,
   OPEN_NOTES,
@@ -8,7 +15,8 @@ import {
   notesFromFrets,
   notesFromPianoKeys,
 } from '@workspace/studio-core';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import ChordDiagram from '../diagrams/ChordDiagram';
 import { Button } from '../../../shared/design-system/buttons';
 
@@ -1079,7 +1087,7 @@ export default function CustomChordBuilder({
 
   const isEditing = !!editChord;
 
-  return (
+  const modalContent = (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200 }}>
       {/* Backdrop */}
       <div
@@ -1087,8 +1095,9 @@ export default function CustomChordBuilder({
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(0,0,0,0.7)',
+          background: 'var(--surface-modal-bg, var(--app-surface-scrim, rgba(0,0,0,0.7)))',
           backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
           animation: closing ? 'fade-out 300ms ease both' : undefined,
         }}
       />
@@ -1760,4 +1769,7 @@ export default function CustomChordBuilder({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(modalContent, document.body);
 }

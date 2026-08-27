@@ -1,4 +1,5 @@
 import React, { useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import { Button, ButtonGroup } from '../../../shared/design-system/buttons';
 import {
@@ -125,11 +126,11 @@ export default function ProgressionGenerator({
     [presets]
   );
 
-  return (
+  const modalContent = (
     <div
       className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center ${closing ? 'overlay-fade-out' : 'overlay-fade-in'}`}
       style={{
-        background: 'var(--surface-modal-bg, rgba(0, 0, 0, 0.6))',
+        background: 'var(--surface-modal-bg, var(--app-surface-scrim, rgba(0, 0, 0, 0.65)))',
         backdropFilter: 'blur(14px) saturate(140%)',
         WebkitBackdropFilter: 'blur(14px) saturate(140%)',
       }}
@@ -680,4 +681,7 @@ export default function ProgressionGenerator({
       )}
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(modalContent, document.body);
 }

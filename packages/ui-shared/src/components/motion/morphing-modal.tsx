@@ -3,6 +3,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { type ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { EASE_OUT, SPRING_PANEL } from '../../lib/ease';
 import { cn } from '../../lib/utils';
 
@@ -37,7 +38,7 @@ export function MorphingModal({
     };
   }, [open]);
 
-  return (
+  const modalContent = (
     <div
       aria-hidden={!open}
       inert={!open}
@@ -59,7 +60,7 @@ export function MorphingModal({
             onClick={onClose}
             className="absolute inset-0 pointer-events-auto"
             style={{
-              background: 'var(--surface-modal-bg, rgba(0, 0, 0, 0.6))',
+              background: 'var(--surface-modal-bg, var(--app-surface-scrim, rgba(0, 0, 0, 0.65)))',
               backdropFilter: 'blur(14px) saturate(140%)',
               WebkitBackdropFilter: 'blur(14px) saturate(140%)',
             }}
@@ -157,4 +158,7 @@ export function MorphingModal({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(modalContent, document.body);
 }

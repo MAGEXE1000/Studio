@@ -2069,7 +2069,7 @@ function DrumExportModal({
 
   const isWebDesktop = useIsWebDesktop();
 
-  return (
+  const content = (
     <div
       style={{
         position: 'fixed',
@@ -2480,6 +2480,9 @@ function DrumExportModal({
       </div>
     </div>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(content, document.body);
 }
 
 // â”€â”€ DrumImportModal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

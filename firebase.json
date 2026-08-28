@@ -7,12 +7,7 @@
   },
   "hosting": {
     "public": "firebase-public",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**",
-      "**/*.apk"
-    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**", "**/*.apk"],
     "rewrites": [
       {
         "source": "**",
@@ -149,7 +144,7 @@
     "redirects": [
       {
         "source": "/apk/studio-latest.apk",
-        "destination": "https://github.com/MAGEXE1000/Studio/releases/download/v4.5.23/studio-4.5.23.apk",
+        "destination": "https://github.com/MAGEXE1000/Studio/releases/download/v4.5.45/studio-4.5.45.apk",
         "type": 302
       },
       {

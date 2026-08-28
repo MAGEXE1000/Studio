@@ -103,7 +103,7 @@ import { getUpdateHistory, logUpdateTransition } from './updateHistory';
 const updaterSimulation: Record<string, any> = {};
 function addJsLog(_msg: string): void {}
 function setSimulateStatusCallback(_cb: any): void {}
-let simulateStatusCallback: ((data: any) => void) | null = null;
+const simulateStatusCallback: ((data: any) => void) | null = null;
 
 // ─── Pipeline Error ────────────────────────────────────────────────────────
 
@@ -306,9 +306,9 @@ async function delayForSim(ms: number) {
 // ─── Queue/State variables ────────────────────────────────────────────────
 
 let currentSessionStartTime = 0;
-let latestCheckId = 0;
-let activeCheckIsManual = false;
-let activeCheckPromise: Promise<CentralizedUpdateState> | null = null;
+const latestCheckId = 0;
+const activeCheckIsManual = false;
+const activeCheckPromise: Promise<CentralizedUpdateState> | null = null;
 let activeDownloadPromise: Promise<void> | null = null;
 let activeApplyPromise: Promise<void> | null = null;
 let startupRecoveryPromise: Promise<void> | null = null;
@@ -455,7 +455,13 @@ async function executeCheckForUpdateInternal(
     return globalUpdateState;
   }
 
-  const allowedStates = ['IDLE', 'NO_UPDATE_AVAILABLE', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY'];
+  const allowedStates = [
+    'IDLE',
+    'NO_UPDATE_AVAILABLE',
+    'INSTALL_FAILED',
+    'INSTALL_CANCELLED',
+    'RECOVERY',
+  ];
   if (!isManual && !allowedStates.includes(current)) {
     return globalUpdateState;
   }
@@ -636,8 +642,7 @@ async function executeCheckForUpdateInternal(
     ) {
       try {
         remote = JSON.parse(mockResponse);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
 
     if (remote && !validateRemoteMetadata(remote)) {
@@ -701,8 +706,7 @@ async function executeCheckForUpdateInternal(
           updateDebugLogs.pluginMethodCheck = isNativePlat ? 'Plugin not found' : 'N/A (Web)';
           updateDebugLogs.installerLaunchStatus = `MISSING: AppInstaller not registered. Plugins: ${registry.join(', ')}`;
         }
-      } catch (e) {
-      }
+      } catch (e) {}
     }
 
     checkCancellation(pipelineId, 'AWAIT_METADATA_VALIDATION');
@@ -932,7 +936,9 @@ export function checkForUpdate(
   trigger = 'unknown',
   reason = 'unknown'
 ): Promise<CentralizedUpdateState> {
-  console.log(`[UPDATER-TRACE] checkForUpdate() CALLED at ${performance.now().toFixed(0)}ms, isManual=${isManual}, trigger=${trigger}, reason=${reason}`);
+  console.log(
+    `[UPDATER-TRACE] checkForUpdate() CALLED at ${performance.now().toFixed(0)}ms, isManual=${isManual}, trigger=${trigger}, reason=${reason}`
+  );
   interceptIllegalCall(
     'checkForUpdate',
     `isManual=${isManual}, trigger=${trigger}, reason=${reason}`
@@ -973,7 +979,11 @@ export function checkForUpdate(
       if (!autoUpdates) {
         const msg = 'checkForUpdate() automatic update check disabled by user preferences';
         console.log(`[UPDATER-TRACE] ${msg}`);
-        logTimelineEvent('UpdateCore', 'CHECK_REJECTED_AUTO_DISABLED', 'Automatic updates are disabled');
+        logTimelineEvent(
+          'UpdateCore',
+          'CHECK_REJECTED_AUTO_DISABLED',
+          'Automatic updates are disabled'
+        );
         return Promise.resolve(globalUpdateState);
       }
     } catch (_) {}
@@ -991,7 +1001,13 @@ export function checkForUpdate(
     'INSTALL_SUCCESS',
   ].includes(current);
 
-  const allowedStates = ['IDLE', 'NO_UPDATE_AVAILABLE', 'INSTALL_FAILED', 'INSTALL_CANCELLED', 'RECOVERY'];
+  const allowedStates = [
+    'IDLE',
+    'NO_UPDATE_AVAILABLE',
+    'INSTALL_FAILED',
+    'INSTALL_CANCELLED',
+    'RECOVERY',
+  ];
   const isBlocked = isUpdateSessionActive() || !allowedStates.includes(current);
 
   if (isBlocked) {
@@ -1577,6 +1593,8 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
   logDiagnosticEvent('INSTALL_REQUESTED', { version: remoteVersion });
 
   if (!Capacitor.isNativePlatform() || !isAppInstallerAvailable()) {
+    // Persist installation state and release notes before reload
+    transitionToState('INSTALL_SUCCESS', 'Web update applied, reloading application');
     (async () => {
       try {
         const { Filesystem } = await import('@capacitor/filesystem');
@@ -1604,7 +1622,11 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       const { AppInstaller } = await import('../apkDownloader');
       const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
       if (!hasPerm) {
-        logTimelineEvent('UpdateCore', 'MISSING_INSTALL_PERMISSION', 'Redirecting to unknown sources settings');
+        logTimelineEvent(
+          'UpdateCore',
+          'MISSING_INSTALL_PERMISSION',
+          'Redirecting to unknown sources settings'
+        );
         updateActiveSession({
           installStep: 'permission_settings',
         });
@@ -1647,7 +1669,7 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
   logActivity('apk_install', `Installing APK system update (v${remoteVersion})`, 'Studio');
 
   activeApplyPromise = (async () => {
-    let nativeListener: any = null;
+    const nativeListener: any = null;
     try {
       const filePath = localStorage.getItem('studio:downloadedApkPath');
       if (!filePath) {
@@ -1686,7 +1708,12 @@ async function applyUpdateInternal(trigger?: string): Promise<void> {
       updateGlobalState({ statusText: 'Launching PackageInstaller...' });
 
       if (!Capacitor.isNativePlatform() || !isAppInstallerAvailable()) {
-        logPipelineTrace('applyUpdate', 'pipeline.ts', 1635, 'Native installation is only supported on Android device.');
+        logPipelineTrace(
+          'applyUpdate',
+          'pipeline.ts',
+          1635,
+          'Native installation is only supported on Android device.'
+        );
         updateGlobalState({ statusText: 'Native installer unavailable on non-Android platform.' });
         return;
       }
@@ -1777,7 +1804,11 @@ export async function checkAndRecoverInstallState() {
       const { AppInstaller } = await import('../apkDownloader');
       const hasPerm = (await AppInstaller.canRequestPackageInstalls()).value;
       if (hasPerm) {
-        logTimelineEvent('RecoveryManager', 'RECOVERY_PERMISSION_GRANTED', 'Permission granted, resuming install');
+        logTimelineEvent(
+          'RecoveryManager',
+          'RECOVERY_PERMISSION_GRANTED',
+          'Permission granted, resuming install'
+        );
         updateActiveSession({
           installStep: 'installing',
           nativeInstallerTriggered: true,
@@ -1792,7 +1823,11 @@ export async function checkAndRecoverInstallState() {
   // Skip getLastInstallResult check if the native installer was never triggered in this session.
   const isInstallerTriggered = activeUpdateSession?.nativeInstallerTriggered === true;
   if (!isInstallerTriggered) {
-    logTimelineEvent('RecoveryManager', 'RECOVERY_CHECK_SKIPPED', 'Native installer not launched yet for current session');
+    logTimelineEvent(
+      'RecoveryManager',
+      'RECOVERY_CHECK_SKIPPED',
+      'Native installer not launched yet for current session'
+    );
     return;
   }
 
@@ -1881,8 +1916,7 @@ export async function checkAndRecoverInstallState() {
         activeInstallPromiseRejecter = null;
       }
     }
-  } catch (err) {
-  }
+  } catch (err) {}
 }
 
 // ─── Global Listeners ─────────────────────────────────────────────────────
@@ -2012,8 +2046,7 @@ export function initializeGlobalUpdateListeners() {
     void (async () => {
       try {
         await (AppInstaller as any).addListener('onInstallStatusChanged', (eventData: any) => {});
-      } catch (e) {
-      }
+      } catch (e) {}
     })();
   }
 
@@ -2082,8 +2115,7 @@ export function initializeGlobalUpdateListeners() {
           }
         });
       })
-      .catch((e) => {
-      });
+      .catch((e) => {});
   }
 
   if (typeof document !== 'undefined') {

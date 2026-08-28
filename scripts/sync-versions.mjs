@@ -66,7 +66,11 @@ const buildTimestamp = new Date().toLocaleString('en-US', { timeZoneName: 'short
 // --- 3. Update all secondary package.json files ---
 const secondaryPkgPaths = [
   path.join(repoRoot, 'apps/studio-android/package.json'),
-  path.join(repoRoot, 'apps/studio-web/package.json')
+  path.join(repoRoot, 'apps/studio-web/package.json'),
+  path.join(repoRoot, 'packages/studio-core/package.json'),
+  path.join(repoRoot, 'packages/ui-shared/package.json'),
+  path.join(repoRoot, 'packages/ui-android/package.json'),
+  path.join(repoRoot, 'packages/ui-web/package.json')
 ];
 
 for (const pkgPath of secondaryPkgPaths) {
@@ -257,6 +261,68 @@ if (fs.existsSync(appVersionTsPath)) {
           updated = true;
         }
       }
+
+      // Parse top releases from CHANGELOG.md for RELEASE_HISTORY
+      const releaseHistoryEntries = [];
+      let currentRelVer = null;
+      let currentRelDate = '';
+      let currentRelBullets = [];
+
+      for (const rawLine of changelogRawLines) {
+        const hMatch = rawLine.match(/^(?:#|##)\s+(?:Version\s+)?v?(\d+\.\d+\.\d+)/i);
+        if (hMatch) {
+          if (currentRelVer && currentRelBullets.length > 0) {
+            releaseHistoryEntries.push({
+              version: currentRelVer,
+              date: currentRelDate || '2026-08-01',
+              highlights: currentRelBullets.slice(0, 6),
+            });
+            if (releaseHistoryEntries.length >= 10) break;
+          }
+          currentRelVer = hMatch[1];
+          currentRelDate = '';
+          currentRelBullets = [];
+          continue;
+        }
+        if (currentRelVer) {
+          const dMatch = rawLine.match(/^Release Date:\s*(.+)/i);
+          if (dMatch) {
+            currentRelDate = dMatch[1].trim();
+            continue;
+          }
+          const bMatch = rawLine.match(/^[-*]\s+(.*)$/);
+          if (bMatch) {
+            currentRelBullets.push(bMatch[1].trim());
+          }
+        }
+      }
+      if (currentRelVer && currentRelBullets.length > 0 && releaseHistoryEntries.length < 10) {
+        releaseHistoryEntries.push({
+          version: currentRelVer,
+          date: currentRelDate || '2026-08-01',
+          highlights: currentRelBullets.slice(0, 6),
+        });
+      }
+
+      if (releaseHistoryEntries.length > 0) {
+        const historyItemsStr = releaseHistoryEntries
+          .map((entry) => {
+            const hStr = entry.highlights.map((h) => `      ${JSON.stringify(h)},`).join('\n');
+            return `  {\n    version: ${JSON.stringify(entry.version)},\n    date: ${JSON.stringify(entry.date)},\n    highlights: [\n${hStr}\n    ],\n  }`;
+          })
+          .join(',\n');
+        const tsHistory = `export const RELEASE_HISTORY: ReleaseHistoryItem[] = [\n${historyItemsStr}\n];`;
+
+        const releaseHistoryPat = /export\s+const\s+RELEASE_HISTORY:\s*ReleaseHistoryItem\[\]\s*=\s*\[([\s\S]*?)\]\s*;/;
+        if (releaseHistoryPat.test(src)) {
+          const newSrc = src.replace(releaseHistoryPat, tsHistory);
+          const clean = (s) => s.replace(/['"\\\s,;]/g, '');
+          if (clean(newSrc) !== clean(src)) {
+            src = newSrc;
+            updated = true;
+          }
+        }
+      }
     }
   }
 
@@ -281,9 +347,11 @@ if (fs.existsSync(appVersionTsPath)) {
     const manifestPath = path.join(repoRoot,
       platform === 'web'
         ? 'apps/studio-web/public/version.json'
-        : platform === 'app-release'
-          ? 'apps/studio-android/public/app-release.json'
-          : 'apps/studio-android/public/version.json'
+        : platform === 'firebase'
+          ? 'firebase-public/version.json'
+          : platform === 'app-release'
+            ? 'apps/studio-android/public/app-release.json'
+            : 'apps/studio-android/public/version.json'
     );
     // If existing manifest already has correct version, preserve its timestamp fields
     let existingCommit = gitCommitSha;
@@ -291,7 +359,7 @@ if (fs.existsSync(appVersionTsPath)) {
     if (fs.existsSync(manifestPath)) {
       try {
         const existing = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-        if (existing.version === version && existing.versionCode === versionCode) {
+        if (existing.version === version && (existing.versionCode === versionCode || !existing.versionCode)) {
           // Version already correct: preserve timestamps to avoid dirty state
           existingCommit = existing.commit || gitCommitSha;
           existingTimestamp = existing.releasedAt || buildTimestamp;
@@ -299,7 +367,7 @@ if (fs.existsSync(appVersionTsPath)) {
       } catch (_) {}
     }
     return {
-      platform: platform === 'app-release' ? 'android' : platform,
+      platform: platform === 'app-release' ? 'android' : platform === 'firebase' ? 'web' : platform,
       version,
       versionName: version,
       versionCode,
@@ -318,7 +386,8 @@ if (fs.existsSync(appVersionTsPath)) {
   const manifests = [
     { path: 'apps/studio-android/public/version.json', data: buildManifestPayload('android') },
     { path: 'apps/studio-web/public/version.json', data: buildManifestPayload('web') },
-    { path: 'apps/studio-android/public/app-release.json', data: buildManifestPayload('app-release') }
+    { path: 'apps/studio-android/public/app-release.json', data: buildManifestPayload('app-release') },
+    { path: 'firebase-public/version.json', data: buildManifestPayload('firebase') }
   ];
 
   for (const m of manifests) {
@@ -326,6 +395,19 @@ if (fs.existsSync(appVersionTsPath)) {
     const content = JSON.stringify(m.data, null, 2) + '\n';
     const wrote = writeIfChanged(fullPath, content, m.path);
     if (wrote) console.log(`sync-versions: ✓ Wrote manifest ${m.path}`);
+  }
+}
+
+// Update firebase.json latest APK redirect if present
+const firebaseJsonPath = path.join(repoRoot, 'firebase.json');
+if (fs.existsSync(firebaseJsonPath)) {
+  let fbSrc = fs.readFileSync(firebaseJsonPath, 'utf8');
+  const oldDestRegex = /"destination":\s*"https:\/\/github\.com\/MAGEXE1000\/Studio\/releases\/download\/v[^/]+\/studio-[^/]+\.apk"/;
+  const newDest = `"destination": "https://github.com/MAGEXE1000/Studio/releases/download/v${version}/studio-${version}.apk"`;
+  if (oldDestRegex.test(fbSrc)) {
+    const newFbSrc = fbSrc.replace(oldDestRegex, newDest);
+    const wrote = writeIfChanged(firebaseJsonPath, newFbSrc, 'firebase.json');
+    if (wrote) console.log(`sync-versions: ✓ Synchronized firebase.json APK redirect to v${version}`);
   }
 }
 

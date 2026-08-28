@@ -14,12 +14,17 @@ const paths = {
   rootPkg: path.join(repoRoot, 'package.json'),
   webPkg: path.join(repoRoot, 'apps/studio-web/package.json'),
   androidPkg: path.join(repoRoot, 'apps/studio-android/package.json'),
+  corePkg: path.join(repoRoot, 'packages/studio-core/package.json'),
+  uiSharedPkg: path.join(repoRoot, 'packages/ui-shared/package.json'),
+  uiAndroidPkg: path.join(repoRoot, 'packages/ui-android/package.json'),
+  uiWebPkg: path.join(repoRoot, 'packages/ui-web/package.json'),
   appVersionTs: path.join(repoRoot, 'packages/studio-core/src/lib/startup/appVersion.ts'),
   buildGradle: path.join(repoRoot, 'apps/studio-android/android/app/build.gradle'),
   changelog: path.join(repoRoot, 'CHANGELOG.md'),
   releaseNotes: path.join(repoRoot, 'release-notes.md'),
   versionJson: path.join(repoRoot, 'apps/studio-android/public/version.json'),
   webVersionJson: path.join(repoRoot, 'apps/studio-web/public/version.json'),
+  firebaseVersionJson: path.join(repoRoot, 'firebase-public/version.json'),
   appReleaseJson: path.join(repoRoot, 'apps/studio-android/public/app-release.json'),
   releaseManifest: path.join(repoRoot, 'release-manifest.json'),
 };
@@ -79,6 +84,20 @@ if (fs.existsSync(paths.androidPkg)) {
   assertVersion(paths.androidPkg, androidPkg.version, 'apps/studio-android/package.json');
 }
 
+// 4b. Core & Shared Packages
+const internalPackages = [
+  { path: paths.corePkg, label: 'packages/studio-core/package.json' },
+  { path: paths.uiSharedPkg, label: 'packages/ui-shared/package.json' },
+  { path: paths.uiAndroidPkg, label: 'packages/ui-android/package.json' },
+  { path: paths.uiWebPkg, label: 'packages/ui-web/package.json' },
+];
+for (const pkg of internalPackages) {
+  if (fs.existsSync(pkg.path)) {
+    const data = JSON.parse(fs.readFileSync(pkg.path, 'utf8'));
+    assertVersion(pkg.path, data.version, pkg.label);
+  }
+}
+
 // 5. appVersion.ts
 if (fs.existsSync(paths.appVersionTs)) {
   const content = fs.readFileSync(paths.appVersionTs, 'utf8');
@@ -135,6 +154,12 @@ if (fs.existsSync(paths.releaseNotes)) {
 if (fs.existsSync(paths.versionJson)) {
   const vj = JSON.parse(fs.readFileSync(paths.versionJson, 'utf8'));
   assertVersion(paths.versionJson, vj.version || vj.versionName, 'public/version.json');
+}
+
+// 9b. firebase-public/version.json (if present)
+if (fs.existsSync(paths.firebaseVersionJson)) {
+  const fvj = JSON.parse(fs.readFileSync(paths.firebaseVersionJson, 'utf8'));
+  assertVersion(paths.firebaseVersionJson, fvj.version || fvj.versionName, 'firebase-public/version.json');
 }
 
 // 10. app-release.json (if present)

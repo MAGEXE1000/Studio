@@ -1,5 +1,11 @@
 import React from 'react';
-import { RELEASE_HISTORY, APP_VERSION_LABEL, ACCENT_COLORS, useSettingsStore, sanitizeUTF8String } from '@workspace/studio-core';
+import {
+  RELEASE_HISTORY,
+  APP_VERSION_LABEL,
+  ACCENT_COLORS,
+  useSettingsStore,
+  sanitizeUTF8String,
+} from '@workspace/studio-core';
 import { SectionHeader } from '../../../shared/settings/SettingControls';
 
 export default function HubChangelogSection() {
@@ -38,7 +44,9 @@ export default function HubChangelogSection() {
                   transition: 'border-color 200ms ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span
                       style={{
@@ -53,9 +61,15 @@ export default function HubChangelogSection() {
                         letterSpacing: '0.02em',
                       }}
                     >
-                      v{rel.version} {isLatest && `(${APP_VERSION_LABEL})`}
+                      v{rel.version}
                     </span>
-                    <span style={{ fontSize: '12px', color: 'var(--c-text-secondary)', fontWeight: 600 }}>
+                    <span
+                      style={{
+                        fontSize: '12px',
+                        color: 'var(--c-text-secondary)',
+                        fontWeight: 600,
+                      }}
+                    >
                       {rel.date}
                     </span>
                   </div>
@@ -76,9 +90,24 @@ export default function HubChangelogSection() {
                     </span>
                   )}
                 </div>
-                <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <ul
+                  style={{
+                    margin: 0,
+                    paddingLeft: '18px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '6px',
+                  }}
+                >
                   {rel.highlights.map((h, i) => (
-                    <li key={i} style={{ fontSize: '13px', color: 'var(--c-text-primary)', lineHeight: '1.45' }}>
+                    <li
+                      key={i}
+                      style={{
+                        fontSize: '13px',
+                        color: 'var(--c-text-primary)',
+                        lineHeight: '1.45',
+                      }}
+                    >
                       {sanitizeUTF8String(h)}
                     </li>
                   ))}

@@ -115,67 +115,114 @@ export interface ReleaseHistoryItem {
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
   {
-    version: '4.3.41',
-    date: '2026-08-01',
+    version: '4.5.45',
+    date: '2026-08-27',
     highlights: [
-      'Modernized the updater progress indicators, success check animations, and sidebar settings icons with a unified GPU-accelerated Lucide icon system.',
+      'Chordex Library Bento Redesign: Completely overhauled the Chordex Library section with a modern Bento card layout, ambient glowing accents, and responsive split-view desktop / full-screen mobile experience.',
+      'Dynamic Mini Fretboard Recesses: Introduced high-fidelity 6-string dynamic fretboard recess components (`HeroChordRecess`) with realistic gauge lines, fret lines, nut bar, base fret indicators, muted/open markers, and glowing finger dots (`.finger-dot`).',
+      'Interactive Chord Preview Section: Integrated rich multi-instrument visualizers supporting instant toggles across Guitar (interactive fretboard diagram with note names/intervals and left-handed mode), Bass (4/5-string diagram), and Piano (2-octave keyboard), with strum audio playback and related chord suggestions.',
+      'Harmonic Categories Grid: Expanded the category browser to 31 distinct harmonic flavors with signature 3-string mini recesses, root note quick filter pills, and a smooth expand/collapse toggle.',
+      'Universal Theme Parity: Full adaptive styling across Dark, Light, and AMOLED modes with zero hardcoded styling regressions.',
     ],
   },
   {
-    version: '4.3.40',
-    date: '2026-08-01',
+    version: '4.5.44',
+    date: '2026-08-26',
     highlights: [
-      'Restored responsive chord diagram previews inside category cards, list views, and search results inside Chordex.',
-      'Normalized preferences routing to /chords/preferences.',
-      'Simplified the Updater screen and moved Developer Inspector Route Tracer behind a persisted toggle.',
-      'Wrapped the Language Selector bottom sheet inside a React Portal targeting the body element.',
-      'Resolved the chord detail black screen navigation bug.',
+      'Android Updater Changelog Correlation: Resolved long-standing static update dialog changelog display across releases. Implemented dynamic per-version release notes extraction in `studio-core` and wired `UpdateIndicator` to display release notes specific to the version being offered.',
+      'Navigation Icon Mapping: Eliminated remaining `AnimatedNavigationIcon` unmapped warnings for `profile`, `user`, `account`, `drumex`, `stagex`, and `disc` by standardizing normalization routes and comprehensive `FILLED_VARIANTS_SUPPORT` coverage.',
+      'Navigation Re-Render Optimization: Memoized animation context and tab icons in `NavigationAnimationProvider` and `AnimatedNavigationIcon`, eliminating redundant re-renders and false transition triggers during tab changes.',
+      'Component Resolution Cache: Implemented module-level $O(1)$ component lookup caching in `AnimatedIcon`, removing per-render string parsing and Lucide reflection overhead.',
+      'Livex Tab Animation Parity: Standardized tab-change animations to a unified 200ms cubic-bezier transition across all five Livex applications.',
+      'Unified Subsection Top Bar: Finalized and unified the shared top bar structure across Chordex, Drumex, Stagex, Groovex, and Vocalex.',
     ],
   },
   {
-    version: '4.3.35',
-    date: '2026-08-01',
+    version: '4.5.43',
+    date: '2026-08-25',
     highlights: [
-      'Restored StartupCoordinator initialization inside the SharedAppShell component, fixing native background update check execution and cold-start release detection.',
-      'Restored Phase 4 Updater startup recovery check and listener registrations.',
+      'Modal Surface Transparency: Eliminated excessive transparency across modal, alert, and dialog surfaces across all five Livex applications (Chordex, Drumex, Stagex, Groovex, Vocalex) by introducing canonical `--surface-dialog-bg` and `--surface-modal-surface` theme tokens and multi-layered elevation shadows.',
+      'Navigation Icon Mapping: Resolved unmapped icon warnings for `drumex`, `stagex`, and `disc` in `AnimatedNavigationIcon` through normalized routing and complete filled variant support tables.',
+      "Deprecated Vocalex Back Navigation: Migrated legacy `setVocalexBack` calls across Practice, Recording, Take Detail, and Mixer Lab panels to canonical priority-based `useBackHandler('nested', ...)` hooks.",
+      'Theme System Integration: Standardized CSS token inheritance for interactive controls and floating headers across Light, Dark, and AMOLED themes.',
     ],
   },
   {
-    version: '4.3.34',
-    date: '2026-07-31',
+    version: '4.5.42',
+    date: '2026-08-24',
     highlights: [
-      'Dedicated E2E updater validation test release to assert APK download, signature checks, and PackageInstaller integration.',
+      "Developer Inspector Usability: Fixed broken refresh behavior to re-inspect the active DOM node's React fiber, bounds, and computed styles without resetting selection. Added quick target shortcuts for App Shell, Active View Container, and Navigation Bars.",
+      'Interactive Component Subtree Tree Browser: Added real-time component search filtering, category filter pills (Interactive, React, DOM, Containers), collapsible tree nodes, and 1-tap inspection.',
+      'Visual CSS Box Model: Added live nested Box Model visualization for Margin, Border, Padding, and Content dimensions with categorized CSS property tables (Layout, Typography, Surface/Effects).',
+      'Performance Diagnostics Layout Overflow: Applied flexWrap and responsive truncation across component lifecycle profiler, frame pacing histograms, memory gauges, and GPU renderer strings to eliminate horizontal overflow on narrow Android viewports.',
+      'Network Sniffer Consolidation: Consolidated standalone Network Sniffer into Logs, removing redundant subview routing while preserving full HTTP request inspection and 404 diagnostics.',
+      'Tap-to-select capturing handler in Developer Inspector overlay for seamless element selection and automatic exit on select.',
     ],
   },
   {
-    version: '4.2.55',
-    date: '2026-07-23',
+    version: '4.5.41',
+    date: '2026-08-23',
     highlights: [
-      'Redesigned Bottom Navigation with elegant 20-30% scale reduction on scroll down without hiding offscreen.',
-      'Active Tab Indicator with horizontal pill expansion and dynamic section name text.',
-      'Native-feeling Android spring motion system with smooth 60 FPS pacing.',
-      'New Changelog & Release History section inside Settings.',
-      'Permanently resolved Stagex center panel iframe navigation and route initialization.',
-      'Completely removed Notification Center for a cleaner, streamlined user experience.',
+      "Global HeroUI Dialog & Modal Migration: Unified all application dialogs, confirmation dialogs, and modal overlays under HeroUI's AlertDialog compound components (AlertDialog, Backdrop, Container, Dialog, CloseTrigger, Header, Icon, Heading, Body, Footer) across Stagex, Chordex, Drumex, Vocalex, and Hub.",
+      'Destructive Confirmation Safety: Applied danger status and enforced backdrop dismissal prevention on destructive operations to avoid accidental data loss.',
+      'Global HeroUI Button & ButtonGroup System: Replaced custom buttons and standalone action triggers with HeroUI Button, and unified paired/connected actions (measure/timeline tools, regenerate/random templates, clear/copy logs) under HeroUI ButtonGroup.',
+      'Verifiable Developer Diagnostics: Rebuilt Developer Options (System, Apps, Performance, Logs) with real, verifiable runtime telemetry for Android OS, WebView version, battery, storage, display characteristics, network Wi-Fi filters, and live memory metrics.',
     ],
   },
   {
-    version: '4.2.54',
-    date: '2026-07-23',
+    version: '4.5.40',
+    date: '2026-08-23',
     highlights: [
-      'Restored per-container scroll binding for bottom navigation auto-hide.',
-      'Fixed Stagex center panel iframe blackout by removing obsolete app checks.',
-      'Retired Updater Diagnostics in favor of Coming Soon placeholder.',
-      'Streamlined Updater experience into a single progress indicator.',
+      'Global AMOLED True Black: Fixed StageCorePanel settings fallback and replaced hardcoded near-black surfaces with var(--app-bg) to guarantee true #000000 black base across all internal apps, Hub, and Settings.',
+      'Dark Mode Surface Polish: Darkened dark surface scale and glass tint to eliminate gray wash across bottom sheets, DrumEditor, SongsPanel, and AccountProfileHeader.',
+      'Appearance Theme Mode Icons: Corrected Theme Toggle icon mapping to Light Mode -> Sun, Dark Mode -> Moon, and AMOLED Mode -> Eclipse with live spring transitions.',
+      'Appearance Component Theming: Added --control-track-bg token and theme-adaptive borders/backgrounds across SegmentedControl, SettingRow, SettingSection, BentoSettingCard, and Language selector.',
+      'Restored About Section in Settings: Restored About and Developer Options destinations in Settings > System & About with full theme support and seamless back navigation.',
+      'App Changer Layout Overflow: Replaced asymmetrical 3-column grid with a centered responsive flex dock respecting horizontal safe-area insets, preventing clipping and viewport overflow across all Android screen sizes.',
     ],
   },
   {
-    version: '4.2.53',
-    date: '2026-07-23',
+    version: '4.5.39',
+    date: '2026-08-23',
     highlights: [
-      'Resolved Profile popup immediate closure caused by ghost clicks.',
-      'Restored touchmove scroll hide and watchdog recovery.',
-      'Preserved 60 FPS performance and cross-platform navigation consistency.',
+      'Harmonized Liquid Glass surface material and backdrop blur tokens across Bento cards, Bento setting controls, Profile metric containers, and Studio Auth surfaces.',
+      'Unified optical backdrop filtering with single-pass CSS custom property tokens, preventing Android WebView compositing overhead and rendering jank.',
+      'Synchronized tactile micro-interactions with SpringPresets physics across interactive glass surfaces, modal dismiss controls, and navigation buttons.',
+    ],
+  },
+  {
+    version: '4.5.38',
+    date: '2026-08-23',
+    highlights: [
+      'Implemented true floating glass top bar on Android Settings child screens (Appearance, Help & Support, FAQ, Updater, About, Privacy, Terms, Licenses, Bug Report) with large pill radius, centered titles, and smooth spring-animated back navigation.',
+      'Refined Liquid Glass material system with ~60% natural optical overlay, restrained lighting, soft edge definition, and multi-layered depth shadows across Dark, Light, and AMOLED modes.',
+      'Enhanced bottom navigation dock sizing (64px height, 28px corner radius, 80px slot width for Hub) with comfortable breathing room for icon and label.',
+      'Maintained consistent vertical icon-above-label hierarchy with resting label visibility and zero layout shifting.',
+      'Synchronized active glass lens capsule and standalone floating search button with matching 64px height and 28px radius.',
+    ],
+  },
+  {
+    version: '4.5.37',
+    date: '2026-08-22',
+    highlights: [
+      'Resolved Settings sub-pages navigation bug (Appearance, Help & Support, Report a Bug, Updater) where font ligature failure caused back icons to render as clipped text `"w_b"`, back button opacity was tied to scroll position, and isolated floating capsule obscured page titles.',
+      'Rebuilt SharedFloatingHeader and SettingsScaffold with a full-width integrated Liquid Glass top bar, centered title, robust SVG vector back chevron, and proper top scroll padding.',
+      'Hardened navigation stack handling in HubSettings and HubHelp to safely return to Settings root.',
+      'Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.',
+      'Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.',
+      'Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.',
+    ],
+  },
+  {
+    version: '4.5.36',
+    date: '2026-08-22',
+    highlights: [
+      'Resolved critical section-entry runtime exception (`ReferenceError: isLight is not defined`) in `HubSettings` by declaring `isLight` derived from active settings and media queries.',
+      'Refactored shared Liquid Glass design tokens with realistic optical transparency, live backdrop blur, and soft micro-specular responses across Dark, Light, and AMOLED themes.',
+      'Upgraded mobile bottom navigation dock with natural environmental transparency, soft radial depth vignetting, and clean optical boundaries.',
+      'Modernized top bar material system with soft curvature-aware specular highlights, removing hard 1px artificial white rim lines.',
+      'Cleaned Hub module launcher cards by eliminating colored right-side circular highlight blobs and hard rim lines for a premium, unified aesthetic.',
+      'Removed capsule container surrounding the Livex logo in Hub header for clean, native visual alignment.',
     ],
   },
 ];
@@ -183,11 +230,13 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
 /** Native English version of the current changelog for Android. */
 export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
   {
-    heading: "What's New",
+    heading: 'Added',
     items: [
-      'Unified single global Bottom Navigation controller across all 7 studio applications.',
-      'Fixed navigation pill restoration state after transition completion across direct and indirect navigation flows.',
-      'Harmonized dark theme design tokens across all application surface levels and settings panels.',
+      'Chordex Library Bento Redesign: Completely overhauled the Chordex Library section with a modern Bento card layout and ambient glowing accents.',
+      'Dynamic Mini Fretboard Recesses: Introduced high-fidelity 6-string dynamic fretboard recess components with realistic gauge lines and glowing finger dots.',
+      'Interactive Chord Preview Section: Integrated rich multi-instrument visualizers supporting instant toggles across Guitar, Bass, and Piano.',
+      'Harmonic Categories Grid: Expanded category browser to 31 distinct harmonic flavors with signature 3-string mini recesses.',
+      'Universal Theme Parity: Full adaptive styling across Dark, Light, and AMOLED modes.',
     ],
   },
 ];
@@ -196,12 +245,13 @@ export const APP_CHANGELOG_SECTIONS_NATIVE: ChangelogSection[] = [
  *  by `ChangelogSheet` based on `settings.language`. */
 export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
   {
-    heading: 'Novedades',
+    heading: 'Añadido',
     items: [
-      'Servicio de notificaciones persistente y centralizado para actualizaciones del sistema, sincronización y autenticación.',
-      'Pestaña de Centro de Notificaciones dedicada con feed animado y botones de acción interactivos.',
-      'Pila de navegación de retroceso aislada por aplicación, impidiendo el retorno inesperado al Hub.',
-      'Limpieza síncrona de diseño en transiciones de aplicaciones para evitar superposiciones de menús.',
+      'Rediseño Bento de la Biblioteca Chordex: Renovación completa de la biblioteca con diseño Bento moderno, acentos luminosos y experiencia adaptable.',
+      'Cavidades dinámicas de diapasón: Nuevos componentes dinámicos de 6 cuerdas con líneas realistas de calibre y puntos guía luminosos.',
+      'Visualizador interactivo de acordes: Visualizadores multi-instrumento para Guitarra, Bajo y Piano con reproducción de audio y acordes sugeridos.',
+      'Cuadrícula de categorías armónicas: 31 estilos armónicos con mini cavidades de 3 cuerdas y filtros rápidos por nota fundamental.',
+      'Paridad universal de temas: Adaptación visual completa en modos Oscuro, Claro y AMOLED.',
     ],
   },
 ];
@@ -209,13 +259,13 @@ export const APP_CHANGELOG_SECTIONS_ES: ChangelogSection[] = [
 /** German version of the current changelog. */
 export const APP_CHANGELOG_SECTIONS_DE: ChangelogSection[] = [
   {
-    heading: 'Behoben',
+    heading: 'Hinzugefügt',
     items: [
-      'Optimierte Startanimation durch Zwischenspeichern von Dimensionen und Logo-Offsets.',
-      'Vergrößerte Klickbereiche für Stagex-Objekte und Deaktivierung grauer Tipp-Overlays.',
-      'Umgestaltung des Stagex-Verlaufspanels in ein responsives Bottom-Sheet für Mobilgeräte.',
-      'Universelle Wischgeste-Zurück-Navigation für Overlays, Presets und Verlauf in Stagex.',
-      'Neugestaltung der App-Update-Fortschrittsanzeige mit automatischer Hintergrundinstallation.',
+      'Chordex Bibliothek Bento-Neugestaltung: Vollständige Überarbeitung mit modernem Bento-Kartenlayout und responsiver Ansicht.',
+      'Dynamische Mini-Griffbrett-Aussparungen: Hochpräzise 6-Saiten-Griffbrettkomponenten mit Bundlinien und leuchtenden Griffpunkten.',
+      'Interaktive Akkord-Vorschau: Multi-Instrument-Visualisierungen für Gitarre, Bass und Klavier mit Audio-Wiedergabe.',
+      'Harmonisches Kategoriengitter: Erweiterte Kategorieübersicht mit 31 harmonischen Varianten.',
+      'Universelle Theme-Parität: Vollständige visuelle Anpassung für Dark-, Light- und AMOLED-Modi.',
     ],
   },
 ];
@@ -223,8 +273,10 @@ export const APP_CHANGELOG_SECTIONS_DE: ChangelogSection[] = [
 /** Returns the changelog sections for the requested language, falling
  *  back to English when no localized version is available. */
 export function getChangelogSections(lang: string | undefined | null): ChangelogSection[] {
-  if (lang === 'es') return APP_CHANGELOG_SECTIONS_ES;
-  if (lang === 'de') return APP_CHANGELOG_SECTIONS_DE;
+  if (lang === 'es' && APP_CHANGELOG_SECTIONS_ES && APP_CHANGELOG_SECTIONS_ES.length > 0)
+    return APP_CHANGELOG_SECTIONS_ES;
+  if (lang === 'de' && APP_CHANGELOG_SECTIONS_DE && APP_CHANGELOG_SECTIONS_DE.length > 0)
+    return APP_CHANGELOG_SECTIONS_DE;
   return APP_CHANGELOG_SECTIONS;
 }
 

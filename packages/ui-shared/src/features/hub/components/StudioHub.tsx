@@ -4618,7 +4618,9 @@ function HubSettings({
 
           <SettingRow
             label={(sSets as any).swipeBack || 'Swipe Back'}
-            desc={(sSets as any).swipeBackDesc || 'Allow swiping from edge to return to previous screen'}
+            desc={
+              (sSets as any).swipeBackDesc || 'Allow swiping from edge to return to previous screen'
+            }
           >
             <Toggle
               value={settings.swipeBackBehavior === 'exit-to-hub'}
@@ -9184,7 +9186,14 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
       try {
         const cached = localStorage.getItem('studio:changelog_cache');
         const cachedTime = localStorage.getItem('studio:changelog_cache_time');
-        if (cached && cachedTime) {
+        const cachedVersion = localStorage.getItem('studio:changelog_cache_version');
+        const cachedLang = localStorage.getItem('studio:changelog_cache_lang');
+        if (
+          cached &&
+          cachedTime &&
+          cachedVersion === APP_VERSION &&
+          cachedLang === (lang || 'en')
+        ) {
           const age = Date.now() - parseInt(cachedTime, 10);
           if (age < 1000 * 60 * 60) {
             const parsed = JSON.parse(cached);
@@ -9239,6 +9248,8 @@ function ChangelogView({ lang, accent }: { lang: string; accent: { from: string;
           try {
             localStorage.setItem('studio:changelog_cache', JSON.stringify(parsedList));
             localStorage.setItem('studio:changelog_cache_time', String(Date.now()));
+            localStorage.setItem('studio:changelog_cache_version', APP_VERSION);
+            localStorage.setItem('studio:changelog_cache_lang', lang || 'en');
           } catch (e) {}
           return;
         }

@@ -21,6 +21,7 @@ import { analyzeAudio, type VocalAnalysis, type AnalysisLabels } from '../servic
 import HarmonizerSheet from './HarmonizerSheet';
 import { clearTakeCache } from '../services/harmonyEngine';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 
 import RecordingView from './RecordingView';
 import TakeDetailView from './TakeDetailView';
@@ -138,33 +139,12 @@ export default function TakesPanel() {
   }
 
   return (
-    <div className="spring-in" style={{ padding: '24px 20px', minHeight: '100%' }}>
-      <div style={{ marginBottom: 28 }}>
-        <h2
-          style={{
-            fontFamily: 'var(--font-headline)',
-            fontWeight: 800,
-            fontSize: 34,
-            letterSpacing: '-0.03em',
-            color: 'var(--vx-text)',
-            margin: '0 0 8px',
-            lineHeight: 1,
-          }}
-        >
-          {t.vocalex.takesTitle}
-        </h2>
-        <p
-          style={{
-            fontFamily: 'var(--font-body)',
-            fontSize: 13,
-            color: 'var(--vx-text-2)',
-            margin: 0,
-            lineHeight: 1.5,
-          }}
-        >
-          {t.vocalex.takesSubtitle}
-        </p>
-      </div>
+    <div className="spring-in" style={{ padding: '0 20px 24px', minHeight: '100%' }}>
+      <StudioHeader
+        title={t.vocalex.takesTitle}
+        subtitle={t.vocalex.takesSubtitle}
+        containerStyle={{ paddingLeft: 0, paddingRight: 0, marginBottom: '12px' }}
+      />
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
         <Button

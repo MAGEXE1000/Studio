@@ -4770,7 +4770,7 @@ export default function DrumEditor() {
       }}
     >
       {/* â”€â”€ Safe-area spacer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {!(isLandscape && inEditor) && (
+      {inEditor && !isLandscape && (
         <div
           style={{ height: 'env(safe-area-inset-top)', background: 'var(--app-bg)', flexShrink: 0 }}
         />

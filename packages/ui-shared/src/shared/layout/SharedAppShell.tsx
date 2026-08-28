@@ -173,40 +173,38 @@ const SubAppWrapper = memo(function SubAppWrapper({
 
       {app === 'chordex' && subApps.chordex && (
         <SubAppScaffold appKey="chordex">
-          <ScreenScaffold safeAreaTop={true} safeAreaBottom={false} className="app-bg">
-            <AppEntryTransition
-              className="flex flex-col w-full overflow-hidden select-none"
-              style={{ position: 'relative', height: '100%' } as any}
+          <AppEntryTransition
+            className="flex flex-col w-full overflow-hidden select-none"
+            style={{ position: 'relative', height: '100%' } as any}
+          >
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: subApps.chordex.sidebar ? 'row' : 'column',
+                flex: 1,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+              }}
             >
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: subApps.chordex.sidebar ? 'row' : 'column',
-                  flex: 1,
-                  width: '100%',
-                  height: '100%',
-                  overflow: 'hidden',
-                }}
-              >
-                {subApps.chordex.sidebar}
-                <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
-                  <ErrorBoundary moduleName="Chordex">
-                    <AppReadyNotifier app="chordex" onReady={onReady} />
-                    <SharedNavigationContainer activeView={activePanel} viewOrder={ALL_PANELS}>
-                      {(panel) => (
-                        <>
-                          {panel === 'songs' && subApps.chordex?.songs}
-                          {panel === 'practice' && subApps.chordex?.practice}
-                          {panel === 'library' && subApps.chordex?.library}
-                          {panel === 'preferences' && subApps.chordex?.preferences}
-                        </>
-                      )}
-                    </SharedNavigationContainer>
-                  </ErrorBoundary>
-                </div>
+              {subApps.chordex.sidebar}
+              <div className="flex-1 overflow-hidden relative" style={{ contain: 'strict' }}>
+                <ErrorBoundary moduleName="Chordex">
+                  <AppReadyNotifier app="chordex" onReady={onReady} />
+                  <SharedNavigationContainer activeView={activePanel} viewOrder={ALL_PANELS}>
+                    {(panel) => (
+                      <>
+                        {panel === 'songs' && subApps.chordex?.songs}
+                        {panel === 'practice' && subApps.chordex?.practice}
+                        {panel === 'library' && subApps.chordex?.library}
+                        {panel === 'preferences' && subApps.chordex?.preferences}
+                      </>
+                    )}
+                  </SharedNavigationContainer>
+                </ErrorBoundary>
               </div>
-            </AppEntryTransition>
-          </ScreenScaffold>
+            </div>
+          </AppEntryTransition>
         </SubAppScaffold>
       )}
       <Toaster />

@@ -1186,7 +1186,6 @@ export default function StudioHub() {
         background: 'var(--app-bg)',
         display: 'flex',
         flexDirection: 'column',
-        paddingTop: 'env(safe-area-inset-top)',
         fontFamily: 'Manrope, sans-serif',
         transform: zooming ? 'scale(1.10)' : 'scale(1)',
         opacity: zooming ? 0 : 1,

@@ -127,7 +127,6 @@ export default function GroovexApp() {
         flexDirection: 'column',
         background: 'var(--app-bg)',
         fontFamily: 'var(--font-headline)',
-        paddingTop: 'env(safe-area-inset-top)',
         overflow: 'hidden',
       }}
     >

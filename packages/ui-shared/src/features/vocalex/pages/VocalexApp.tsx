@@ -1,4 +1,5 @@
-import { useBackHandler,
+import {
+  useBackHandler,
   useChordStore,
   ACCENT_COLORS,
   type AppKey,
@@ -15,7 +16,9 @@ import { useBackHandler,
   useScrollHide,
   useBottomNavigationStore,
   useSettingsStore,
-  vocalexRepository, useSessionStore } from '@workspace/studio-core';
+  vocalexRepository,
+  useSessionStore,
+} from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
@@ -40,7 +43,6 @@ const RecordingViewLazy = lazy(() =>
 type VocalexPanel = 'coach' | 'recorder' | 'takes' | 'preferences';
 
 const NAV_ORDER: VocalexPanel[] = ['coach', 'recorder', 'takes', 'preferences'];
-
 
 export default function VocalexApp() {
   const isWebDesktop = useIsWebDesktop();
@@ -131,7 +133,6 @@ export default function VocalexApp() {
     };
   }, []);
 
-
   const pitchScrollRef = useRef<HTMLDivElement | null>(null);
   const recorderScrollRef = useRef<HTMLDivElement | null>(null);
   const takesScrollRef = useRef<HTMLDivElement | null>(null);
@@ -149,8 +150,6 @@ export default function VocalexApp() {
   useScrollHide(activeScrollRef, activeTab);
 
   useEffect(() => {}, []);
-
-
 
   const amoledBg = isLight
     ? activeVis.amoledMode
@@ -171,7 +170,6 @@ export default function VocalexApp() {
           flexDirection: 'column',
           height: '100dvh',
           overflow: 'hidden',
-          paddingTop: 'env(safe-area-inset-top)',
           background: 'var(--app-bg)',
           '--panel-dur': `${durMs}ms`,
           '--panel-exit-dur': `${Math.round(durMs * 0.65)}ms`,
@@ -326,7 +324,9 @@ function VocalexPreferences() {
               return (
                 <button
                   key={value}
-                  onClick={() => useSettingsStore.getState().updateSettings({ defaultVocalexTab: value })}
+                  onClick={() =>
+                    useSettingsStore.getState().updateSettings({ defaultVocalexTab: value })
+                  }
                   title={label}
                   className="btn-smooth"
                   style={{

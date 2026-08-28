@@ -13,4 +13,3 @@ export * from './services/practiceDetector';
 export * from './services/vocalAnalysis';
 export * from './services/vocalSynth';
 export * from './services/voiceCoach';
-export * from './utils/headerBack';

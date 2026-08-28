@@ -903,8 +903,6 @@ export function SharedNavigationBar({
               className="shared-bottom-nav glass-nav"
               animate={{
                 width: barWidth,
-                paddingLeft: paddingX,
-                paddingRight: paddingX,
               }}
               transition={{
                 type: 'spring',
@@ -925,6 +923,8 @@ export function SharedNavigationBar({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-around',
+                paddingLeft: paddingX,
+                paddingRight: paddingX,
                 paddingTop: '4px',
                 paddingBottom: '4px',
                 position: 'relative',
@@ -1179,7 +1179,7 @@ export function SharedNavigationBar({
               <motion.div
                 style={{
                   position: 'absolute',
-                  left: `calc(50% + ${barWidth / 2 + dockGap}px)`,
+                  left: '50%',
                   top: 0,
                   bottom: 0,
                   display: 'flex',
@@ -1187,7 +1187,7 @@ export function SharedNavigationBar({
                   pointerEvents: 'auto',
                 }}
                 animate={{
-                  left: `calc(50% + ${barWidth / 2 + dockGap}px)`,
+                  x: barWidth / 2 + dockGap,
                 }}
                 transition={{
                   type: 'spring',

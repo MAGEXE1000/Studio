@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useSettingsStore } from '@workspace/studio-core';
 
 export const UNIFIED_NAV_TRANSITION = {
   initial: {
@@ -13,7 +14,7 @@ export const UNIFIED_NAV_TRANSITION = {
     scale: 1,
     transition: {
       duration: 0.2,
-      ease: [0.22, 1, 0.36, 1] as const, // Linear/Apple smooth ease-out curve
+      ease: [0.22, 1, 0.36, 1] as const, // Apple/Linear smooth ease-out curve
     },
   },
   exit: {
@@ -25,6 +26,58 @@ export const UNIFIED_NAV_TRANSITION = {
       ease: [0.22, 1, 0.36, 1] as const,
     },
   },
+};
+
+export const FADE_THROUGH_TRANSITION = {
+  initial: {
+    opacity: 0,
+    scale: 0.98,
+  },
+  animate: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.22,
+      ease: [0.2, 0, 0, 1] as const,
+    },
+  },
+  exit: {
+    opacity: 0,
+    scale: 1.01,
+    transition: {
+      duration: 0.15,
+      ease: [0.4, 0, 1, 1] as const,
+    },
+  },
+};
+
+export const SLIDE_TRANSITION = {
+  initial: {
+    opacity: 0,
+    x: 16,
+  },
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.22,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: -16,
+    transition: {
+      duration: 0.16,
+      ease: [0.32, 0, 0.67, 0] as const,
+    },
+  },
+};
+
+export const REDUCED_NAV_TRANSITION = {
+  initial: { opacity: 1 },
+  animate: { opacity: 1, transition: { duration: 0 } },
+  exit: { opacity: 1, transition: { duration: 0 } },
 };
 
 /**
@@ -76,8 +129,23 @@ export const StudioPageTransition: React.FC<StudioPageTransitionProps> = ({
   style = {},
   variant = 'tab',
 }) => {
-  const transitionConfig =
-    variant === 'drilldown' ? SECTION_DRILLDOWN_TRANSITION : UNIFIED_NAV_TRANSITION;
+  const speed = useSettingsStore((s) => s.settings?.animationSpeed);
+  const prefersReduced =
+    speed === 'reduced' ||
+    (speed !== 'normal' &&
+      speed !== 'fast' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
+
+  const transitionConfig = prefersReduced
+    ? REDUCED_NAV_TRANSITION
+    : variant === 'drilldown'
+      ? SECTION_DRILLDOWN_TRANSITION
+      : variant === 'fade-through'
+        ? FADE_THROUGH_TRANSITION
+        : variant === 'slide'
+          ? SLIDE_TRANSITION
+          : UNIFIED_NAV_TRANSITION;
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -91,7 +159,7 @@ export const StudioPageTransition: React.FC<StudioPageTransitionProps> = ({
         style={{
           width: '100%',
           height: '100%',
-          willChange: 'transform, opacity, clip-path',
+          willChange: 'transform, opacity',
           ...style,
         }}
       >

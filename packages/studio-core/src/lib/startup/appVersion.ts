@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.45';
-export const NATIVE_VERSION_CODE = 40545;
-export const WEB_VERSION = '4.5.45';
+export const NATIVE_VERSION = '4.5.46';
+export const NATIVE_VERSION_CODE = 40546;
+export const WEB_VERSION = '4.5.46';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '204b04ab';
+export const APP_COMMIT_SHA = 'd061656b';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/27/2026, 11:44:54 AM CST';
+export const APP_BUILD_TIMESTAMP = '8/27/2026, 11:51:59 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,13 +96,13 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: 'Added',
+    heading: 'Changed',
     items: [
-      'Chordex Library Bento Redesign: Completely overhauled the Chordex Library section with a modern Bento card layout, ambient glowing accents, and responsive split-view desktop / full-screen mobile experience.',
-      'Dynamic Mini Fretboard Recesses: Introduced high-fidelity 6-string dynamic fretboard recess components (`HeroChordRecess`) with realistic gauge lines, fret lines, nut bar, base fret indicators, muted/open markers, and glowing finger dots (`.finger-dot`).',
-      'Interactive Chord Preview Section: Integrated rich multi-instrument visualizers supporting instant toggles across Guitar (interactive fretboard diagram with note names/intervals and left-handed mode), Bass (4/5-string diagram), and Piano (2-octave keyboard), with strum audio playback and related chord suggestions.',
-      'Harmonic Categories Grid: Expanded the category browser to 31 distinct harmonic flavors with signature 3-string mini recesses, root note quick filter pills, and a smooth expand/collapse toggle.',
-      'Universal Theme Parity: Full adaptive styling across Dark, Light, and AMOLED modes with zero hardcoded styling regressions.',
+      'Event-Driven Architecture Modernization: Eliminated untyped synthetic `CustomEvent` and `window.dispatchEvent` patterns across navigation, tab switching, quick actions, settings navigation, and lifecycle events in favor of type-safe Zustand stores and typed subscription primitives.',
+      'Unified Navigation & Deep Linking: Replaced `studio:navigate-to-app`, `studio:navigate-to-tab`, `studio:set-active-tab`, `studio:trigger-quick-action`, `studio:open-settings-section`, and `studio:open-auth` with direct calls to `NavigationDispatcher.push(...)` and `useBottomNavigationStore`.',
+      'User Profile & Cover Subscriptions: Replaced custom avatar and cover photo events with canonical `getUserCover`, `setUserCover`, and `subscribeUserCover` primitives.',
+      'Startup & Lifecycle Coordination: Extended `StartupCoordinator` with typed subscribers `subscribeStartupComplete` and `subscribeIntroDone`, replacing window event dispatches across entry points and launch animation engines.',
+      'Developer Diagnostics Performance Optimization: Optimized `PerformanceProfiler.getGPULayerCount()` by replacing unthrottled full-DOM traversals with targeted composited selectors and a 3-second cache. Consolidated duplicate logging in `EmergencyDebugOverlay` to use canonical `getLogs()`. Batched diagnostics listeners with `requestAnimationFrame` micro-batching to eliminate UI thread render thrashing.',
     ],
   },
 ];
@@ -114,6 +114,17 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.46',
+    date: '2026-08-28',
+    highlights: [
+      'Event-Driven Architecture Modernization: Eliminated untyped synthetic `CustomEvent` and `window.dispatchEvent` patterns across navigation, tab switching, quick actions, settings navigation, and lifecycle events in favor of type-safe Zustand stores and typed subscription primitives.',
+      'Unified Navigation & Deep Linking: Replaced `studio:navigate-to-app`, `studio:navigate-to-tab`, `studio:set-active-tab`, `studio:trigger-quick-action`, `studio:open-settings-section`, and `studio:open-auth` with direct calls to `NavigationDispatcher.push(...)` and `useBottomNavigationStore`.',
+      'User Profile & Cover Subscriptions: Replaced custom avatar and cover photo events with canonical `getUserCover`, `setUserCover`, and `subscribeUserCover` primitives.',
+      'Startup & Lifecycle Coordination: Extended `StartupCoordinator` with typed subscribers `subscribeStartupComplete` and `subscribeIntroDone`, replacing window event dispatches across entry points and launch animation engines.',
+      'Developer Diagnostics Performance Optimization: Optimized `PerformanceProfiler.getGPULayerCount()` by replacing unthrottled full-DOM traversals with targeted composited selectors and a 3-second cache. Consolidated duplicate logging in `EmergencyDebugOverlay` to use canonical `getLogs()`. Batched diagnostics listeners with `requestAnimationFrame` micro-batching to eliminate UI thread render thrashing.',
+    ],
+  },
   {
     version: '4.5.45',
     date: '2026-08-27',
@@ -211,18 +222,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.',
       'Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.',
       'Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.',
-    ],
-  },
-  {
-    version: '4.5.36',
-    date: '2026-08-22',
-    highlights: [
-      'Resolved critical section-entry runtime exception (`ReferenceError: isLight is not defined`) in `HubSettings` by declaring `isLight` derived from active settings and media queries.',
-      'Refactored shared Liquid Glass design tokens with realistic optical transparency, live backdrop blur, and soft micro-specular responses across Dark, Light, and AMOLED themes.',
-      'Upgraded mobile bottom navigation dock with natural environmental transparency, soft radial depth vignetting, and clean optical boundaries.',
-      'Modernized top bar material system with soft curvature-aware specular highlights, removing hard 1px artificial white rim lines.',
-      'Cleaned Hub module launcher cards by eliminating colored right-side circular highlight blobs and hard rim lines for a premium, unified aesthetic.',
-      'Removed capsule container surrounding the Livex logo in Hub header for clean, native visual alignment.',
     ],
   },
 ];

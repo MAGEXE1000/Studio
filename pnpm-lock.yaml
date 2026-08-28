@@ -1068,9 +1068,6 @@ importers:
       firebase:
         specifier: ^12.16.0
         version: 12.16.0
-      framer-motion:
-        specifier: 'catalog:'
-        version: 12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
@@ -1086,9 +1083,6 @@ importers:
       lottie-react:
         specifier: ^2.4.1
         version: 2.4.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      lucide-animated:
-        specifier: ^1.0.5
-        version: 1.0.5(motion@12.42.2(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react@19.2.7)
       lucide-react:
         specifier: 'catalog:'
         version: 1.24.0(react@19.2.7)

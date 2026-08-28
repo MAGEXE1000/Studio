@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import { useNavigationAnimation } from './NavigationAnimationProvider';
 import { getMotionVariantForIcon } from './NavigationMotionVariants';
@@ -16,7 +16,7 @@ export interface AnimatedNavigationIconProps {
 }
 
 function getNormalizedIconName(key: string): string {
-  const norm = key.toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const norm = (key || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
 
   // User & Profile
   if (['user', 'profile', 'account', 'person', 'avatar'].includes(norm)) return 'user';
@@ -65,7 +65,7 @@ function getNormalizedIconName(key: string): string {
   if (['clap', 'takes', 'vocalextakes', 'clapperboard'].includes(norm)) return 'clapperboard';
 
   // GrooveX
-  if (['disc', 'groovex', 'record'].includes(norm)) return 'disc';
+  if (['disc', 'disc-3', 'disc3', 'groovex', 'record'].includes(norm)) return 'disc';
 
   // Hub
   if (['hub', 'home'].includes(norm)) return 'home';
@@ -88,6 +88,7 @@ const MATCHED_NAMES = new Set([
   'blocks',
   'book-open',
   'bug',
+  'clap',
   'clapperboard',
   'cog',
   'disc',
@@ -123,11 +124,14 @@ const FILLED_VARIANTS_SUPPORT: Record<string, boolean> = {
   layers: false,
   'graduation-cap': false,
   mic: false,
+  clap: false,
   clapperboard: false,
   'layout-panel-top': false,
   activity: false,
   search: false,
   disc: false,
+  'disc-3': false,
+  disc3: false,
   music: false,
   'book-open': false,
   'share-2': false,
@@ -145,16 +149,34 @@ const FILLED_VARIANTS_SUPPORT: Record<string, boolean> = {
   songs: false,
   song: false,
   beats: false,
+  drumbeats: false,
+  drumsongs: false,
   patterns: false,
+  drumpatterns: false,
   prefs: false,
   preferences: false,
+  drumpreferences: false,
+  groovexpreferences: false,
+  vocalexpreferences: false,
+  stagexpreferences: false,
   rhythms: false,
+  groovexrhythms: false,
   coach: false,
+  vocalexcoach: false,
   recorder: false,
+  vocalexrecorder: false,
   takes: false,
+  vocalextakes: false,
   editor: false,
   setup: false,
+  stagexsetup: false,
   stage: false,
+  stagexstage: false,
+  record: false,
+  audiolines: false,
+  galleryverticalend: false,
+  slidershorizontal: false,
+  layoutpaneltop: false,
 };
 
 const AnimatedNavigationIconComponent = React.forwardRef<any, AnimatedNavigationIconProps>(
@@ -178,10 +200,14 @@ const AnimatedNavigationIconComponent = React.forwardRef<any, AnimatedNavigation
     const resolvedName = getNormalizedIconName(iconName || itemKey);
 
     // Log explicit warning if a filled variant of this icon is requested/expected but not supported
+    // Skip checking if a custom iconNode (e.g. profile avatar JSX) is supplied
     if (
+      !iconNode &&
       isActive &&
       typeof window !== 'undefined' &&
-      FILLED_VARIANTS_SUPPORT[resolvedName] === undefined
+      FILLED_VARIANTS_SUPPORT[resolvedName] === undefined &&
+      FILLED_VARIANTS_SUPPORT[itemKey] === undefined &&
+      FILLED_VARIANTS_SUPPORT[iconName || ''] === undefined
     ) {
       console.warn(
         `[AnimatedNavigationIcon] Warning: Filled status of icon "${resolvedName}" is unmapped.`

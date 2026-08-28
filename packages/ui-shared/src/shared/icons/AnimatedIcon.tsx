@@ -1,40 +1,159 @@
 import React, { forwardRef, useImperativeHandle, useEffect, useRef, useCallback } from 'react';
 import { motion, useAnimation } from 'motion/react';
-import * as LucideAnimated from 'lucide-animated';
-import * as LucideReact from 'lucide-react';
+import {
+  ArrowUpToLine,
+  BadgeAlert,
+  BarChart,
+  BookOpen,
+  Brush,
+  Bug,
+  CircleHelp,
+  CloudUpload,
+  EyeOff,
+  Globe,
+  Grid,
+  LayoutDashboard,
+  LoaderCircle,
+  LogOut,
+  Music,
+  Share2,
+  Shield,
+  ShieldCheck,
+  Sliders,
+  SquarePlay,
+  Star,
+  Terminal,
+  Trash2,
+  TriangleAlert,
+  Users,
+  Volume2,
+  type LucideIcon,
+} from 'lucide-react';
 
 import { ActivityIcon } from '../../components/ui/activity';
+import { ArrowLeftIcon } from '../../components/ui/arrow-left';
+import { ArrowRightIcon } from '../../components/ui/arrow-right';
 import { AudioLinesIcon } from '../../components/ui/audio-lines';
+import { BellIcon } from '../../components/ui/bell';
 import { BlocksIcon } from '../../components/ui/blocks';
+import { CheckIcon } from '../../components/ui/check';
+import { ChevronDownIcon } from '../../components/ui/chevron-down';
+import { ChevronRightIcon } from '../../components/ui/chevron-right';
+import { ClapIcon } from '../../components/ui/clap';
+import { ClockIcon } from '../../components/ui/clock';
 import { CogIcon } from '../../components/ui/cog';
+import { CompassIcon } from '../../components/ui/compass';
+import { CopyIcon } from '../../components/ui/copy';
+import { Disc3Icon } from '../../components/ui/disc-3';
+import { DownloadIcon } from '../../components/ui/download';
 import { DrumIcon } from '../../components/ui/drum';
+import { ExternalLinkIcon } from '../../components/ui/external-link';
+import { EyeIcon } from '../../components/ui/eye';
+import { FileTextIcon } from '../../components/ui/file-text';
+import { FolderOpenIcon } from '../../components/ui/folder-open';
+import { FoldersIcon } from '../../components/ui/folders';
 import { GalleryVerticalEndIcon } from '../../components/ui/gallery-vertical-end';
 import { GraduationCapIcon } from '../../components/ui/graduation-cap';
+import { GripIcon } from '../../components/ui/grip';
+import { HeartIcon } from '../../components/ui/heart';
+import { HistoryIcon } from '../../components/ui/history';
 import { HomeIcon } from '../../components/ui/home';
 import { LayersIcon } from '../../components/ui/layers';
+import { LayoutGridIcon } from '../../components/ui/layout-grid';
 import { LayoutPanelTopIcon } from '../../components/ui/layout-panel-top';
+import { LockIcon } from '../../components/ui/lock';
 import { MicIcon } from '../../components/ui/mic';
+import { PlayIcon } from '../../components/ui/play';
+import { PlusIcon } from '../../components/ui/plus';
+import { RadioIcon } from '../../components/ui/radio';
+import { RefreshCWIcon as RefreshCwIcon } from '../../components/ui/refresh-cw';
 import { SearchIcon } from '../../components/ui/search';
 import { SettingsIcon } from '../../components/ui/settings';
 import { SlidersHorizontalIcon } from '../../components/ui/sliders-horizontal';
+import { SparklesIcon } from '../../components/ui/sparkles';
 import { UserIcon } from '../../components/ui/user';
+import { XIcon } from '../../components/ui/x';
 
 const localAnimatedIcons: Record<string, any> = {
   activity: ActivityIcon,
+  'arrow-left': ArrowLeftIcon,
+  'arrow-right': ArrowRightIcon,
   'audio-lines': AudioLinesIcon,
+  audiolines: AudioLinesIcon,
+  bell: BellIcon,
   blocks: BlocksIcon,
+  check: CheckIcon,
+  'chevron-down': ChevronDownIcon,
+  'chevron-right': ChevronRightIcon,
+  clap: ClapIcon,
+  clapperboard: ClapIcon,
+  clock: ClockIcon,
   cog: CogIcon,
+  compass: CompassIcon,
+  copy: CopyIcon,
+  disc: Disc3Icon,
+  'disc-3': Disc3Icon,
+  disc3: Disc3Icon,
+  download: DownloadIcon,
   drum: DrumIcon,
+  'external-link': ExternalLinkIcon,
+  eye: EyeIcon,
+  'file-text': FileTextIcon,
+  'folder-open': FolderOpenIcon,
+  folders: FoldersIcon,
   'gallery-vertical-end': GalleryVerticalEndIcon,
+  galleryverticalend: GalleryVerticalEndIcon,
   'graduation-cap': GraduationCapIcon,
+  grip: GripIcon,
+  heart: HeartIcon,
+  history: HistoryIcon,
   home: HomeIcon,
   layers: LayersIcon,
+  'layout-grid': LayoutGridIcon,
   'layout-panel-top': LayoutPanelTopIcon,
+  layoutpaneltop: LayoutPanelTopIcon,
+  lock: LockIcon,
   mic: MicIcon,
+  play: PlayIcon,
+  plus: PlusIcon,
+  radio: RadioIcon,
+  'refresh-cw': RefreshCwIcon,
   search: SearchIcon,
   settings: SettingsIcon,
   'sliders-horizontal': SlidersHorizontalIcon,
+  slidershorizontal: SlidersHorizontalIcon,
+  sparkles: SparklesIcon,
   user: UserIcon,
+  x: XIcon,
+};
+
+const staticLucideIcons: Record<string, LucideIcon> = {
+  'arrow-up-to-line': ArrowUpToLine,
+  'badge-alert': BadgeAlert,
+  'bar-chart': BarChart,
+  'book-open': BookOpen,
+  brush: Brush,
+  bug: Bug,
+  'circle-help': CircleHelp,
+  'cloud-upload': CloudUpload,
+  'eye-off': EyeOff,
+  globe: Globe,
+  grid: Grid,
+  'layout-dashboard': LayoutDashboard,
+  'loader-circle': LoaderCircle,
+  'log-out': LogOut,
+  music: Music,
+  'share-2': Share2,
+  shield: Shield,
+  'shield-check': ShieldCheck,
+  sliders: Sliders,
+  'square-play': SquarePlay,
+  star: Star,
+  terminal: Terminal,
+  'trash-2': Trash2,
+  'triangle-alert': TriangleAlert,
+  users: Users,
+  'volume-2': Volume2,
 };
 
 export type IconState =
@@ -68,90 +187,163 @@ export interface AnimatedIconHandle {
 
 const iconComponentCache = new Map<string, any>();
 
-// Map helper to resolve names to Lucide icons
+// Map helper to resolve names to local animated or static icons
 function getAnimatedIconComponent(name: string) {
   if (iconComponentCache.has(name)) {
     return iconComponentCache.get(name);
   }
 
-  // Normalize names that are Material symbols or aliases to their Lucide counterparts
-  let normName = name.toLowerCase();
-  if (normName === 'system_update' || normName === 'sync' || normName === 'refresh') {
+  // Normalize names that are Material symbols or aliases to their Lucide/local counterparts
+  let normName = (name || '').toLowerCase().replace(/[^a-z0-9-]/g, '');
+  if (
+    normName === 'system_update' ||
+    normName === 'sync' ||
+    normName === 'refresh' ||
+    normName === 'restart_alt'
+  ) {
     normName = 'refresh-cw';
-  } else if (normName === 'help_center' || normName === 'help-center' || normName === 'help') {
+  } else if (
+    normName === 'help_center' ||
+    normName === 'help-center' ||
+    normName === 'help' ||
+    normName === 'circle-help'
+  ) {
     normName = 'circle-help';
-  } else if (normName === 'info' || normName === 'about') {
+  } else if (normName === 'info' || normName === 'about' || normName === 'badge-alert') {
     normName = 'badge-alert';
-  } else if (normName === 'code') {
+  } else if (normName === 'code' || normName === 'terminal') {
     normName = 'terminal';
   } else if (
     normName === 'check_circle' ||
     normName === 'check-circle' ||
     normName === 'task_alt' ||
-    normName === 'verified'
+    normName === 'verified' ||
+    normName === 'check'
   ) {
     normName = 'check';
-  } else if (normName === 'close') {
+  } else if (normName === 'close' || normName === 'x') {
     normName = 'x';
   } else if (
     normName === 'account_circle' ||
     normName === 'profile' ||
     normName === 'account' ||
-    normName === 'person'
+    normName === 'person' ||
+    normName === 'avatar' ||
+    normName === 'user'
   ) {
     normName = 'user';
-  } else if (normName === 'notifications') {
+  } else if (normName === 'notifications' || normName === 'bell') {
     normName = 'bell';
-  } else if (normName === 'language') {
+  } else if (normName === 'language' || normName === 'globe') {
     normName = 'globe';
-  } else if (normName === 'security') {
+  } else if (normName === 'security' || normName === 'shield') {
     normName = 'shield';
-  } else if (normName === 'verified_user') {
+  } else if (normName === 'verified_user' || normName === 'shield-check') {
     normName = 'shield-check';
-  } else if (normName === 'bug_report') {
+  } else if (normName === 'bug_report' || normName === 'bug' || normName === 'devtools') {
     normName = 'bug';
-  } else if (normName === 'content_copy') {
+  } else if (normName === 'content_copy' || normName === 'copy') {
     normName = 'copy';
-  } else if (normName === 'delete' || normName === 'delete_forever') {
+  } else if (
+    normName === 'delete' ||
+    normName === 'delete_forever' ||
+    normName === 'trash-2' ||
+    normName === 'trash'
+  ) {
     normName = 'trash-2';
-  } else if (normName === 'warning') {
+  } else if (normName === 'warning' || normName === 'triangle-alert') {
     normName = 'triangle-alert';
-  } else if (normName === 'star_outline') {
+  } else if (normName === 'star_outline' || normName === 'star') {
     normName = 'star';
-  } else if (normName === 'visibility') {
+  } else if (normName === 'visibility' || normName === 'eye') {
     normName = 'eye';
-  } else if (normName === 'visibility_off') {
+  } else if (normName === 'visibility_off' || normName === 'eye-off') {
     normName = 'eye-off';
-  } else if (normName === 'progress_activity') {
+  } else if (
+    normName === 'progress_activity' ||
+    normName === 'loader-circle' ||
+    normName === 'loader'
+  ) {
     normName = 'loader-circle';
-  } else if (normName === 'output') {
+  } else if (normName === 'output' || normName === 'logout' || normName === 'log-out') {
     normName = 'log-out';
-  } else if (normName === 'publish') {
+  } else if (normName === 'publish' || normName === 'arrow-up-to-line') {
     normName = 'arrow-up-to-line';
-  } else if (normName === 'smart_button') {
+  } else if (normName === 'smart_button' || normName === 'square-play') {
     normName = 'square-play';
-  } else if (normName === 'volume_up') {
+  } else if (normName === 'volume_up' || normName === 'volume-2') {
     normName = 'volume-2';
-  } else if (normName === 'mop') {
+  } else if (normName === 'mop' || normName === 'brush') {
     normName = 'brush';
-  } else if (normName === 'open_in_new') {
+  } else if (normName === 'open_in_new' || normName === 'external-link') {
     normName = 'external-link';
-  } else if (normName === 'restart_alt') {
-    normName = 'refresh-cw';
-  } else if (normName === 'group') {
+  } else if (normName === 'group' || normName === 'groups' || normName === 'users') {
     normName = 'users';
-  } else if (normName === 'analytics') {
+  } else if (normName === 'analytics' || normName === 'bar-chart' || normName === 'barchart') {
     normName = 'bar-chart';
-  } else if (normName === 'music_note') {
+  } else if (normName === 'music_note' || normName === 'music') {
     normName = 'music';
-  } else if (normName === 'menu_book') {
+  } else if (
+    normName === 'menu_book' ||
+    normName === 'book-open' ||
+    normName === 'songbook' ||
+    normName === 'catalog'
+  ) {
     normName = 'book-open';
-  } else if (normName === 'grid_on') {
+  } else if (normName === 'grid_on' || normName === 'grid') {
     normName = 'grid';
-  } else if (normName === 'equalizer') {
+  } else if (normName === 'equalizer' || normName === 'sliders') {
     normName = 'sliders';
-  } else if (normName === 'cloud_upload') {
+  } else if (normName === 'cloud_upload' || normName === 'cloud-upload') {
     normName = 'cloud-upload';
+  } else if (normName === 'share' || normName === 'share-2') {
+    normName = 'share-2';
+  } else if (normName === 'dashboard' || normName === 'layout-dashboard') {
+    normName = 'layout-dashboard';
+  } else if (
+    normName === 'drumex' ||
+    normName === 'drumbeats' ||
+    normName === 'drumsongs' ||
+    normName === 'beats'
+  ) {
+    normName = 'drum';
+  } else if (
+    normName === 'stagex' ||
+    normName === 'stage' ||
+    normName === 'editor' ||
+    normName === 'stagexstage'
+  ) {
+    normName = 'layout-panel-top';
+  } else if (
+    normName === 'groovex' ||
+    normName === 'record' ||
+    normName === 'disc-3' ||
+    normName === 'disc'
+  ) {
+    normName = 'disc';
+  } else if (
+    normName === 'chordex' ||
+    normName === 'chords' ||
+    normName === 'songs' ||
+    normName === 'song'
+  ) {
+    normName = 'audio-lines';
+  } else if (normName === 'vocalex' || normName === 'recorder' || normName === 'vocalexrecorder') {
+    normName = 'mic';
+  } else if (
+    normName === 'coach' ||
+    normName === 'vocalexcoach' ||
+    normName === 'practice' ||
+    normName === 'learn'
+  ) {
+    normName = 'graduation-cap';
+  } else if (
+    normName === 'takes' ||
+    normName === 'vocalextakes' ||
+    normName === 'clap' ||
+    normName === 'clapperboard'
+  ) {
+    normName = 'clapperboard';
   }
 
   // 1. Try local custom animated icons first
@@ -161,44 +353,15 @@ function getAnimatedIconComponent(name: string) {
     return comp;
   }
 
-  // Convert to PascalCase (e.g. "refresh-cw" -> "RefreshCw")
-  const pascalName = normName
-    .split(/[-_]/)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join('');
-
-  // 2. Try LucideAnimated with Icon suffix (e.g. RefreshCwIcon)
-  const animatedKey = `${pascalName}Icon`;
-  if ((LucideAnimated as any)[animatedKey]) {
-    const comp = (LucideAnimated as any)[animatedKey];
-    iconComponentCache.set(name, comp);
-    return comp;
-  }
-
-  // 3. Try LucideAnimated without Icon suffix (e.g. RefreshCw)
-  if ((LucideAnimated as any)[pascalName]) {
-    const comp = (LucideAnimated as any)[pascalName];
-    iconComponentCache.set(name, comp);
-    return comp;
-  }
-
-  // 4. Try LucideReact with Icon suffix (e.g. RefreshCwIcon)
-  const staticKey = `${pascalName}Icon`;
-  if ((LucideReact as any)[staticKey]) {
-    const comp = (LucideReact as any)[staticKey];
-    iconComponentCache.set(name, comp);
-    return comp;
-  }
-
-  // 5. Try LucideReact without Icon suffix (e.g. RefreshCw)
-  if ((LucideReact as any)[pascalName]) {
-    const comp = (LucideReact as any)[pascalName];
+  // 2. Try static Lucide icons
+  if (staticLucideIcons[normName]) {
+    const comp = staticLucideIcons[normName];
     iconComponentCache.set(name, comp);
     return comp;
   }
 
   // Default fallback
-  const fallback = LucideReact.HelpCircle || LucideReact.CircleHelp;
+  const fallback = CircleHelp;
   iconComponentCache.set(name, fallback);
   return fallback;
 }

@@ -63,7 +63,6 @@ export { default as StudioSpinner } from './shared/animata/progress/spinner';
 // Motion
 export { Loader, type LoaderProps, type LoaderVariant } from './components/motion';
 
-
 // Lottie
 export { default as AppLottie } from './shared/lottie/AppLottie';
 export { default as EmptyStateLottie } from './shared/lottie/EmptyStateLottie';
@@ -92,11 +91,8 @@ export { ActionButton } from './shared/design-system/StudioDesignSystem';
 export { SharedNavigationBar } from './features/hub/navigation/SharedNavigationBar';
 export { BottomNavigationController } from './features/hub/navigation/BottomNavigationController';
 
-export { default as html2canvas } from 'html2canvas';
 export * from './shared/design-system';
 export * from './features/devtools/inspector';
 export { SharedAppShell, type SharedAppShellProps } from './shared/layout/SharedAppShell';
 export * from './components/motion';
 export { MorphingModal, type MorphingModalProps } from './components/motion/morphing-modal';
-
-

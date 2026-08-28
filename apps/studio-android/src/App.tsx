@@ -11,14 +11,22 @@ import {
   StudioHub,
   LibraryPanel,
   SettingsPanel,
-  SaxophonePracticePanel,
   SongsPanel,
-  DrumEditor,
-  GroovexApp,
-  VocalexApp,
-  StageCorePanel,
-  DevToolsApp,
 } from '@workspace/ui-shared';
+
+const DrumEditor = lazy(() => import('@workspace/ui-shared/src/features/drumex/pages/DrumEditor'));
+const GroovexApp = lazy(() => import('@workspace/ui-shared/src/features/groovex/pages/GroovexApp'));
+const VocalexApp = lazy(() => import('@workspace/ui-shared/src/features/vocalex/pages/VocalexApp'));
+const StageCorePanel = lazy(
+  () => import('@workspace/ui-shared/src/features/stagex/pages/StageCorePanel')
+);
+const DevToolsApp = lazy(() => import('@workspace/ui-shared/src/features/devtools/DevToolsApp'));
+const SaxophonePracticePanel = lazy(() =>
+  import('@workspace/ui-shared/src/features/chordex/pages/SaxophonePracticePanel').then((m) => ({
+    default: m.SaxophonePracticePanel,
+  }))
+);
+
 import { Capacitor } from '@capacitor/core';
 import { MobileDevicePreviewFrame } from './components/MobileDevicePreviewFrame';
 import './index.css';

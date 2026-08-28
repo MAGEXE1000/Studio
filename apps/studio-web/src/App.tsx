@@ -12,14 +12,21 @@ import {
   WebAppSectionDock,
   LibraryPanel,
   SettingsPanel,
-  SaxophonePracticePanel,
   SongsPanel,
-  DrumEditor,
-  GroovexApp,
-  VocalexApp,
-  StageCorePanel,
-  DevToolsApp,
 } from '@workspace/ui-shared';
+
+const DrumEditor = lazy(() => import('@workspace/ui-shared/src/features/drumex/pages/DrumEditor'));
+const GroovexApp = lazy(() => import('@workspace/ui-shared/src/features/groovex/pages/GroovexApp'));
+const VocalexApp = lazy(() => import('@workspace/ui-shared/src/features/vocalex/pages/VocalexApp'));
+const StageCorePanel = lazy(
+  () => import('@workspace/ui-shared/src/features/stagex/pages/StageCorePanel')
+);
+const DevToolsApp = lazy(() => import('@workspace/ui-shared/src/features/devtools/DevToolsApp'));
+const SaxophonePracticePanel = lazy(() =>
+  import('@workspace/ui-shared/src/features/chordex/pages/SaxophonePracticePanel').then((m) => ({
+    default: m.SaxophonePracticePanel,
+  }))
+);
 
 import {
   WebSidebarLayout,
@@ -43,7 +50,7 @@ export default function App() {
   const [route, setRoute] = useState(() => {
     if (typeof window === 'undefined') return '/';
     let path = window.location.pathname;
-    
+
     if (path.startsWith('/drums/songs')) {
       path = path.replace('/drums/songs', '/drumex/beats');
       window.history.replaceState({}, '', path);
@@ -58,7 +65,14 @@ export default function App() {
       window.history.replaceState({}, '', path);
     }
 
-    if (path === '/app' || path.startsWith('/app/') || path.startsWith('/chordex') || path.startsWith('/drumex') || path.startsWith('/stagex')) return '/app';
+    if (
+      path === '/app' ||
+      path.startsWith('/app/') ||
+      path.startsWith('/chordex') ||
+      path.startsWith('/drumex') ||
+      path.startsWith('/stagex')
+    )
+      return '/app';
     return '/';
   });
 
@@ -70,7 +84,13 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const path = window.location.pathname;
-      if (path === '/app' || path.startsWith('/app/') || path.startsWith('/chordex') || path.startsWith('/drumex') || path.startsWith('/stagex')) {
+      if (
+        path === '/app' ||
+        path.startsWith('/app/') ||
+        path.startsWith('/chordex') ||
+        path.startsWith('/drumex') ||
+        path.startsWith('/stagex')
+      ) {
         setRoute('/app');
       } else {
         setRoute('/');
@@ -97,8 +117,9 @@ export default function App() {
 
   const isWebDesktop = useIsWebDesktop();
   const [hoverShowSidebar, setHoverShowSidebar] = useState(false);
-  const isLargeDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 1300px)').matches;
-  
+  const isLargeDesktop =
+    typeof window !== 'undefined' && window.matchMedia('(min-width: 1300px)').matches;
+
   const activePanel = useNavigationStore((s) => {
     const last = s.history[s.history.length - 1];
     return last?.app === 'chordex' && last.page ? (last.page as ActivePanel) : 'library';
@@ -129,9 +150,7 @@ export default function App() {
           >
             <WebSidebarLayout shouldHideSidebar={isWebDesktop && !hoverShowSidebar} />
           </div>
-          <SidebarInset>
-            {children}
-          </SidebarInset>
+          <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       )}
       hubElement={<StudioHub />}
@@ -142,18 +161,19 @@ export default function App() {
         stagex: <StageCorePanel />,
         drumex: <DrumEditor />,
         chordex: {
-          sidebar: isWebDesktop && isLargeDesktop ? (
-            <WebAppSectionDock
-              app="chordex"
-              activeSection={activePanel}
-              onChangeSection={handleSetActivePanel as any}
-            />
-          ) : null,
+          sidebar:
+            isWebDesktop && isLargeDesktop ? (
+              <WebAppSectionDock
+                app="chordex"
+                activeSection={activePanel}
+                onChangeSection={handleSetActivePanel as any}
+              />
+            ) : null,
           songs: <SongsPanel />,
           practice: <SaxophonePracticePanel />,
           library: <LibraryPanel />,
           preferences: <SettingsPanel />,
-        }
+        },
       }}
     />
   );

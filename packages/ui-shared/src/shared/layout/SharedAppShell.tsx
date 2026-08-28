@@ -130,7 +130,9 @@ const SubAppWrapper = memo(function SubAppWrapper({
         <SubAppScaffold appKey="devtools">
           <ErrorBoundary moduleName="DevTools">
             <AppReadyNotifier app="devtools" onReady={onReady} />
-            <AppEntryTransition>{subApps.devtools}</AppEntryTransition>
+            <AppEntryTransition>
+              <Suspense fallback={<StudioHubSkeleton />}>{subApps.devtools}</Suspense>
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
@@ -139,7 +141,9 @@ const SubAppWrapper = memo(function SubAppWrapper({
         <SubAppScaffold appKey="groovex">
           <ErrorBoundary moduleName="Groovex">
             <AppReadyNotifier app="groovex" onReady={onReady} />
-            <AppEntryTransition>{subApps.groovex}</AppEntryTransition>
+            <AppEntryTransition>
+              <Suspense fallback={<StudioHubSkeleton />}>{subApps.groovex}</Suspense>
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
@@ -148,7 +152,9 @@ const SubAppWrapper = memo(function SubAppWrapper({
         <SubAppScaffold appKey="vocalex">
           <ErrorBoundary moduleName="Vocalex">
             <AppReadyNotifier app="vocalex" onReady={onReady} />
-            <AppEntryTransition>{subApps.vocalex}</AppEntryTransition>
+            <AppEntryTransition>
+              <Suspense fallback={<StudioHubSkeleton />}>{subApps.vocalex}</Suspense>
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
@@ -157,7 +163,9 @@ const SubAppWrapper = memo(function SubAppWrapper({
         <SubAppScaffold appKey="stagex">
           <ErrorBoundary moduleName="Stagex">
             <AppReadyNotifier app="stagex" onReady={onReady} />
-            <AppEntryTransition>{subApps.stagex}</AppEntryTransition>
+            <AppEntryTransition>
+              <Suspense fallback={<StudioHubSkeleton />}>{subApps.stagex}</Suspense>
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
@@ -166,7 +174,9 @@ const SubAppWrapper = memo(function SubAppWrapper({
         <SubAppScaffold appKey="drumex">
           <ErrorBoundary moduleName="Drumex">
             <AppReadyNotifier app="drumex" onReady={onReady} />
-            <AppEntryTransition>{subApps.drumex}</AppEntryTransition>
+            <AppEntryTransition>
+              <Suspense fallback={<StudioHubSkeleton />}>{subApps.drumex}</Suspense>
+            </AppEntryTransition>
           </ErrorBoundary>
         </SubAppScaffold>
       )}
@@ -193,12 +203,12 @@ const SubAppWrapper = memo(function SubAppWrapper({
                   <AppReadyNotifier app="chordex" onReady={onReady} />
                   <SharedNavigationContainer activeView={activePanel} viewOrder={ALL_PANELS}>
                     {(panel) => (
-                      <>
+                      <Suspense fallback={<StudioHubSkeleton />}>
                         {panel === 'songs' && subApps.chordex?.songs}
                         {panel === 'practice' && subApps.chordex?.practice}
                         {panel === 'library' && subApps.chordex?.library}
                         {panel === 'preferences' && subApps.chordex?.preferences}
-                      </>
+                      </Suspense>
                     )}
                   </SharedNavigationContainer>
                 </ErrorBoundary>

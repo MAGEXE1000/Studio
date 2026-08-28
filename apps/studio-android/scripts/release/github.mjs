@@ -179,10 +179,18 @@ export async function fetchGitHubReleaseInfo(tag, options = {}) {
         cmdArgs = ['release', 'view', targetCliTag, '--repo', REPO_SLUG, '--json', 'tagName,name,assets,isDraft,isPrerelease'];
       }
 
-      const rawJson = execFn('gh', cmdArgs, {
-        encoding: 'utf8',
-        stdio: ['pipe', 'pipe', 'ignore'],
-      });
+      let rawJson;
+      try {
+        rawJson = execFn('gh', cmdArgs, {
+          encoding: 'utf8',
+          stdio: ['pipe', 'pipe', 'ignore'],
+        });
+      } catch (_) {}
+      if (!rawJson) {
+        try {
+          rawJson = execFn(`gh ${cmdArgs.join(' ')}`);
+        } catch (_) {}
+      }
       if (rawJson) {
         const parsed = JSON.parse(rawJson);
         if (!excludeTag || parsed.tagName !== excludeTag) {

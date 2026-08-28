@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NavigationDispatcher, useSettingsStore, ACCENT_COLORS, AppKey, SpringPresets } from '@workspace/studio-core';
+import {
+  NavigationDispatcher,
+  useSettingsStore,
+  ACCENT_COLORS,
+  AppKey,
+  SpringPresets,
+} from '@workspace/studio-core';
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
 export function useStudioDesignSystem() {
   const settings = useSettingsStore((s) => s.settings);
-  const appKey = (NavigationDispatcher.currentApp()) as AppKey;
+  const appKey = NavigationDispatcher.currentApp() as AppKey;
   const activeVis = settings.perApp?.[appKey] ?? {
     theme: settings.theme ?? 'dark',
     amoledMode: settings.amoledMode ?? false,
   };
-  const accent = ACCENT_COLORS.blue;
+  const accentKey =
+    appKey === 'chordex'
+      ? 'purple'
+      : appKey === 'drumex'
+        ? 'pink'
+        : appKey === 'groovex'
+          ? 'green'
+          : appKey === 'vocalex'
+            ? 'orange'
+            : 'blue';
+  const accent = ACCENT_COLORS[accentKey] || ACCENT_COLORS.blue;
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&
@@ -17,4 +33,3 @@ export function useStudioDesignSystem() {
       window.matchMedia('(prefers-color-scheme: light)').matches);
   return { isLight, activeVis, accent };
 }
-

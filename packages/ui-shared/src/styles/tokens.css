@@ -252,15 +252,83 @@
   --elevation-mid: none;
   --elevation-high: 0 8px 32px rgba(0, 0, 0, 0.4);
 
-  --c-accent-from: #679cff;
-  --c-accent-to: #007aff;
-  --c-accent-mid: #4d8ef7;
-  --c-accent-rgb: 0, 122, 255;
-  --c-accent-soft: color-mix(in srgb, var(--c-accent-to) 12%, transparent);
-  --c-accent-glow: 0 4px 20px color-mix(in srgb, var(--c-accent-to) 25%, transparent);
-  --c-accent-border: color-mix(in srgb, var(--c-accent-to) 30%, transparent);
+  --c-accent-from: var(--studio-accent-from);
+  --c-accent-to: var(--studio-accent-to);
+  --c-accent-mid: var(--studio-accent-mid);
+  --c-accent-rgb: var(--studio-accent-rgb);
+  --c-accent-soft: var(--studio-accent-soft);
+  --c-accent-glow: var(--studio-accent-glow);
+  --c-accent-border: var(--studio-accent-border);
   --c-brand: var(--c-accent-from);
+}
 
+/* App-specific Accent Scopes */
+[data-app-key='chordex'],
+.chordex-root {
+  --accent-from: #c084fc;
+  --accent-to: #9333ea;
+  --accent-mid: #a855f7;
+  --accent-to-rgb: 147, 51, 234;
+  --studio-accent-from: #c084fc;
+  --studio-accent-to: #9333ea;
+  --studio-accent-mid: #a855f7;
+  --studio-accent: #9333ea;
+  --studio-accent-rgb: 147, 51, 234;
+}
+
+[data-app-key='drumex'],
+.drumex-root {
+  --accent-from: #f472b6;
+  --accent-to: #db2777;
+  --accent-mid: #ec4899;
+  --accent-to-rgb: 219, 39, 119;
+  --studio-accent-from: #f472b6;
+  --studio-accent-to: #db2777;
+  --studio-accent-mid: #ec4899;
+  --studio-accent: #db2777;
+  --studio-accent-rgb: 219, 39, 119;
+}
+
+[data-app-key='groovex'],
+.groovex-root {
+  --accent-from: #34d399;
+  --accent-to: #059669;
+  --accent-mid: #10b981;
+  --accent-to-rgb: 5, 150, 105;
+  --studio-accent-from: #34d399;
+  --studio-accent-to: #059669;
+  --studio-accent-mid: #10b981;
+  --studio-accent: #059669;
+  --studio-accent-rgb: 5, 150, 105;
+}
+
+[data-app-key='vocalex'],
+.vocalex-root {
+  --accent-from: #fb923c;
+  --accent-to: #ea580c;
+  --accent-mid: #f97316;
+  --accent-to-rgb: 234, 88, 12;
+  --studio-accent-from: #fb923c;
+  --studio-accent-to: #ea580c;
+  --studio-accent-mid: #f97316;
+  --studio-accent: #ea580c;
+  --studio-accent-rgb: 234, 88, 12;
+}
+
+[data-app-key='stagex'],
+.stagex-root {
+  --accent-from: #38bdf8;
+  --accent-to: #0284c7;
+  --accent-mid: #0ea5e9;
+  --accent-to-rgb: 2, 132, 199;
+  --studio-accent-from: #38bdf8;
+  --studio-accent-to: #0284c7;
+  --studio-accent-mid: #0ea5e9;
+  --studio-accent: #0284c7;
+  --studio-accent-rgb: 2, 132, 199;
+}
+
+:root {
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
   --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-inset-left: env(safe-area-inset-left, 0px);

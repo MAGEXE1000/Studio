@@ -438,8 +438,10 @@ export const STAGGER_ITEM_VARIANTS = {
   },
 };
 
-export interface SettingsContentContainerProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'> {
+export interface SettingsContentContainerProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'onAnimationStart' | 'onDrag' | 'onDragStart' | 'onDragEnd'
+> {
   children: React.ReactNode;
   disableStagger?: boolean;
 }
@@ -551,7 +553,9 @@ export interface SubAppScaffoldProps {
 export function SubAppScaffold({ appKey, children, onReady }: SubAppScaffoldProps) {
   return (
     <div
-      className="app-sub-app-container"
+      className={`app-sub-app-container ${appKey}-root`}
+      data-app-key={appKey}
+      data-subapp={appKey}
       style={{
         position: 'relative',
         width: '100%',

@@ -79,27 +79,24 @@ export interface AppSettings {
   activityHistoryEnabled: boolean;
   developerMode: boolean;
   syncBackendProvider: 'firebase-firestore-legacy' | 'supabase-realtime' | 'supabase-powersync';
-  launchAnimationPreset?: 'fluid_surface' | 'liquid_glass' | 'ripple_reveal' | 'layer_expansion' | 'aurora_reveal';
+  launchAnimationPreset?:
+    'fluid_surface' | 'liquid_glass' | 'ripple_reveal' | 'layer_expansion' | 'aurora_reveal';
 }
 
 export interface SettingsStore {
   settings: AppSettings;
 
-
   updateSettings: (settings: Partial<AppSettings>) => void;
   updatePerApp: (apps: AppKey[], patch: Partial<PerAppVisuals>) => void;
-
 }
-
-
 
 export const ACCENT_COLORS = {
   blue: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
-  purple: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
-  green: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
-  orange: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
-  pink: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
-  teal: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
+  purple: { from: '#c084fc', to: '#9333ea', mid: '#a855f7' },
+  green: { from: '#34d399', to: '#059669', mid: '#10b981' },
+  orange: { from: '#fb923c', to: '#ea580c', mid: '#f97316' },
+  pink: { from: '#f472b6', to: '#db2777', mid: '#ec4899' },
+  teal: { from: '#2dd4bf', to: '#0d9488', mid: '#14b8a6' },
   custom: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
 };
 
@@ -172,7 +169,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   },
 };
 
-
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set) => ({
@@ -226,8 +222,7 @@ export const useSettingsStore = create<SettingsStore>()(
                 };
               }
             }
-          } catch (e) {
-          }
+          } catch (e) {}
         }
         return persistedState;
       },

@@ -79,6 +79,7 @@ export interface AppSettings {
   activityHistoryEnabled: boolean;
   developerMode: boolean;
   syncBackendProvider: 'firebase-firestore-legacy' | 'supabase-realtime' | 'supabase-powersync';
+  stagexDiagnostics?: boolean;
   launchAnimationPreset?:
     'fluid_surface' | 'liquid_glass' | 'ripple_reveal' | 'layer_expansion' | 'aurora_reveal';
 }

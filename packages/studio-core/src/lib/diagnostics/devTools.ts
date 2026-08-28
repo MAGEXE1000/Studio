@@ -290,14 +290,28 @@ export function getErrorFingerprint(module: string, message: string, stack: stri
 
 let initialized = false;
 let originalConsole: typeof console | null = null;
+let notifyScheduled = false;
 
-// Helpers to notify subscribers
+// Helpers to notify subscribers with frame batching to eliminate React render churn
 function notifyListeners() {
-  listeners.forEach((l) => {
-    try {
-      l();
-    } catch (_) {}
-  });
+  if (listeners.size === 0) return;
+  if (notifyScheduled) return;
+  notifyScheduled = true;
+
+  const dispatch = () => {
+    notifyScheduled = false;
+    listeners.forEach((l) => {
+      try {
+        l();
+      } catch (_) {}
+    });
+  };
+
+  if (typeof requestAnimationFrame !== 'undefined') {
+    requestAnimationFrame(dispatch);
+  } else {
+    setTimeout(dispatch, 16);
+  }
 }
 
 export function subscribeToDevTools(listener: () => void) {

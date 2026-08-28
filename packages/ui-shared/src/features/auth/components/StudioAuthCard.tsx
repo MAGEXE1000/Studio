@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { NavigationDispatcher } from '@workspace/studio-core';
 import AppSpinner from '../../../shared/loading/AppSpinner';
 import { Loader } from '../../../components/motion/loader';
 import { motion } from 'motion/react';
@@ -220,7 +221,9 @@ export default function StudioAuthCard({
               Studio only syncs the data needed to connect and restore your workspace. You can
               manage{' '}
               <span
-                onClick={() => window.dispatchEvent(new CustomEvent('studio:route-to-privacy'))}
+                onClick={() =>
+                  NavigationDispatcher.push({ app: 'hub', tab: 'settings', page: 'privacy' })
+                }
                 style={{
                   textDecoration: 'underline',
                   cursor: 'pointer',

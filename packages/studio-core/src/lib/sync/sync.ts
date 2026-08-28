@@ -21,6 +21,14 @@ import { useChordStore } from '../../store/useChordStore';
 import { secureReadLocal, secureWriteLocal, sanitizeWorkspacePayload } from '../utilities/security';
 import { logActivity } from '../diagnostics/activityLogger';
 import { SyncOrchestrator } from './syncOrchestrator';
+import {
+  getUserAvatar,
+  setUserAvatar,
+  subscribeUserAvatar,
+  getUserCover,
+  setUserCover,
+  subscribeUserCover,
+} from '../utilities/userAvatar';
 
 /**
  * Cloud sync engine for Chordex / Drumex / StageX / Vocalex.
@@ -488,25 +496,9 @@ export async function pullCloudSettingsFromCloud(): Promise<void> {
       }
 
       if (profileData.avatarIcon !== undefined) {
-        const { setUserAvatar } = await import('../utilities/userAvatar');
         setUserAvatar(currentUser.uid, profileData.avatarIcon as any);
       }
-
-      if (profileData.photoURL) {
-        localStorage.setItem(`chordex_cp_${currentUser.uid}`, profileData.photoURL);
-        window.dispatchEvent(
-          new CustomEvent('chordex:user-cover-changed', {
-            detail: { uid: currentUser.uid, cover: profileData.photoURL },
-          })
-        );
-      } else {
-        localStorage.removeItem(`chordex_cp_${currentUser.uid}`);
-        window.dispatchEvent(
-          new CustomEvent('chordex:user-cover-changed', {
-            detail: { uid: currentUser.uid, cover: null },
-          })
-        );
-      }
+      setUserCover(currentUser.uid, profileData.photoURL || null);
       localStorage.setItem(
         `sync_last_local_update_profile`,
         (profileData.updatedAt || 0).toString()
@@ -1783,16 +1775,9 @@ function restoreProfile(raw: string) {
     const parsed = JSON.parse(raw);
     const av = parsed.avatar;
     if (av) {
-      const existingRaw = readLocalRaw('chordex_user_avatar_v1');
-      const map = existingRaw ? JSON.parse(existingRaw) : {};
-      if (map[currentUser.uid] !== av) {
-        map[currentUser.uid] = av;
-        writeLocalRaw('chordex_user_avatar_v1', JSON.stringify(map));
-        window.dispatchEvent(
-          new CustomEvent('chordex:user-avatar-changed', {
-            detail: { uid: currentUser.uid, icon: av },
-          })
-        );
+      const existing = getUserAvatar(currentUser.uid);
+      if (existing !== av) {
+        setUserAvatar(currentUser.uid, av as any);
       }
     }
   } catch (err) {}
@@ -1804,14 +1789,9 @@ function restoreProfileCover(raw: string) {
     const parsed = JSON.parse(raw);
     const cover = parsed.cover;
     if (cover) {
-      const existing = readLocalRaw(`chordex_cp_${currentUser.uid}`);
+      const existing = getUserCover(currentUser.uid);
       if (existing !== cover) {
-        writeLocalRaw(`chordex_cp_${currentUser.uid}`, cover);
-        window.dispatchEvent(
-          new CustomEvent('chordex:user-cover-changed', {
-            detail: { uid: currentUser.uid, cover },
-          })
-        );
+        setUserCover(currentUser.uid, cover);
       }
     }
   } catch (err) {}
@@ -1839,12 +1819,8 @@ function restoreStagex(snap: StagexSnapshot) {
   }
 }
 
-function triggerStorageEvent(key: string) {
-  try {
-    window.dispatchEvent(new CustomEvent('chordex:storage-rehydrate', { detail: { key } }));
-  } catch {
-    /* noop */
-  }
+function triggerStorageEvent(_key: string) {
+  /* noop */
 }
 
 // ── Iframe registration (called by StageCorePanel) ──────────────────────────
@@ -2571,15 +2547,13 @@ export function attachSyncEngine(): void {
   };
   window.addEventListener('message', onMessage);
 
-  onAvatarChanged = () => {
+  onAvatarChanged = subscribeUserAvatar(() => {
     requestFlush();
-  };
-  window.addEventListener('chordex:user-avatar-changed', onAvatarChanged);
+  });
 
-  onCoverChanged = () => {
+  onCoverChanged = subscribeUserCover(() => {
     requestFlush();
-  };
-  window.addEventListener('chordex:user-cover-changed', onCoverChanged);
+  });
 
   onOnline = () => {
     void enqueueRun('manual', 'pull-then-push');
@@ -2593,7 +2567,6 @@ export function attachSyncEngine(): void {
 
     if (settings.syncBackendProvider !== lastSettings.syncBackendProvider) {
       if (setupDiagSubscription) setupDiagSubscription();
-      window.dispatchEvent(new CustomEvent('sync:provider-changed'));
     }
 
     const appearanceChanged =
@@ -2763,34 +2736,16 @@ export function attachSyncEngine(): void {
                 }
               }
               if (data.avatarIcon !== undefined) {
-                import('../utilities/userAvatar').then(({ setUserAvatar }) => {
-                  setUserAvatar(u.uid, data.avatarIcon as any);
-                });
+                setUserAvatar(u.uid, data.avatarIcon as any);
               }
-              if (data.photoURL) {
-                localStorage.setItem(`chordex_cp_${u.uid}`, data.photoURL);
-                window.dispatchEvent(
-                  new CustomEvent('chordex:user-cover-changed', {
-                    detail: { uid: u.uid, cover: data.photoURL },
-                  })
-                );
-              } else {
-                localStorage.removeItem(`chordex_cp_${u.uid}`);
-                window.dispatchEvent(
-                  new CustomEvent('chordex:user-cover-changed', {
-                    detail: { uid: u.uid, cover: null },
-                  })
-                );
-              }
+              setUserCover(u.uid, data.photoURL || null);
               localStorage.setItem(`sync_last_local_update_profile`, remoteLast.toString());
               lastProfileSyncMs = Date.now();
             } else if (localLast > remoteLast) {
-              import('../utilities/userAvatar').then(({ getUserAvatar }) => {
-                const avatarIcon = getUserAvatar(u.uid);
-                provider
-                  .updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon })
-                  .catch(console.warn);
-              });
+              const avatarIcon = getUserAvatar(u.uid);
+              provider
+                .updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon })
+                .catch(console.warn);
             }
           } else {
             localStorage.setItem(`sync_last_local_update_profile`, remoteLast.toString());
@@ -2798,12 +2753,10 @@ export function attachSyncEngine(): void {
           }
           notifyDiagnostics();
         } else {
-          import('../utilities/userAvatar').then(({ getUserAvatar }) => {
-            const avatarIcon = getUserAvatar(u.uid);
-            provider
-              .updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon })
-              .catch(console.warn);
-          });
+          const avatarIcon = getUserAvatar(u.uid);
+          provider
+            .updateProfile({ displayName: u.displayName, photoURL: u.photoURL, avatarIcon })
+            .catch(console.warn);
         }
       });
 
@@ -3053,11 +3006,11 @@ export function detachSyncEngine(): void {
     onMessage = null;
   }
   if (onAvatarChanged) {
-    window.removeEventListener('chordex:user-avatar-changed', onAvatarChanged);
+    onAvatarChanged();
     onAvatarChanged = null;
   }
   if (onCoverChanged) {
-    window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
+    onCoverChanged();
     onCoverChanged = null;
   }
   if (onOnline) {

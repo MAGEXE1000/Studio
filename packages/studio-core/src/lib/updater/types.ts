@@ -55,4 +55,5 @@ export interface CentralizedUpdateState {
   apkUpdateRequired: boolean;
   validApkExists: boolean;
   sessionId: number | null;
+  isModalOpen?: boolean;
 }

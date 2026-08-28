@@ -277,19 +277,11 @@ Date: ${new Date().toISOString()}
     }
   };
 
-  const [diagEnabled, setDiagEnabled] = useState(() => {
-    try {
-      return localStorage.getItem('stagex_diagnostics_enabled') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const diagEnabled = useSettingsStore((s) => s.settings.stagexDiagnostics ?? false);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
 
   const toggleDiagOverlay = () => {
-    const next = !diagEnabled;
-    setDiagEnabled(next);
-    localStorage.setItem('stagex_diagnostics_enabled', next ? 'true' : 'false');
-    window.dispatchEvent(new CustomEvent('stagex:diagnostics-toggle', { detail: next }));
+    updateSettings({ stagexDiagnostics: !diagEnabled });
   };
 
   // Audio Context State

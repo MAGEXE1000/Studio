@@ -14,6 +14,7 @@ import {
   SpringPresets,
   useBottomNavigationStore,
   useBackHandler,
+  StartupCoordinator,
 } from '@workspace/studio-core';
 import {
   StudioLogo,
@@ -27,28 +28,13 @@ import { AnimatedNavigationIcon } from './AnimatedNavigationIcon';
 import { NavigationAnimationProvider } from './NavigationAnimationProvider';
 
 function useStartupComplete() {
-  const [complete, setComplete] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return !!(window as any).__studioStartupComplete;
-  });
+  const [complete, setComplete] = useState(() => StartupCoordinator.isStartupComplete());
 
   useEffect(() => {
     if (complete) return;
-
-    const check = () => {
-      if ((window as any).__studioStartupComplete) {
-        setComplete(true);
-      }
-    };
-
-    check();
-    window.addEventListener('studio-startup-complete', check);
-    window.addEventListener('studio-launch-complete', check);
-
-    return () => {
-      window.removeEventListener('studio-startup-complete', check);
-      window.removeEventListener('studio-launch-complete', check);
-    };
+    return StartupCoordinator.subscribeStartupComplete(() => {
+      setComplete(true);
+    });
   }, [complete]);
 
   return complete;

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { create } from 'zustand';
 
 export interface StudioPreferences {
   autoHideSidebarInApps: boolean;
@@ -49,35 +49,30 @@ function getAllPreferences(): StudioPreferences {
   return prefs;
 }
 
-export function useStudioPreferences() {
-  const [preferences, setPreferences] = useState<StudioPreferences>(getAllPreferences);
+interface StudioPreferencesState {
+  preferences: StudioPreferences;
+  setPreference: <K extends keyof StudioPreferences>(key: K, value: StudioPreferences[K]) => void;
+}
 
-  useEffect(() => {
-    const handleChanged = () => {
-      setPreferences(getAllPreferences());
-    };
-    window.addEventListener('studio:preferences-changed', handleChanged);
-    return () => {
-      window.removeEventListener('studio:preferences-changed', handleChanged);
-    };
-  }, []);
-
-  const setPreference = <K extends keyof StudioPreferences>(
-    key: K,
-    value: StudioPreferences[K]
-  ) => {
+export const useStudioPreferencesStore = create<StudioPreferencesState>((set) => ({
+  preferences: getAllPreferences(),
+  setPreference: (key, value) => {
     try {
       localStorage.setItem(PREF_KEYS[key], JSON.stringify(value));
-      window.dispatchEvent(
-        new CustomEvent('studio:preferences-changed', { detail: { key, value } })
-      );
     } catch (e) {
       console.error('Failed to save preference', key, value, e);
     }
-  };
+    set((state) => ({
+      preferences: {
+        ...state.preferences,
+        [key]: value,
+      },
+    }));
+  },
+}));
 
-  return {
-    preferences,
-    setPreference,
-  };
+export function useStudioPreferences() {
+  const preferences = useStudioPreferencesStore((s) => s.preferences);
+  const setPreference = useStudioPreferencesStore((s) => s.setPreference);
+  return { preferences, setPreference };
 }

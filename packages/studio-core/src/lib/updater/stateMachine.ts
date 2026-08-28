@@ -540,9 +540,18 @@ export let globalUpdateState: CentralizedUpdateState = {
   apkUpdateRequired: false,
   validApkExists: savedSession !== null,
   sessionId: null,
+  isModalOpen: false,
 };
 
 export const stateListeners = new Set<(state: CentralizedUpdateState) => void>();
+
+export function openUpdateModal() {
+  updateGlobalState({ isModalOpen: true });
+}
+
+export function closeUpdateModal() {
+  updateGlobalState({ isModalOpen: false });
+}
 
 /**
  * Maximum consecutive recovery failures before the updater gives up

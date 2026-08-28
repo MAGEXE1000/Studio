@@ -12,6 +12,7 @@ import {
   LibraryPanel,
   SettingsPanel,
   SongsPanel,
+  triggerIntroReveal,
 } from '@workspace/ui-shared';
 
 const DrumEditor = lazy(() => import('@workspace/ui-shared/src/features/drumex/pages/DrumEditor'));
@@ -61,19 +62,10 @@ export default function App() {
       if (intro) {
         intro.style.display = 'none';
         if (intro.parentNode) intro.parentNode.removeChild(intro);
-        (window as any).__introDone = true;
-        window.dispatchEvent(new Event('studio-intro-done'));
+        triggerIntroReveal();
       }
     }
   }, [isDev]);
-
-  useEffect(() => {
-    const handleIntroDone = () => {
-      // Preflight checks
-    };
-    window.addEventListener('studio-intro-done', handleIntroDone);
-    return () => window.removeEventListener('studio-intro-done', handleIntroDone);
-  }, []);
 
   /* Note: safe-area-inset-top is handled by ScreenScaffold */
 

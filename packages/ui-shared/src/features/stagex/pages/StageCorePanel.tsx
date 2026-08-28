@@ -754,13 +754,16 @@ export default function StagexPanel() {
   }, []);
 
   // ── Diagnostics & Safe Mode state ──────────────────────────
-  const [showDiagnostics, setShowDiagnostics] = useState(() => {
-    try {
-      return localStorage.getItem('stagex_diagnostics_enabled') === 'true';
-    } catch {
-      return false;
-    }
-  });
+  const showDiagnostics = useSettingsStore((s) => s.settings.stagexDiagnostics ?? false);
+  const updateSettings = useSettingsStore((s) => s.updateSettings);
+  const setShowDiagnostics = useCallback(
+    (val: boolean | ((prev: boolean) => boolean)) => {
+      const current = useSettingsStore.getState().settings.stagexDiagnostics ?? false;
+      const next = typeof val === 'function' ? val(current) : val;
+      updateSettings({ stagexDiagnostics: next });
+    },
+    [updateSettings]
+  );
   const [safeMode, setSafeMode] = useState(() => {
     try {
       return localStorage.getItem('stagex_safe_mode_enabled') === 'true';
@@ -789,15 +792,6 @@ export default function StagexPanel() {
       }
       return msg + '\n' + prev;
     });
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      setShowDiagnostics(!!detail);
-    };
-    window.addEventListener('stagex:diagnostics-toggle', handler);
-    return () => window.removeEventListener('stagex:diagnostics-toggle', handler);
   }, []);
 
   // Safe Mode CSS injection
@@ -3861,7 +3855,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                     <button
                       onClick={() => {
                         setCollabModalOpen(false);
-                        window.dispatchEvent(new CustomEvent('studio:open-auth'));
+                        NavigationDispatcher.push({ app: 'hub', tab: 'profile' });
                       }}
                       className="w-full font-label-lg text-base h-12 rounded-full flex items-center justify-center font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer"
                       style={{

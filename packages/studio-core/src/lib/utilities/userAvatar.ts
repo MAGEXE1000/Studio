@@ -58,6 +58,9 @@ function writeMap(m: AvatarMap): void {
   }
 }
 
+const avatarListeners = new Set<() => void>();
+const coverListeners = new Set<(payload: { uid: string; cover: string | null }) => void>();
+
 /** Returns the user's chosen icon, or `null` if they haven't picked one. */
 export function getUserAvatar(uid: string | null | undefined): AvatarIcon | null {
   if (!uid) return null;
@@ -71,10 +74,10 @@ export function setUserAvatar(uid: string, icon: AvatarIcon | null): void {
   if (icon === null) delete map[uid];
   else map[uid] = icon;
   writeMap(map);
-  try {
-    window.dispatchEvent(new CustomEvent('chordex:user-avatar-changed', { detail: { uid, icon } }));
-  } catch {
-    /* CustomEvent unavailable in some test envs */
+  for (const listener of avatarListeners) {
+    try {
+      listener();
+    } catch (_) {}
   }
 }
 
@@ -84,7 +87,46 @@ export function setUserAvatar(uid: string, icon: AvatarIcon | null): void {
  * picker and the avatar pill stay in sync without prop-drilling.
  */
 export function subscribeUserAvatar(cb: () => void): () => void {
-  const handler = () => cb();
-  window.addEventListener('chordex:user-avatar-changed', handler);
-  return () => window.removeEventListener('chordex:user-avatar-changed', handler);
+  avatarListeners.add(cb);
+  return () => {
+    avatarListeners.delete(cb);
+  };
+}
+
+/** Returns the user's chosen custom cover photo data URL, or `null`. */
+export function getUserCover(uid: string | null | undefined): string | null {
+  if (!uid) return null;
+  try {
+    return localStorage.getItem(`chordex_cp_${uid}`) || null;
+  } catch {
+    return null;
+  }
+}
+
+/** Persist a new cover photo choice. Pass `null` to clear. */
+export function setUserCover(uid: string, cover: string | null): void {
+  try {
+    if (cover) {
+      localStorage.setItem(`chordex_cp_${uid}`, cover);
+    } else {
+      localStorage.removeItem(`chordex_cp_${uid}`);
+    }
+  } catch (_) {}
+  for (const listener of coverListeners) {
+    try {
+      listener({ uid, cover });
+    } catch (_) {}
+  }
+}
+
+/**
+ * React-friendly cover photo subscription. Returns an unsubscribe.
+ */
+export function subscribeUserCover(
+  cb: (payload: { uid: string; cover: string | null }) => void
+): () => void {
+  coverListeners.add(cb);
+  return () => {
+    coverListeners.delete(cb);
+  };
 }

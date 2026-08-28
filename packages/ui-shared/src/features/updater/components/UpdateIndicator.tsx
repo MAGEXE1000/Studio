@@ -415,15 +415,16 @@ export default function UpdateIndicator({
 
   useEffect(() => {
     const id = requestAnimationFrame(() => setEntered(true));
-    const handleOpen = () => {
-      setOpen(true);
-    };
-    window.addEventListener('studio:open-update-dialog', handleOpen);
     return () => {
       cancelAnimationFrame(id);
-      window.removeEventListener('studio:open-update-dialog', handleOpen);
     };
   }, []);
+
+  useEffect(() => {
+    if (updater.isModalOpen) {
+      setOpen(true);
+    }
+  }, [updater.isModalOpen]);
 
   useEffect(() => {
     const isFailed = updater.updateState === 'INSTALL_FAILED' || updater.updateState === 'RECOVERY';

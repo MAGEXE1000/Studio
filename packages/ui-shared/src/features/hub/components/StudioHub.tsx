@@ -1,6 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { Button, StatefulButton } from '../../../shared/design-system/buttons';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
+import { subscribeIntroDone } from '../../../shared/typography/StudioTitleReveal';
 import {
   useBackHandler,
   type AuthUser,
@@ -68,6 +69,8 @@ import {
   startDiagnosticsSession,
   resetUpdateTimeline,
   getTimelineReport,
+  getUserCover,
+  subscribeUserCover,
 } from '@workspace/studio-core';
 import React, {
   useState,
@@ -419,28 +422,13 @@ function getGreetingPair(name?: string, idx?: number, lang: string = 'en'): Gree
 let _sessionIntroFinished = false;
 
 function useStartupComplete() {
-  const [complete, setComplete] = useState(() => {
-    if (typeof window === 'undefined') return true;
-    return !!(window as any).__studioStartupComplete;
-  });
+  const [complete, setComplete] = useState(() => StartupCoordinator.isStartupComplete());
 
   useEffect(() => {
     if (complete) return;
-
-    const check = () => {
-      if ((window as any).__studioStartupComplete) {
-        setComplete(true);
-      }
-    };
-
-    check();
-    window.addEventListener('studio-startup-complete', check);
-    window.addEventListener('studio-launch-complete', check);
-
-    return () => {
-      window.removeEventListener('studio-startup-complete', check);
-      window.removeEventListener('studio-launch-complete', check);
-    };
+    return StartupCoordinator.subscribeStartupComplete(() => {
+      setComplete(true);
+    });
   }, [complete]);
 
   return complete;
@@ -488,31 +476,10 @@ export default function StudioHub() {
   }, []) as React.Dispatch<React.SetStateAction<HubTab>>;
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('studio:hub-tab-active', { detail: tab }));
-  }, [tab]);
-
-  useEffect(() => {
-    (window as any).__studioHubReady = true;
-    window.dispatchEvent(new Event('studio-hub-ready'));
-  }, []);
-
-  useEffect(() => {
     console.log(
       `[STARTUP-TRACE] StudioHub: mount useEffect fired at ${performance.now().toFixed(0)}ms, calling notifyHubMounted()`
     );
     StartupCoordinator.notifyHubMounted();
-    (window as any).__studioHubReady = true;
-    window.dispatchEvent(new CustomEvent('studio:hub-ready'));
-    const handleSetTab = (e: Event) => {
-      const customEvent = e as CustomEvent<HubTab>;
-      if (customEvent.detail) {
-        setTab(customEvent.detail);
-      }
-    };
-    window.addEventListener('studio:set-hub-tab', handleSetTab as EventListener);
-    return () => {
-      window.removeEventListener('studio:set-hub-tab', handleSetTab as EventListener);
-    };
   }, []);
   const [zooming, setZooming] = useState(false);
   const activeRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || {
@@ -764,24 +731,13 @@ export default function StudioHub() {
       setCustomPhoto(null);
       return;
     }
-    try {
-      const stored = localStorage.getItem('studio_custom_avatar_' + authUser.uid);
-      setCustomPhoto(stored || null);
-    } catch {
-      setCustomPhoto(null);
-    }
-
-    const handleUpdate = () => {
-      if (!authUser?.uid) return;
-      try {
-        const stored = localStorage.getItem('studio_custom_avatar_' + authUser.uid);
-        setCustomPhoto(stored || null);
-      } catch {}
-    };
-    window.addEventListener('custom-photo-updated', handleUpdate);
-    return () => {
-      window.removeEventListener('custom-photo-updated', handleUpdate);
-    };
+    const refresh = () => setCustomPhoto(getUserCover(authUser.uid));
+    refresh();
+    return subscribeUserCover(({ uid, cover }) => {
+      if (uid === authUser.uid) {
+        setCustomPhoto(cover);
+      }
+    });
   }, [authUser]);
   const [successAnimationState, setSuccessAnimationState] = useState<
     'entering' | 'exiting' | 'hidden'
@@ -918,41 +874,6 @@ export default function StudioHub() {
     });
   }, []);
 
-  // Deep-link intercept for Updater routing
-  useEffect(() => {
-    const handleRoute = () => {
-      setTab('settings');
-    };
-    window.addEventListener('studio:route-to-updater', handleRoute);
-
-    if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToUpdater') === '1') {
-      setTab('settings');
-    }
-
-    return () => {
-      window.removeEventListener('studio:route-to-updater', handleRoute);
-    };
-  }, [setTab]);
-
-  useEffect(() => {
-    const handleRoute = () => {
-      setTab('settings');
-      sessionStorage.setItem('studio:routeToPrivacy', '1');
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('studio:update-settings-page', { detail: 'privacy' }));
-      }, 50);
-    };
-    window.addEventListener('studio:route-to-privacy', handleRoute);
-
-    if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToPrivacy') === '1') {
-      setTab('settings');
-    }
-
-    return () => {
-      window.removeEventListener('studio:route-to-privacy', handleRoute);
-    };
-  }, [setTab]);
-
   const launchApp = useCallback((appMode: AppKey) => {
     if ((window as any).studioTransitionActive) {
       console.warn('[Navigation] App switch request ignored: transition in progress.');
@@ -1016,12 +937,10 @@ export default function StudioHub() {
       _sessionIntroFinished = true;
       return;
     }
-    const handler = () => {
+    return subscribeIntroDone(() => {
       _sessionIntroFinished = true;
       setIntroFinished(true);
-    };
-    window.addEventListener('studio-intro-done', handler, { once: true });
-    return () => window.removeEventListener('studio-intro-done', handler);
+    });
   }, [introFinished]);
 
   // Reset zooming state when returning to the Hub
@@ -1049,14 +968,6 @@ export default function StudioHub() {
       if (watchdogTimer) clearTimeout(watchdogTimer);
     };
   }, [currentApp, zooming]);
-
-  useEffect(() => {
-    const handleReset = () => {
-      setZooming(false);
-    };
-    window.addEventListener('studio:reset-hub-zooming', handleReset);
-    return () => window.removeEventListener('studio:reset-hub-zooming', handleReset);
-  }, []);
 
   const sessionIdx = getSessionIndex();
   const greetName = authUser?.displayName?.trim() || settings.hubUserName;

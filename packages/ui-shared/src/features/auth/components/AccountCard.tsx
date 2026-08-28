@@ -40,6 +40,9 @@ import {
   getUserAvatar,
   setUserAvatar,
   subscribeUserAvatar,
+  getUserCover,
+  setUserCover,
+  subscribeUserCover,
   type AvatarIcon,
 } from '@workspace/studio-core';
 import StudioPricingSection from './StudioPricingSection';
@@ -582,23 +585,13 @@ export default function AccountCard({ accent, cardStyle, rowStyle, onAccountSett
       setCustomPhoto(null);
       return;
     }
-    try {
-      const stored = localStorage.getItem(`chordex_cp_${user.uid}`);
-      setCustomPhoto(stored || null);
-    } catch {
-      setCustomPhoto(null);
-    }
-
-    const onCoverChanged = (e: Event) => {
-      const detail = (e as CustomEvent<{ uid: string; cover: string | null }>).detail;
-      if (detail && detail.uid === user.uid) {
-        setCustomPhoto(detail.cover);
+    const refresh = () => setCustomPhoto(getUserCover(user?.uid ?? null));
+    refresh();
+    return subscribeUserCover(({ uid, cover }) => {
+      if (uid === user?.uid) {
+        setCustomPhoto(cover);
       }
-    };
-    window.addEventListener('chordex:user-cover-changed', onCoverChanged);
-    return () => {
-      window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
-    };
+    });
   }, [user?.uid]);
   // Hydrate the per-uid avatar choice and listen for picker changes
   // from anywhere in the app.
@@ -1958,23 +1951,13 @@ export function AccountSettingsPage({
       setCustomPhoto(null);
       return;
     }
-    try {
-      const stored = localStorage.getItem(`chordex_cp_${user.uid}`);
-      setCustomPhoto(stored || null);
-    } catch {
-      setCustomPhoto(null);
-    }
-
-    const onCoverChanged = (e: Event) => {
-      const detail = (e as CustomEvent<{ uid: string; cover: string | null }>).detail;
-      if (detail && detail.uid === user.uid) {
-        setCustomPhoto(detail.cover);
+    const refresh = () => setCustomPhoto(getUserCover(user?.uid ?? null));
+    refresh();
+    return subscribeUserCover(({ uid, cover }) => {
+      if (uid === user?.uid) {
+        setCustomPhoto(cover);
       }
-    };
-    window.addEventListener('chordex:user-cover-changed', onCoverChanged);
-    return () => {
-      window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
-    };
+    });
   }, [user?.uid]);
 
   // Register a back handler to close any active sheets when open
@@ -2248,13 +2231,8 @@ export function AccountSettingsPage({
       });
 
       setUserAvatar(user.uid, null);
-      localStorage.setItem(`chordex_cp_${user.uid}`, dataUrl);
+      setUserCover(user.uid, dataUrl);
       setCustomPhoto(dataUrl);
-      window.dispatchEvent(
-        new CustomEvent('chordex:user-cover-changed', {
-          detail: { uid: user.uid, cover: dataUrl },
-        })
-      );
 
       showToast(
         lang === 'es'
@@ -2274,13 +2252,8 @@ export function AccountSettingsPage({
     setBusy(true);
     setErr(null);
     try {
-      localStorage.removeItem(`chordex_cp_${user.uid}`);
+      setUserCover(user.uid, null);
       setCustomPhoto(null);
-      window.dispatchEvent(
-        new CustomEvent('chordex:user-cover-changed', {
-          detail: { uid: user.uid, cover: null },
-        })
-      );
       showToast(lang === 'es' ? 'Foto de perfil eliminada' : 'Profile photo removed');
     } catch (e: any) {
       console.error('[photo clear] failed:', e);

@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useChordStore, NATIVE_VERSION, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  NATIVE_VERSION,
+  useSettingsStore,
+  useNavigationStore,
+  getLogs,
+} from '@workspace/studio-core';
 import { ActionButton, MorphingModal, BouncyAccordion } from '@workspace/ui-shared';
-
-
-
 
 interface BlockerInfo {
   tag: string;
@@ -27,89 +30,20 @@ interface AutoCaptureEntry {
   fullPayload: any;
 }
 
-// Global log interceptor setup
-const LOG_LIMIT = 200;
-const recentLogs: Array<{
+// Canonical diagnostic log adapter (replaces duplicate console interceptor)
+const getRecentDiagnosticLogs = (): Array<{
   type: 'log' | 'warn' | 'error';
   category: string;
   msg: string;
   timestamp: number;
-}> = [];
-
-// Only intercept console methods when debug mode is explicitly enabled.
-// This avoids per-call overhead (JSON.stringify, categorization, circular buffer)
-// for 100% of production users who don't have debug mode active.
-const isDebugModeForLogs =
-  typeof window !== 'undefined' &&
-  (localStorage.getItem('studio_debug_mode') === 'true' ||
-    (window as any).__studio_debug_mode === true);
-
-if (isDebugModeForLogs && !(window as any).__logsIntercepted) {
-  (window as any).__logsIntercepted = true;
-  const originalLog = console.log;
-  const originalWarn = console.warn;
-  const originalError = console.error;
-
-  const categorize = (msg: string): string => {
-    const lower = msg.toLowerCase();
-    if (lower.includes('hub') || lower.includes('studiohub')) return 'Hub';
-    if (lower.includes('chordex')) return 'Chordex';
-    if (lower.includes('drumex')) return 'Drumex';
-    if (lower.includes('stagex')) return 'Stagex';
-    if (lower.includes('updater') || lower.includes('capgo')) return 'Updater';
-    if (
-      lower.includes('network') ||
-      lower.includes('fetch') ||
-      lower.includes('http') ||
-      lower.includes('cors') ||
-      lower.includes('firestore') ||
-      lower.includes('firebase')
-    )
-      return 'Network';
-    return 'System';
-  };
-
-  const addLog = (type: 'log' | 'warn' | 'error', args: any[]) => {
-    try {
-      const msg = args
-        .map((arg) => {
-          if (typeof arg === 'object') {
-            try {
-              return JSON.stringify(arg);
-            } catch (_) {
-              return String(arg);
-            }
-          }
-          return String(arg);
-        })
-        .join(' ');
-
-      const category = categorize(msg);
-      recentLogs.push({
-        type,
-        category,
-        msg,
-        timestamp: Date.now(),
-      });
-      if (recentLogs.length > LOG_LIMIT) {
-        recentLogs.shift();
-      }
-    } catch (_) {}
-  };
-
-  console.log = (...args: any[]) => {
-    originalLog.apply(console, args);
-    addLog('log', args);
-  };
-  console.warn = (...args: any[]) => {
-    originalWarn.apply(console, args);
-    addLog('warn', args);
-  };
-  console.error = (...args: any[]) => {
-    originalError.apply(console, args);
-    addLog('error', args);
-  };
-}
+}> => {
+  return getLogs().map((l) => ({
+    type: l.level === 'info' ? 'log' : l.level,
+    category: l.module.charAt(0).toUpperCase() + l.module.slice(1),
+    msg: l.message + (l.details ? `\n${l.details}` : ''),
+    timestamp: l.timestamp,
+  }));
+};
 
 // Black screen classification function
 const classifyBlackScreen = (state: any): string => {
@@ -882,7 +816,7 @@ export default function EmergencyDebugOverlay() {
         versionCode: 95,
         platform: 'Android',
       },
-      recentLogs: recentLogs,
+      recentLogs: getRecentDiagnosticLogs(),
       localStorage: {
         studio_black_screen_diagnostics: localStorage.getItem('studio_black_screen_diagnostics'),
         HUB_ROOT_MISSING_CAPTURE: localStorage.getItem('HUB_ROOT_MISSING_CAPTURE'),
@@ -1014,7 +948,7 @@ Last Navigation Action: ${lastNav ? `${lastNav.fromApp} -> ${lastNav.toApp}` : '
       System: [],
     };
 
-    recentLogs.forEach((log) => {
+    getRecentDiagnosticLogs().forEach((log) => {
       const cat = log.category;
       if (grouped[cat]) {
         grouped[cat].push({
@@ -2157,7 +2091,7 @@ page:  (${webViewDiag.visualViewport.pageLeft}, ${webViewDiag.visualViewport.pag
 
   const forceTransitionUnlock = () => {
     (window as any).studioTransitionActive = false;
-    window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
+    useNavigationStore.getState().setTransition(null, false);
   };
 
   const forceClearNavigationLocks = () => {
@@ -2622,7 +2556,7 @@ page:  (${webViewDiag.visualViewport.pageLeft}, ${webViewDiag.visualViewport.pag
 
       let firstFailingCheckpoint = 'unknown';
       let failureType = 'unknown';
-      let missingNodes: string[] = [];
+      const missingNodes: string[] = [];
 
       if (timeline && timeline.snapshots) {
         const checkpointKeys = [
@@ -4877,7 +4811,6 @@ Total Checkpoints: ${timeline?.snapshots ? Object.keys(timeline.snapshots).lengt
         className="max-w-4xl w-full h-[80vh] p-0 bg-[#0a0a0e]/98 border-2 border-purple-500/40 text-white rounded-2xl flex flex-col overflow-hidden font-mono"
       >
         <div id="livex-emergency-panel" className="flex flex-col h-full w-full">
-
           {/* Header */}
           <div
             style={{

@@ -9,7 +9,11 @@ export { default as StudioCountUpPercentage } from './shared/progress/StudioCoun
 export { default as StudioProgressBar } from './shared/progress/StudioProgressBar';
 export * from './components/motion';
 export { default as InkThemeToggle } from './shared/typography/InkThemeToggle';
-export { default as StudioTitleReveal } from './shared/typography/StudioTitleReveal';
+export {
+  default as StudioTitleReveal,
+  triggerIntroReveal,
+  subscribeIntroDone,
+} from './shared/typography/StudioTitleReveal';
 export { default as StudioUpdateAuroraBackground } from './features/updater/components/StudioUpdateAuroraBackground';
 export { ErrorBoundary } from './shared/feedback/ErrorBoundary';
 export { RootAppCrashReportUI } from './shared/feedback/RootAppCrashReportUI';

@@ -648,7 +648,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     if (subView === 'dashboard') return;
 
     refreshData();
-    const timer = setInterval(refreshData, 2000);
+    const timer = setInterval(refreshData, 5000);
 
     return () => {
       clearInterval(timer);
@@ -3212,7 +3212,11 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)', flexShrink: 0 }}
+                  style={{
+                    fontSize: 18,
+                    color: 'var(--studio-accent-from, #2563eb)',
+                    flexShrink: 0,
+                  }}
                 >
                   speed
                 </span>
@@ -3322,7 +3326,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   minWidth: 0,
                 }}
               >
-                <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '100px' }}>
+                <span
+                  style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '100px' }}
+                >
                   GPU Renderer
                 </span>
                 <span
@@ -3352,7 +3358,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   minWidth: 0,
                 }}
               >
-                <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '140px' }}>
+                <span
+                  style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '140px' }}
+                >
                   Heavy Frame Spikes (&gt;33ms)
                 </span>
                 <span
@@ -3377,7 +3385,9 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   minWidth: 0,
                 }}
               >
-                <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
+                <span
+                  style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}
+                >
                   Critical Jank (&gt;50ms)
                 </span>
                 <span
@@ -3424,7 +3434,11 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <span
                   className="material-symbols-outlined"
-                  style={{ fontSize: 18, color: 'var(--studio-accent-from, #2563eb)', flexShrink: 0 }}
+                  style={{
+                    fontSize: 18,
+                    color: 'var(--studio-accent-from, #2563eb)',
+                    flexShrink: 0,
+                  }}
                 >
                   memory
                 </span>
@@ -3472,7 +3486,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
+                    <span
+                      style={{
+                        color: 'var(--c-text-secondary)',
+                        flex: '1 1 auto',
+                        minWidth: '130px',
+                      }}
+                    >
                       Active Used JS Heap
                     </span>
                     <span
@@ -3497,7 +3517,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
+                    <span
+                      style={{
+                        color: 'var(--c-text-secondary)',
+                        flex: '1 1 auto',
+                        minWidth: '130px',
+                      }}
+                    >
                       Allocated Total JS Heap
                     </span>
                     <span
@@ -3522,7 +3548,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '120px' }}>
+                    <span
+                      style={{
+                        color: 'var(--c-text-secondary)',
+                        flex: '1 1 auto',
+                        minWidth: '120px',
+                      }}
+                    >
                       V8 Heap Size Limit
                     </span>
                     <span
@@ -3547,7 +3579,13 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       minWidth: 0,
                     }}
                   >
-                    <span style={{ color: 'var(--c-text-secondary)', flex: '1 1 auto', minWidth: '130px' }}>
+                    <span
+                      style={{
+                        color: 'var(--c-text-secondary)',
+                        flex: '1 1 auto',
+                        minWidth: '130px',
+                      }}
+                    >
                       Heap Allocation Velocity
                     </span>
                     <span

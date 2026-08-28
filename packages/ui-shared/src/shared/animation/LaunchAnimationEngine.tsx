@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'motion/react';
+import { StartupCoordinator } from '@workspace/studio-core';
+import { triggerIntroReveal } from '../typography/StudioTitleReveal';
 
 // Studio Sine Wave Logo SVG path
 export const StudioSinePath = 'M 72 256 C 128 60 192 60 256 256 S 384 452 440 256';
@@ -40,9 +42,10 @@ export function LaunchAnimationEngine({
     if (intro) {
       intro.style.display = 'none';
       if (intro.parentNode) intro.parentNode.removeChild(intro);
-      (window as any).__introDone = true;
-      window.dispatchEvent(new Event('studio-intro-done'));
-      console.log(`[STARTUP-TRACE] LaunchAnimationEngine: dispatched studio-intro-done at ${performance.now().toFixed(0)}ms`);
+      triggerIntroReveal();
+      console.log(
+        `[STARTUP-TRACE] LaunchAnimationEngine: triggered intro reveal at ${performance.now().toFixed(0)}ms`
+      );
     }
   }, []);
 
@@ -73,12 +76,16 @@ export function LaunchAnimationEngine({
   // Phase timers and paint state event-driven checks
   useEffect(() => {
     let t1: ReturnType<typeof setTimeout>;
-    console.log(`[STARTUP-TRACE] LaunchAnimationEngine: stage effect, stage=${stage}, canStartReveal=${canStartReveal}`);
+    console.log(
+      `[STARTUP-TRACE] LaunchAnimationEngine: stage effect, stage=${stage}, canStartReveal=${canStartReveal}`
+    );
 
     if (stage === 'logo') {
       // Step 1: Materialize logo path drawing (700ms)
       t1 = setTimeout(() => {
-        console.log(`[STARTUP-TRACE] LaunchAnimationEngine: logo->reveal transition at ${performance.now().toFixed(0)}ms`);
+        console.log(
+          `[STARTUP-TRACE] LaunchAnimationEngine: logo->reveal transition at ${performance.now().toFixed(0)}ms`
+        );
         setStage('reveal');
       }, 700);
     } else if (stage === 'reveal') {
@@ -95,27 +102,17 @@ export function LaunchAnimationEngine({
         );
         setCanStartReveal(true);
       } else {
-        console.log(
-          `[STARTUP-TRACE] LaunchAnimationEngine: waiting for studio-startup-complete event...`
-        );
-        const handleStartupComplete = () => {
-          console.log(
-            `[STARTUP-TRACE] LaunchAnimationEngine: received studio-startup-complete at ${performance.now().toFixed(0)}ms`
-          );
+        const unsub = StartupCoordinator.subscribeStartupComplete(() => {
           setCanStartReveal(true);
-        };
-        window.addEventListener('studio-startup-complete', handleStartupComplete);
+        });
 
         // Fail-safe watchdog fallback to guarantee transition out even if event is missed
         const fallbackTimer = setTimeout(() => {
-          console.log(
-            `[STARTUP-TRACE] LaunchAnimationEngine: fallback watchdog triggered at ${performance.now().toFixed(0)}ms`
-          );
           setCanStartReveal(true);
         }, 2000);
 
         return () => {
-          window.removeEventListener('studio-startup-complete', handleStartupComplete);
+          unsub();
           clearTimeout(fallbackTimer);
         };
       }
@@ -146,15 +143,18 @@ export function LaunchAnimationEngine({
       animate={containerAnimate}
       transition={{ duration: 0.95, ease: [0.6, 0.01, 0.05, 0.95] }}
       onAnimationComplete={() => {
-        console.log(`[STARTUP-TRACE] LaunchAnimationEngine: onAnimationComplete, canStartReveal=${canStartReveal}, stage=${stage}`);
+        console.log(
+          `[STARTUP-TRACE] LaunchAnimationEngine: onAnimationComplete, canStartReveal=${canStartReveal}, stage=${stage}`
+        );
         if (canStartReveal && stage === 'reveal') {
           if (loopMode) {
             setKey((prev) => prev + 1);
           } else {
             setStage('complete');
-            console.log(`[STARTUP-TRACE] LaunchAnimationEngine: calling onComplete(), stage->complete at ${performance.now().toFixed(0)}ms`);
+            console.log(
+              `[STARTUP-TRACE] LaunchAnimationEngine: calling onComplete(), stage->complete at ${performance.now().toFixed(0)}ms`
+            );
             if (onComplete) onComplete();
-            window.dispatchEvent(new Event('studio-launch-complete'));
           }
         }
       }}

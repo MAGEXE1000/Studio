@@ -1,8 +1,42 @@
-import { useChordStore, ACCENT_COLORS, useT, type AuthUser, useAppUpdate, APP_VERSION_LABEL, useStudioPreferences, useNavigationStore, NavigationDispatcher, useSettingsStore, authRepository, REGISTERED_APPS } from "@workspace/studio-core";
-import { StudioLogo, ChordexLogo, DrumexLogo, StagexLogoIcon, GroovexLogo, VocalexLogo } from "@workspace/ui-shared";
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  useT,
+  type AuthUser,
+  useAppUpdate,
+  APP_VERSION_LABEL,
+  useStudioPreferences,
+  useNavigationStore,
+  NavigationDispatcher,
+  useSettingsStore,
+  authRepository,
+  REGISTERED_APPS,
+  getUserCover,
+  subscribeUserCover,
+} from '@workspace/studio-core';
+import {
+  StudioLogo,
+  ChordexLogo,
+  DrumexLogo,
+  StagexLogoIcon,
+  GroovexLogo,
+  VocalexLogo,
+} from '@workspace/ui-shared';
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from "motion/react";
-import { useSidebar, Sidebar, SidebarHeader, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarRail } from "./StudioSidebar";
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  useSidebar,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarRail,
+} from './StudioSidebar';
 
 function SidebarLabel({ children, open }: { children: React.ReactNode; open: boolean }) {
   const { preferences } = useStudioPreferences();
@@ -36,18 +70,20 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
   const updater = useAppUpdate();
 
   const handleToggleSidebar = () => {
-    if (currentApp !== 'hub' && settings.autoHideSidebarInApps) {
-      window.dispatchEvent(new CustomEvent('studio:hide-sidebar-temp'));
-    } else {
-      toggleSidebar();
-    }
+    toggleSidebar();
   };
 
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [customPhoto, setCustomPhoto] = useState<string | null>(null);
 
-  const [activeHubTab, setActiveHubTab] = useState<'home' | 'settings' | 'profile'>('home');
-  const [activeSettingsPage, setActiveSettingsPage] = useState<string>('main');
+  const activeRoute = useNavigationStore((s) => s.history[s.history.length - 1]);
+  const activeHubTab = ((activeRoute?.app === 'hub' ? activeRoute.tab : 'home') ?? 'home') as
+    'home' | 'settings' | 'profile' | 'help';
+  const activeSettingsPage = (
+    activeRoute?.app === 'hub' && activeRoute.tab === 'settings'
+      ? (activeRoute.page ?? 'main')
+      : 'main'
+  ) as string;
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
@@ -71,35 +107,6 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
     transition: 'background-color 150ms ease',
   } as React.CSSProperties;
 
-  // Listen for Hub tab active state and settings page active state
-  useEffect(() => {
-    const onHubTabActive = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
-      if (detail) {
-        setActiveHubTab(detail as any);
-      }
-    };
-    const onSettingsPageActive = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
-      if (detail) {
-        setActiveSettingsPage(detail);
-      }
-    };
-    window.addEventListener('studio:hub-tab-active', onHubTabActive);
-    window.addEventListener('studio:settings-page-active', onSettingsPageActive);
-
-    // Also read initial routing/page if set in session
-    const savedPage = sessionStorage.getItem('studio:routeToSettingsPage');
-    if (savedPage) {
-      setActiveSettingsPage(savedPage);
-    }
-
-    return () => {
-      window.removeEventListener('studio:hub-tab-active', onHubTabActive);
-      window.removeEventListener('studio:settings-page-active', onSettingsPageActive);
-    };
-  }, []);
-
   // Subscribe to Authentication state
   useEffect(() => {
     return authRepository.subscribeAuth((user) => {
@@ -113,23 +120,13 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
       setCustomPhoto(null);
       return;
     }
-    try {
-      const stored = localStorage.getItem(`chordex_cp_${authUser.uid}`);
-      setCustomPhoto(stored || null);
-    } catch {
-      setCustomPhoto(null);
-    }
-
-    const onCoverChanged = (e: Event) => {
-      const detail = (e as CustomEvent<{ uid: string; cover: string | null }>).detail;
-      if (detail && detail.uid === authUser.uid) {
-        setCustomPhoto(detail.cover);
+    const refresh = () => setCustomPhoto(getUserCover(authUser.uid));
+    refresh();
+    return subscribeUserCover(({ uid, cover }) => {
+      if (uid === authUser.uid) {
+        setCustomPhoto(cover);
       }
-    };
-    window.addEventListener('chordex:user-cover-changed', onCoverChanged);
-    return () => {
-      window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
-    };
+    });
   }, [authUser?.uid]);
 
   // Click outside to close profile popover menu
@@ -151,19 +148,11 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
 
   // Navigation handlers
   const handleGoToHub = (tab: 'home' | 'settings' | 'profile' | 'help') => {
-    NavigationDispatcher.closeApp();
-    window.dispatchEvent(new CustomEvent('studio:set-hub-tab', { detail: tab }));
-    if (tab === 'settings') {
-      sessionStorage.setItem('studio:routeToSettingsPage', 'main');
-      window.dispatchEvent(new CustomEvent('studio:update-settings-page', { detail: 'main' }));
-    }
+    NavigationDispatcher.push({ app: 'hub', tab, page: tab === 'settings' ? 'main' : undefined });
   };
 
   const handleGoToSettingsPage = (page: string) => {
-    NavigationDispatcher.closeApp();
-    window.dispatchEvent(new CustomEvent('studio:set-hub-tab', { detail: 'settings' }));
-    sessionStorage.setItem('studio:routeToSettingsPage', page);
-    window.dispatchEvent(new CustomEvent('studio:update-settings-page', { detail: page }));
+    NavigationDispatcher.push({ app: 'hub', tab: 'settings', page });
   };
 
   const handleLaunchApp = (app: 'chordex' | 'drumex' | 'stagex' | 'groovex' | 'vocalex') => {

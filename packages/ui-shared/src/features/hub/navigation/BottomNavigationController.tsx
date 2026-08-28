@@ -13,6 +13,8 @@ import {
   authRepository,
   getUserAvatar,
   subscribeUserAvatar,
+  getUserCover,
+  subscribeUserCover,
   useBackHandler,
   useShallow,
 } from '@workspace/studio-core';
@@ -138,28 +140,21 @@ export function BottomNavigationController() {
       setCustomPhoto(null);
       return;
     }
-    const refresh = () => setAvatarIcon(getUserAvatar(user.uid));
-    refresh();
-    const unsubAvatar = subscribeUserAvatar(refresh);
+    const refreshAvatar = () => setAvatarIcon(getUserAvatar(user.uid));
+    const refreshCover = () => setCustomPhoto(getUserCover(user.uid));
+    refreshAvatar();
+    refreshCover();
 
-    try {
-      const stored = localStorage.getItem(`chordex_cp_${user.uid}`);
-      setCustomPhoto(stored || null);
-    } catch {
-      setCustomPhoto(null);
-    }
-
-    const onCoverChanged = (e: Event) => {
-      const detail = (e as CustomEvent<{ uid: string; cover: string | null }>).detail;
-      if (detail && detail.uid === user.uid) {
-        setCustomPhoto(detail.cover);
+    const unsubAvatar = subscribeUserAvatar(refreshAvatar);
+    const unsubCover = subscribeUserCover(({ uid, cover }) => {
+      if (uid === user.uid) {
+        setCustomPhoto(cover);
       }
-    };
-    window.addEventListener('chordex:user-cover-changed', onCoverChanged);
+    });
 
     return () => {
       unsubAvatar();
-      window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
+      unsubCover();
     };
   }, [user]);
 

@@ -1,6 +1,11 @@
 import { NavigationDispatcher, addError, processDiagnosticReport } from '@workspace/studio-core';
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { useChordStore, globalUpdateState, useSettingsStore, useBottomNavigationStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  globalUpdateState,
+  useSettingsStore,
+  useBottomNavigationStore,
+} from '@workspace/studio-core';
 import { Error as ErrorCard, Button } from '../design-system/StudioDesignSystem';
 import CopyButton from '../../features/devtools/components/CopyButton';
 import RootAppCrashReportUI from './RootAppCrashReportUI';
@@ -425,18 +430,22 @@ Recommended Fix: ${decoded.fix}
     }
   }
 
-  const diagReport = processDiagnosticReport(logEntry.message, symbolicatedStack || logEntry.stack, {
-    module: logEntry.activeSubApp || logEntry.appMode || 'RootApp',
-    source: `ErrorBoundary:${exactComponent}`,
-    componentStack: symbolicatedComponentStack || logEntry.componentStack,
-    activeSubApp: logEntry.activeSubApp,
-    appMode: logEntry.appMode,
-    lastNavigationAction: logEntry.lastNavigationAction,
-    navSnapshot: logEntry.navSnapshot,
-    currentUpdaterState: logEntry.currentUpdaterState,
-    fiberDiagnostics: logEntry.fiberDiagnostics,
-    symbolicatedStack,
-  });
+  const diagReport = processDiagnosticReport(
+    logEntry.message,
+    symbolicatedStack || logEntry.stack,
+    {
+      module: logEntry.activeSubApp || logEntry.appMode || 'RootApp',
+      source: `ErrorBoundary:${exactComponent}`,
+      componentStack: symbolicatedComponentStack || logEntry.componentStack,
+      activeSubApp: logEntry.activeSubApp,
+      appMode: logEntry.appMode,
+      lastNavigationAction: logEntry.lastNavigationAction,
+      navSnapshot: logEntry.navSnapshot,
+      currentUpdaterState: logEntry.currentUpdaterState,
+      fiberDiagnostics: logEntry.fiberDiagnostics,
+      symbolicatedStack,
+    }
+  );
 
   return `${diagReport.formattedSummary}
 
@@ -628,7 +637,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       try {
         const logsStr = localStorage.getItem('studio_rootapp_error_boundary_log') || '[]';
-        let logs: any[] = JSON.parse(logsStr);
+        const logs: any[] = JSON.parse(logsStr);
         logs.push(logEntry);
         localStorage.setItem('studio_rootapp_error_boundary_log', JSON.stringify(logs.slice(-50)));
       } catch (_) {}
@@ -717,17 +726,11 @@ export class ErrorBoundary extends Component<Props, State> {
       (window as any).studioTransitionActive = false;
     }
     // Try to safely return to Hub using the global function
-    if (typeof (window as any).returnToStudioHub === 'function') {
-      try {
-        (window as any).returnToStudioHub();
-        this.setState({ hasError: false, error: null, suppressed: false });
-      } catch (err) {
-        console.error('Failed to call returnToStudioHub:', err);
-      }
-    } else {
-      // Fallback: dispatch custom event
-      window.dispatchEvent(new CustomEvent('studio-hub-return'));
+    try {
+      NavigationDispatcher.reset([{ app: 'hub', tab: 'home' }]);
       this.setState({ hasError: false, error: null, suppressed: false });
+    } catch (err) {
+      console.error('Failed to return to Studio Hub:', err);
     }
   };
 

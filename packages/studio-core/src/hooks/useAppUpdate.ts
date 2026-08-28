@@ -16,6 +16,8 @@ import {
   globalUpdateState,
   updateGlobalState,
   transitionToState,
+  openUpdateModal,
+  closeUpdateModal,
 } from '../lib/updater/stateMachine';
 import {
   runUpdaterHealthCheck,
@@ -63,6 +65,8 @@ export interface AppUpdateHookResult extends CentralizedUpdateState {
   deleteLocalApk: (version: string) => Promise<void>;
   recordDismissal: (version: string) => void;
   shouldShowRecoveryReminder: (version: string) => boolean;
+  openModal: () => void;
+  closeModal: () => void;
 }
 
 function subscribe(callback: () => void) {
@@ -86,9 +90,7 @@ export function useAppUpdate(): AppUpdateHookResult {
   }, []);
 
   const checkNow = async () => {
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('studio:open-update-dialog'));
-    }
+    openUpdateModal();
     const res = await checkForUpdate(true, 'settings_manual', 'user manual checkNow');
     return res;
   };
@@ -96,6 +98,8 @@ export function useAppUpdate(): AppUpdateHookResult {
   return {
     ...state,
     checkNow,
+    openModal: openUpdateModal,
+    closeModal: closeUpdateModal,
     downloadUpdate: async (trigger?: string) => {
       await downloadUpdate(trigger);
     },

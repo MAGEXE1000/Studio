@@ -9,12 +9,28 @@ gsap.registerPlugin(SplitText);
 // Any StudioTitleReveal mounted after that fires its animation immediately.
 
 let _introDone = false;
-const INTRO_EVENT = 'studio-intro-done';
+const introSubscribers = new Set<() => void>();
+
+export function subscribeIntroDone(cb: () => void): () => void {
+  if (_introDone || (typeof window !== 'undefined' && (window as any).__introDone)) {
+    cb();
+    return () => {};
+  }
+  introSubscribers.add(cb);
+  return () => {
+    introSubscribers.delete(cb);
+  };
+}
 
 export function triggerIntroReveal(): void {
   _introDone = true;
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event(INTRO_EVENT));
+    (window as any).__introDone = true;
+  }
+  for (const subscriber of introSubscribers) {
+    try {
+      subscriber();
+    } catch (_) {}
   }
 }
 
@@ -138,7 +154,7 @@ export default function StudioTitleReveal({
         _introDone = true;
         play();
       } else {
-        // Hard safety net: if the intro-done event never fires, show text after 3.5s.
+        // Hard safety net: if the intro-done signal never fires, show text after 3.5s.
         safetyTimer = setTimeout(() => {
           if (!hasPlayedRef.current) {
             _introDone = true;
@@ -146,7 +162,16 @@ export default function StudioTitleReveal({
           }
         }, 3_500);
 
-        window.addEventListener(INTRO_EVENT, handler, { once: true });
+        const unsub = subscribeIntroDone(handler);
+        return () => {
+          unsub();
+          if (safetyTimer) clearTimeout(safetyTimer);
+          if (tween) tween.kill();
+          if (targets && targets.length > 0) {
+            gsap.killTweensOf(targets);
+          }
+          split.revert();
+        };
       }
     }
 
@@ -154,7 +179,6 @@ export default function StudioTitleReveal({
       if (io) {
         io.disconnect();
       }
-      window.removeEventListener(INTRO_EVENT, handler);
       if (safetyTimer) {
         clearTimeout(safetyTimer);
       }
@@ -166,7 +190,7 @@ export default function StudioTitleReveal({
       }
       split.revert();
     };
-  }, [displayText]);
+  }, [displayText, duration, delay, ease, startOnView, onComplete]);
 
   return (
     <span

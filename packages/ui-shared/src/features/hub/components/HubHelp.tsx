@@ -168,34 +168,6 @@ export function HubHelp({
   };
 
   useEffect(() => {
-    const handleRoute = () => {
-      sessionStorage.removeItem('studio:routeToHelpPage');
-      navigate('help-center');
-    };
-    window.addEventListener('studio:route-to-faq', handleRoute);
-    return () => {
-      window.removeEventListener('studio:route-to-faq', handleRoute);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleUpdateHelpPage = (e: Event) => {
-      const customEvent = e as CustomEvent<HelpPageActiveId>;
-      if (customEvent.detail) {
-        navigate(customEvent.detail);
-      }
-    };
-    window.addEventListener('studio:update-help-page', handleUpdateHelpPage as EventListener);
-    return () => {
-      window.removeEventListener('studio:update-help-page', handleUpdateHelpPage as EventListener);
-    };
-  }, [page]);
-
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('studio:help-page-active', { detail: page }));
-  }, [page]);
-
-  useEffect(() => {
     if (page !== 'download-apps') return;
     const loadManifest = async () => {
       const t = Date.now();

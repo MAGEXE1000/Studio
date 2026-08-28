@@ -87,6 +87,8 @@ export class PerformanceProfiler {
   private lastBlockingTime = 0;
   private sampleTimer: any = null;
 
+  private cachedGpuLayerCount = 0;
+  private lastGpuLayerCountSampleTime = 0;
   private activeListeners = new Set<(metrics: ProfilerMetrics) => void>();
 
   public static getInstance(): PerformanceProfiler {
@@ -110,20 +112,21 @@ export class PerformanceProfiler {
 
   public getGPULayerCount(): number {
     if (typeof document === 'undefined') return 0;
+    const now = performance.now();
+    // Cache for 3000ms to avoid synchronous layout thrashing and computed style recalculations
+    if (now - this.lastGpuLayerCountSampleTime < 3000 && this.lastGpuLayerCountSampleTime > 0) {
+      return this.cachedGpuLayerCount;
+    }
+    this.lastGpuLayerCountSampleTime = now;
     try {
-      const elements = document.querySelectorAll('*');
-      let count = 0;
-      for (let i = 0; i < elements.length; i++) {
-        const style = window.getComputedStyle(elements[i]);
-        if (style.willChange && style.willChange !== 'auto') {
-          count++;
-        } else if (style.transform && style.transform !== 'none') {
-          count++;
-        }
-      }
-      return count;
+      // Use targeted selector instead of full-DOM querySelectorAll('*') and per-node getComputedStyle
+      const compositedNodes = document.querySelectorAll(
+        '[style*="will-change"], [style*="transform"], canvas, video, iframe, [data-gpu-layer], .will-change-transform'
+      );
+      this.cachedGpuLayerCount = compositedNodes.length;
+      return this.cachedGpuLayerCount;
     } catch (_) {
-      return 0;
+      return this.cachedGpuLayerCount;
     }
   }
 
@@ -170,6 +173,15 @@ export class PerformanceProfiler {
 
       this.lastSampleTime = now;
       this.lastBlockingTime = this.totalBlockingTime;
+
+      if (this.activeListeners.size > 0) {
+        const metrics = this.getMetrics();
+        this.activeListeners.forEach((listener) => {
+          try {
+            listener(metrics);
+          } catch (_) {}
+        });
+      }
     }, 1000);
 
     // 1. Frame profiling loop
@@ -238,8 +250,7 @@ export class PerformanceProfiler {
           }
         });
         this.observer.observe({ entryTypes: ['longtask'] });
-      } catch (e) {
-      }
+      } catch (e) {}
     }
   }
 

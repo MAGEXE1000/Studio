@@ -325,7 +325,6 @@ export function SharedAppShell({
       watchdogTimer = setTimeout(() => {
         useNavigationStore.getState().setTransition(null, false);
         updateSettings({ appMode: 'hub' });
-        window.dispatchEvent(new CustomEvent('studio:reset-hub-zooming'));
       }, 6000);
     }
     return () => clearTimeout(watchdogTimer);

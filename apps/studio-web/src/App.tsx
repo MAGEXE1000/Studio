@@ -13,6 +13,7 @@ import {
   LibraryPanel,
   SettingsPanel,
   SongsPanel,
+  triggerIntroReveal,
 } from '@workspace/ui-shared';
 
 const DrumEditor = lazy(() => import('@workspace/ui-shared/src/features/drumex/pages/DrumEditor'));
@@ -110,7 +111,7 @@ export default function App() {
 
       const intro = document.getElementById('intro');
       if (intro && (window as any).__introReturnedEarly) {
-        window.dispatchEvent(new Event('studio-intro-done'));
+        triggerIntroReveal();
       }
     }
   }, [route]);

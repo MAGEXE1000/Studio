@@ -113,6 +113,8 @@ import {
   resetUpdateTimeline,
   getTimelineReport,
   settingsController,
+  getUserCover,
+  subscribeUserCover,
 } from '@workspace/studio-core';
 import {
   HubTab,
@@ -719,75 +721,14 @@ export function HubSettings({
       setCustomPhoto(null);
       return;
     }
-    try {
-      const stored = localStorage.getItem(`chordex_cp_${authUser.uid}`);
-      setCustomPhoto(stored || null);
-    } catch {
-      setCustomPhoto(null);
-    }
-
-    const onCoverChanged = (e: Event) => {
-      const detail = (e as CustomEvent<{ uid: string; cover: string | null }>).detail;
-      if (detail && detail.uid === authUser.uid) {
-        setCustomPhoto(detail.cover);
+    const refresh = () => setCustomPhoto(getUserCover(authUser.uid));
+    refresh();
+    return subscribeUserCover(({ uid, cover }) => {
+      if (uid === authUser.uid) {
+        setCustomPhoto(cover);
       }
-    };
-    window.addEventListener('chordex:user-cover-changed', onCoverChanged);
-    return () => {
-      window.removeEventListener('chordex:user-cover-changed', onCoverChanged);
-    };
+    });
   }, [authUser?.uid]);
-
-  useEffect(() => {
-    const handleRoute = () => {
-      sessionStorage.removeItem('studio:routeToUpdater');
-      navigate('notifications');
-    };
-    window.addEventListener('studio:route-to-updater', handleRoute);
-
-    if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToUpdater') === '1') {
-      sessionStorage.removeItem('studio:routeToUpdater');
-      navigate('notifications');
-    }
-
-    return () => {
-      window.removeEventListener('studio:route-to-updater', handleRoute);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleRoute = () => {
-      sessionStorage.removeItem('studio:routeToPrivacy');
-      navigate('privacy');
-    };
-    window.addEventListener('studio:route-to-privacy', handleRoute);
-
-    if (typeof window !== 'undefined' && sessionStorage.getItem('studio:routeToPrivacy') === '1') {
-      sessionStorage.removeItem('studio:routeToPrivacy');
-      navigate('privacy');
-    }
-
-    return () => {
-      window.removeEventListener('studio:route-to-privacy', handleRoute);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleUpdatePage = (e: Event) => {
-      const customEvent = e as CustomEvent<SettingsPageId>;
-      if (customEvent.detail) {
-        navigate(customEvent.detail);
-      }
-    };
-    window.addEventListener('studio:update-settings-page', handleUpdatePage as EventListener);
-    return () => {
-      window.removeEventListener('studio:update-settings-page', handleUpdatePage as EventListener);
-    };
-  }, [page]);
-
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('studio:settings-page-active', { detail: page }));
-  }, [page]);
 
   const hubVis: PerAppVisuals = settings.perApp?.hub ?? {
     theme: 'dark',
@@ -4063,7 +4004,7 @@ export function HubSettings({
               <Button
                 size="sm"
                 variant="primary"
-                onClick={() => window.dispatchEvent(new CustomEvent('studio:open-update-dialog'))}
+                onClick={() => updater.openModal()}
                 icon={
                   <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
                     {['WAITING_USER_CONFIRMATION', 'PACKAGEINSTALLER_VISIBLE'].includes(

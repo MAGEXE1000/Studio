@@ -1638,6 +1638,7 @@ function updateSetupHubCounts() {
 function switchView(view) {
   // Map React-facing view names to internal iframe view names
   if (view === 'Preferences') view = 'Assistant';
+  if (view === 'Setup') view = 'SetupHub';
   // Capture real canvas size before the Editor gets hidden
   if (state.currentView === 'Editor') {
     const r = stageCanvas.getBoundingClientRect();
@@ -1681,7 +1682,7 @@ function switchView(view) {
   }
   document.querySelectorAll('[data-view="' + view + '"]').forEach((b) => b.classList.add('active'));
   // Sync active state of all preference UI chips whenever the Preferences view opens
-  if (view === 'Preferences') syncSettingsUI();
+  if (view === 'Preferences' || view === 'Assistant') syncSettingsUI();
   updateStatusBar(); // keep status bar stats current on every view switch
   // Sync mobile tabs
   document.querySelectorAll('.mob-tab').forEach((b) => {
@@ -3525,7 +3526,7 @@ function updateColorTags(color) {
   });
   const customBtn = document.getElementById('el-custom-color-btn');
   if (customBtn) {
-    customBtn.style.outline = (!matched && color) ? '2px solid #fff' : 'none';
+    customBtn.style.outline = !matched && color ? '2px solid #fff' : 'none';
     customBtn.style.outlineOffset = '2px';
   }
 }
@@ -6148,7 +6149,8 @@ function openSegmentModal() {
     <div onclick="_pickSegColor('${c}')" id="seg-swatch-${c.replace('#', '')}"
       style="width:28px;height:28px;border-radius:6px;background:${c};cursor:pointer;outline:${c === first ? '2px solid #fff' : '2px solid transparent'};outline-offset:2px;transition:outline 0.1s;">
     </div>`
-    ).join('') + `
+    ).join('') +
+      `
     <div onclick="openStageColorPickerForSegment()" id="seg-swatch-custom" title="Custom color picker"
       style="width:28px;height:28px;border-radius:6px;background:conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);cursor:pointer;outline:2px solid transparent;outline-offset:2px;transition:outline 0.1s;display:flex;align-items:center;justify-content:center;">
       <span class="material-symbols-outlined" style="font-size:16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.6);">colorize</span>
@@ -12329,9 +12331,13 @@ function downloadQRCode() {
         }
       } catch (err) {}
     }
-  // ══════════════════════════════════════════════════════════
-  //  STAGE COLOR PICKER CONTROLLER (Fluid Functionalism Engine)
-  // ══════════════════════════════════════════════════════════
+  });
+})();
+
+// ══════════════════════════════════════════════════════════
+//  STAGE COLOR PICKER CONTROLLER (Fluid Functionalism Engine)
+// ══════════════════════════════════════════════════════════
+(function () {
   var _scCpState = {
     h: 215, // 0..360
     s: 0.52, // 0..1
@@ -12359,13 +12365,34 @@ function downloadQRCode() {
     var c = v * s;
     var hh = (((h % 360) + 360) % 360) / 60;
     var x = c * (1 - Math.abs((hh % 2) - 1));
-    var r = 0, g = 0, b = 0;
-    if (hh < 1) { r = c; g = x; b = 0; }
-    else if (hh < 2) { r = x; g = c; b = 0; }
-    else if (hh < 3) { r = 0; g = c; b = x; }
-    else if (hh < 4) { r = 0; g = x; b = c; }
-    else if (hh < 5) { r = x; g = 0; b = c; }
-    else { r = c; g = 0; b = x; }
+    var r = 0,
+      g = 0,
+      b = 0;
+    if (hh < 1) {
+      r = c;
+      g = x;
+      b = 0;
+    } else if (hh < 2) {
+      r = x;
+      g = c;
+      b = 0;
+    } else if (hh < 3) {
+      r = 0;
+      g = c;
+      b = x;
+    } else if (hh < 4) {
+      r = 0;
+      g = x;
+      b = c;
+    } else if (hh < 5) {
+      r = x;
+      g = 0;
+      b = c;
+    } else {
+      r = c;
+      g = 0;
+      b = x;
+    }
     var m = v - c;
     return {
       r: Math.round((r + m) * 255),
@@ -12375,7 +12402,9 @@ function downloadQRCode() {
   }
 
   function _scRgbToHsv(r, g, b) {
-    r /= 255; g /= 255; b /= 255;
+    r /= 255;
+    g /= 255;
+    b /= 255;
     var max = Math.max(r, g, b);
     var min = Math.min(r, g, b);
     var v = max;
@@ -12435,9 +12464,11 @@ function downloadQRCode() {
   function _scFormatColor(h, s, v, a) {
     var rgb = _scHsvToRgb(h, s, v);
     if (a < 0.995) {
-      return 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + (Math.round(a * 100) / 100) + ')';
+      return 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + Math.round(a * 100) / 100 + ')';
     }
-    var toHex = function (n) { return n.toString(16).padStart(2, '0').toUpperCase(); };
+    var toHex = function (n) {
+      return n.toString(16).padStart(2, '0').toUpperCase();
+    };
     return '#' + toHex(rgb.r) + toHex(rgb.g) + toHex(rgb.b);
   }
 
@@ -12460,25 +12491,36 @@ function downloadQRCode() {
     if (!satVal || !satValThumb) return;
 
     // 1. Sat/Val background
-    satVal.style.background = 'linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, hsl(' + Math.round(h) + ', 100%, 50%))';
-    satValThumb.style.left = (s * 100) + '%';
-    satValThumb.style.top = ((1 - v) * 100) + '%';
+    satVal.style.background =
+      'linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, hsl(' +
+      Math.round(h) +
+      ', 100%, 50%))';
+    satValThumb.style.left = s * 100 + '%';
+    satValThumb.style.top = (1 - v) * 100 + '%';
 
     var currentRgb = _scHsvToRgb(h, s, v);
 
     // 2. Hue thumb
     if (hueThumb) {
-      hueThumb.style.left = ((h / 360) * 100) + '%';
+      hueThumb.style.left = (h / 360) * 100 + '%';
       hueThumb.style.background = 'hsl(' + Math.round(h) + ', 100%, 50%)';
     }
 
     // 3. Alpha gradient and thumb
     if (alphaGrad) {
-      alphaGrad.style.background = 'linear-gradient(to right, transparent, rgb(' + currentRgb.r + ', ' + currentRgb.g + ', ' + currentRgb.b + '))';
+      alphaGrad.style.background =
+        'linear-gradient(to right, transparent, rgb(' +
+        currentRgb.r +
+        ', ' +
+        currentRgb.g +
+        ', ' +
+        currentRgb.b +
+        '))';
     }
     if (alphaThumb) {
-      alphaThumb.style.left = (a * 100) + '%';
-      alphaThumb.style.background = 'rgba(' + currentRgb.r + ', ' + currentRgb.g + ', ' + currentRgb.b + ', ' + a + ')';
+      alphaThumb.style.left = a * 100 + '%';
+      alphaThumb.style.background =
+        'rgba(' + currentRgb.r + ', ' + currentRgb.g + ', ' + currentRgb.b + ', ' + a + ')';
     }
 
     // 4. Preview
@@ -12489,7 +12531,9 @@ function downloadQRCode() {
 
     // 5. Inputs
     if (syncInputs) {
-      var toHex = function (n) { return n.toString(16).padStart(2, '0').toUpperCase(); };
+      var toHex = function (n) {
+        return n.toString(16).padStart(2, '0').toUpperCase();
+      };
       if (hexInput && document.activeElement !== hexInput) {
         hexInput.value = '#' + toHex(currentRgb.r) + toHex(currentRgb.g) + toHex(currentRgb.b);
       }
@@ -12516,19 +12560,25 @@ function downloadQRCode() {
         var x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
         var y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
         _scCpState.s = Math.max(0, Math.min(1, x / rect.width));
-        _scCpState.v = Math.max(0, Math.min(1, 1 - (y / rect.height)));
+        _scCpState.v = Math.max(0, Math.min(1, 1 - y / rect.height));
         _scUpdateColorPickerUI(true);
       };
 
       satVal.addEventListener('pointerdown', function (e) {
-        try { satVal.setPointerCapture(e.pointerId); } catch (err) {}
+        try {
+          satVal.setPointerCapture(e.pointerId);
+        } catch (err) {}
         handleSatVal(e);
-        var onPointerMove = function (ev) { handleSatVal(ev); };
+        var onPointerMove = function (ev) {
+          handleSatVal(ev);
+        };
         var onPointerUp = function (ev) {
           satVal.removeEventListener('pointermove', onPointerMove);
           satVal.removeEventListener('pointerup', onPointerUp);
           satVal.removeEventListener('pointercancel', onPointerUp);
-          try { satVal.releasePointerCapture(ev.pointerId); } catch (err) {}
+          try {
+            satVal.releasePointerCapture(ev.pointerId);
+          } catch (err) {}
         };
         satVal.addEventListener('pointermove', onPointerMove);
         satVal.addEventListener('pointerup', onPointerUp);
@@ -12546,14 +12596,20 @@ function downloadQRCode() {
       };
 
       hueTrack.addEventListener('pointerdown', function (e) {
-        try { hueTrack.setPointerCapture(e.pointerId); } catch (err) {}
+        try {
+          hueTrack.setPointerCapture(e.pointerId);
+        } catch (err) {}
         handleHue(e);
-        var onPointerMove = function (ev) { handleHue(ev); };
+        var onPointerMove = function (ev) {
+          handleHue(ev);
+        };
         var onPointerUp = function (ev) {
           hueTrack.removeEventListener('pointermove', onPointerMove);
           hueTrack.removeEventListener('pointerup', onPointerUp);
           hueTrack.removeEventListener('pointercancel', onPointerUp);
-          try { hueTrack.releasePointerCapture(ev.pointerId); } catch (err) {}
+          try {
+            hueTrack.releasePointerCapture(ev.pointerId);
+          } catch (err) {}
         };
         hueTrack.addEventListener('pointermove', onPointerMove);
         hueTrack.addEventListener('pointerup', onPointerUp);
@@ -12571,14 +12627,20 @@ function downloadQRCode() {
       };
 
       alphaTrack.addEventListener('pointerdown', function (e) {
-        try { alphaTrack.setPointerCapture(e.pointerId); } catch (err) {}
+        try {
+          alphaTrack.setPointerCapture(e.pointerId);
+        } catch (err) {}
         handleAlpha(e);
-        var onPointerMove = function (ev) { handleAlpha(ev); };
+        var onPointerMove = function (ev) {
+          handleAlpha(ev);
+        };
         var onPointerUp = function (ev) {
           alphaTrack.removeEventListener('pointermove', onPointerMove);
           alphaTrack.removeEventListener('pointerup', onPointerUp);
           alphaTrack.removeEventListener('pointercancel', onPointerUp);
-          try { alphaTrack.releasePointerCapture(ev.pointerId); } catch (err) {}
+          try {
+            alphaTrack.releasePointerCapture(ev.pointerId);
+          } catch (err) {}
         };
         alphaTrack.addEventListener('pointermove', onPointerMove);
         alphaTrack.addEventListener('pointerup', onPointerUp);
@@ -12597,7 +12659,9 @@ function downloadQRCode() {
         _scUpdateColorPickerUI(false);
       };
       hexInput.addEventListener('input', commitHex);
-      hexInput.addEventListener('blur', function () { _scUpdateColorPickerUI(true); });
+      hexInput.addEventListener('blur', function () {
+        _scUpdateColorPickerUI(true);
+      });
     }
 
     if (opacityInput) {
@@ -12609,7 +12673,9 @@ function downloadQRCode() {
         }
       };
       opacityInput.addEventListener('input', commitOpacity);
-      opacityInput.addEventListener('blur', function () { _scUpdateColorPickerUI(true); });
+      opacityInput.addEventListener('blur', function () {
+        _scUpdateColorPickerUI(true);
+      });
     }
   }
 
@@ -12626,9 +12692,15 @@ function downloadQRCode() {
     if (swatchesContainer) {
       swatchesContainer.innerHTML = SC_CP_PRESETS.map(function (col) {
         return (
-          '<div onclick="_scPickPreset(\'' + col + '\')"' +
-          ' style="width: 26px; height: 26px; border-radius: 50%; background: ' + col + '; border: 1.5px solid rgba(255,255,255,0.2); cursor: pointer; transition: transform 0.1s; box-shadow: 0 1px 4px rgba(0,0,0,0.3);"' +
-          ' title="' + col + '"' +
+          '<div onclick="_scPickPreset(\'' +
+          col +
+          '\')"' +
+          ' style="width: 26px; height: 26px; border-radius: 50%; background: ' +
+          col +
+          '; border: 1.5px solid rgba(255,255,255,0.2); cursor: pointer; transition: transform 0.1s; box-shadow: 0 1px 4px rgba(0,0,0,0.3);"' +
+          ' title="' +
+          col +
+          '"' +
           '></div>'
         );
       }).join('');

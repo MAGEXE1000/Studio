@@ -5788,7 +5788,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #6B97FF;
+                      background: #6b97ff;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5820,7 +5820,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #FFFFFF;
+                      background: #ffffff;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5836,7 +5836,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #FF3B30;
+                      background: #ff3b30;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5852,7 +5852,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #F0F0F0;
+                      background: #f0f0f0;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5868,7 +5868,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #E5E5E5;
+                      background: #e5e5e5;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5884,7 +5884,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #D0D0D0;
+                      background: #d0d0d0;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5900,7 +5900,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: rgba(0,0,0,0.5);
+                      background: rgba(0, 0, 0, 0.5);
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -11953,6 +11953,8 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
         /* ── Patch switchView for slide animations + Setup group ─────────────── */
         var _orig = window.switchView;
         window.switchView = function (view) {
+          if (view === 'Preferences') view = 'Assistant';
+          if (view === 'Setup') view = 'SetupHub';
           var prevIdx = VIEW_ORDER.indexOf(_curView);
           var nextIdx = VIEW_ORDER.indexOf(view);
           var dir = nextIdx >= prevIdx ? 'right' : 'left';

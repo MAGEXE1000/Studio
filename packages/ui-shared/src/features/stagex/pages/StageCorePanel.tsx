@@ -1597,7 +1597,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       } catch {}
       try {
         (iframe.contentWindow as StageWin).__onViewChange = (view: string) => {
-          setCurView(view === 'Assistant' ? 'Preferences' : view);
+          setCurView(view === 'Assistant' ? 'Preferences' : view === 'SetupHub' ? 'Setup' : view);
         };
       } catch {}
 
@@ -1969,7 +1969,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     if (view === 'Editor') return curView === 'Editor' || curView === 'Export';
     if (view === 'Setup')
       return ['SetupHub', 'Rider', 'Setlist', 'Gear', 'Members', 'Setup'].includes(curView);
-    if (view === 'Preferences') return curView === 'Preferences';
+    if (view === 'Preferences') return curView === 'Preferences' || curView === 'Assistant';
     return false;
   };
 

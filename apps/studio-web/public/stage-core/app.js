@@ -1638,6 +1638,7 @@ function updateSetupHubCounts() {
 function switchView(view) {
   // Map React-facing view names to internal iframe view names
   if (view === 'Preferences') view = 'Assistant';
+  if (view === 'Setup') view = 'SetupHub';
   // Capture real canvas size before the Editor gets hidden
   if (state.currentView === 'Editor') {
     const r = stageCanvas.getBoundingClientRect();
@@ -1676,7 +1677,7 @@ function switchView(view) {
   }
   document.querySelectorAll('[data-view="' + view + '"]').forEach((b) => b.classList.add('active'));
   // Sync active state of all preference UI chips whenever the Preferences view opens
-  if (view === 'Preferences') syncSettingsUI();
+  if (view === 'Preferences' || view === 'Assistant') syncSettingsUI();
   updateStatusBar(); // keep status bar stats current on every view switch
   // Sync mobile tabs
   document.querySelectorAll('.mob-tab').forEach((b) => {

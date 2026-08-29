@@ -5809,7 +5809,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #6B97FF;
+                      background: #6b97ff;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5841,7 +5841,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #FFFFFF;
+                      background: #ffffff;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5857,7 +5857,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #FF3B30;
+                      background: #ff3b30;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5873,7 +5873,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #F0F0F0;
+                      background: #f0f0f0;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5889,7 +5889,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #E5E5E5;
+                      background: #e5e5e5;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5905,7 +5905,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: #D0D0D0;
+                      background: #d0d0d0;
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5921,7 +5921,7 @@
                       width: 11px;
                       height: 11px;
                       border-radius: 50%;
-                      background: rgba(0,0,0,0.5);
+                      background: rgba(0, 0, 0, 0.5);
                       border: 2px solid transparent;
                       cursor: pointer;
                       transition:
@@ -5937,8 +5937,16 @@
                       width: 13px;
                       height: 13px;
                       border-radius: 50%;
-                      background: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
-                      border: 1.5px solid rgba(255,255,255,0.4);
+                      background: conic-gradient(
+                        #ff0000,
+                        #ffff00,
+                        #00ff00,
+                        #00ffff,
+                        #0000ff,
+                        #ff00ff,
+                        #ff0000
+                      );
+                      border: 1.5px solid rgba(255, 255, 255, 0.4);
                       cursor: pointer;
                       display: flex;
                       align-items: center;
@@ -10934,7 +10942,11 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
               >
               <div
                 id="cust-el-color-preview-btn"
-                onclick="openStageColorPicker(document.getElementById('cust-el-color').value, (c) => _setCustElColor(c))"
+                onclick="
+                  openStageColorPicker(document.getElementById('cust-el-color').value, (c) =>
+                    _setCustElColor(c)
+                  )
+                "
                 title="Choose color"
                 style="
                   width: 100%;
@@ -10948,11 +10960,17 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
                   display: flex;
                   align-items: center;
                   justify-content: center;
-                  transition: transform 0.12s, border-color 0.12s;
+                  transition:
+                    transform 0.12s,
+                    border-color 0.12s;
                 "
               >
                 <input type="hidden" id="cust-el-color" value="#7aafff" />
-                <span class="material-symbols-outlined" style="font-size: 16px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);">colorize</span>
+                <span
+                  class="material-symbols-outlined"
+                  style="font-size: 16px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6)"
+                  >colorize</span
+                >
               </div>
             </div>
           </div>
@@ -12001,6 +12019,8 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
         /* ── Patch switchView for slide animations + Setup group ─────────────── */
         var _orig = window.switchView;
         window.switchView = function (view) {
+          if (view === 'Preferences') view = 'Assistant';
+          if (view === 'Setup') view = 'SetupHub';
           var prevIdx = VIEW_ORDER.indexOf(_curView);
           var nextIdx = VIEW_ORDER.indexOf(view);
           var dir = nextIdx >= prevIdx ? 'right' : 'left';
@@ -12190,7 +12210,17 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
 
             logIframeDiagnostic('sc-command-received', { fn: fn });
 
-            var ALLOWED_FN = ['switchView', 'toggleSCDial', 'toggleGigMode', 'stageGoBack', 'openPresetsPanel', 'exportPDFWithOptions', 'addItemToStage', 'reportStagexState', 'updateCanvasBg'];
+            var ALLOWED_FN = [
+              'switchView',
+              'toggleSCDial',
+              'toggleGigMode',
+              'stageGoBack',
+              'openPresetsPanel',
+              'exportPDFWithOptions',
+              'addItemToStage',
+              'reportStagexState',
+              'updateCanvasBg',
+            ];
             var handler = null;
             if (ALLOWED_FN.indexOf(fn) !== -1 && typeof window[fn] === 'function') {
               handler = window[fn];
@@ -12301,7 +12331,10 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
             var observer = new MutationObserver(scheduleCheck);
             var presetsEl = document.getElementById('presets-panel');
             if (presetsEl) {
-              observer.observe(presetsEl, { attributes: true, attributeFilter: ['class', 'style'] });
+              observer.observe(presetsEl, {
+                attributes: true,
+                attributeFilter: ['class', 'style'],
+              });
             }
             var modalEl = document.getElementById('stage-color-picker-modal');
             if (modalEl) {
@@ -12363,13 +12396,7 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
         onclick="event.stopPropagation()"
       >
         <!-- Header -->
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-          "
-        >
+        <div style="display: flex; align-items: center; justify-content: space-between">
           <span
             style="
               font-family: 'Manrope', sans-serif;
@@ -12414,7 +12441,8 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
             user-select: none;
             -webkit-user-select: none;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, #f00);
+            background:
+              linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, #f00);
           "
         >
           <div
@@ -12427,7 +12455,9 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
               height: 18px;
               border-radius: 50%;
               border: 2.5px solid #ffffff;
-              box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7);
+              box-shadow:
+                0 0 0 1px rgba(0, 0, 0, 0.4),
+                0 2px 8px rgba(0, 0, 0, 0.7);
               transform: translate(-50%, -50%);
               pointer-events: none;
               box-sizing: border-box;
@@ -12445,7 +12475,16 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
               width: 100%;
               height: 14px;
               border-radius: 9999px;
-              background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+              background: linear-gradient(
+                to right,
+                #f00 0%,
+                #ff0 17%,
+                #0f0 33%,
+                #0ff 50%,
+                #00f 67%,
+                #f0f 83%,
+                #f00 100%
+              );
               cursor: pointer;
               touch-action: none;
               user-select: none;
@@ -12465,7 +12504,9 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
                 border-radius: 50%;
                 background: #f00;
                 border: 2.5px solid #ffffff;
-                box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6);
+                box-shadow:
+                  0 0 0 1px rgba(0, 0, 0, 0.4),
+                  0 2px 6px rgba(0, 0, 0, 0.6);
                 transform: translate(-50%, -50%);
                 pointer-events: none;
                 box-sizing: border-box;
@@ -12481,9 +12522,17 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
               width: 100%;
               height: 14px;
               border-radius: 9999px;
-              background: linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%);
+              background:
+                linear-gradient(45deg, #222 25%, transparent 25%),
+                linear-gradient(-45deg, #222 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #222 75%),
+                linear-gradient(-45deg, transparent 75%, #222 75%);
               background-size: 8px 8px;
-              background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+              background-position:
+                0 0,
+                0 4px,
+                4px -4px,
+                -4px 0px;
               background-color: #333;
               cursor: pointer;
               touch-action: none;
@@ -12515,7 +12564,9 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
                 border-radius: 50%;
                 background: #f00;
                 border: 2.5px solid #ffffff;
-                box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6);
+                box-shadow:
+                  0 0 0 1px rgba(0, 0, 0, 0.4),
+                  0 2px 6px rgba(0, 0, 0, 0.6);
                 transform: translate(-50%, -50%);
                 pointer-events: none;
                 box-sizing: border-box;
@@ -12536,16 +12587,17 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
               overflow: hidden;
               border: 1.5px solid rgba(255, 255, 255, 0.2);
               flex-shrink: 0;
-              background: linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%);
+              background:
+                linear-gradient(45deg, #222 25%, transparent 25%),
+                linear-gradient(-45deg, #222 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #222 75%),
+                linear-gradient(-45deg, transparent 75%, #222 75%);
               background-size: 8px 8px;
               background-color: #333;
               box-sizing: border-box;
             "
           >
-            <div
-              id="sc-cp-preview"
-              style="position: absolute; inset: 0; background: #7aafff"
-            ></div>
+            <div id="sc-cp-preview" style="position: absolute; inset: 0; background: #7aafff"></div>
           </div>
 
           <!-- HEX Input -->

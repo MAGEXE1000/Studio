@@ -16,6 +16,7 @@ import {
   SUPPORTED_LANGUAGES,
 } from '../../../shared/settings/LanguagePickerSheet';
 import { Button } from '../../../shared/design-system/buttons';
+import { AccentColorPicker } from './AccentColorPicker';
 
 /**
  * StudioHubSettingsPanel — Completely Rebuilt Settings & Appearance Reference Implementation
@@ -41,9 +42,14 @@ export default function StudioHubSettingsPanel() {
       >
         {/* Theme Section */}
         <SettingSection title="Appearance Theme">
-          <SettingRow label="Theme Mode" desc="Switch between Light and Dark themes">
+          <SettingRow label="Theme Mode" desc="Switch between Light, Dark, and AMOLED themes">
             <ThemeToggle variant="circle-blur" start="bottom-up" />
           </SettingRow>
+        </SettingSection>
+
+        {/* Accent Color Section */}
+        <SettingSection title="Accent Color">
+          <AccentColorPicker />
         </SettingSection>
 
         {/* Interface Scaling Section */}

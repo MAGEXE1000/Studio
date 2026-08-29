@@ -1,6 +1,7 @@
 import {
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   type CustomChord,
   type BarreDef,
   setNavHidden,
@@ -962,7 +963,7 @@ export default function CustomChordBuilder({
   useScrollHide(scrollRef);
   const settings = useSettingsStore((s) => s.settings);
   const t = useT();
-  const resolvedAccent = ACCENT_COLORS.blue;
+  const resolvedAccent = accent ?? resolveAccent(settings.accentColor);
   const instLabels: Record<Instrument, string> = {
     guitar: t.customBuilder.guitar,
     piano: t.customBuilder.piano,

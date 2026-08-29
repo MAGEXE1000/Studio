@@ -262,70 +262,27 @@
   --c-brand: var(--c-accent-from);
 }
 
-/* App-specific Accent Scopes */
-[data-app-key='chordex'],
-.chordex-root {
-  --accent-from: #c084fc;
-  --accent-to: #9333ea;
-  --accent-mid: #a855f7;
-  --accent-to-rgb: 147, 51, 234;
-  --studio-accent-from: #c084fc;
-  --studio-accent-to: #9333ea;
-  --studio-accent-mid: #a855f7;
-  --studio-accent: #9333ea;
-  --studio-accent-rgb: 147, 51, 234;
-}
-
-[data-app-key='drumex'],
-.drumex-root {
-  --accent-from: #f472b6;
-  --accent-to: #db2777;
-  --accent-mid: #ec4899;
-  --accent-to-rgb: 219, 39, 119;
-  --studio-accent-from: #f472b6;
-  --studio-accent-to: #db2777;
-  --studio-accent-mid: #ec4899;
-  --studio-accent: #db2777;
-  --studio-accent-rgb: 219, 39, 119;
-}
-
-[data-app-key='groovex'],
-.groovex-root {
-  --accent-from: #34d399;
-  --accent-to: #059669;
-  --accent-mid: #10b981;
-  --accent-to-rgb: 5, 150, 105;
-  --studio-accent-from: #34d399;
-  --studio-accent-to: #059669;
-  --studio-accent-mid: #10b981;
-  --studio-accent: #059669;
-  --studio-accent-rgb: 5, 150, 105;
-}
-
-[data-app-key='vocalex'],
-.vocalex-root {
-  --accent-from: #fb923c;
-  --accent-to: #ea580c;
-  --accent-mid: #f97316;
-  --accent-to-rgb: 234, 88, 12;
-  --studio-accent-from: #fb923c;
-  --studio-accent-to: #ea580c;
-  --studio-accent-mid: #f97316;
-  --studio-accent: #ea580c;
-  --studio-accent-rgb: 234, 88, 12;
-}
-
-[data-app-key='stagex'],
-.stagex-root {
-  --accent-from: #38bdf8;
-  --accent-to: #0284c7;
-  --accent-mid: #0ea5e9;
-  --accent-to-rgb: 2, 132, 199;
-  --studio-accent-from: #38bdf8;
-  --studio-accent-to: #0284c7;
-  --studio-accent-mid: #0ea5e9;
-  --studio-accent: #0284c7;
-  --studio-accent-rgb: 2, 132, 199;
+/* ── Dedicated App Identity Brand Colors (Hub cards, logos, branding only) ──
+   These colors are strictly reserved for app branding and NEVER override the user's
+   global interactive UI accent color.                                         */
+:root {
+  --app-identity-chordex: #a855f7;
+  --app-identity-chordex-from: #c084fc;
+  --app-identity-chordex-to: #9333ea;
+  --app-identity-drumex: #ec4899;
+  --app-identity-drumex-from: #f472b6;
+  --app-identity-drumex-to: #db2777;
+  --app-identity-stagex: #3b82f6;
+  --app-identity-stagex-from: #60a5fa;
+  --app-identity-stagex-to: #2563eb;
+  --app-identity-groovex: #10b981;
+  --app-identity-groovex-from: #34d399;
+  --app-identity-groovex-to: #059669;
+  --app-identity-vocalex: #f59e0b;
+  --app-identity-vocalex-from: #fbbf24;
+  --app-identity-vocalex-to: #d97706;
+  --app-identity-hub: #007aff;
+  --app-identity-devtools: #71717a;
 }
 
 :root {

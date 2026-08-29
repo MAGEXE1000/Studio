@@ -19,6 +19,7 @@ import {
   reconnectDevices,
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   type AnimationSpeed,
   type DisplayDensity,
   type AppKey,
@@ -443,7 +444,7 @@ export default function StudioHub() {
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
   const lang = settings.language ?? 'en';
-  const accent = ACCENT_COLORS.blue;
+  const accent = resolveAccent(settings.accentColor);
   const isHubLight = (() => {
     const hubTheme = settings.perApp?.hub?.theme ?? settings.theme ?? 'dark';
     if (hubTheme === 'light') return true;

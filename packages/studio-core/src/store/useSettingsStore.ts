@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { applyThemeTokens } from '../lib/preferences/themeEngine';
+import { applyThemeTokens } from '../lib/themeEngine';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
 import { detectDeviceLanguage, type Language as I18nLanguage } from '../lib/i18n';
@@ -24,6 +24,7 @@ export interface AppSettings {
   appMode?: AppKey;
   instrument: Instrument;
   theme: Theme;
+  accentColor?: string;
   showNoteNames: boolean;
   showIntervals: boolean;
   tuning: string;
@@ -91,6 +92,8 @@ export interface SettingsStore {
   updatePerApp: (apps: AppKey[], patch: Partial<PerAppVisuals>) => void;
 }
 
+export { ACCENT_PRESETS, APP_IDENTITY_COLORS, resolveAccent } from '../lib/preferences/accentUtils';
+
 export const ACCENT_COLORS = {
   blue: { from: '#679cff', to: '#007aff', mid: '#4d8ef7' },
   purple: { from: '#c084fc', to: '#9333ea', mid: '#a855f7' },
@@ -105,6 +108,7 @@ export const ACCENT_COLORS = {
 const DEFAULT_SETTINGS: AppSettings = {
   instrument: 'guitar',
   theme: 'light',
+  accentColor: 'blue',
   showNoteNames: true,
   showIntervals: false,
   tuning: 'Standard (EADGBE)',

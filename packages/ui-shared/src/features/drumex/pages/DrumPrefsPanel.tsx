@@ -2,6 +2,7 @@ import {
   useDrumStore,
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   useT,
   useScrollHide,
   useIsWebDesktop,
@@ -152,7 +153,7 @@ export default function DrumPrefsPanel() {
     resetNav();
   }, []);
 
-  const acc = ACCENT_COLORS.blue;
+  const acc = resolveAccent(settings.accentColor);
   const cardStyle: React.CSSProperties = {
     background: 'var(--app-surface)',
     borderRadius: '1.5rem',
@@ -236,7 +237,7 @@ export default function DrumPrefsPanel() {
         </PrefsRow>
       );
     }
-    const acc = ACCENT_COLORS.blue;
+    const acc = resolveAccent(settings.accentColor);
     return (
       <SettingRow label={label} desc={desc}>
         <Toggle

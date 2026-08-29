@@ -1,4 +1,10 @@
-import { useT, useChordStore, ACCENT_COLORS, useSettingsStore } from '@workspace/studio-core';
+import {
+  useT,
+  useChordStore,
+  ACCENT_COLORS,
+  resolveAccent,
+  useSettingsStore,
+} from '@workspace/studio-core';
 import { useState } from 'react';
 import PitchPanel from './PitchPanel';
 import PracticePanel from './PracticePanel';
@@ -7,7 +13,7 @@ export default function CoachPanel({ active = true }: { active?: boolean }) {
   const t = useT();
   const settings = useSettingsStore((s) => s.settings);
   const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', amoledMode: false };
-  const acc = ACCENT_COLORS.blue;
+  const acc = resolveAccent(settings.accentColor);
   const isLight =
     activeVis.theme === 'light' ||
     (activeVis.theme === 'system' &&

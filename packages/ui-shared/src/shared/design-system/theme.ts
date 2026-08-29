@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import {
   NavigationDispatcher,
   useSettingsStore,
-  ACCENT_COLORS,
-  AppKey,
-  SpringPresets,
+  resolveAccent,
+  type AppKey,
 } from '@workspace/studio-core';
+
 // ── Theme Hook (Left for backwards-compat) ─────────────────────────────────
 export function useStudioDesignSystem() {
   const settings = useSettingsStore((s) => s.settings);
@@ -15,17 +13,7 @@ export function useStudioDesignSystem() {
     theme: settings.theme ?? 'dark',
     amoledMode: settings.amoledMode ?? false,
   };
-  const accentKey =
-    appKey === 'chordex'
-      ? 'purple'
-      : appKey === 'drumex'
-        ? 'pink'
-        : appKey === 'groovex'
-          ? 'green'
-          : appKey === 'vocalex'
-            ? 'orange'
-            : 'blue';
-  const accent = ACCENT_COLORS[accentKey] || ACCENT_COLORS.blue;
+  const accent = resolveAccent(settings.accentColor);
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&

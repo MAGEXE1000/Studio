@@ -7,6 +7,7 @@ import {
   type GuitarChordData,
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   type SongPreset,
   type SongSection,
   type CustomChord,
@@ -4200,7 +4201,7 @@ export default function SongsPanel() {
   const reorderSection = useChordStore(useShallow((s) => s.reorderSection));
   const convertToSections = useChordStore(useShallow((s) => s.convertToSections));
   const deduplicateAllPresets = useChordStore(useShallow((s) => s.deduplicateAllPresets));
-  const accent = ACCENT_COLORS.blue;
+  const accent = resolveAccent(settings.accentColor);
   const preferFlats = settings.preferFlats ?? false;
   const isNative =
     typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.();

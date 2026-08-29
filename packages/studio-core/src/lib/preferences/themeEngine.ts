@@ -1,6 +1,7 @@
 import { useNavigationStore } from '../navigation/useNavigationStore';
 import { Capacitor } from '@capacitor/core';
 import { syncStatusBar } from '../platform/useStatusBar';
+import { resolveAccent } from './accentUtils';
 export interface ThemeConfig {
   theme: 'light' | 'dark' | 'system' | 'dynamic';
   amoledMode: boolean;
@@ -61,8 +62,35 @@ export function applyThemeTokens(settings: any) {
     root.classList.remove('amoled');
   }
 
-  // 2. Color Tokens
-  // Color tokens have been moved to tokens.css for a single canonical source of truth
+  // 2. Global Accent Color Tokens
+  const accent = resolveAccent(settings?.accentColor);
+  root.style.setProperty('--studio-accent-from', accent.from);
+  root.style.setProperty('--studio-accent-to', accent.to);
+  root.style.setProperty('--studio-accent-mid', accent.mid);
+  root.style.setProperty('--studio-accent', accent.to);
+  root.style.setProperty('--studio-accent-rgb', accent.rgb);
+  root.style.setProperty(
+    '--studio-accent-gradient',
+    `linear-gradient(135deg, ${accent.from}, ${accent.to})`
+  );
+  root.style.setProperty('--studio-accent-soft', accent.soft);
+  root.style.setProperty('--studio-accent-subtle', accent.subtle);
+  root.style.setProperty('--studio-accent-glow', accent.glow);
+  root.style.setProperty('--studio-accent-border', accent.border);
+  root.style.setProperty('--studio-accent-contrast', accent.contrast);
+  root.style.setProperty('--studio-accent-hover', accent.hover);
+  root.style.setProperty('--studio-accent-active', accent.active);
+
+  // Sync alias variables
+  root.style.setProperty('--c-accent-from', accent.from);
+  root.style.setProperty('--c-accent-to', accent.to);
+  root.style.setProperty('--c-accent-mid', accent.mid);
+  root.style.setProperty('--c-accent-rgb', accent.rgb);
+  root.style.setProperty('--c-accent-soft', accent.soft);
+  root.style.setProperty('--c-accent-glow', accent.glow);
+  root.style.setProperty('--c-accent-border', accent.border);
+  root.style.setProperty('--c-brand', accent.from);
+  root.setAttribute('data-accent-id', accent.id);
 
   // 3. Spacing Tokens & Density System
   const spacingDefs = {
@@ -70,7 +98,8 @@ export function applyThemeTokens(settings: any) {
     comfortable: { xs: '4px', sm: '8px', md: '16px', lg: '24px', xl: '32px' },
     spacious: { xs: '5px', sm: '10px', md: '20px', lg: '28px', xl: '38px' },
   };
-  const sp = spacingDefs[settings.displayDensity as keyof typeof spacingDefs] || spacingDefs.comfortable;
+  const sp =
+    spacingDefs[settings.displayDensity as keyof typeof spacingDefs] || spacingDefs.comfortable;
   root.style.setProperty('--spacing-xs', sp.xs);
   root.style.setProperty('--spacing-sm', sp.sm);
   root.style.setProperty('--spacing-md', sp.md);

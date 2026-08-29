@@ -7,6 +7,7 @@ import { Capacitor } from '@capacitor/core';
 import {
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   useT,
   useBackHandler,
   useNavCollapsed,
@@ -752,7 +753,7 @@ export default function DrumEditor() {
     () => patterns.find((p) => p.id === activePatternId) ?? patterns[0],
     [patterns, activePatternId]
   );
-  const accent = ACCENT_COLORS.blue;
+  const accent = resolveAccent(settings.accentColor);
   const spm = stepsPerMeasure(pattern);
   const stepsPerBeat = pattern.subdivision / pattern.timeSignature[1];
   const kit = kitType ?? 'house';

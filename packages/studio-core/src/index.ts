@@ -66,6 +66,7 @@ export * from './lib/updater/flightRecorder';
 export * from './lib/updater/updaterSimulation';
 export * from './lib/startupCoordinator';
 export * from './lib/themeEngine';
+export * from './lib/preferences/accentUtils';
 export * from './lib/performanceProfiler';
 export * from './lib/performance/renderScheduler';
 export * from './lib/performance/devPerformanceMonitor';

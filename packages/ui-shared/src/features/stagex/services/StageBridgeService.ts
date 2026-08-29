@@ -1,4 +1,10 @@
-import { useChordStore, ACCENT_COLORS, translations, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  resolveAccent,
+  translations,
+  useSettingsStore,
+} from '@workspace/studio-core';
 
 export function hexToRgb(hex: string): [number, number, number] {
   return [
@@ -85,7 +91,7 @@ export function injectStartOnPicker(iframe: HTMLIFrameElement) {
     const t = translations[lang as keyof typeof translations] ?? translations.en;
     const sp = t.stagePrefs;
     const cur = store.settings.defaultStageView ?? 'Editor';
-    const accent = ACCENT_COLORS.blue;
+    const accent = resolveAccent(store.settings.accentColor);
 
     const section = doc.createElement('div');
     section.id = 'sc-start-on-injected';
@@ -139,9 +145,11 @@ export function injectStartOnPicker(iframe: HTMLIFrameElement) {
       btn.appendChild(ic);
 
       btn.onclick = () => {
-        useSettingsStore.getState().updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
+        useSettingsStore
+          .getState()
+          .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
         const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
-        const a2 = ACCENT_COLORS.blue;
+        const a2 = resolveAccent(useSettingsStore.getState().settings.accentColor);
         btnWrap.querySelectorAll('button').forEach((b, idx) => {
           const isActive = views[idx].value === updated;
           (b as HTMLButtonElement).style.border = isActive

@@ -5,6 +5,7 @@ import {
   getChordById,
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   SONGS,
   type SongChart,
   useIsWebDesktop,
@@ -31,13 +32,15 @@ export function useLibraryState() {
       : null;
   const activePanel =
     currentRoute.app === 'chordex' && currentRoute.page
-      ? (currentRoute.page === 'chord' ? 'library' : (currentRoute.page as ActivePanel))
+      ? currentRoute.page === 'chord'
+        ? 'library'
+        : (currentRoute.page as ActivePanel)
       : 'library';
-      
+
   const recentChords = useChordStore(useShallow((s) => s.recentChords));
   const favorites = useChordStore(useShallow((s) => s.favorites));
   const settings = useSettingsStore(useShallow((s) => s.settings));
-  
+
   const toggleFavorite = useChordStore(useShallow((s) => s.toggleFavorite));
   const addToProgression = useChordStore(useShallow((s) => s.addToProgression));
   const activeType = useChordStore(useShallow((s) => s.libraryActiveType));
@@ -48,15 +51,17 @@ export function useLibraryState() {
   const [showTuningMenu, setShowTuningMenu] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [selectedRootFilter, setSelectedRootFilter] = useState<string>('ALL');
-  const [previewInstrument, setPreviewInstrument] = useState<Instrument>(settings.instrument || 'guitar');
+  const [previewInstrument, setPreviewInstrument] = useState<Instrument>(
+    settings.instrument || 'guitar'
+  );
   const [diagramDisplayMode, setDiagramDisplayMode] = useState<'notes' | 'intervals'>('notes');
 
   const [showFinder, setShowFinder] = useState(false);
   const [showGenerator, setShowGenerator] = useState(false);
 
   const allChords = useMemo(() => getAllChords(), []);
-  const accent = ACCENT_COLORS.blue;
-    
+  const accent = resolveAccent(settings.accentColor);
+
   const isLight =
     settings.theme === 'light' ||
     (settings.theme === 'system' &&
@@ -112,7 +117,7 @@ export function useLibraryState() {
     },
     [selectChord]
   );
-  
+
   const activePracticeSong = useMemo(() => {
     if (currentRoute.app === 'chordex' && currentRoute.subView === 'practice' && currentRoute.id) {
       return SONGS.find((s) => s.id === currentRoute.id) || null;
@@ -155,7 +160,15 @@ export function useLibraryState() {
       }
       return false;
     },
-    [activePanel, activePracticeSong, selectedChordId, query, activeType, selectChord, setActiveType]
+    [
+      activePanel,
+      activePracticeSong,
+      selectedChordId,
+      query,
+      activeType,
+      selectChord,
+      setActiveType,
+    ]
   );
 
   const filteredByType = useMemo(() => {
@@ -168,19 +181,53 @@ export function useLibraryState() {
   }, [activeType, allChords, selectedRootFilter]);
 
   const activeCategoryObject = CATEGORIES.find((c) => c.type === activeType);
-  
+
   const toggleShowAllCategories = useCallback(() => {
     setShowAllCategories((prev) => !prev);
   }, []);
 
   return {
-    isWebDesktop, currentRoute, selectedChordId, activePanel, recentChords, favorites,
-    settings, toggleFavorite, addToProgression, activeType, setActiveType, chordPlaying,
-    setChordPlaying, query, setQuery, showTuningMenu, setShowTuningMenu, showFinder,
-    setShowFinder, showGenerator, setShowGenerator, allChords, accent, isLight, scrollRef,
-    chord, searchResults, chordOfTheDay, selectChord, handleChordClick, activePracticeSong,
-    setActivePracticeSong, filteredByType, activeCategoryObject, showAllCategories,
-    toggleShowAllCategories, selectedRootFilter, setSelectedRootFilter, previewInstrument,
-    setPreviewInstrument, diagramDisplayMode, setDiagramDisplayMode
+    isWebDesktop,
+    currentRoute,
+    selectedChordId,
+    activePanel,
+    recentChords,
+    favorites,
+    settings,
+    toggleFavorite,
+    addToProgression,
+    activeType,
+    setActiveType,
+    chordPlaying,
+    setChordPlaying,
+    query,
+    setQuery,
+    showTuningMenu,
+    setShowTuningMenu,
+    showFinder,
+    setShowFinder,
+    showGenerator,
+    setShowGenerator,
+    allChords,
+    accent,
+    isLight,
+    scrollRef,
+    chord,
+    searchResults,
+    chordOfTheDay,
+    selectChord,
+    handleChordClick,
+    activePracticeSong,
+    setActivePracticeSong,
+    filteredByType,
+    activeCategoryObject,
+    showAllCategories,
+    toggleShowAllCategories,
+    selectedRootFilter,
+    setSelectedRootFilter,
+    previewInstrument,
+    setPreviewInstrument,
+    diagramDisplayMode,
+    setDiagramDisplayMode,
   };
 }

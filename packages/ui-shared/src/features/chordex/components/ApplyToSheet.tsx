@@ -1,6 +1,13 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
 import { NavigationDispatcher } from '@workspace/studio-core';
-import { useChordStore, ACCENT_COLORS, type AppKey, useT, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  resolveAccent,
+  type AppKey,
+  useT,
+  useSettingsStore,
+} from '@workspace/studio-core';
 import React, { useState, useEffect } from 'react';
 import {
   StudioLogo,
@@ -10,7 +17,6 @@ import {
   GroovexLogo,
   VocalexLogo,
 } from '../icons/ChordexLogo';
-;
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
 
 interface AppCard {
@@ -37,9 +43,9 @@ interface ApplyToSheetProps {
 export default function ApplyToSheet({ show, onApply, onClose }: ApplyToSheetProps) {
   const settings = useSettingsStore((s) => s.settings);
   const t = useT();
-  const appKey = (NavigationDispatcher.currentApp()) as AppKey;
+  const appKey = NavigationDispatcher.currentApp() as AppKey;
   const perApp = settings.perApp;
-  const accent = ACCENT_COLORS.blue;
+  const accent = resolveAccent(settings.accentColor);
 
   const [selected, setSelected] = useState<Set<AppKey>>(
     new Set(['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'])

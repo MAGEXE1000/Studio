@@ -1,5 +1,12 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { getChordById, transposeChordId, setNavHidden, ACCENT_COLORS, useSettingsStore } from '@workspace/studio-core';
+﻿import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import {
+  getChordById,
+  transposeChordId,
+  setNavHidden,
+  ACCENT_COLORS,
+  resolveAccent,
+  useSettingsStore,
+} from '@workspace/studio-core';
 import type { SongPreset, GuitarChordData } from '@workspace/studio-core';
 
 export type VisualStyle = 'both' | 'diagram' | 'name';
@@ -41,9 +48,13 @@ export interface LiveModeState {
   isExiting: boolean;
 }
 
-export function useLiveModeState(preset: SongPreset, onClose: () => void, transposeOffset: number = 0): LiveModeState {
+export function useLiveModeState(
+  preset: SongPreset,
+  onClose: () => void,
+  transposeOffset: number = 0
+): LiveModeState {
   const settings = useSettingsStore((s) => s.settings);
-  const accent = ACCENT_COLORS.blue;
+  const accent = resolveAccent(settings.accentColor);
 
   const [currentIdx, setCurrentIdx] = useState(0);
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
@@ -205,7 +216,8 @@ export function useLiveModeState(preset: SongPreset, onClose: () => void, transp
       opacity: 1,
       transform: 'scale(1) translateY(0)',
       filter: 'blur(0px)',
-      transition: 'opacity 320ms ease-out, transform 420ms cubic-bezier(0.34, 1.42, 0.64, 1), filter 280ms ease-out',
+      transition:
+        'opacity 320ms ease-out, transform 420ms cubic-bezier(0.34, 1.42, 0.64, 1), filter 280ms ease-out',
     };
   })();
 
@@ -218,9 +230,38 @@ export function useLiveModeState(preset: SongPreset, onClose: () => void, transp
   };
 
   return {
-    preset, accent, currentIdx, shownIdx, autoPlay, setAutoPlay, showSettings, setShowSettings,
-    visualStyle, setVisualStyle, beatsPerChord, setBeatsPerChord, showContext, setShowContext,
-    bpmOverride, setBpmOverride, chords, sectionLabels, total, currentChord, prevChord, nextChord,
-    shownChord, goNext, goPrev, handleClose, handleTap, msPerChord, overlayAnim, chordStyle, isExiting, setCurrentIdx, setDirection
+    preset,
+    accent,
+    currentIdx,
+    shownIdx,
+    autoPlay,
+    setAutoPlay,
+    showSettings,
+    setShowSettings,
+    visualStyle,
+    setVisualStyle,
+    beatsPerChord,
+    setBeatsPerChord,
+    showContext,
+    setShowContext,
+    bpmOverride,
+    setBpmOverride,
+    chords,
+    sectionLabels,
+    total,
+    currentChord,
+    prevChord,
+    nextChord,
+    shownChord,
+    goNext,
+    goPrev,
+    handleClose,
+    handleTap,
+    msPerChord,
+    overlayAnim,
+    chordStyle,
+    isExiting,
+    setCurrentIdx,
+    setDirection,
   };
 }

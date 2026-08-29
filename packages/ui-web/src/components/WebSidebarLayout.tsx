@@ -1,6 +1,7 @@
 import {
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   useT,
   type AuthUser,
   useAppUpdate,
@@ -143,8 +144,8 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
     };
   }, [showProfileMenu]);
 
-  // Accent color is static default blue
-  const accent = ACCENT_COLORS.blue;
+  // Accent color resolved from global user settings
+  const accent = resolveAccent(settings.accentColor);
 
   // Navigation handlers
   const handleGoToHub = (tab: 'home' | 'settings' | 'profile' | 'help') => {

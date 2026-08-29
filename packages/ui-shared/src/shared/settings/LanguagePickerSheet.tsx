@@ -3,6 +3,7 @@ import {
   useSettingsStore,
   settingsController,
   ACCENT_COLORS,
+  resolveAccent,
   SpringPresets,
 } from '@workspace/studio-core';
 import { Dialog } from '../design-system/dialogs';
@@ -27,7 +28,7 @@ interface LanguagePickerSheetProps {
 
 export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps) {
   const settings = useSettingsStore((s) => s.settings);
-  const acc = ACCENT_COLORS.blue;
+  const acc = resolveAccent(settings.accentColor);
 
   return (
     <Dialog open={open} onClose={onClose} title="Select Language">

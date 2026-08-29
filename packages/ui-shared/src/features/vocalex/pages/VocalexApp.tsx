@@ -2,6 +2,7 @@ import {
   useBackHandler,
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   type AppKey,
   useT,
   resetNav,
@@ -97,7 +98,7 @@ export default function VocalexApp() {
     theme: 'dark' as const,
     amoledMode: false,
   };
-  const accent = ACCENT_COLORS.blue;
+  const accent = resolveAccent(settings.accentColor);
   const isLight = (() => {
     if (activeVis.theme === 'light') return true;
     if (activeVis.theme === 'system') {
@@ -263,7 +264,7 @@ function VocalexPreferences() {
   const t = useT();
   const vt = t.vocalex as any;
   const activeVis = settings.perApp?.vocalex ?? { theme: 'dark', amoledMode: false };
-  const acc = ACCENT_COLORS.blue;
+  const acc = resolveAccent(settings.accentColor);
   const isLight =
     activeVis.theme === 'light' ||
     (activeVis.theme === 'system' &&

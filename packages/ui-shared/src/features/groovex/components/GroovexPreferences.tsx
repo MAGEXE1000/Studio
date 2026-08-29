@@ -5,6 +5,7 @@ import {
   useIsWebDesktop,
   useChordStore,
   ACCENT_COLORS,
+  resolveAccent,
   useSettingsStore,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
@@ -578,7 +579,7 @@ function ToggleRow({
     (settings.theme === 'system' &&
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
-  const acc = ACCENT_COLORS.blue;
+  const acc = resolveAccent(settings.accentColor);
 
   if (isWebDesktop) {
     return (

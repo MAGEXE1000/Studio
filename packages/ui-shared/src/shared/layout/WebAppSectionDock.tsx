@@ -1,4 +1,16 @@
-import { useChordStore, ACCENT_COLORS, type AppKey, useT, APP_SECTIONS, useStudioPreferences, useSettingsStore, DurationPresets, EasingPresets, SpringPresets } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  resolveAccent,
+  type AppKey,
+  useT,
+  APP_SECTIONS,
+  useStudioPreferences,
+  useSettingsStore,
+  DurationPresets,
+  EasingPresets,
+  SpringPresets,
+} from '@workspace/studio-core';
 import React, { useRef, useState } from 'react';
 import {
   motion,
@@ -8,7 +20,6 @@ import {
   useTransform,
   MotionValue,
 } from 'motion/react';
-
 
 interface DockItemProps {
   id: string;
@@ -191,8 +202,8 @@ export default function WebAppSectionDock({
     theme: settings.theme ?? 'dark',
     amoledMode: settings.amoledMode ?? false,
   };
-  // Accent color is static default blue
-  const accent = ACCENT_COLORS.blue;
+  // Accent color resolved from global user settings
+  const accent = resolveAccent(settings.accentColor);
 
   const getSectionLabel = (labelKey: string) => {
     switch (labelKey) {

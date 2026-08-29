@@ -7,20 +7,40 @@ import {
   resolveAccent,
   useT,
 } from '@workspace/studio-core';
-import { Card } from '../../../shared/design-system/StudioDesignSystem';
 
 // ── COLOR MATH HELPERS ──────────────────────────────────────
 function hsvToRgb(h: number, s: number, v: number): { r: number; g: number; b: number } {
   const c = v * s;
   const hh = (((h % 360) + 360) % 360) / 60;
   const x = c * (1 - Math.abs((hh % 2) - 1));
-  let r = 0, g = 0, b = 0;
-  if (hh < 1) { r = c; g = x; b = 0; }
-  else if (hh < 2) { r = x; g = c; b = 0; }
-  else if (hh < 3) { r = 0; g = c; b = x; }
-  else if (hh < 4) { r = 0; g = x; b = c; }
-  else if (hh < 5) { r = x; g = 0; b = c; }
-  else { r = c; g = 0; b = x; }
+  let r = 0,
+    g = 0,
+    b = 0;
+  if (hh < 1) {
+    r = c;
+    g = x;
+    b = 0;
+  } else if (hh < 2) {
+    r = x;
+    g = c;
+    b = 0;
+  } else if (hh < 3) {
+    r = 0;
+    g = c;
+    b = x;
+  } else if (hh < 4) {
+    r = 0;
+    g = x;
+    b = c;
+  } else if (hh < 5) {
+    r = x;
+    g = 0;
+    b = c;
+  } else {
+    r = c;
+    g = 0;
+    b = x;
+  }
   const m = v - c;
   return {
     r: Math.round((r + m) * 255),
@@ -30,7 +50,9 @@ function hsvToRgb(h: number, s: number, v: number): { r: number; g: number; b: n
 }
 
 function rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: number } {
-  r /= 255; g /= 255; b /= 255;
+  r /= 255;
+  g /= 255;
+  b /= 255;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const v = max;
@@ -88,23 +110,25 @@ export function AccentColorPicker() {
   const isLight = settings.theme === 'light';
   const t = useT();
 
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const isCustomActive =
+    resolved.id === 'custom' ||
+    (!ACCENT_PRESETS.some((p) => p.id === currentAccent) && currentAccent.startsWith('#'));
+
+  const [isPickerOpen, setIsPickerOpen] = useState(() => isCustomActive);
   const [hsv, setHsv] = useState(() => parseColorToHsv(resolved.to));
   const [hexInput, setHexInput] = useState(() => resolved.to);
 
   const satValRef = useRef<HTMLDivElement>(null);
   const hueRef = useRef<HTMLDivElement>(null);
 
-  const isCustomActive =
-    resolved.id === 'custom' ||
-    (!ACCENT_PRESETS.some((p) => p.id === currentAccent) && currentAccent.startsWith('#'));
-
   const handleSelectPreset = (presetId: string) => {
     useSettingsStore.getState().updateSettings({ accentColor: presetId });
+    setIsPickerOpen(false);
   };
 
   const handleResetDefault = () => {
     useSettingsStore.getState().updateSettings({ accentColor: DEFAULT_ACCENT_ID });
+    setIsPickerOpen(false);
   };
 
   const openPicker = () => {
@@ -113,6 +137,14 @@ export function AccentColorPicker() {
     setHsv(parsed);
     setHexInput(initialHex);
     setIsPickerOpen(true);
+  };
+
+  const togglePicker = () => {
+    if (!isPickerOpen) {
+      openPicker();
+    } else {
+      setIsPickerOpen(false);
+    }
   };
 
   const updateHsv = useCallback((next: Partial<typeof hsv>) => {
@@ -129,7 +161,9 @@ export function AccentColorPicker() {
   const handleSatValPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = satValRef.current;
     if (!el) return;
-    try { el.setPointerCapture(e.pointerId); } catch {}
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {}
     const update = (clientX: number, clientY: number) => {
       const rect = el.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0) return;
@@ -137,7 +171,7 @@ export function AccentColorPicker() {
       const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
       updateHsv({
         s: Math.max(0, Math.min(1, x / rect.width)),
-        v: Math.max(0, Math.min(1, 1 - (y / rect.height))),
+        v: Math.max(0, Math.min(1, 1 - y / rect.height)),
       });
     };
     update(e.clientX, e.clientY);
@@ -146,7 +180,9 @@ export function AccentColorPicker() {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
-      try { el.releasePointerCapture(ev.pointerId); } catch {}
+      try {
+        el.releasePointerCapture(ev.pointerId);
+      } catch {}
     };
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
@@ -157,7 +193,9 @@ export function AccentColorPicker() {
   const handleHuePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const el = hueRef.current;
     if (!el) return;
-    try { el.setPointerCapture(e.pointerId); } catch {}
+    try {
+      el.setPointerCapture(e.pointerId);
+    } catch {}
     const update = (clientX: number) => {
       const rect = el.getBoundingClientRect();
       if (rect.width <= 0) return;
@@ -170,7 +208,9 @@ export function AccentColorPicker() {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
-      try { el.releasePointerCapture(ev.pointerId); } catch {}
+      try {
+        el.releasePointerCapture(ev.pointerId);
+      } catch {}
     };
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
@@ -190,15 +230,14 @@ export function AccentColorPicker() {
   };
 
   return (
-    <Card
+    <div
       style={{
-        padding: '16px 18px',
+        padding: '16px',
         display: 'flex',
         flexDirection: 'column',
         gap: 16,
-        background: 'var(--app-surface)',
-        border: '1px solid var(--c-border)',
-        borderRadius: 16,
+        width: '100%',
+        boxSizing: 'border-box',
       }}
     >
       {/* Header Row with Active Color preview & Reset action */}
@@ -364,7 +403,7 @@ export function AccentColorPicker() {
           <motion.button
             whileTap={{ scale: 0.88 }}
             whileHover={{ scale: 1.12 }}
-            onClick={openPicker}
+            onClick={togglePicker}
             title="Choose custom color"
             className="btn-smooth"
             style={{
@@ -402,257 +441,233 @@ export function AccentColorPicker() {
         </div>
       </div>
 
-      {/* Fluid Functionalism 2D Color Picker Modal */}
+      {/* Fluid Functionalism 2D Color Picker Inline Panel */}
       <AnimatePresence>
         {isPickerOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
-            onClick={() => setIsPickerOpen(false)}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 100005,
-              background: 'rgba(0, 0, 0, 0.72)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
+              overflow: 'hidden',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: 16,
+              flexDirection: 'column',
+              gap: 14,
+              width: '100%',
+              paddingTop: 12,
+              borderTop: '1px solid var(--c-border)',
+              marginTop: 4,
               boxSizing: 'border-box',
             }}
           >
-            <motion.div
-              initial={{ scale: 0.94, opacity: 0, y: 8 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.94, opacity: 0, y: 8 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 450 }}
-              onClick={(e) => e.stopPropagation()}
+            {/* Inline Subheader */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span
+                style={{
+                  fontFamily: 'Manrope, sans-serif',
+                  fontSize: 11,
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.14em',
+                  color: 'var(--studio-accent-from, #7aafff)',
+                }}
+              >
+                Custom Palette & Hue
+              </span>
+              <button
+                onClick={() => setIsPickerOpen(false)}
+                className="btn-smooth"
+                style={{
+                  background: 'var(--app-surface-low, rgba(255, 255, 255, 0.05))',
+                  border: '1px solid var(--c-border)',
+                  borderRadius: 6,
+                  color: 'var(--c-text-secondary)',
+                  cursor: 'pointer',
+                  padding: '2px 8px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3,
+                }}
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
+                  close
+                </span>
+                <span>Done</span>
+              </button>
+            </div>
+
+            {/* 2D Saturation / Value Canvas */}
+            <div
+              ref={satValRef}
+              onPointerDown={handleSatValPointerDown}
               style={{
-                width: 320,
-                maxWidth: '100%',
-                borderRadius: 18,
-                background: isLight ? '#ffffff' : '#141414',
-                border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.09)',
-                boxShadow: isLight
-                  ? '0 16px 48px rgba(0, 0, 0, 0.18)'
-                  : '0 20px 60px rgba(0, 0, 0, 0.9)',
-                padding: 16,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 14,
+                position: 'relative',
+                width: '100%',
+                height: 160,
+                borderRadius: 14,
+                overflow: 'hidden',
+                cursor: 'crosshair',
+                touchAction: 'none',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                border: '1px solid var(--c-border)',
+                background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${Math.round(hsv.h)}, 100%, 50%))`,
                 boxSizing: 'border-box',
-                touchAction: 'pan-y',
               }}
             >
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span
-                  style={{
-                    fontFamily: 'Manrope, sans-serif',
-                    fontSize: 11,
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.16em',
-                    color: 'var(--accent, #7aafff)',
-                  }}
-                >
-                  Custom Accent Color
-                </span>
-                <button
-                  onClick={() => setIsPickerOpen(false)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#767575',
-                    cursor: 'pointer',
-                    padding: 4,
-                    lineHeight: 1,
-                    fontSize: 18,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-
-              {/* 2D Saturation / Value Canvas */}
               <div
-                ref={satValRef}
-                onPointerDown={handleSatValPointerDown}
+                style={{
+                  position: 'absolute',
+                  left: `${hsv.s * 100}%`,
+                  top: `${(1 - hsv.v) * 100}%`,
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  border: '2.5px solid #ffffff',
+                  boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7)',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            {/* Controls: Hue Spectrum Track */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div
+                ref={hueRef}
+                onPointerDown={handleHuePointerDown}
                 style={{
                   position: 'relative',
                   width: '100%',
-                  height: 156,
-                  borderRadius: 12,
-                  overflow: 'hidden',
-                  cursor: 'crosshair',
+                  height: 16,
+                  borderRadius: 9999,
+                  background:
+                    'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
+                  cursor: 'pointer',
                   touchAction: 'none',
                   userSelect: 'none',
                   WebkitUserSelect: 'none',
-                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                  background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${Math.round(hsv.h)}, 100%, 50%))`,
+                  border: '1px solid var(--c-border)',
+                  boxSizing: 'border-box',
                 }}
               >
                 <div
                   style={{
                     position: 'absolute',
-                    left: `${hsv.s * 100}%`,
-                    top: `${(1 - hsv.v) * 100}%`,
-                    width: 18,
-                    height: 18,
+                    top: '50%',
+                    left: `${(hsv.h / 360) * 100}%`,
+                    width: 22,
+                    height: 22,
                     borderRadius: '50%',
+                    background: `hsl(${Math.round(hsv.h)}, 100%, 50%)`,
                     border: '2.5px solid #ffffff',
-                    boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7)',
+                    boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6)',
                     transform: 'translate(-50%, -50%)',
                     pointerEvents: 'none',
                     boxSizing: 'border-box',
                   }}
                 />
               </div>
+            </div>
 
-              {/* Controls: Hue Spectrum Track */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div
-                  ref={hueRef}
-                  onPointerDown={handleHuePointerDown}
+            {/* Details Row: Preview + HEX Input */}
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <div
+                style={{
+                  position: 'relative',
+                  width: 38,
+                  height: 38,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  border: '1px solid var(--c-border)',
+                  flexShrink: 0,
+                  boxSizing: 'border-box',
+                  background: hsvToHex(hsv.h, hsv.s, hsv.v),
+                  boxShadow: `0 2px 8px ${hsvToHex(hsv.h, hsv.s, hsv.v)}44`,
+                }}
+              />
+
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input
+                  type="text"
+                  value={hexInput}
+                  onChange={handleHexChange}
+                  maxLength={7}
+                  spellCheck={false}
+                  placeholder="#7AAFFF"
                   style={{
-                    position: 'relative',
                     width: '100%',
-                    height: 14,
-                    borderRadius: 9999,
-                    background:
-                      'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
-                    cursor: 'pointer',
-                    touchAction: 'none',
-                    userSelect: 'none',
-                    WebkitUserSelect: 'none',
-                    border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
-                    boxSizing: 'border-box',
-                  }}
-                >
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: `${(hsv.h / 360) * 100}%`,
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      background: `hsl(${Math.round(hsv.h)}, 100%, 50%)`,
-                      border: '2.5px solid #ffffff',
-                      boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6)',
-                      transform: 'translate(-50%, -50%)',
-                      pointerEvents: 'none',
-                      boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Details Row */}
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <div
-                  style={{
-                    position: 'relative',
-                    width: 38,
                     height: 38,
+                    padding: '0 12px',
+                    background: 'var(--app-surface-low, rgba(255, 255, 255, 0.04))',
+                    border: '1px solid var(--c-border)',
                     borderRadius: 10,
-                    overflow: 'hidden',
-                    border: isLight ? '1px solid rgba(0, 0, 0, 0.15)' : '1.5px solid rgba(255, 255, 255, 0.2)',
-                    flexShrink: 0,
+                    fontFamily: 'Manrope, monospace',
+                    fontSize: 13,
+                    fontWeight: 750,
+                    color: 'var(--c-text-primary)',
+                    textTransform: 'uppercase',
+                    outline: 'none',
                     boxSizing: 'border-box',
-                    background: hsvToHex(hsv.h, hsv.s, hsv.v),
-                    boxShadow: `0 2px 8px ${hsvToHex(hsv.h, hsv.s, hsv.v)}44`,
+                    letterSpacing: '0.05em',
                   }}
                 />
-
-                <div style={{ flex: 1, position: 'relative' }}>
-                  <input
-                    type="text"
-                    value={hexInput}
-                    onChange={handleHexChange}
-                    maxLength={7}
-                    spellCheck={false}
-                    style={{
-                      width: '100%',
-                      height: 38,
-                      padding: '0 10px',
-                      background: isLight ? '#f4f4f5' : '#0a0a0a',
-                      border: isLight ? '1px solid rgba(0, 0, 0, 0.12)' : '1px solid rgba(255, 255, 255, 0.12)',
-                      borderRadius: 9,
-                      fontFamily: 'Manrope, monospace',
-                      fontSize: 13,
-                      fontWeight: 750,
-                      color: isLight ? '#18181b' : '#ffffff',
-                      textTransform: 'uppercase',
-                      outline: 'none',
-                      boxSizing: 'border-box',
-                      letterSpacing: '0.05em',
-                    }}
-                  />
-                </div>
               </div>
+            </div>
 
-              {/* Presets */}
-              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', paddingTop: 2 }}>
-                {['#7AAFFF', '#FF7439', '#C5FFC9', '#FFD700', '#C8A2FF', '#FF8DD4', '#FF3B30', '#10B981', '#6366F1', '#EC4899'].map((col) => (
-                  <button
-                    key={col}
-                    onClick={() => {
-                      const parsed = parseColorToHsv(col);
-                      setHsv(parsed);
-                      setHexInput(col);
-                      useSettingsStore.getState().updateSettings({ accentColor: col });
-                    }}
-                    style={{
-                      width: 26,
-                      height: 26,
-                      borderRadius: '50%',
-                      background: col,
-                      border: isLight ? '1.5px solid rgba(0, 0, 0, 0.15)' : '1.5px solid rgba(255, 255, 255, 0.2)',
-                      cursor: 'pointer',
-                      padding: 0,
-                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.3)',
-                      outline: 'none',
-                    }}
-                    title={col}
-                  />
-                ))}
-              </div>
-
-              {/* Footer Buttons */}
-              <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+            {/* Presets Chips */}
+            <div
+              style={{
+                display: 'flex',
+                gap: 7,
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                paddingTop: 2,
+              }}
+            >
+              {[
+                '#7AAFFF',
+                '#FF7439',
+                '#C5FFC9',
+                '#FFD700',
+                '#C8A2FF',
+                '#FF8DD4',
+                '#FF3B30',
+                '#10B981',
+                '#6366F1',
+                '#EC4899',
+              ].map((col) => (
                 <button
-                  onClick={() => setIsPickerOpen(false)}
-                  style={{
-                    flex: 1,
-                    height: 38,
-                    borderRadius: 9,
-                    background: isLight ? '#f4f4f5' : '#202020',
-                    color: isLight ? '#52525b' : '#a1a1aa',
-                    border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.08)',
-                    fontFamily: 'Manrope, sans-serif',
-                    fontSize: 11,
-                    fontWeight: 750,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    cursor: 'pointer',
+                  key={col}
+                  onClick={() => {
+                    const parsed = parseColorToHsv(col);
+                    setHsv(parsed);
+                    setHexInput(col);
+                    useSettingsStore.getState().updateSettings({ accentColor: col });
                   }}
-                >
-                  Done
-                </button>
-              </div>
-            </motion.div>
+                  className="btn-smooth"
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: '50%',
+                    background: col,
+                    border: '1.5px solid rgba(255, 255, 255, 0.25)',
+                    cursor: 'pointer',
+                    padding: 0,
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.3)',
+                    outline: 'none',
+                  }}
+                  title={col}
+                />
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </Card>
+    </div>
   );
 }
-

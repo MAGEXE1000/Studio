@@ -982,17 +982,32 @@ select option {
     color: var(--accent);
   }
 
-  /* Canvas — full width, just below the view-tab bar (floating bars overlay) */
+  /* Canvas — full width inside iframe container */
   #canvas-container {
     left: 0 !important;
     right: 0 !important;
-    top: 92px !important;
+    top: 0 !important;
     bottom: 0 !important;
   }
 
-  /* Stage viewport: tighter padding so canvas is bigger on mobile */
+  /* Stage viewport: responsive padding respecting safe-areas and bottom nav clearance */
   #stage-viewport {
-    padding: 12px 10px 60px !important;
+    padding-top: calc(max(10px, env(safe-area-inset-top, 0px))) !important;
+    padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px) !important;
+    padding-left: calc(max(10px, env(safe-area-inset-left, 0px))) !important;
+    padding-right: calc(max(10px, env(safe-area-inset-right, 0px))) !important;
+  }
+
+  /* Responsive canvas and scenes bar constraint in portrait mobile */
+  #stage-canvas,
+  #sc-scenes-bar {
+    max-width: min(
+      1080px,
+      calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(
+        (100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 104px) * 16 / 9
+      )
+    ) !important;
   }
 
   /* DOWNSTAGE label: keep on one line, smaller tracking */
@@ -1193,10 +1208,11 @@ select option {
     border-top: none !important;
   }
 
-  /* Scrollable views: full width, below view-tab bar */
+  /* Scrollable views: full width, inside iframe container */
   .scrollable-view {
     left: 0 !important;
-    top: 92px !important;
+    top: 0 !important;
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px) !important;
   }
 
   /* Status bar — mobile: slim, minimal, pinned to very bottom */
@@ -2637,8 +2653,8 @@ body.share-mode::after {
 /* ── Mobile: full-height assistant panel ─── */
 @media (max-width: 767px) {
   #view-Assistant {
-    padding-top: 92px !important; /* 52px header + 40px nav bar */
-    height: 100dvh !important;
+    padding-top: 0 !important;
+    height: 100% !important;
   }
   #sm-header {
     padding: 10px 14px 0 !important;

@@ -398,7 +398,48 @@ const HIDE_IFRAME_UI = `
 
 const HIDE_IFRAME_UI_MOBILE = `
   #sc-fab-btn { display: none !important; }
-  #mobile-nav-bar { opacity: 0 !important; pointer-events: none !important; }
+  #mobile-nav-bar { display: none !important; opacity: 0 !important; pointer-events: none !important; }
+  #canvas-container {
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  .scrollable-view {
+    top: 0 !important;
+    bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px) !important;
+  }
+  #view-Assistant {
+    padding-top: 0 !important;
+  }
+  #stage-viewport {
+    padding-top: calc(max(10px, env(safe-area-inset-top, 0px))) !important;
+    padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px) !important;
+    padding-left: calc(max(10px, env(safe-area-inset-left, 0px))) !important;
+    padding-right: calc(max(10px, env(safe-area-inset-right, 0px))) !important;
+  }
+  #stage-canvas, #sc-scenes-bar {
+    max-width: min(
+      1080px,
+      calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc((100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 104px) * 16 / 9)
+    ) !important;
+  }
+  @media screen and (orientation: landscape) and (max-width: 960px) {
+    #stage-viewport {
+      padding-top: calc(max(4px, env(safe-area-inset-top, 0px))) !important;
+      padding-left: calc(max(6px, env(safe-area-inset-left, 0px))) !important;
+      padding-bottom: calc(max(4px, env(safe-area-inset-bottom, 0px))) !important;
+      padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
+    }
+    #stage-canvas, #sc-scenes-bar {
+      max-width: min(
+        1080px,
+        calc(100vw - 12px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+        calc((100vh - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+      ) !important;
+    }
+  }
 `;
 
 const getSimplifiedView = (view: string): string => {
@@ -3051,8 +3092,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       style={{
         display: 'flex',
         flexDirection: 'column',
+        width: '100%',
         height: '100%',
-        minHeight: '100dvh',
+        position: 'relative',
+        overflow: 'hidden',
         background: stageBg,
         transition: 'background 180ms ease',
       }}
@@ -3229,8 +3272,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   position: 'absolute',
                   bottom: isLandscapeEditor
                     ? 124
-                    : 'calc(max(10px, env(safe-area-inset-bottom)) + 76px + 100px + 16px)',
-                  right: 'calc(max(17px, env(safe-area-inset-right)))',
+                    : 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 194px)',
+                  right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
                   width: 44,
                   height: 44,
                   borderRadius: '50%',
@@ -3287,7 +3330,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               </button>
             )}
 
-            {/* ── Live-mode toggle (eye) — stacked 8px above the FAB ── */}
+            {/* ── Live-mode toggle (eye) — stacked 10px above the FAB ── */}
             {curView === 'Editor' && (
               <button
                 id="stagex-eye-button"
@@ -3302,8 +3345,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   position: 'absolute',
                   bottom: isLandscapeEditor
                     ? 72
-                    : 'calc(max(10px, env(safe-area-inset-bottom)) + 76px + 50px + 8px)',
-                  right: 'calc(max(17px, env(safe-area-inset-right)))',
+                    : 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 140px)',
+                  right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
                   width: 44,
                   height: 44,
                   borderRadius: '50%',
@@ -3365,8 +3408,8 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   position: 'absolute',
                   bottom: isLandscapeEditor
                     ? 14
-                    : 'calc(max(10px, env(safe-area-inset-bottom)) + 76px)',
-                  right: 'calc(max(14px, env(safe-area-inset-right)))',
+                    : 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 80px)',
+                  right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
                   width: 50,
                   height: 50,
                   borderRadius: '50%',

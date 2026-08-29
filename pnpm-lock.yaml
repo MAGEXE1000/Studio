@@ -173,6 +173,9 @@ importers:
       '@eslint/js':
         specifier: ^9.39.5
         version: 9.39.5
+      '@rollup/rollup-win32-x64-msvc':
+        specifier: ^4.63.0
+        version: 4.63.0
       eslint:
         specifier: ^9.39.5
         version: 9.39.5(jiti@2.7.0)(supports-color@7.2.0)
@@ -3991,6 +3994,14 @@ packages:
     cpu: [x64]
     os: [linux]
     libc: [glibc]
+
+  '@rollup/rollup-win32-x64-msvc@4.63.0':
+    resolution:
+      {
+        integrity: sha512-hncn90N4sOky0L2LKE5oESKLbxCPeVo4eLA2LSMoDzM+879ml4WSr+Rr4DWknNIVVvS1Hirkc9hx02W6YxS8rQ==,
+      }
+    cpu: [x64]
+    os: [win32]
 
   '@scalar/helpers@0.2.18':
     resolution:
@@ -13006,6 +13017,8 @@ snapshots:
 
   '@rollup/rollup-linux-x64-gnu@4.62.3':
     optional: true
+
+  '@rollup/rollup-win32-x64-msvc@4.63.0': {}
 
   '@scalar/helpers@0.2.18': {}
 

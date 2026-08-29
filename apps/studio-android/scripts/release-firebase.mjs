@@ -74,10 +74,20 @@ try {
 console.log('release-firebase: â†’ Running early validation checks...');
 
 // A. GH_TOKEN check
-const ghToken = (process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '').trim();
+let ghToken = (process.env.GH_TOKEN || process.env.GITHUB_TOKEN || '').trim();
+if (!ghToken) {
+  try {
+    const tokenResult = spawnSync('gh', ['auth', 'token'], { encoding: 'utf8', shell: false });
+    if (tokenResult.status === 0 && tokenResult.stdout) {
+      ghToken = tokenResult.stdout.trim();
+      process.env.GH_TOKEN = ghToken;
+      process.env.GITHUB_TOKEN = ghToken;
+    }
+  } catch {}
+}
 if (!ghToken) {
   console.error(
-    '\x1b[31mrelease-firebase: âœ— GITHUB_TOKEN / GH_TOKEN env variable is missing or invalid. Refusing to start release pipeline.\x1b[0m'
+    '\x1b[31mrelease-firebase: ✗ GITHUB_TOKEN / GH_TOKEN env variable is missing or invalid. Refusing to start release pipeline.\x1b[0m'
   );
   process.exit(1);
 }

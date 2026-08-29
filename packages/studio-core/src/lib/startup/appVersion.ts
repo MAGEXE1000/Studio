@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.46';
-export const NATIVE_VERSION_CODE = 40546;
-export const WEB_VERSION = '4.5.46';
+export const NATIVE_VERSION = '4.5.47';
+export const NATIVE_VERSION_CODE = 40547;
+export const WEB_VERSION = '4.5.47';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'd061656b';
+export const APP_COMMIT_SHA = 'f9e1a4d3';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/27/2026, 11:51:59 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/28/2026, 8:41:04 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,13 +96,18 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: 'Changed',
+    heading: 'Added',
     items: [
-      'Event-Driven Architecture Modernization: Eliminated untyped synthetic `CustomEvent` and `window.dispatchEvent` patterns across navigation, tab switching, quick actions, settings navigation, and lifecycle events in favor of type-safe Zustand stores and typed subscription primitives.',
-      'Unified Navigation & Deep Linking: Replaced `studio:navigate-to-app`, `studio:navigate-to-tab`, `studio:set-active-tab`, `studio:trigger-quick-action`, `studio:open-settings-section`, and `studio:open-auth` with direct calls to `NavigationDispatcher.push(...)` and `useBottomNavigationStore`.',
-      'User Profile & Cover Subscriptions: Replaced custom avatar and cover photo events with canonical `getUserCover`, `setUserCover`, and `subscribeUserCover` primitives.',
-      'Startup & Lifecycle Coordination: Extended `StartupCoordinator` with typed subscribers `subscribeStartupComplete` and `subscribeIntroDone`, replacing window event dispatches across entry points and launch animation engines.',
-      'Developer Diagnostics Performance Optimization: Optimized `PerformanceProfiler.getGPULayerCount()` by replacing unthrottled full-DOM traversals with targeted composited selectors and a 3-second cache. Consolidated duplicate logging in `EmergencyDebugOverlay` to use canonical `getLogs()`. Batched diagnostics listeners with `requestAnimationFrame` micro-batching to eliminate UI thread render thrashing.',
+      'Global Accent Color System: Introduced a dedicated Accent Color configuration under Settings → Appearance with 9 curated design-system presets, custom RGB color picker, real-time live preview across all sub-apps, and full decoupling from individual sub-app identity branding.',
+      'Dynamic Accent Theme Engine: Integrated `resolveAccent()` in `studio-core` to calculate contrast text, glow, borders, and gradient variants directly on `:root` custom properties.',
+    ],
+  },
+  {
+    heading: 'Fixed',
+    items: [
+      'App Identity Decoupling: Removed hardcoded `[data-app-key]` theme overrides to ensure Drumex, Stagex, Groovex, Vocalex, and Chordex share the global interactive accent while preserving authentic app brand identity colors on Hub cards and logos.',
+      'Desktop Logging Resilience: Enhanced host language server log stream handling to prevent unhandled stream write exceptions during high-throughput agent operations.',
+      'Release Pipeline Verification: Added automated GitHub CLI keyring authentication fallback and strengthened end-to-end multi-manifest synchronization.',
     ],
   },
 ];
@@ -114,6 +119,17 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.47',
+    date: '2026-08-28',
+    highlights: [
+      'Global Accent Color System: Introduced a dedicated Accent Color configuration under Settings → Appearance with 9 curated design-system presets, custom RGB color picker, real-time live preview across all sub-apps, and full decoupling from individual sub-app identity branding.',
+      'Dynamic Accent Theme Engine: Integrated `resolveAccent()` in `studio-core` to calculate contrast text, glow, borders, and gradient variants directly on `:root` custom properties.',
+      'App Identity Decoupling: Removed hardcoded `[data-app-key]` theme overrides to ensure Drumex, Stagex, Groovex, Vocalex, and Chordex share the global interactive accent while preserving authentic app brand identity colors on Hub cards and logos.',
+      'Desktop Logging Resilience: Enhanced host language server log stream handling to prevent unhandled stream write exceptions during high-throughput agent operations.',
+      'Release Pipeline Verification: Added automated GitHub CLI keyring authentication fallback and strengthened end-to-end multi-manifest synchronization.',
+    ],
+  },
   {
     version: '4.5.46',
     date: '2026-08-28',
@@ -210,18 +226,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Enhanced bottom navigation dock sizing (64px height, 28px corner radius, 80px slot width for Hub) with comfortable breathing room for icon and label.',
       'Maintained consistent vertical icon-above-label hierarchy with resting label visibility and zero layout shifting.',
       'Synchronized active glass lens capsule and standalone floating search button with matching 64px height and 28px radius.',
-    ],
-  },
-  {
-    version: '4.5.37',
-    date: '2026-08-22',
-    highlights: [
-      'Resolved Settings sub-pages navigation bug (Appearance, Help & Support, Report a Bug, Updater) where font ligature failure caused back icons to render as clipped text `"w_b"`, back button opacity was tied to scroll position, and isolated floating capsule obscured page titles.',
-      'Rebuilt SharedFloatingHeader and SettingsScaffold with a full-width integrated Liquid Glass top bar, centered title, robust SVG vector back chevron, and proper top scroll padding.',
-      'Hardened navigation stack handling in HubSettings and HubHelp to safely return to Settings root.',
-      'Redesigned mobile bottom navigation with compact 58px height, soft 26px squircle radius, and vertical icon-above-label hierarchy matching native reference specifications.',
-      'Section names now remain consistently visible below their respective icons across all resting states with zero layout shifting.',
-      'Active navigation item indicator refactored as a soft 20px squircle lens that smoothly glides between tabs using critically damped spring physics.',
     ],
   },
 ];

@@ -112,13 +112,14 @@ export default function GroovexLibrary() {
     >
       <div
         style={{
-          padding: '0 24px',
+          padding: '0 var(--page-header-inset-h, var(--page-inset-h, 24px))',
           paddingBottom: 'var(--content-bottom-pad)',
         }}
       >
         <StudioHeader
           title={t.groovex.libraryTitle}
           subtitle={t.groovex.sessionsAvailable(SONG_CATALOG.length)}
+          disableHorizontalPadding={true}
           subtitleStyle={{
             textTransform: 'uppercase',
             letterSpacing: '0.1em',

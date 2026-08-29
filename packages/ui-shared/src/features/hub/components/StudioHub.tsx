@@ -1148,9 +1148,9 @@ export default function StudioHub() {
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
-                      padding: '0 20px',
+                      padding: '0 var(--page-header-inset-h, var(--page-inset-h, 24px))',
                       paddingTop:
-                        'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 36px)',
+                        'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 40px))',
                       paddingBottom:
                         'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 110px)',
                     }}
@@ -1167,7 +1167,7 @@ export default function StudioHub() {
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           width: '100%',
-                          padding: '0 2px',
+                          padding: '0',
                         }}
                       >
                         <section
@@ -1176,7 +1176,7 @@ export default function StudioHub() {
                             minWidth: 0,
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 4,
+                            gap: 'var(--page-header-title-subtitle-gap, 4px)',
                           }}
                         >
                           <h2
@@ -1184,9 +1184,9 @@ export default function StudioHub() {
                               fontFamily: 'Manrope, sans-serif',
                               fontWeight: 850,
                               color: 'var(--c-text-primary)',
-                              letterSpacing: '-0.035em',
-                              fontSize: '28px',
-                              lineHeight: 1.15,
+                              letterSpacing: 'var(--page-header-title-tracking, -0.03em)',
+                              fontSize: 'var(--page-header-title-size, 28px)',
+                              lineHeight: 'var(--page-header-title-line-height, 1.15)',
                               margin: 0,
                             }}
                           >
@@ -1196,8 +1196,9 @@ export default function StudioHub() {
                             style={{
                               fontFamily: 'Inter, sans-serif',
                               color: 'var(--c-text-secondary)',
-                              fontSize: '13px',
+                              fontSize: 'var(--page-header-subtitle-size, 13px)',
                               fontWeight: 500,
+                              lineHeight: 'var(--page-header-subtitle-line-height, 1.4)',
                               letterSpacing: '-0.01em',
                               margin: 0,
                               opacity: 0.82,

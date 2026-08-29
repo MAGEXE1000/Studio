@@ -401,7 +401,9 @@ export function SettingsScaffold({
             >
               <StudioHeader
                 title={title}
-                containerStyle={{ paddingTop: '8px', paddingLeft: 0, paddingRight: 0 }}
+                disableTopInset={true}
+                disableHorizontalPadding={true}
+                containerStyle={{ paddingTop: '8px', paddingBottom: '16px' }}
               />
             </div>
           )}

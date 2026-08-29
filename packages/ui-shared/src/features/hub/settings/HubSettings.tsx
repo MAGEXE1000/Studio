@@ -4372,7 +4372,7 @@ export function HubSettings({
                       <StudioHeader
                         title="Settings"
                         subtitle="Livex System"
-                        containerStyle={{ paddingLeft: 0, paddingRight: 0 }}
+                        disableHorizontalPadding={true}
                       />
 
                       {/* Minimal Update Card */}

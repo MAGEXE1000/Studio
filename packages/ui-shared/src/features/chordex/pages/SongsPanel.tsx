@@ -6424,21 +6424,7 @@ export default function SongsPanel() {
         />
       )}
 
-      <header className="flex-none px-6 pt-12 pb-4 flex justify-between items-center bg-transparent">
-        <div>
-          <h2
-            style={{
-              fontSize: '24px',
-              fontWeight: 800,
-              letterSpacing: '-0.02em',
-              color: 'var(--c-text-primary)',
-              fontFamily: 'var(--font-headline)',
-            }}
-          >
-            Songs
-          </h2>
-        </div>
-      </header>
+      <StudioHeader title="Songs" subtitle={t.songs?.subtitle || 'Your songs and chord sheets'} />
 
       {/* Scrollable list (nav auto-hides here) */}
       <div

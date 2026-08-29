@@ -1438,6 +1438,20 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
   --page-inset-v-top: var(--space-12); /* 48px header top-padding       */
   --page-inset-v-bottom: var(--space-6); /* 24px scroll-bottom clearance  */
 
+  /* ── Canonical Page Header Geometry & Typography Contract ── */
+  --page-header-top-inset: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 40px);
+  --page-header-bottom-inset: 16px;
+  --page-header-inset-h: var(--page-inset-h, 24px);
+  --page-header-title-size: 28px;
+  --page-header-title-size-desktop: 32px;
+  --page-header-title-weight: 850;
+  --page-header-title-line-height: 1.15;
+  --page-header-title-tracking: -0.03em;
+  --page-header-subtitle-size: 13px;
+  --page-header-subtitle-weight: 500;
+  --page-header-subtitle-line-height: 1.4;
+  --page-header-title-subtitle-gap: 4px;
+
   /* ── Content max-widths ─────────────────────────────────── */
   --content-max-w: 640px; /* settings / hub right-pane default   */
   --content-max-w-wide: 720px; /* 1024px+ breakpoint override         */

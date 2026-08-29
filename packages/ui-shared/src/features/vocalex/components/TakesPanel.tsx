@@ -139,11 +139,18 @@ export default function TakesPanel() {
   }
 
   return (
-    <div className="spring-in" style={{ padding: '0 20px 24px', minHeight: '100%' }}>
+    <div
+      className="spring-in"
+      style={{
+        padding: '0 var(--page-header-inset-h, var(--page-inset-h, 24px)) 24px',
+        minHeight: '100%',
+      }}
+    >
       <StudioHeader
         title={t.vocalex.takesTitle}
         subtitle={t.vocalex.takesSubtitle}
-        containerStyle={{ paddingLeft: 0, paddingRight: 0, marginBottom: '12px' }}
+        disableHorizontalPadding={true}
+        containerStyle={{ marginBottom: '12px' }}
       />
 
       <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>

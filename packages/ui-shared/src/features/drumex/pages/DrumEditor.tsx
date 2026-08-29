@@ -4304,7 +4304,13 @@ export default function DrumEditor() {
                         }}
                         className="no-scrollbar flex flex-col w-full h-full"
                       >
-                        {!isWebDesktop && <StudioHeader title="Beats" subtitle="Your drum songs" />}
+                        {!isWebDesktop && (
+                          <StudioHeader
+                            title="Beats"
+                            subtitle="Your drum songs"
+                            disableHorizontalPadding={true}
+                          />
+                        )}
 
                         {/* Desktop Secondary Toolbar */}
                         {isWebDesktop && (

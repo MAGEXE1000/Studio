@@ -18,7 +18,6 @@ import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Card, Button } from '../../../shared/design-system/StudioDesignSystem';
 import { Dialog } from '../../../shared/design-system/dialogs';
 
-
 export default function GroovexPreferences() {
   const t = useT();
   const { preferences, updatePreferences } = useGroovexStore();
@@ -96,13 +95,14 @@ export default function GroovexPreferences() {
         style={{
           maxWidth: 600,
           margin: isWebDesktop ? '0' : '0 auto',
-          padding: '0 24px',
+          padding: '0 var(--page-header-inset-h, var(--page-inset-h, 24px))',
           paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 80px)',
         }}
       >
         <StudioHeader
           title={t.groovex.audioEngine}
           subtitle={t.groovex.audioEngineDesc}
+          disableHorizontalPadding={true}
         />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -206,7 +206,9 @@ export default function GroovexPreferences() {
                       title={t.groovex.deleteAll}
                     >
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <p style={{ margin: 0 }}>Are you sure you want to delete all downloaded song caches?</p>
+                        <p style={{ margin: 0 }}>
+                          Are you sure you want to delete all downloaded song caches?
+                        </p>
                         <div style={{ display: 'flex', gap: 10 }}>
                           <Button onClick={() => setConfirmDeleteAll(false)} style={{ flex: 1 }}>
                             {t.groovex.cancel}
@@ -223,7 +225,6 @@ export default function GroovexPreferences() {
                     </Dialog>
                   </>
                 )}
-
               </div>
 
               {songCaches.length > 0 && (

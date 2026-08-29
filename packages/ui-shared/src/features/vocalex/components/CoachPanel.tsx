@@ -20,7 +20,14 @@ export default function CoachPanel({ active = true }: { active?: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {/* Sub-tab segment selector */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '16px 20px 8px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          padding:
+            'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 16px) var(--page-header-inset-h, var(--page-inset-h, 24px)) 8px',
+        }}
+      >
         <div
           style={{
             position: 'relative',

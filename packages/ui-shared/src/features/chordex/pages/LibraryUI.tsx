@@ -14,7 +14,11 @@ import PianoDiagram from '../diagrams/PianoDiagram';
 import FourStringDiagram from '../diagrams/FourStringDiagram';
 import { CATEGORIES } from './LibraryCategories';
 import { ROOT_NOTES } from './useLibraryState';
-import { HeroChordRecess, CategoryMiniRecess, ChordCardMiniRecess } from '../components/MiniFretboardRecess';
+import {
+  HeroChordRecess,
+  CategoryMiniRecess,
+  ChordCardMiniRecess,
+} from '../components/MiniFretboardRecess';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Button, ActionButton } from '../../../shared/design-system/buttons';
 
@@ -98,11 +102,12 @@ export function LibraryChordDetail({
   } = state;
   const t = useT();
 
+  const relatedChords = useMemo(() => (chord ? getRelatedChords(chord) : []), [chord]);
+
   if (!chord) return null;
   const favorite = favorites.includes(chord.id);
   const notesStr = chord.notes.join(' - ');
   const typeStr = chord.type.charAt(0).toUpperCase() + chord.type.slice(1) + ' Chord';
-  const relatedChords = useMemo(() => getRelatedChords(chord), [chord]);
 
   const activeInstrument: Instrument = previewInstrument || settings.instrument || 'guitar';
 
@@ -154,7 +159,9 @@ export function LibraryChordDetail({
         {/* Default Preview Header Badge if desktop empty preview */}
         {isDefaultPreview && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--c-surface-low)] border border-[var(--c-border)] w-fit">
-            <span className="material-symbols-outlined text-xs text-[var(--c-accent-from)]">stars</span>
+            <span className="material-symbols-outlined text-xs text-[var(--c-accent-from)]">
+              stars
+            </span>
             <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--c-text-secondary)]">
               Featured Chord Preview
             </span>
@@ -212,7 +219,12 @@ export function LibraryChordDetail({
                 variant="secondary"
                 onClick={() => addToProgression(chord.id)}
                 icon="add"
-                style={{ height: 44, borderRadius: '22px', paddingLeft: '14px', paddingRight: '16px' }}
+                style={{
+                  height: 44,
+                  borderRadius: '22px',
+                  paddingLeft: '14px',
+                  paddingRight: '16px',
+                }}
               >
                 Add
               </Button>
@@ -246,8 +258,12 @@ export function LibraryChordDetail({
                 onClick={() => setDiagramDisplayMode('notes')}
                 className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
                 style={{
-                  backgroundColor: diagramDisplayMode === 'notes' ? 'var(--c-surface-high)' : 'transparent',
-                  color: diagramDisplayMode === 'notes' ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
+                  backgroundColor:
+                    diagramDisplayMode === 'notes' ? 'var(--c-surface-high)' : 'transparent',
+                  color:
+                    diagramDisplayMode === 'notes'
+                      ? 'var(--c-text-primary)'
+                      : 'var(--c-text-muted)',
                 }}
               >
                 Notes
@@ -256,8 +272,12 @@ export function LibraryChordDetail({
                 onClick={() => setDiagramDisplayMode('intervals')}
                 className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
                 style={{
-                  backgroundColor: diagramDisplayMode === 'intervals' ? 'var(--c-surface-high)' : 'transparent',
-                  color: diagramDisplayMode === 'intervals' ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
+                  backgroundColor:
+                    diagramDisplayMode === 'intervals' ? 'var(--c-surface-high)' : 'transparent',
+                  color:
+                    diagramDisplayMode === 'intervals'
+                      ? 'var(--c-text-primary)'
+                      : 'var(--c-text-muted)',
                 }}
               >
                 Intervals
@@ -269,7 +289,7 @@ export function LibraryChordDetail({
         {/* Interactive Visualizer Surface */}
         <div className="bento-card p-6 flex flex-col items-center justify-center relative overflow-hidden">
           <div className="w-full flex justify-center py-2">{renderDetailDiagram()}</div>
-          
+
           {/* Notes Interval Breakdown Pills */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-4 pt-4 border-t border-[var(--c-border)] w-full">
             {chord.notes.map((note: string, idx: number) => {
@@ -320,7 +340,10 @@ export function LibraryChordDetail({
                     <RelatedPlayBtn guitar={related.guitar} accent={accent} isLight={isLight} />
                   </div>
                   <div className="w-full flex justify-center pt-1">
-                    <HeroChordRecess chordData={related.guitar} className="w-full max-w-[140px] h-24" />
+                    <HeroChordRecess
+                      chordData={related.guitar}
+                      className="w-full max-w-[140px] h-24"
+                    />
                   </div>
                 </div>
               ))}
@@ -393,48 +416,51 @@ export function LibraryMainView({ state }: { state: any }) {
   }, [showAllCategories]);
 
   return (
-    <div className="flex-1 overflow-y-auto no-scrollbar" ref={scrollRef} style={{ background: 'var(--app-bg)' }}>
-      <main className="max-w-7xl mx-auto px-4 md:px-6 pt-4 pb-12 space-y-6">
+    <div
+      className="flex-1 overflow-y-auto no-scrollbar"
+      ref={scrollRef}
+      style={{ background: 'var(--app-bg)' }}
+    >
+      <main
+        className="max-w-7xl mx-auto pb-12 space-y-6"
+        style={{
+          paddingTop:
+            'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 40px))',
+          paddingLeft: 'var(--page-header-inset-h, var(--page-inset-h, 24px))',
+          paddingRight: 'var(--page-header-inset-h, var(--page-inset-h, 24px))',
+        }}
+      >
         {/* Header & Quick Action Buttons */}
         <section className="space-y-4">
-          <div className="flex justify-between items-end">
-            <div>
-              <h2
-                className="text-4xl md:text-5xl font-extrabold text-[var(--c-text-primary)] tracking-tight leading-none"
-                style={{ fontFamily: 'var(--font-headline)' }}
-              >
-                Library
-              </h2>
-              <p
-                className="text-sm text-[var(--c-text-secondary)] mt-1.5 font-medium"
-                style={{ fontFamily: 'var(--font-body)' }}
-              >
-                Explore {allChords.length} Chords
-              </p>
-            </div>
-            
-            {/* Quick action tools */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFinder(true)}
-                icon="add_circle"
-                style={{ borderRadius: '12px', height: '36px' }}
-              >
-                Finder
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowGenerator(true)}
-                icon="auto_awesome"
-                style={{ borderRadius: '12px', height: '36px' }}
-              >
-                Generator
-              </Button>
-            </div>
-          </div>
+          <StudioHeader
+            title="Library"
+            subtitle={`Explore ${allChords.length} Chords`}
+            disableTopInset={true}
+            disableHorizontalPadding={true}
+            containerStyle={{ paddingBottom: 0 }}
+            actions={
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFinder(true)}
+                  icon="add_circle"
+                  style={{ borderRadius: '12px', height: '36px' }}
+                >
+                  Finder
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowGenerator(true)}
+                  icon="auto_awesome"
+                  style={{ borderRadius: '12px', height: '36px' }}
+                >
+                  Generator
+                </Button>
+              </div>
+            }
+          />
 
           {/* Pill Search & Tuning Filter Bar */}
           <div className="relative">
@@ -466,7 +492,9 @@ export function LibraryMainView({ state }: { state: any }) {
               className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--c-text-secondary)] hover:text-[var(--c-accent-from)] transition-colors p-1"
               aria-label="Tuning system filter"
             >
-              <span className="material-symbols-outlined text-lg" data-icon="tune">tune</span>
+              <span className="material-symbols-outlined text-lg" data-icon="tune">
+                tune
+              </span>
             </button>
 
             {/* Tuning Popover Dropdown */}
@@ -541,9 +569,7 @@ export function LibraryMainView({ state }: { state: any }) {
                         ? 'var(--c-accent-from, #679cff)'
                         : 'var(--c-surface-low)',
                       color: isSelected ? '#ffffff' : 'var(--c-text-secondary)',
-                      border: isSelected
-                        ? '1px solid transparent'
-                        : '1px solid var(--c-border)',
+                      border: isSelected ? '1px solid transparent' : '1px solid var(--c-border)',
                     }}
                   >
                     {root}
@@ -554,7 +580,9 @@ export function LibraryMainView({ state }: { state: any }) {
 
             {searchResults.length === 0 ? (
               <div className="bento-card p-8 text-center space-y-2">
-                <span className="material-symbols-outlined text-3xl text-[var(--c-text-muted)]">search_off</span>
+                <span className="material-symbols-outlined text-3xl text-[var(--c-text-muted)]">
+                  search_off
+                </span>
                 <p className="text-sm text-[var(--c-text-secondary)] font-medium">
                   No matching chords found for "{query}"
                 </p>
@@ -586,7 +614,11 @@ export function LibraryMainView({ state }: { state: any }) {
                         <RelatedPlayBtn guitar={c.guitar} accent={accent} isLight={isLight} />
                       </div>
                     </div>
-                    <HeroChordRecess chordData={c.guitar} className="w-14 h-14 rounded-lg flex-none" style={{ width: '56px', height: '56px' }} />
+                    <HeroChordRecess
+                      chordData={c.guitar}
+                      className="w-14 h-14 rounded-lg flex-none"
+                      style={{ width: '56px', height: '56px' }}
+                    />
                   </div>
                 ))}
               </div>
@@ -629,9 +661,7 @@ export function LibraryMainView({ state }: { state: any }) {
                         ? 'var(--c-accent-from, #679cff)'
                         : 'var(--c-surface-low)',
                       color: isSelected ? '#ffffff' : 'var(--c-text-secondary)',
-                      border: isSelected
-                        ? '1px solid transparent'
-                        : '1px solid var(--c-border)',
+                      border: isSelected ? '1px solid transparent' : '1px solid var(--c-border)',
                     }}
                   >
                     {root}
@@ -666,7 +696,11 @@ export function LibraryMainView({ state }: { state: any }) {
                       <RelatedPlayBtn guitar={c.guitar} accent={accent} isLight={isLight} />
                     </div>
                   </div>
-                  <HeroChordRecess chordData={c.guitar} className="w-14 h-14 rounded-lg flex-none" style={{ width: '56px', height: '56px' }} />
+                  <HeroChordRecess
+                    chordData={c.guitar}
+                    className="w-14 h-14 rounded-lg flex-none"
+                    style={{ width: '56px', height: '56px' }}
+                  />
                 </div>
               ))}
             </div>
@@ -799,8 +833,13 @@ export function LibraryMainView({ state }: { state: any }) {
                 onClick={toggleShowAllCategories}
                 className="w-full mt-4 py-3.5 bento-card text-[var(--c-accent-from, #679cff)] font-body-md font-semibold flex items-center justify-center gap-2 hover:bg-[var(--c-surface-high)] transition-all active:scale-98 cursor-pointer shadow-sm"
               >
-                <span>{showAllCategories ? 'Show Less' : `Show All (${CATEGORIES.length} Categories)`}</span>
-                <span className="material-symbols-outlined text-lg" data-icon={showAllCategories ? 'expand_less' : 'expand_more'}>
+                <span>
+                  {showAllCategories ? 'Show Less' : `Show All (${CATEGORIES.length} Categories)`}
+                </span>
+                <span
+                  className="material-symbols-outlined text-lg"
+                  data-icon={showAllCategories ? 'expand_less' : 'expand_more'}
+                >
                   {showAllCategories ? 'expand_less' : 'expand_more'}
                 </span>
               </button>
@@ -811,4 +850,3 @@ export function LibraryMainView({ state }: { state: any }) {
     </div>
   );
 }
-

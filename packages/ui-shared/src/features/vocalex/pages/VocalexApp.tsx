@@ -279,10 +279,16 @@ function VocalexPreferences() {
   ];
 
   return (
-    <div style={{ padding: '0 24px', minHeight: '100%' }}>
+    <div
+      style={{
+        padding: '0 var(--page-header-inset-h, var(--page-inset-h, 24px))',
+        minHeight: '100%',
+      }}
+    >
       <StudioHeader
         title={vt.settingsTitle || 'Preferences'}
         subtitle="Configure default behaviors for Vocalex."
+        disableHorizontalPadding={true}
       />
 
       <Card

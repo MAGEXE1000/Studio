@@ -1405,7 +1405,12 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   useEffect(() => {
     try {
       const win = iframeRef.current?.contentWindow as
-        (Record<string, unknown> & { switchView?: (v: string) => void }) | null;
+        | (Record<string, unknown> & {
+            switchView?: (v: string) => void;
+            renderElements?: () => void;
+            _renderStageLayout?: () => void;
+          })
+        | null;
       const targetView =
         curView === 'Setup' || curView === 'SetupHub'
           ? 'SetupHub'
@@ -1417,6 +1422,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         win.switchView(targetView);
       } else {
         callIframe('switchView', targetView);
+      }
+      if (targetView === 'Editor' && win) {
+        if (typeof win.renderElements === 'function') win.renderElements();
+        if (typeof win._renderStageLayout === 'function') win._renderStageLayout();
       }
     } catch {}
   }, [curView, callIframe]);

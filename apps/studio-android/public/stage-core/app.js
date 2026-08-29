@@ -1662,7 +1662,12 @@ function switchView(view) {
   const page = document.getElementById('view-' + view);
   if (page) {
     page.style.display = view === 'Assistant' || view === 'Export' ? 'flex' : 'block';
-    if (prevView !== view) {
+    if (view === 'Editor') {
+      page.style.opacity = '1';
+      page.style.visibility = 'visible';
+      page.style.transform = 'none';
+      page.classList.remove('view-entering');
+    } else if (prevView !== view) {
       page.style.opacity = '0';
       page.style.transform = 'translateY(6px) scale(0.995)';
       page.classList.add('view-entering');
@@ -1684,9 +1689,18 @@ function switchView(view) {
   });
   try {
     if (view === 'Editor') {
+      _connFP = ''; // force fresh connections render
       renderElements();
       lcIcons();
       renderScenesBar();
+      if (typeof _renderStageLayout === 'function') {
+        _renderStageLayout();
+      } else if (typeof window._renderStageLayout === 'function') {
+        window._renderStageLayout();
+      }
+      if (typeof _rescaleElementsOnResize === 'function') {
+        _rescaleElementsOnResize();
+      }
     } else {
       const _sb = document.getElementById('sc-scenes-bar');
       if (_sb) _sb.style.display = 'none';
@@ -2875,8 +2889,10 @@ function updateStatusBar() {
 let _spawnId = null; // set before renderElements() when a brand-new element is being added
 function renderElements() {
   const layer = document.getElementById('elements-layer');
+  if (!layer) return;
   layer.innerHTML = DOMPurify.sanitize('');
   state.elements.forEach((el) => createElementDOM(el));
+  _connFP = '';
   renderConnections();
   updateStatusBar();
   // Scope to the layer only — never scan the full document (very slow)

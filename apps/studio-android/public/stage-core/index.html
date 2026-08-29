@@ -11995,7 +11995,19 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
           if (setupTab) setupTab.classList.toggle('active', isSetup);
 
           /* Slide the new page in — skip Editor (it has position:absolute children) */
-          if (view !== 'Editor') {
+          if (view === 'Editor') {
+            var edPage = document.getElementById('view-Editor');
+            if (edPage) {
+              edPage.classList.remove('sc-slide-left', 'sc-slide-right', 'view-entering');
+              edPage.style.display = 'block';
+              edPage.style.opacity = '1';
+              edPage.style.visibility = 'visible';
+              edPage.style.transform = 'none';
+            }
+            if (typeof window._renderStageLayout === 'function') {
+              window._renderStageLayout();
+            }
+          } else {
             var page = document.getElementById('view-' + view);
             if (page) {
               page.classList.remove('sc-slide-left', 'sc-slide-right', 'view-entering');

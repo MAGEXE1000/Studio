@@ -1993,6 +1993,9 @@ const _origSV = window.switchView;
 if (typeof _origSV === 'function') {
   window.switchView = function (view) {
     _origSV.apply(this, [view]);
+    if (view === 'Editor') {
+      if (typeof _renderStageLayout === 'function') _renderStageLayout();
+    }
     // Assistant view needs display:flex for column layout
     if (view === 'Assistant') {
       const assistantView = document.getElementById('view-Assistant');
@@ -3280,12 +3283,16 @@ function _renderZones() {
 function _renderStageLayout() {
   const svg = document.getElementById('stage-layout-svg');
   if (!svg) return;
+
+  const canvasEl = document.getElementById('stage-canvas');
+  const W = canvasEl && canvasEl.clientWidth > 0 ? canvasEl.clientWidth : (typeof state !== 'undefined' && state.canvasW ? state.canvasW : 800);
+  const H = canvasEl && canvasEl.clientHeight > 0 ? canvasEl.clientHeight : (typeof state !== 'undefined' && state.canvasH ? state.canvasH : 500);
+
+  if (W <= 0 || H <= 0) return;
+
   // Clear existing content (createElementNS-built nodes — no sanitizer needed)
   while (svg.firstChild) svg.removeChild(svg.firstChild);
 
-  const canvasEl = document.getElementById('stage-canvas');
-  const W = canvasEl ? canvasEl.clientWidth : 800;
-  const H = canvasEl ? canvasEl.clientHeight : 500;
   svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
   svg.removeAttribute('preserveAspectRatio');
 

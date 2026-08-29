@@ -2423,7 +2423,9 @@ export default function DrumEditor() {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100dvh',
+        height: '100%',
+        width: '100%',
+        position: 'relative',
         background: 'var(--app-bg)',
         overflow: 'hidden',
         userSelect: 'none',
@@ -7641,9 +7643,18 @@ export default function DrumEditor() {
                     return (
                       <div
                         onScroll={drumScrollHide}
-                        className="pt-3 pb-24 no-scrollbar w-full h-full"
+                        className="pb-24 no-scrollbar w-full h-full"
                         style={{ overflowY: 'auto' }}
                       >
+                        {!isWebDesktop && (
+                          <div className="px-4">
+                            <StudioHeader
+                              title="Grooves"
+                              subtitle="Pattern library"
+                              disableHorizontalPadding={true}
+                            />
+                          </div>
+                        )}
                         {/* â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
                         <div className="px-4 pb-3">
                           <div className="relative">

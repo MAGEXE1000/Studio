@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   useSettingsStore,
@@ -8,6 +8,71 @@ import {
   useT,
 } from '@workspace/studio-core';
 import { Card } from '../../../shared/design-system/StudioDesignSystem';
+
+// ── COLOR MATH HELPERS ──────────────────────────────────────
+function hsvToRgb(h: number, s: number, v: number): { r: number; g: number; b: number } {
+  const c = v * s;
+  const hh = (((h % 360) + 360) % 360) / 60;
+  const x = c * (1 - Math.abs((hh % 2) - 1));
+  let r = 0, g = 0, b = 0;
+  if (hh < 1) { r = c; g = x; b = 0; }
+  else if (hh < 2) { r = x; g = c; b = 0; }
+  else if (hh < 3) { r = 0; g = c; b = x; }
+  else if (hh < 4) { r = 0; g = x; b = c; }
+  else if (hh < 5) { r = x; g = 0; b = c; }
+  else { r = c; g = 0; b = x; }
+  const m = v - c;
+  return {
+    r: Math.round((r + m) * 255),
+    g: Math.round((g + m) * 255),
+    b: Math.round((b + m) * 255),
+  };
+}
+
+function rgbToHsv(r: number, g: number, b: number): { h: number; s: number; v: number } {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const v = max;
+  const d = max - min;
+  const s = max === 0 ? 0 : d / max;
+  let h = 0;
+  if (d > 0) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+    h *= 60;
+    if (h < 0) h += 360;
+  }
+  return { h, s, v };
+}
+
+function parseColorToHsv(str: string): { h: number; s: number; v: number } {
+  if (!str) return { h: 215, s: 0.52, v: 1 };
+  str = String(str).trim();
+  if (str.startsWith('#')) {
+    const raw = str.slice(1);
+    if (raw.length === 3) {
+      const r = parseInt(raw[0] + raw[0], 16);
+      const g = parseInt(raw[1] + raw[1], 16);
+      const b = parseInt(raw[2] + raw[2], 16);
+      return rgbToHsv(r, g, b);
+    }
+    if (raw.length >= 6) {
+      const r = parseInt(raw.slice(0, 2), 16);
+      const g = parseInt(raw.slice(2, 4), 16);
+      const b = parseInt(raw.slice(4, 6), 16);
+      return rgbToHsv(r, g, b);
+    }
+  }
+  return { h: 215, s: 0.52, v: 1 };
+}
+
+function hsvToHex(h: number, s: number, v: number): string {
+  const rgb = hsvToRgb(h, s, v);
+  const toHex = (n: number) => n.toString(16).padStart(2, '0').toUpperCase();
+  return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`;
+}
 
 /**
  * AccentColorPicker
@@ -20,8 +85,15 @@ export function AccentColorPicker() {
   const settings = useSettingsStore((s) => s.settings);
   const currentAccent = settings.accentColor || DEFAULT_ACCENT_ID;
   const resolved = resolveAccent(currentAccent);
-  const colorInputRef = useRef<HTMLInputElement>(null);
+  const isLight = settings.theme === 'light';
   const t = useT();
+
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [hsv, setHsv] = useState(() => parseColorToHsv(resolved.to));
+  const [hexInput, setHexInput] = useState(() => resolved.to);
+
+  const satValRef = useRef<HTMLDivElement>(null);
+  const hueRef = useRef<HTMLDivElement>(null);
 
   const isCustomActive =
     resolved.id === 'custom' ||
@@ -31,13 +103,90 @@ export function AccentColorPicker() {
     useSettingsStore.getState().updateSettings({ accentColor: presetId });
   };
 
-  const handleCustomColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const hex = e.target.value;
-    useSettingsStore.getState().updateSettings({ accentColor: hex });
-  };
-
   const handleResetDefault = () => {
     useSettingsStore.getState().updateSettings({ accentColor: DEFAULT_ACCENT_ID });
+  };
+
+  const openPicker = () => {
+    const initialHex = isCustomActive ? resolved.to : '#7AAFFF';
+    const parsed = parseColorToHsv(initialHex);
+    setHsv(parsed);
+    setHexInput(initialHex);
+    setIsPickerOpen(true);
+  };
+
+  const updateHsv = useCallback((next: Partial<typeof hsv>) => {
+    setHsv((prev) => {
+      const merged = { ...prev, ...next };
+      const hex = hsvToHex(merged.h, merged.s, merged.v);
+      setHexInput(hex);
+      useSettingsStore.getState().updateSettings({ accentColor: hex });
+      return merged;
+    });
+  }, []);
+
+  // 2D Saturation / Value Drag
+  const handleSatValPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = satValRef.current;
+    if (!el) return;
+    try { el.setPointerCapture(e.pointerId); } catch {}
+    const update = (clientX: number, clientY: number) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) return;
+      const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+      const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
+      updateHsv({
+        s: Math.max(0, Math.min(1, x / rect.width)),
+        v: Math.max(0, Math.min(1, 1 - (y / rect.height))),
+      });
+    };
+    update(e.clientX, e.clientY);
+    const onPointerMove = (ev: PointerEvent) => update(ev.clientX, ev.clientY);
+    const onPointerUp = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+      try { el.releasePointerCapture(ev.pointerId); } catch {}
+    };
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+  };
+
+  // Hue Drag
+  const handleHuePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const el = hueRef.current;
+    if (!el) return;
+    try { el.setPointerCapture(e.pointerId); } catch {}
+    const update = (clientX: number) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
+      updateHsv({ h: Math.max(0, Math.min(360, (x / rect.width) * 360)) });
+    };
+    update(e.clientX);
+    const onPointerMove = (ev: PointerEvent) => update(ev.clientX);
+    const onPointerUp = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+      try { el.releasePointerCapture(ev.pointerId); } catch {}
+    };
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+  };
+
+  const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setHexInput(val);
+    let clean = val.trim();
+    if (!clean.startsWith('#')) clean = '#' + clean;
+    if (clean.length === 4 || clean.length === 7) {
+      const parsed = parseColorToHsv(clean);
+      setHsv(parsed);
+      useSettingsStore.getState().updateSettings({ accentColor: clean });
+    }
   };
 
   return (
@@ -212,26 +361,10 @@ export function AccentColorPicker() {
 
         {/* Custom Color Swatch Trigger */}
         <div style={{ position: 'relative', width: 38, height: 38 }}>
-          <input
-            ref={colorInputRef}
-            type="color"
-            value={isCustomActive ? resolved.to : '#007aff'}
-            onChange={handleCustomColorChange}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              opacity: 0,
-              cursor: 'pointer',
-              zIndex: 5,
-            }}
-          />
           <motion.button
             whileTap={{ scale: 0.88 }}
             whileHover={{ scale: 1.12 }}
-            onClick={() => colorInputRef.current?.click()}
+            onClick={openPicker}
             title="Choose custom color"
             className="btn-smooth"
             style={{
@@ -268,6 +401,258 @@ export function AccentColorPicker() {
           </motion.button>
         </div>
       </div>
+
+      {/* Fluid Functionalism 2D Color Picker Modal */}
+      <AnimatePresence>
+        {isPickerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            onClick={() => setIsPickerOpen(false)}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 100005,
+              background: 'rgba(0, 0, 0, 0.72)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 16,
+              boxSizing: 'border-box',
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 8 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 8 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 450 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: 320,
+                maxWidth: '100%',
+                borderRadius: 18,
+                background: isLight ? '#ffffff' : '#141414',
+                border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.09)',
+                boxShadow: isLight
+                  ? '0 16px 48px rgba(0, 0, 0, 0.18)'
+                  : '0 20px 60px rgba(0, 0, 0, 0.9)',
+                padding: 16,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14,
+                boxSizing: 'border-box',
+                touchAction: 'pan-y',
+              }}
+            >
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span
+                  style={{
+                    fontFamily: 'Manrope, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 800,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.16em',
+                    color: 'var(--accent, #7aafff)',
+                  }}
+                >
+                  Custom Accent Color
+                </span>
+                <button
+                  onClick={() => setIsPickerOpen(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#767575',
+                    cursor: 'pointer',
+                    padding: 4,
+                    lineHeight: 1,
+                    fontSize: 18,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* 2D Saturation / Value Canvas */}
+              <div
+                ref={satValRef}
+                onPointerDown={handleSatValPointerDown}
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  height: 156,
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                  cursor: 'crosshair',
+                  touchAction: 'none',
+                  userSelect: 'none',
+                  WebkitUserSelect: 'none',
+                  border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  background: `linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, hsl(${Math.round(hsv.h)}, 100%, 50%))`,
+                }}
+              >
+                <div
+                  style={{
+                    position: 'absolute',
+                    left: `${hsv.s * 100}%`,
+                    top: `${(1 - hsv.v) * 100}%`,
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    border: '2.5px solid #ffffff',
+                    boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7)',
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Controls: Hue Spectrum Track */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div
+                  ref={hueRef}
+                  onPointerDown={handleHuePointerDown}
+                  style={{
+                    position: 'relative',
+                    width: '100%',
+                    height: 14,
+                    borderRadius: 9999,
+                    background:
+                      'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
+                    cursor: 'pointer',
+                    touchAction: 'none',
+                    userSelect: 'none',
+                    WebkitUserSelect: 'none',
+                    border: isLight ? '1px solid rgba(0, 0, 0, 0.08)' : '1px solid rgba(255, 255, 255, 0.08)',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: `${(hsv.h / 360) * 100}%`,
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      background: `hsl(${Math.round(hsv.h)}, 100%, 50%)`,
+                      border: '2.5px solid #ffffff',
+                      boxShadow: '0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6)',
+                      transform: 'translate(-50%, -50%)',
+                      pointerEvents: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Details Row */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div
+                  style={{
+                    position: 'relative',
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    border: isLight ? '1px solid rgba(0, 0, 0, 0.15)' : '1.5px solid rgba(255, 255, 255, 0.2)',
+                    flexShrink: 0,
+                    boxSizing: 'border-box',
+                    background: hsvToHex(hsv.h, hsv.s, hsv.v),
+                    boxShadow: `0 2px 8px ${hsvToHex(hsv.h, hsv.s, hsv.v)}44`,
+                  }}
+                />
+
+                <div style={{ flex: 1, position: 'relative' }}>
+                  <input
+                    type="text"
+                    value={hexInput}
+                    onChange={handleHexChange}
+                    maxLength={7}
+                    spellCheck={false}
+                    style={{
+                      width: '100%',
+                      height: 38,
+                      padding: '0 10px',
+                      background: isLight ? '#f4f4f5' : '#0a0a0a',
+                      border: isLight ? '1px solid rgba(0, 0, 0, 0.12)' : '1px solid rgba(255, 255, 255, 0.12)',
+                      borderRadius: 9,
+                      fontFamily: 'Manrope, monospace',
+                      fontSize: 13,
+                      fontWeight: 750,
+                      color: isLight ? '#18181b' : '#ffffff',
+                      textTransform: 'uppercase',
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                      letterSpacing: '0.05em',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Presets */}
+              <div style={{ display: 'flex', gap: 7, flexWrap: 'wrap', alignItems: 'center', paddingTop: 2 }}>
+                {['#7AAFFF', '#FF7439', '#C5FFC9', '#FFD700', '#C8A2FF', '#FF8DD4', '#FF3B30', '#10B981', '#6366F1', '#EC4899'].map((col) => (
+                  <button
+                    key={col}
+                    onClick={() => {
+                      const parsed = parseColorToHsv(col);
+                      setHsv(parsed);
+                      setHexInput(col);
+                      useSettingsStore.getState().updateSettings({ accentColor: col });
+                    }}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: '50%',
+                      background: col,
+                      border: isLight ? '1.5px solid rgba(0, 0, 0, 0.15)' : '1.5px solid rgba(255, 255, 255, 0.2)',
+                      cursor: 'pointer',
+                      padding: 0,
+                      boxShadow: '0 1px 4px rgba(0, 0, 0, 0.3)',
+                      outline: 'none',
+                    }}
+                    title={col}
+                  />
+                ))}
+              </div>
+
+              {/* Footer Buttons */}
+              <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
+                <button
+                  onClick={() => setIsPickerOpen(false)}
+                  style={{
+                    flex: 1,
+                    height: 38,
+                    borderRadius: 9,
+                    background: isLight ? '#f4f4f5' : '#202020',
+                    color: isLight ? '#52525b' : '#a1a1aa',
+                    border: isLight ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid rgba(255, 255, 255, 0.08)',
+                    fontFamily: 'Manrope, sans-serif',
+                    fontSize: 11,
+                    fontWeight: 750,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Done
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 }
+

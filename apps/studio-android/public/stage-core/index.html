@@ -5930,6 +5930,25 @@
                     "
                     title="Translucent Black"
                   ></button>
+                  <button
+                    id="el-custom-color-btn"
+                    onclick="openStageColorPickerForCurrentElement()"
+                    style="
+                      width: 13px;
+                      height: 13px;
+                      border-radius: 50%;
+                      background: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+                      border: 1.5px solid rgba(255,255,255,0.4);
+                      cursor: pointer;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      padding: 0;
+                      margin-left: 2px;
+                      box-sizing: border-box;
+                    "
+                    title="Custom Color Picker"
+                  ></button>
                 </div>
               </div>
               <select id="input-chid" onchange="updateSelectedElement()" class="prop-input">
@@ -10913,20 +10932,28 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
                 "
                 >Color</label
               >
-              <input
-                id="cust-el-color"
-                type="color"
-                value="#7aafff"
+              <div
+                id="cust-el-color-preview-btn"
+                onclick="openStageColorPicker(document.getElementById('cust-el-color').value, (c) => _setCustElColor(c))"
+                title="Choose color"
                 style="
                   width: 100%;
                   height: 42px;
-                  padding: 2px;
-                  background: #0e0e0e;
-                  border: 1px solid rgba(72, 72, 71, 0.3);
+                  border-radius: 8px;
+                  background: #7aafff;
+                  border: 1px solid rgba(255, 255, 255, 0.15);
                   cursor: pointer;
                   box-sizing: border-box;
+                  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  transition: transform 0.12s, border-color 0.12s;
                 "
-              />
+              >
+                <input type="hidden" id="cust-el-color" value="#7aafff" />
+                <span class="material-symbols-outlined" style="font-size: 16px; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);">colorize</span>
+              </div>
             </div>
           </div>
           <!-- Library Section -->
@@ -12287,6 +12314,334 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
         }
       })();
     </script>
+
+    <!-- ── STAGE COLOR PICKER MODAL (Fluid Functionalism Design) ── -->
+    <div
+      id="stage-color-picker-modal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 100005;
+        background: rgba(0, 0, 0, 0.72);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        box-sizing: border-box;
+      "
+      onclick="if (event.target === this) closeStageColorPicker();"
+    >
+      <div
+        class="sc-color-picker-card"
+        style="
+          width: 320px;
+          max-width: 100%;
+          border-radius: 18px;
+          background: #141414;
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          box-sizing: border-box;
+          touch-action: pan-y;
+        "
+        onclick="event.stopPropagation()"
+      >
+        <!-- Header -->
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <span
+            style="
+              font-family: 'Manrope', sans-serif;
+              font-size: 11px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.16em;
+              color: var(--accent, #7aafff);
+            "
+            >Color Picker</span
+          >
+          <button
+            onclick="closeStageColorPicker()"
+            style="
+              background: transparent;
+              border: none;
+              color: #767575;
+              cursor: pointer;
+              padding: 4px;
+              line-height: 1;
+              font-size: 18px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- 2D Saturation / Value Area -->
+        <div
+          id="sc-cp-sat-val"
+          style="
+            position: relative;
+            width: 100%;
+            height: 156px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: crosshair;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, #f00);
+          "
+        >
+          <div
+            id="sc-cp-sat-val-thumb"
+            style="
+              position: absolute;
+              left: 100%;
+              top: 0%;
+              width: 18px;
+              height: 18px;
+              border-radius: 50%;
+              border: 2.5px solid #ffffff;
+              box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.7);
+              transform: translate(-50%, -50%);
+              pointer-events: none;
+              box-sizing: border-box;
+            "
+          ></div>
+        </div>
+
+        <!-- Controls: Hue & Alpha Sliders -->
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <!-- Hue Spectrum Slider -->
+          <div
+            id="sc-cp-hue-track"
+            style="
+              position: relative;
+              width: 100%;
+              height: 14px;
+              border-radius: 9999px;
+              background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+              cursor: pointer;
+              touch-action: none;
+              user-select: none;
+              -webkit-user-select: none;
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              box-sizing: border-box;
+            "
+          >
+            <div
+              id="sc-cp-hue-thumb"
+              style="
+                position: absolute;
+                top: 50%;
+                left: 0%;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: #f00;
+                border: 2.5px solid #ffffff;
+                box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6);
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                box-sizing: border-box;
+              "
+            ></div>
+          </div>
+
+          <!-- Alpha Slider -->
+          <div
+            id="sc-cp-alpha-track"
+            style="
+              position: relative;
+              width: 100%;
+              height: 14px;
+              border-radius: 9999px;
+              background: linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%);
+              background-size: 8px 8px;
+              background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+              background-color: #333;
+              cursor: pointer;
+              touch-action: none;
+              user-select: none;
+              -webkit-user-select: none;
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              box-sizing: border-box;
+              overflow: hidden;
+            "
+          >
+            <div
+              id="sc-cp-alpha-gradient"
+              style="
+                position: absolute;
+                inset: 0;
+                border-radius: inherit;
+                background: linear-gradient(to right, transparent, #f00);
+                pointer-events: none;
+              "
+            ></div>
+            <div
+              id="sc-cp-alpha-thumb"
+              style="
+                position: absolute;
+                top: 50%;
+                left: 100%;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: #f00;
+                border: 2.5px solid #ffffff;
+                box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.6);
+                transform: translate(-50%, -50%);
+                pointer-events: none;
+                box-sizing: border-box;
+              "
+            ></div>
+          </div>
+        </div>
+
+        <!-- Color Details Row (Preview, Hex, Opacity) -->
+        <div style="display: flex; gap: 8px; align-items: center">
+          <!-- Active Color Preview with Checkerboard underlay -->
+          <div
+            style="
+              position: relative;
+              width: 38px;
+              height: 38px;
+              border-radius: 10px;
+              overflow: hidden;
+              border: 1.5px solid rgba(255, 255, 255, 0.2);
+              flex-shrink: 0;
+              background: linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%);
+              background-size: 8px 8px;
+              background-color: #333;
+              box-sizing: border-box;
+            "
+          >
+            <div
+              id="sc-cp-preview"
+              style="position: absolute; inset: 0; background: #7aafff"
+            ></div>
+          </div>
+
+          <!-- HEX Input -->
+          <div style="flex: 1; position: relative">
+            <input
+              id="sc-cp-hex-input"
+              type="text"
+              value="#7AAFFF"
+              maxlength="9"
+              spellcheck="false"
+              style="
+                width: 100%;
+                height: 38px;
+                padding: 0 10px;
+                background: #0a0a0a;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 9px;
+                font-family: 'Manrope', monospace;
+                font-size: 13px;
+                font-weight: 750;
+                color: #ffffff;
+                text-transform: uppercase;
+                outline: none;
+                box-sizing: border-box;
+                letter-spacing: 0.05em;
+              "
+            />
+          </div>
+
+          <!-- Opacity % Input -->
+          <div style="width: 60px; position: relative">
+            <input
+              id="sc-cp-opacity-input"
+              type="text"
+              value="100%"
+              maxlength="4"
+              spellcheck="false"
+              style="
+                width: 100%;
+                height: 38px;
+                padding: 0 6px;
+                text-align: center;
+                background: #0a0a0a;
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 9px;
+                font-family: 'Manrope', monospace;
+                font-size: 13px;
+                font-weight: 750;
+                color: #ffffff;
+                outline: none;
+                box-sizing: border-box;
+              "
+            />
+          </div>
+        </div>
+
+        <!-- Presets Row -->
+        <div
+          id="sc-cp-swatches"
+          style="display: flex; gap: 7px; flex-wrap: wrap; align-items: center; padding-top: 2px"
+        ></div>
+
+        <!-- Footer Actions -->
+        <div style="display: flex; gap: 8px; padding-top: 4px">
+          <button
+            onclick="closeStageColorPicker()"
+            style="
+              flex: 1;
+              height: 38px;
+              border-radius: 9px;
+              background: #202020;
+              color: #a1a1aa;
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              font-family: 'Manrope', sans-serif;
+              font-size: 11px;
+              font-weight: 750;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              cursor: pointer;
+              transition: all 0.12s ease;
+            "
+          >
+            Cancel
+          </button>
+          <button
+            onclick="applyStageColorPicker()"
+            style="
+              flex: 1;
+              height: 38px;
+              border-radius: 9px;
+              background: var(--accent, #7aafff);
+              color: var(--accent-dark, #002e5d);
+              border: none;
+              font-family: 'Manrope', sans-serif;
+              font-size: 11px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+              cursor: pointer;
+              transition: opacity 0.12s ease;
+            "
+          >
+            Select Color
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Live Mode exit eye — only visible while body.gig-mode is active (CSS controls visibility) -->
     <button

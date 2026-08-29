@@ -3515,11 +3515,36 @@ document.querySelectorAll('.color-tag').forEach((btn) => {
   });
 });
 function updateColorTags(color) {
+  let matched = false;
   document.querySelectorAll('.color-tag').forEach((b) => {
     const active = b.dataset.color === color;
+    if (active) matched = true;
     b.classList.toggle('color-active', active);
     b.style.outline = active ? '2px solid #fff' : 'none';
     b.style.outlineOffset = '2px';
+  });
+  const customBtn = document.getElementById('el-custom-color-btn');
+  if (customBtn) {
+    customBtn.style.outline = (!matched && color) ? '2px solid #fff' : 'none';
+    customBtn.style.outlineOffset = '2px';
+  }
+}
+
+function openStageColorPickerForCurrentElement() {
+  const el = state.elements.find((e) => e.id === state.selectedId);
+  if (!el) return;
+  openStageColorPicker(el.color || '#6B97FF', (newColor) => {
+    el.color = newColor;
+    updateColorTags(el.color);
+    const dom = document.getElementById('elem-' + el.id);
+    if (dom) {
+      dom.style.setProperty('--el-color', el.color);
+      const ico = dom.querySelector('.el-icon');
+      if (ico) ico.style.color = el.color;
+    }
+    const sym = document.getElementById('prop-icon-sym');
+    if (sym) sym.style.color = el.color;
+    pushHistory();
   });
 }
 
@@ -6121,9 +6146,13 @@ function openSegmentModal() {
     SEGMENT_COLORS.map(
       (c) => `
     <div onclick="_pickSegColor('${c}')" id="seg-swatch-${c.replace('#', '')}"
-      style="width:28px;height:28px;background:${c};cursor:pointer;outline:${c === first ? '2px solid #fff' : '2px solid transparent'};outline-offset:2px;transition:outline 0.1s;">
+      style="width:28px;height:28px;border-radius:6px;background:${c};cursor:pointer;outline:${c === first ? '2px solid #fff' : '2px solid transparent'};outline-offset:2px;transition:outline 0.1s;">
     </div>`
-    ).join('')
+    ).join('') + `
+    <div onclick="openStageColorPickerForSegment()" id="seg-swatch-custom" title="Custom color picker"
+      style="width:28px;height:28px;border-radius:6px;background:conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);cursor:pointer;outline:2px solid transparent;outline-offset:2px;transition:outline 0.1s;display:flex;align-items:center;justify-content:center;">
+      <span class="material-symbols-outlined" style="font-size:16px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,0.6);">colorize</span>
+    </div>`
   );
   setTimeout(() => document.getElementById('seg-name').focus(), 50);
 }
@@ -6133,6 +6162,18 @@ function _pickSegColor(color) {
   SEGMENT_COLORS.forEach((c) => {
     const sw = document.getElementById('seg-swatch-' + c.replace('#', ''));
     if (sw) sw.style.outline = c === color ? '2px solid #fff' : '2px solid transparent';
+  });
+  const customSw = document.getElementById('seg-swatch-custom');
+  if (customSw) {
+    const isPreset = SEGMENT_COLORS.includes(color);
+    customSw.style.outline = !isPreset ? '2px solid #fff' : '2px solid transparent';
+  }
+}
+
+function openStageColorPickerForSegment() {
+  const cur = document.getElementById('seg-color-value')?.value || '#7aafff';
+  openStageColorPicker(cur, (newColor) => {
+    _pickSegColor(newColor);
   });
 }
 
@@ -10956,13 +10997,20 @@ function _saveCustomElements(items) {
 
 let _customElImageData = null; // base64 data URL for current modal session
 
+function _setCustElColor(color) {
+  const inp = document.getElementById('cust-el-color');
+  const btn = document.getElementById('cust-el-color-preview-btn');
+  if (inp) inp.value = color;
+  if (btn) btn.style.background = color;
+}
+
 function openCustomElementModal() {
   const m = document.getElementById('custom-el-modal');
   if (!m) return;
   _customElImageData = null;
   document.getElementById('cust-el-name').value = '';
   document.getElementById('cust-el-emoji').value = '🎵';
-  document.getElementById('cust-el-color').value = '#7aafff';
+  _setCustElColor('#7aafff');
   document.getElementById('cust-el-img-input').value = '';
   const catSel = document.getElementById('cust-el-category');
   if (catSel) catSel.value = 'custom';
@@ -12281,5 +12329,347 @@ function downloadQRCode() {
         }
       } catch (err) {}
     }
-  });
+  // ══════════════════════════════════════════════════════════
+  //  STAGE COLOR PICKER CONTROLLER (Fluid Functionalism Engine)
+  // ══════════════════════════════════════════════════════════
+  var _scCpState = {
+    h: 215, // 0..360
+    s: 0.52, // 0..1
+    v: 1.0, // 0..1
+    a: 1.0, // 0..1
+    callback: null,
+  };
+
+  var SC_CP_PRESETS = [
+    '#7AAFFF',
+    '#FF7439',
+    '#C5FFC9',
+    '#FFD700',
+    '#C8A2FF',
+    '#FF8DD4',
+    '#FF3B30',
+    '#10B981',
+    '#FFFFFF',
+    '#000000',
+    'rgba(0,0,0,0.5)',
+    '#1A1D22',
+  ];
+
+  function _scHsvToRgb(h, s, v) {
+    var c = v * s;
+    var hh = (((h % 360) + 360) % 360) / 60;
+    var x = c * (1 - Math.abs((hh % 2) - 1));
+    var r = 0, g = 0, b = 0;
+    if (hh < 1) { r = c; g = x; b = 0; }
+    else if (hh < 2) { r = x; g = c; b = 0; }
+    else if (hh < 3) { r = 0; g = c; b = x; }
+    else if (hh < 4) { r = 0; g = x; b = c; }
+    else if (hh < 5) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+    var m = v - c;
+    return {
+      r: Math.round((r + m) * 255),
+      g: Math.round((g + m) * 255),
+      b: Math.round((b + m) * 255),
+    };
+  }
+
+  function _scRgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    var max = Math.max(r, g, b);
+    var min = Math.min(r, g, b);
+    var v = max;
+    var d = max - min;
+    var s = max === 0 ? 0 : d / max;
+    var h = 0;
+    if (d > 0) {
+      if (max === r) h = ((g - b) / d) % 6;
+      else if (max === g) h = (b - r) / d + 2;
+      else h = (r - g) / d + 4;
+      h *= 60;
+      if (h < 0) h += 360;
+    }
+    return { h: h, s: s, v: v };
+  }
+
+  function _scParseColor(str) {
+    if (!str) return { h: 215, s: 0.52, v: 1, a: 1 };
+    str = String(str).trim();
+    if (str.startsWith('#')) {
+      var raw = str.slice(1);
+      if (raw.length === 3) {
+        var r = parseInt(raw[0] + raw[0], 16);
+        var g = parseInt(raw[1] + raw[1], 16);
+        var b = parseInt(raw[2] + raw[2], 16);
+        var hsv = _scRgbToHsv(r, g, b);
+        return { h: hsv.h, s: hsv.s, v: hsv.v, a: 1 };
+      }
+      if (raw.length === 6) {
+        var r = parseInt(raw.slice(0, 2), 16);
+        var g = parseInt(raw.slice(2, 4), 16);
+        var b = parseInt(raw.slice(4, 6), 16);
+        var hsv = _scRgbToHsv(r, g, b);
+        return { h: hsv.h, s: hsv.s, v: hsv.v, a: 1 };
+      }
+      if (raw.length === 8) {
+        var r = parseInt(raw.slice(0, 2), 16);
+        var g = parseInt(raw.slice(2, 4), 16);
+        var b = parseInt(raw.slice(4, 6), 16);
+        var a = parseInt(raw.slice(6, 8), 16) / 255;
+        var hsv = _scRgbToHsv(r, g, b);
+        return { h: hsv.h, s: hsv.s, v: hsv.v, a: a };
+      }
+    }
+    var m = str.match(/rgba?\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)/i);
+    if (m) {
+      var r = parseInt(m[1], 10);
+      var g = parseInt(m[2], 10);
+      var b = parseInt(m[3], 10);
+      var a = m[4] !== undefined ? parseFloat(m[4]) : 1;
+      var hsv = _scRgbToHsv(r, g, b);
+      return { h: hsv.h, s: hsv.s, v: hsv.v, a: isNaN(a) ? 1 : Math.max(0, Math.min(1, a)) };
+    }
+    return { h: 215, s: 0.52, v: 1, a: 1 };
+  }
+
+  function _scFormatColor(h, s, v, a) {
+    var rgb = _scHsvToRgb(h, s, v);
+    if (a < 0.995) {
+      return 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + (Math.round(a * 100) / 100) + ')';
+    }
+    var toHex = function (n) { return n.toString(16).padStart(2, '0').toUpperCase(); };
+    return '#' + toHex(rgb.r) + toHex(rgb.g) + toHex(rgb.b);
+  }
+
+  function _scUpdateColorPickerUI(syncInputs) {
+    if (syncInputs === undefined) syncInputs = true;
+    var h = _scCpState.h;
+    var s = _scCpState.s;
+    var v = _scCpState.v;
+    var a = _scCpState.a;
+
+    var satVal = document.getElementById('sc-cp-sat-val');
+    var satValThumb = document.getElementById('sc-cp-sat-val-thumb');
+    var hueThumb = document.getElementById('sc-cp-hue-thumb');
+    var alphaThumb = document.getElementById('sc-cp-alpha-thumb');
+    var alphaGrad = document.getElementById('sc-cp-alpha-gradient');
+    var preview = document.getElementById('sc-cp-preview');
+    var hexInput = document.getElementById('sc-cp-hex-input');
+    var opacityInput = document.getElementById('sc-cp-opacity-input');
+
+    if (!satVal || !satValThumb) return;
+
+    // 1. Sat/Val background
+    satVal.style.background = 'linear-gradient(to top, #000000, transparent), linear-gradient(to right, #ffffff, hsl(' + Math.round(h) + ', 100%, 50%))';
+    satValThumb.style.left = (s * 100) + '%';
+    satValThumb.style.top = ((1 - v) * 100) + '%';
+
+    var currentRgb = _scHsvToRgb(h, s, v);
+
+    // 2. Hue thumb
+    if (hueThumb) {
+      hueThumb.style.left = ((h / 360) * 100) + '%';
+      hueThumb.style.background = 'hsl(' + Math.round(h) + ', 100%, 50%)';
+    }
+
+    // 3. Alpha gradient and thumb
+    if (alphaGrad) {
+      alphaGrad.style.background = 'linear-gradient(to right, transparent, rgb(' + currentRgb.r + ', ' + currentRgb.g + ', ' + currentRgb.b + '))';
+    }
+    if (alphaThumb) {
+      alphaThumb.style.left = (a * 100) + '%';
+      alphaThumb.style.background = 'rgba(' + currentRgb.r + ', ' + currentRgb.g + ', ' + currentRgb.b + ', ' + a + ')';
+    }
+
+    // 4. Preview
+    var formatted = _scFormatColor(h, s, v, a);
+    if (preview) {
+      preview.style.background = formatted;
+    }
+
+    // 5. Inputs
+    if (syncInputs) {
+      var toHex = function (n) { return n.toString(16).padStart(2, '0').toUpperCase(); };
+      if (hexInput && document.activeElement !== hexInput) {
+        hexInput.value = '#' + toHex(currentRgb.r) + toHex(currentRgb.g) + toHex(currentRgb.b);
+      }
+      if (opacityInput && document.activeElement !== opacityInput) {
+        opacityInput.value = Math.round(a * 100) + '%';
+      }
+    }
+  }
+
+  function _initStageColorPickerEvents() {
+    if (window._scCpEventsInitialized) return;
+    window._scCpEventsInitialized = true;
+
+    var satVal = document.getElementById('sc-cp-sat-val');
+    var hueTrack = document.getElementById('sc-cp-hue-track');
+    var alphaTrack = document.getElementById('sc-cp-alpha-track');
+    var hexInput = document.getElementById('sc-cp-hex-input');
+    var opacityInput = document.getElementById('sc-cp-opacity-input');
+
+    if (satVal) {
+      var handleSatVal = function (e) {
+        var rect = satVal.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return;
+        var x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+        var y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+        _scCpState.s = Math.max(0, Math.min(1, x / rect.width));
+        _scCpState.v = Math.max(0, Math.min(1, 1 - (y / rect.height)));
+        _scUpdateColorPickerUI(true);
+      };
+
+      satVal.addEventListener('pointerdown', function (e) {
+        try { satVal.setPointerCapture(e.pointerId); } catch (err) {}
+        handleSatVal(e);
+        var onPointerMove = function (ev) { handleSatVal(ev); };
+        var onPointerUp = function (ev) {
+          satVal.removeEventListener('pointermove', onPointerMove);
+          satVal.removeEventListener('pointerup', onPointerUp);
+          satVal.removeEventListener('pointercancel', onPointerUp);
+          try { satVal.releasePointerCapture(ev.pointerId); } catch (err) {}
+        };
+        satVal.addEventListener('pointermove', onPointerMove);
+        satVal.addEventListener('pointerup', onPointerUp);
+        satVal.addEventListener('pointercancel', onPointerUp);
+      });
+    }
+
+    if (hueTrack) {
+      var handleHue = function (e) {
+        var rect = hueTrack.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        var x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+        _scCpState.h = Math.max(0, Math.min(360, (x / rect.width) * 360));
+        _scUpdateColorPickerUI(true);
+      };
+
+      hueTrack.addEventListener('pointerdown', function (e) {
+        try { hueTrack.setPointerCapture(e.pointerId); } catch (err) {}
+        handleHue(e);
+        var onPointerMove = function (ev) { handleHue(ev); };
+        var onPointerUp = function (ev) {
+          hueTrack.removeEventListener('pointermove', onPointerMove);
+          hueTrack.removeEventListener('pointerup', onPointerUp);
+          hueTrack.removeEventListener('pointercancel', onPointerUp);
+          try { hueTrack.releasePointerCapture(ev.pointerId); } catch (err) {}
+        };
+        hueTrack.addEventListener('pointermove', onPointerMove);
+        hueTrack.addEventListener('pointerup', onPointerUp);
+        hueTrack.addEventListener('pointercancel', onPointerUp);
+      });
+    }
+
+    if (alphaTrack) {
+      var handleAlpha = function (e) {
+        var rect = alphaTrack.getBoundingClientRect();
+        if (rect.width <= 0) return;
+        var x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+        _scCpState.a = Math.max(0, Math.min(1, x / rect.width));
+        _scUpdateColorPickerUI(true);
+      };
+
+      alphaTrack.addEventListener('pointerdown', function (e) {
+        try { alphaTrack.setPointerCapture(e.pointerId); } catch (err) {}
+        handleAlpha(e);
+        var onPointerMove = function (ev) { handleAlpha(ev); };
+        var onPointerUp = function (ev) {
+          alphaTrack.removeEventListener('pointermove', onPointerMove);
+          alphaTrack.removeEventListener('pointerup', onPointerUp);
+          alphaTrack.removeEventListener('pointercancel', onPointerUp);
+          try { alphaTrack.releasePointerCapture(ev.pointerId); } catch (err) {}
+        };
+        alphaTrack.addEventListener('pointermove', onPointerMove);
+        alphaTrack.addEventListener('pointerup', onPointerUp);
+        alphaTrack.addEventListener('pointercancel', onPointerUp);
+      });
+    }
+
+    if (hexInput) {
+      var commitHex = function () {
+        var val = hexInput.value.trim();
+        if (!val.startsWith('#')) val = '#' + val;
+        var parsed = _scParseColor(val);
+        _scCpState.h = parsed.h;
+        _scCpState.s = parsed.s;
+        _scCpState.v = parsed.v;
+        _scUpdateColorPickerUI(false);
+      };
+      hexInput.addEventListener('input', commitHex);
+      hexInput.addEventListener('blur', function () { _scUpdateColorPickerUI(true); });
+    }
+
+    if (opacityInput) {
+      var commitOpacity = function () {
+        var num = parseFloat(opacityInput.value.replace('%', ''));
+        if (!isNaN(num)) {
+          _scCpState.a = Math.max(0, Math.min(1, num / 100));
+          _scUpdateColorPickerUI(false);
+        }
+      };
+      opacityInput.addEventListener('input', commitOpacity);
+      opacityInput.addEventListener('blur', function () { _scUpdateColorPickerUI(true); });
+    }
+  }
+
+  function openStageColorPicker(initialColor, onColorSelected) {
+    _initStageColorPickerEvents();
+    var parsed = _scParseColor(initialColor || '#7AAFFF');
+    _scCpState.h = parsed.h;
+    _scCpState.s = parsed.s;
+    _scCpState.v = parsed.v;
+    _scCpState.a = parsed.a;
+    _scCpState.callback = onColorSelected;
+
+    var swatchesContainer = document.getElementById('sc-cp-swatches');
+    if (swatchesContainer) {
+      swatchesContainer.innerHTML = SC_CP_PRESETS.map(function (col) {
+        return (
+          '<div onclick="_scPickPreset(\'' + col + '\')"' +
+          ' style="width: 26px; height: 26px; border-radius: 50%; background: ' + col + '; border: 1.5px solid rgba(255,255,255,0.2); cursor: pointer; transition: transform 0.1s; box-shadow: 0 1px 4px rgba(0,0,0,0.3);"' +
+          ' title="' + col + '"' +
+          '></div>'
+        );
+      }).join('');
+    }
+
+    _scUpdateColorPickerUI(true);
+    var modal = document.getElementById('stage-color-picker-modal');
+    if (modal) {
+      modal.style.display = 'flex';
+    }
+  }
+
+  function _scPickPreset(col) {
+    var parsed = _scParseColor(col);
+    _scCpState.h = parsed.h;
+    _scCpState.s = parsed.s;
+    _scCpState.v = parsed.v;
+    _scCpState.a = parsed.a;
+    _scUpdateColorPickerUI(true);
+  }
+
+  function closeStageColorPicker() {
+    var modal = document.getElementById('stage-color-picker-modal');
+    if (modal) modal.style.display = 'none';
+    _scCpState.callback = null;
+  }
+
+  function applyStageColorPicker() {
+    var finalColor = _scFormatColor(_scCpState.h, _scCpState.s, _scCpState.v, _scCpState.a);
+    if (typeof _scCpState.callback === 'function') {
+      _scCpState.callback(finalColor);
+    }
+    closeStageColorPicker();
+  }
+
+  // Expose to window for inline HTML handlers
+  window.openStageColorPicker = openStageColorPicker;
+  window.closeStageColorPicker = closeStageColorPicker;
+  window.applyStageColorPicker = applyStageColorPicker;
+  window._scPickPreset = _scPickPreset;
+  window.openStageColorPickerForCurrentElement = openStageColorPickerForCurrentElement;
+  window.openStageColorPickerForSegment = openStageColorPickerForSegment;
+  window._setCustElColor = _setCustElColor;
 })();

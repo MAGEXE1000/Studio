@@ -4781,3 +4781,58 @@ html[data-theme='light'] #sc-hist-footer button:active:not(:disabled) {
 #sc-hist-backdrop.sc-hist-open {
   display: block;
 }
+
+/* ══════════════════════════════════════════════════════════════
+   STAGE COLOR PICKER MODAL (Fluid Functionalism)
+   ══════════════════════════════════════════════════════════════ */
+#stage-color-picker-modal {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sc-color-picker-card {
+  contain: layout style paint;
+  transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
+}
+
+#sc-cp-sat-val {
+  touch-action: none;
+}
+
+#sc-cp-hue-track,
+#sc-cp-alpha-track {
+  touch-action: none;
+}
+
+#sc-cp-hex-input:focus,
+#sc-cp-opacity-input:focus {
+  border-color: var(--accent, #7aafff) !important;
+  box-shadow: 0 0 0 1px var(--accent-30, rgba(122, 175, 255, 0.3)) !important;
+}
+
+/* Light Theme Overrides */
+html[data-theme='light'] .sc-color-picker-card {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18) !important;
+}
+
+html[data-theme='light'] #sc-cp-hex-input,
+html[data-theme='light'] #sc-cp-opacity-input {
+  background: #f4f4f5 !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
+  color: #18181b !important;
+}
+
+html[data-theme='light'] #stage-color-picker-modal button[onclick="closeStageColorPicker()"] {
+  background: #f4f4f5 !important;
+  color: #52525b !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-theme='light'] #sc-cp-sat-val,
+html[data-theme='light'] #sc-cp-hue-track,
+html[data-theme='light'] #sc-cp-alpha-track {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+

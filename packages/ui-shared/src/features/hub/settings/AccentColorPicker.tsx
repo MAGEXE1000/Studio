@@ -104,10 +104,10 @@ function hsvToHex(h: number, s: number, v: number): string {
  * platform input, and immediate live token propagation.
  */
 export function AccentColorPicker() {
-  const settings = useSettingsStore((s) => s.settings);
-  const currentAccent = settings.accentColor || DEFAULT_ACCENT_ID;
+  const currentAccent = useSettingsStore((s) => s.settings.accentColor || DEFAULT_ACCENT_ID);
+  const theme = useSettingsStore((s) => s.settings.theme);
   const resolved = resolveAccent(currentAccent);
-  const isLight = settings.theme === 'light';
+  const isLight = theme === 'light';
   const t = useT();
 
   const isCustomActive =
@@ -120,6 +120,24 @@ export function AccentColorPicker() {
 
   const satValRef = useRef<HTMLDivElement>(null);
   const hueRef = useRef<HTMLDivElement>(null);
+  const latestHsvRef = useRef(hsv);
+  const rafIdRef = useRef<number | null>(null);
+
+  // Sync external accent changes when picker is not actively being dragged
+  useEffect(() => {
+    const parsed = parseColorToHsv(resolved.to);
+    setHsv(parsed);
+    setHexInput(resolved.to);
+    latestHsvRef.current = parsed;
+  }, [resolved.to]);
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
 
   const handleSelectPreset = (presetId: string) => {
     useSettingsStore.getState().updateSettings({ accentColor: presetId });
@@ -136,6 +154,7 @@ export function AccentColorPicker() {
     const parsed = parseColorToHsv(initialHex);
     setHsv(parsed);
     setHexInput(initialHex);
+    latestHsvRef.current = parsed;
     setIsPickerOpen(true);
   };
 
@@ -147,15 +166,31 @@ export function AccentColorPicker() {
     }
   };
 
-  const updateHsv = useCallback((next: Partial<typeof hsv>) => {
-    setHsv((prev) => {
-      const merged = { ...prev, ...next };
-      const hex = hsvToHex(merged.h, merged.s, merged.v);
-      setHexInput(hex);
-      useSettingsStore.getState().updateSettings({ accentColor: hex });
-      return merged;
-    });
-  }, []);
+  const scheduleTransientUpdate = (next: Partial<typeof hsv>) => {
+    const merged = { ...latestHsvRef.current, ...next };
+    latestHsvRef.current = merged;
+
+    if (rafIdRef.current === null) {
+      rafIdRef.current = requestAnimationFrame(() => {
+        rafIdRef.current = null;
+        const current = latestHsvRef.current;
+        const hex = hsvToHex(current.h, current.s, current.v);
+        setHsv(current);
+        setHexInput(hex);
+      });
+    }
+  };
+
+  const commitColor = (finalHsv: typeof hsv) => {
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    const hex = hsvToHex(finalHsv.h, finalHsv.s, finalHsv.v);
+    setHsv(finalHsv);
+    setHexInput(hex);
+    useSettingsStore.getState().updateSettings({ accentColor: hex });
+  };
 
   // 2D Saturation / Value Drag
   const handleSatValPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -164,18 +199,26 @@ export function AccentColorPicker() {
     try {
       el.setPointerCapture(e.pointerId);
     } catch {}
-    const update = (clientX: number, clientY: number) => {
-      const rect = el.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) return;
-      const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
-      const y = Math.max(0, Math.min(rect.height, clientY - rect.top));
-      updateHsv({
-        s: Math.max(0, Math.min(1, x / rect.width)),
-        v: Math.max(0, Math.min(1, 1 - y / rect.height)),
+
+    // Cache element bounding rect once on pointerdown to eliminate layout reflow during move
+    const cachedRect = el.getBoundingClientRect();
+    if (cachedRect.width <= 0 || cachedRect.height <= 0) return;
+
+    const updateFromCoord = (clientX: number, clientY: number) => {
+      const x = Math.max(0, Math.min(cachedRect.width, clientX - cachedRect.left));
+      const y = Math.max(0, Math.min(cachedRect.height, clientY - cachedRect.top));
+      scheduleTransientUpdate({
+        s: Math.max(0, Math.min(1, x / cachedRect.width)),
+        v: Math.max(0, Math.min(1, 1 - y / cachedRect.height)),
       });
     };
-    update(e.clientX, e.clientY);
-    const onPointerMove = (ev: PointerEvent) => update(ev.clientX, ev.clientY);
+
+    updateFromCoord(e.clientX, e.clientY);
+
+    const onPointerMove = (ev: PointerEvent) => {
+      updateFromCoord(ev.clientX, ev.clientY);
+    };
+
     const onPointerUp = (ev: PointerEvent) => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
@@ -183,8 +226,10 @@ export function AccentColorPicker() {
       try {
         el.releasePointerCapture(ev.pointerId);
       } catch {}
+      commitColor(latestHsvRef.current);
     };
-    window.addEventListener('pointermove', onPointerMove);
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
   };
@@ -196,14 +241,24 @@ export function AccentColorPicker() {
     try {
       el.setPointerCapture(e.pointerId);
     } catch {}
-    const update = (clientX: number) => {
-      const rect = el.getBoundingClientRect();
-      if (rect.width <= 0) return;
-      const x = Math.max(0, Math.min(rect.width, clientX - rect.left));
-      updateHsv({ h: Math.max(0, Math.min(360, (x / rect.width) * 360)) });
+
+    // Cache element bounding rect once on pointerdown to eliminate layout reflow during move
+    const cachedRect = el.getBoundingClientRect();
+    if (cachedRect.width <= 0) return;
+
+    const updateFromCoord = (clientX: number) => {
+      const x = Math.max(0, Math.min(cachedRect.width, clientX - cachedRect.left));
+      scheduleTransientUpdate({
+        h: Math.max(0, Math.min(360, (x / cachedRect.width) * 360)),
+      });
     };
-    update(e.clientX);
-    const onPointerMove = (ev: PointerEvent) => update(ev.clientX);
+
+    updateFromCoord(e.clientX);
+
+    const onPointerMove = (ev: PointerEvent) => {
+      updateFromCoord(ev.clientX);
+    };
+
     const onPointerUp = (ev: PointerEvent) => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
@@ -211,8 +266,10 @@ export function AccentColorPicker() {
       try {
         el.releasePointerCapture(ev.pointerId);
       } catch {}
+      commitColor(latestHsvRef.current);
     };
-    window.addEventListener('pointermove', onPointerMove);
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerUp);
   };
@@ -225,6 +282,7 @@ export function AccentColorPicker() {
     if (clean.length === 4 || clean.length === 7) {
       const parsed = parseColorToHsv(clean);
       setHsv(parsed);
+      latestHsvRef.current = parsed;
       useSettingsStore.getState().updateSettings({ accentColor: clean });
     }
   };

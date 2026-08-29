@@ -1,24 +1,24 @@
 {
   "platform": "android",
-  "version": "4.5.47",
-  "versionName": "4.5.47",
-  "versionCode": 40547,
-  "version_code": 40547,
-  "commit": "f9e1a4d3",
-  "releasedAt": "8/28/2026, 8:41:04 PM CST",
-  "buildTimestamp": "8/28/2026, 8:41:04 PM CST",
+  "version": "4.5.48",
+  "versionName": "4.5.48",
+  "versionCode": 40548,
+  "version_code": 40548,
+  "commit": "12839fb1",
+  "releasedAt": "8/28/2026, 10:14:09 PM CST",
+  "buildTimestamp": "8/28/2026, 10:14:09 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Global Accent Color System: Introduced a dedicated Accent Color configuration under Settings → Appearance with 9 curated design-system presets, custom RGB color picker, real-time live preview across all sub-apps, and full decoupling from individual sub-app identity branding.\n• Dynamic Accent Theme Engine: Integrated `resolveAccent()` in `studio-core` to calculate contrast text, glow, borders, and gradient variants directly on `:root` custom properties.\n• App Identity Decoupling: Removed hardcoded `[data-app-key]` theme overrides to ensure Drumex, Stagex, Groovex, Vocalex, and Chordex share the global interactive accent while preserving authentic app brand identity colors on Hub cards and logos.\n• Desktop Logging Resilience: Enhanced host language server log stream handling to prevent unhandled stream write exceptions during high-throughput agent operations.\n• Release Pipeline Verification: Added automated GitHub CLI keyring authentication fallback and strengthened end-to-end multi-manifest synchronization.",
-  "whatsNew": "• Global Accent Color System: Introduced a dedicated Accent Color configuration under Settings → Appearance with 9 curated design-system presets, custom RGB color picker, real-time live preview across all sub-apps, and full decoupling from individual sub-app identity branding.\n• Dynamic Accent Theme Engine: Integrated `resolveAccent()` in `studio-core` to calculate contrast text, glow, borders, and gradient variants directly on `:root` custom properties.\n• App Identity Decoupling: Removed hardcoded `[data-app-key]` theme overrides to ensure Drumex, Stagex, Groovex, Vocalex, and Chordex share the global interactive accent while preserving authentic app brand identity colors on Hub cards and logos.\n• Desktop Logging Resilience: Enhanced host language server log stream handling to prevent unhandled stream write exceptions during high-throughput agent operations.\n• Release Pipeline Verification: Added automated GitHub CLI keyring authentication fallback and strengthened end-to-end multi-manifest synchronization.",
+  "changelog": "• Stagex & Studio 2D Fluid Color Picker: Redesigned the color picker into a production-grade 2D control with continuous saturation-value field, 360° rainbow hue spectrum slider, checkerboard alpha transparency slider, circular draggable handles, HEX and opacity input validation, and full Light/Dark/AMOLED theme parity.\n• Stagex Android Viewport Layout & Sizing: Fixed stage canvas sizing and scaling on mobile viewports so that the stage surface properly occupies available phone screen space.\n• Stagex Tab Navigation & State Preservation: Resolved disappearing/blank stage regressions across tab transitions (`Stage` ↔ `Setup` ↔ `Preferences`) by restoring canvas opacity immediately and resetting layout cache.\n• Drumex Android Viewport Sizing: Corrected viewport height and safe-area margins in Drumex pattern library and editor screens.\n• Conservative Performance Optimizations: Eliminated broad subtree mutation storms during stage element dragging, prevented synchronous layout recalculation in PA sound coverage, cached theme engine CSS variable mutations, and isolated sub-app re-render boundaries in `SharedAppShell`.",
+  "whatsNew": "• Stagex & Studio 2D Fluid Color Picker: Redesigned the color picker into a production-grade 2D control with continuous saturation-value field, 360° rainbow hue spectrum slider, checkerboard alpha transparency slider, circular draggable handles, HEX and opacity input validation, and full Light/Dark/AMOLED theme parity.\n• Stagex Android Viewport Layout & Sizing: Fixed stage canvas sizing and scaling on mobile viewports so that the stage surface properly occupies available phone screen space.\n• Stagex Tab Navigation & State Preservation: Resolved disappearing/blank stage regressions across tab transitions (`Stage` ↔ `Setup` ↔ `Preferences`) by restoring canvas opacity immediately and resetting layout cache.\n• Drumex Android Viewport Sizing: Corrected viewport height and safe-area margins in Drumex pattern library and editor screens.\n• Conservative Performance Optimizations: Eliminated broad subtree mutation storms during stage element dragging, prevented synchronous layout recalculation in PA sound coverage, cached theme engine CSS variable mutations, and isolated sub-app re-render boundaries in `SharedAppShell`.",
   "releaseNotes": {
     "added": [
-      "Global Accent Color System: Introduced a dedicated Accent Color configuration under Settings → Appearance with 9 curated design-system presets, custom RGB color picker, real-time live preview across all sub-apps, and full decoupling from individual sub-app identity branding.",
-      "Dynamic Accent Theme Engine: Integrated `resolveAccent()` in `studio-core` to calculate contrast text, glow, borders, and gradient variants directly on `:root` custom properties."
+      "Stagex & Studio 2D Fluid Color Picker: Redesigned the color picker into a production-grade 2D control with continuous saturation-value field, 360° rainbow hue spectrum slider, checkerboard alpha transparency slider, circular draggable handles, HEX and opacity input validation, and full Light/Dark/AMOLED theme parity."
     ],
     "fixed": [
-      "App Identity Decoupling: Removed hardcoded `[data-app-key]` theme overrides to ensure Drumex, Stagex, Groovex, Vocalex, and Chordex share the global interactive accent while preserving authentic app brand identity colors on Hub cards and logos.",
-      "Desktop Logging Resilience: Enhanced host language server log stream handling to prevent unhandled stream write exceptions during high-throughput agent operations.",
-      "Release Pipeline Verification: Added automated GitHub CLI keyring authentication fallback and strengthened end-to-end multi-manifest synchronization."
+      "Stagex Android Viewport Layout & Sizing: Fixed stage canvas sizing and scaling on mobile viewports so that the stage surface properly occupies available phone screen space.",
+      "Stagex Tab Navigation & State Preservation: Resolved disappearing/blank stage regressions across tab transitions (`Stage` ↔ `Setup` ↔ `Preferences`) by restoring canvas opacity immediately and resetting layout cache.",
+      "Drumex Android Viewport Sizing: Corrected viewport height and safe-area margins in Drumex pattern library and editor screens.",
+      "Conservative Performance Optimizations: Eliminated broad subtree mutation storms during stage element dragging, prevented synchronous layout recalculation in PA sound coverage, cached theme engine CSS variable mutations, and isolated sub-app re-render boundaries in `SharedAppShell`."
     ]
   },
   "mandatory": false

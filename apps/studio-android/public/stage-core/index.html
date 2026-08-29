@@ -12257,6 +12257,7 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
         (function () {
           var lastState = false;
           var lastReport = '';
+          var _checkRaf = 0;
           function checkOverlays() {
             var currentState = false;
             if (typeof window.stageHasOpenOverlay === 'function') {
@@ -12273,7 +12274,7 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
               const historyOpen = !!window._histTimelineOpen;
               const pdfExportOpen =
                 (typeof state !== 'undefined' && state.currentView === 'Export') ||
-                _curView === 'Export';
+                (typeof _curView !== 'undefined' && _curView === 'Export');
               const serialized = presetsOpen + '-' + historyOpen + '-' + pdfExportOpen;
               if (serialized !== lastReport) {
                 lastReport = serialized;
@@ -12289,15 +12290,25 @@ Front-fills mandatory for the first 3 rows. All wireless systems must be frequen
               }
             }
           }
-          try {
-            var observer = new MutationObserver(checkOverlays);
-            observer.observe(document.body, {
-              attributes: true,
-              subtree: true,
-              attributeFilter: ['class', 'style'],
+          function scheduleCheck() {
+            if (_checkRaf) return;
+            _checkRaf = requestAnimationFrame(function () {
+              _checkRaf = 0;
+              checkOverlays();
             });
+          }
+          try {
+            var observer = new MutationObserver(scheduleCheck);
+            var presetsEl = document.getElementById('presets-panel');
+            if (presetsEl) {
+              observer.observe(presetsEl, { attributes: true, attributeFilter: ['class', 'style'] });
+            }
+            var modalEl = document.getElementById('stage-color-picker-modal');
+            if (modalEl) {
+              observer.observe(modalEl, { attributes: true, attributeFilter: ['style'] });
+            }
           } catch (e) {}
-          setInterval(checkOverlays, 300);
+          setInterval(checkOverlays, 400);
         })();
 
         /* ── Remove native Stagex header entirely on load ───────────────── */

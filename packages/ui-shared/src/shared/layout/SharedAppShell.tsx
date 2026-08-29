@@ -114,13 +114,11 @@ function FallbackTracker({ app, children }: { app: AppKey; children: React.React
 const SubAppWrapper = memo(function SubAppWrapper({
   app,
   activePanel,
-  settings,
   onReady,
   subApps,
 }: {
   app: AppKey;
   activePanel: string;
-  settings: any;
   onReady: (app: AppKey) => void;
   subApps: SharedAppShellProps['subApps'];
 }) {
@@ -241,7 +239,8 @@ export function SharedAppShell({
     return last?.app === 'chordex' && last.page ? (last.page as ActivePanel) : 'library';
   });
   const routeApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
-  const settings = useSettingsStore((state) => state.settings);
+  const developerMode = useSettingsStore((state) => state.settings.developerMode);
+  const currentTheme = useSettingsStore((state) => state.settings.theme);
   const updateSettings = useSettingsStore((state) => state.updateSettings);
   const isInspectorEnabled = useDeveloperInspectorStore((s) => s.isEnabled);
   const showRouteTracer = useDeveloperInspectorStore((s) => s.showRouteTracer);
@@ -392,7 +391,6 @@ export function SharedAppShell({
                 <SubAppWrapper
                   app={stableKey as AppKey}
                   activePanel={activePanel}
-                  settings={settings}
                   onReady={handleAppPreloaded}
                   subApps={subApps}
                 />
@@ -407,12 +405,12 @@ export function SharedAppShell({
                 preloaded={appPreloaded}
                 onComplete={() => {}}
                 isLight={
-                  settings.theme === 'light' ||
-                  (settings.theme === 'system' &&
+                  currentTheme === 'light' ||
+                  (currentTheme === 'system' &&
                     typeof window !== 'undefined' &&
                     window.matchMedia('(prefers-color-scheme: light)').matches)
                 }
-                isAmoled={settings.perApp?.[launchingApp]?.amoledMode}
+                isAmoled={useSettingsStore.getState().settings.perApp?.[launchingApp]?.amoledMode}
               />
             )}
           </AnimatePresence>
@@ -421,7 +419,7 @@ export function SharedAppShell({
       </ErrorBoundary>
       {renderLaunchOverlay?.()}
       {renderEmergencyOverlay?.()}
-      {settings.developerMode && isInspectorEnabled && showRouteTracer && (
+      {developerMode && isInspectorEnabled && showRouteTracer && (
         <Suspense fallback={null}>
           <InspectorRouteTracer />
         </Suspense>

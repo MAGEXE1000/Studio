@@ -1615,7 +1615,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
       injectStartOnPicker(iframe);
     },
-    [accent.from, accent.to, stageVis.theme, isAmoled, isWebDesktop, curView]
+    [accent.from, accent.to, stageVis.theme, isAmoled, isWebDesktop]
   );
 
   useEffect(() => {
@@ -1625,7 +1625,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
       injectTheme(iframe, stageVis.theme ?? 'dark');
       injectAmoled(iframe, isAmoled);
     }
-  }, [accent.from, accent.to, stageVis.theme, isAmoled, curView]);
+  }, [accent.from, accent.to, stageVis.theme, isAmoled]);
 
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {

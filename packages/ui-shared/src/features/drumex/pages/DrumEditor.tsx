@@ -1458,11 +1458,27 @@ export default function DrumEditor() {
     };
     return () => {
       drumScheduler.onStep = null;
+      if (endAdvTimerRef.current) {
+        clearTimeout(endAdvTimerRef.current);
+        endAdvTimerRef.current = null;
+      }
     };
   }, []);
   useEffect(
     () => () => {
       drumScheduler.stop();
+      if (_roRef.current) {
+        _roRef.current.disconnect();
+        _roRef.current = null;
+      }
+      if (_rafRef.current !== null) {
+        cancelAnimationFrame(_rafRef.current);
+        _rafRef.current = null;
+      }
+      if (endAdvTimerRef.current) {
+        clearTimeout(endAdvTimerRef.current);
+        endAdvTimerRef.current = null;
+      }
     },
     []
   );

@@ -1306,9 +1306,20 @@ const PA_COVERAGE_TYPES = new Set(Object.keys(PA_SPEAKER_CONFIGS));
 function renderPACoverage() {
   const overlay = document.getElementById('pa-coverage-overlay');
   if (!overlay) return;
-  overlay.innerHTML = DOMPurify.sanitize('');
-  if (typeof state === 'undefined') return;
+  if (typeof state === 'undefined' || !state.elements) {
+    if (overlay.hasChildNodes()) overlay.innerHTML = '';
+    return;
+  }
 
+  const hasPACoverage = state.elements.some(
+    (el) => PA_SPEAKER_CONFIGS[el.type] && el.soundCoverage !== false
+  );
+  if (!hasPACoverage) {
+    if (overlay.hasChildNodes()) overlay.innerHTML = '';
+    return;
+  }
+
+  overlay.innerHTML = DOMPurify.sanitize('');
   const canvas = document.getElementById('stage-canvas');
   if (!canvas) return;
   const W = canvas.getBoundingClientRect().width || 980;

@@ -358,7 +358,25 @@ export function SharedNavigationBar({
       const centerLeft = rect.left - parentRect.left + rect.width / 2;
       newGeom[idx] = { width: rect.width, centerLeft };
     });
-    setMeasuredContentGeometry(newGeom);
+    setMeasuredContentGeometry((prev) => {
+      let changed = false;
+      const prevKeys = Object.keys(prev);
+      const newKeys = Object.keys(newGeom);
+      if (prevKeys.length !== newKeys.length) {
+        changed = true;
+      } else {
+        for (const k of newKeys) {
+          const numK = Number(k);
+          const p = prev[numK];
+          const n = newGeom[numK];
+          if (!p || Math.abs(p.width - n.width) > 0.5 || Math.abs(p.centerLeft - n.centerLeft) > 0.5) {
+            changed = true;
+            break;
+          }
+        }
+      }
+      return changed ? newGeom : prev;
+    });
     setHasMeasuredInitial(true);
   }, [currentItems, isSwitcherOpen, windowWidth]);
 

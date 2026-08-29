@@ -12,6 +12,8 @@ export interface ThemeConfig {
   dynamicLightEnd?: number;
 }
 
+let _lastAppliedThemeKey = '';
+
 export function applyThemeTokens(settings: any) {
   if (typeof document === 'undefined' || !document.documentElement) return;
 
@@ -26,6 +28,23 @@ export function applyThemeTokens(settings: any) {
     theme: perAppVis?.theme ?? globalTheme,
     amoledMode: perAppVis?.amoledMode ?? globalAmoled,
   };
+
+  const key = [
+    activeVis.theme,
+    activeVis.amoledMode,
+    settings?.accentColor,
+    settings?.displayDensity,
+    settings?.fontSize,
+    settings?.animationSpeed,
+    settings?.performanceMode,
+    settings?.highRefreshRate,
+    settings?.dynamicLightStart,
+    settings?.dynamicLightEnd,
+    appMode,
+  ].join('|');
+
+  if (key === _lastAppliedThemeKey) return;
+  _lastAppliedThemeKey = key;
 
   const root = document.documentElement;
 

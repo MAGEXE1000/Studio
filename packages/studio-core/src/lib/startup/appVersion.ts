@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.48';
-export const NATIVE_VERSION_CODE = 40548;
-export const WEB_VERSION = '4.5.48';
+export const NATIVE_VERSION = '4.5.49';
+export const NATIVE_VERSION_CODE = 40549;
+export const WEB_VERSION = '4.5.49';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '12839fb1';
+export const APP_COMMIT_SHA = 'e8ebac35';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '8/28/2026, 10:14:09 PM CST';
+export const APP_BUILD_TIMESTAMP = '8/28/2026, 11:35:34 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,16 +98,14 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Stagex & Studio 2D Fluid Color Picker: Redesigned the color picker into a production-grade 2D control with continuous saturation-value field, 360° rainbow hue spectrum slider, checkerboard alpha transparency slider, circular draggable handles, HEX and opacity input validation, and full Light/Dark/AMOLED theme parity.',
+      'Stagex Top Action Controls on Android: Restored upper Stage controls (`SharedFloatingHeader`) on Android editor view, wiring the ruler/measurement tool, PDF export sheet, presets panel, timeline/history, and real-time collaboration modal.',
     ],
   },
   {
     heading: 'Fixed',
     items: [
-      'Stagex Android Viewport Layout & Sizing: Fixed stage canvas sizing and scaling on mobile viewports so that the stage surface properly occupies available phone screen space.',
-      'Stagex Tab Navigation & State Preservation: Resolved disappearing/blank stage regressions across tab transitions (`Stage` ↔ `Setup` ↔ `Preferences`) by restoring canvas opacity immediately and resetting layout cache.',
-      'Drumex Android Viewport Sizing: Corrected viewport height and safe-area margins in Drumex pattern library and editor screens.',
-      'Conservative Performance Optimizations: Eliminated broad subtree mutation storms during stage element dragging, prevented synchronous layout recalculation in PA sound coverage, cached theme engine CSS variable mutations, and isolated sub-app re-render boundaries in `SharedAppShell`.',
+      'Appearance Accent Color Picker Layout: Integrated the 2D custom color picker directly and flush inside the Appearance section, eliminating redundant nested card framing, dark vertical clipping rails, and fixed-width popup constraints.',
+      'Appearance Color Picker Drag Performance: Eliminated interaction stutter and frame-dropping during continuous touch dragging via single-measure cached bounding geometry, `requestAnimationFrame` coordinate batching, fine-grained Zustand store selectors, and isolated durable state persistence upon pointer release.',
     ],
   },
 ];
@@ -119,6 +117,15 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.49',
+    date: '2026-08-28',
+    highlights: [
+      'Stagex Top Action Controls on Android: Restored upper Stage controls (`SharedFloatingHeader`) on Android editor view, wiring the ruler/measurement tool, PDF export sheet, presets panel, timeline/history, and real-time collaboration modal.',
+      'Appearance Accent Color Picker Layout: Integrated the 2D custom color picker directly and flush inside the Appearance section, eliminating redundant nested card framing, dark vertical clipping rails, and fixed-width popup constraints.',
+      'Appearance Color Picker Drag Performance: Eliminated interaction stutter and frame-dropping during continuous touch dragging via single-measure cached bounding geometry, `requestAnimationFrame` coordinate batching, fine-grained Zustand store selectors, and isolated durable state persistence upon pointer release.',
+    ],
+  },
   {
     version: '4.5.48',
     date: '2026-08-28',
@@ -217,15 +224,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Appearance Component Theming: Added --control-track-bg token and theme-adaptive borders/backgrounds across SegmentedControl, SettingRow, SettingSection, BentoSettingCard, and Language selector.',
       'Restored About Section in Settings: Restored About and Developer Options destinations in Settings > System & About with full theme support and seamless back navigation.',
       'App Changer Layout Overflow: Replaced asymmetrical 3-column grid with a centered responsive flex dock respecting horizontal safe-area insets, preventing clipping and viewport overflow across all Android screen sizes.',
-    ],
-  },
-  {
-    version: '4.5.39',
-    date: '2026-08-23',
-    highlights: [
-      'Harmonized Liquid Glass surface material and backdrop blur tokens across Bento cards, Bento setting controls, Profile metric containers, and Studio Auth surfaces.',
-      'Unified optical backdrop filtering with single-pass CSS custom property tokens, preventing Android WebView compositing overhead and rendering jank.',
-      'Synchronized tactile micro-interactions with SpringPresets physics across interactive glass surfaces, modal dismiss controls, and navigation buttons.',
     ],
   },
 ];

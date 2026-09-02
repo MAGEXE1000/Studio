@@ -26,6 +26,7 @@ export default tseslint.config(
       'screenshots/**',
       'session_logs/**',
       '**/public/**',
+      'packages/ui-shared/src/features/stagex/stage-core/**',
       'TakesPanel_old.tsx',
       'before*.js',
       'temp*.js',

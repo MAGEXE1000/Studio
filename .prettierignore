@@ -12,4 +12,5 @@ ios
 *.tar.gz
 TakesPanel_old.tsx
 public/**
+packages/ui-shared/src/features/stagex/stage-core/**
 knip-report.json

@@ -7578,6 +7578,59 @@ function renameSceneInline(idx, name) {
   saveProject();
 }
 
+
+let _promptCb = null;
+function showPrompt(title, defaultText, onOk) {
+  const el = document.getElementById('prompt-modal');
+  if (el) {
+    _promptCb = onOk;
+    const titleEl = document.getElementById('prompt-title');
+    if (titleEl) titleEl.textContent = title;
+    const inputEl = document.getElementById('prompt-input');
+    if (inputEl) {
+      inputEl.value = defaultText || '';
+      el.style.display = 'flex';
+      setTimeout(() => {
+        try { inputEl.focus(); inputEl.select(); } catch (e) {}
+      }, 50);
+    }
+  } else {
+    const nv = window.prompt(title, defaultText);
+    if (nv != null && typeof onOk === 'function') onOk(nv);
+  }
+}
+
+function doPrompt(val) {
+  const el = document.getElementById('prompt-modal');
+  if (el) el.style.display = 'none';
+  if (_promptCb && val !== null) {
+    const cb = _promptCb;
+    _promptCb = null;
+    cb(val);
+  } else {
+    _promptCb = null;
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const el = document.getElementById('prompt-modal');
+      if (el && el.style.display !== 'none') {
+        doPrompt(null);
+      }
+    } else if (e.key === 'Enter') {
+      const el = document.getElementById('prompt-modal');
+      if (el && el.style.display !== 'none') {
+        const inputEl = document.getElementById('prompt-input');
+        if (inputEl) {
+          doPrompt(inputEl.value);
+        }
+      }
+    }
+  });
+}
+
 function duplicateScene(idx) {
   _ensureScenes();
   if (state.scenes.length >= SCENES_MAX) {
@@ -7924,13 +7977,13 @@ function renameScenePrompt(idx) {
   _ensureScenes();
   if (idx < 0 || idx >= state.scenes.length) return;
   const cur = state.scenes[idx].name;
-  const nv = window.prompt(state.lang === 'es' ? 'Nombre de la escena:' : 'Scene name:', cur);
-  if (nv == null) return;
-  const v = String(nv).trim().slice(0, 24);
-  if (!v) return;
-  state.scenes[idx].name = v;
-  renderScenesBar();
-  saveProject();
+  showPrompt(state.lang === 'es' ? 'Nombre de la escena:' : 'Scene name:', cur, (nv) => {
+    const v = String(nv).trim().slice(0, 24);
+    if (!v) return;
+    state.scenes[idx].name = v;
+    renderScenesBar();
+    saveProject();
+  });
 }
 
 // Expose for inline onclick handlers

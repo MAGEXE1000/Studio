@@ -68,6 +68,7 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({ onSelectSubView })
         {cards.map((card) => (
           <motion.button
             key={card.id}
+            data-testid={`setup-card-${card.id}`}
             onClick={() => onSelectSubView(card.id)}
             whileTap={{ scale: 0.985 }}
             whileHover={{ y: -2 }}

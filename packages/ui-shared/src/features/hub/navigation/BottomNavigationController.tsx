@@ -400,19 +400,8 @@ export function BottomNavigationController() {
     const sections = APP_SECTIONS[currentApp] || [];
     return sections.map((sec) => {
       let isActive = activeTab === sec.id || activePage === sec.id;
-      if (currentApp === 'stagex') {
-        if (sec.id === 'Editor') {
-          isActive =
-            ['Editor', 'Export'].includes(activeTab) || ['Editor', 'Export'].includes(activePage);
-        } else if (sec.id === 'Setup') {
-          isActive =
-            ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activeTab) ||
-            ['Setup', 'SetupHub', 'Rider', 'Setlist', 'Gear', 'Members'].includes(activePage);
-        } else if (sec.id === 'Preferences') {
-          isActive =
-            ['Preferences', 'Assistant'].includes(activeTab) ||
-            ['Preferences', 'Assistant'].includes(activePage);
-        }
+      if (currentApp === 'stagex' && sec.id === 'Editor') {
+        isActive = activeTab === 'Editor' || activePage === 'Editor' || activePage === 'Export';
       }
       return {
         key: sec.id,

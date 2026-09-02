@@ -160,6 +160,8 @@ function DockItem({
         transition={SpringPresets.soft}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
+        data-testid={`dock-item-${id}`}
+        data-section={id}
       >
         <motion.span
           className="material-symbols-outlined"
@@ -191,13 +193,13 @@ export default function WebAppSectionDock({
 
   const mouseX = useMotionValue(Infinity);
 
-  const sections = APP_SECTIONS[app];
+  const appKey = (app === 'stage' ? 'stagex' : app) as AppKey;
+  const sections = APP_SECTIONS[appKey] || APP_SECTIONS[app];
   if (!sections || sections.length === 0) return null;
 
   // If dock is disabled in preferences, don't render it
   if (!preferences.showWebAppDock) return null;
 
-  const appKey = (app === 'stage' ? 'stagex' : app) as AppKey;
   const activeVis = settings.perApp?.[appKey] ?? {
     theme: settings.theme ?? 'dark',
     amoledMode: settings.amoledMode ?? false,

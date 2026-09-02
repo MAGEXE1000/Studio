@@ -1706,18 +1706,18 @@ function switchView(view) {
       const _sb = document.getElementById('sc-scenes-bar');
       if (_sb) _sb.style.display = 'none';
     }
-    if (view === 'SetupHub') updateSetupHubCounts();
-    if (view === 'Rider') refreshRider();
-    if (view === 'Setlist') renderSetlist();
-    if (view === 'Gear') {
+    if (view === 'SetupHub' && document.getElementById('view-SetupHub')) updateSetupHubCounts();
+    if (view === 'Rider' && document.getElementById('view-Rider')) refreshRider();
+    if (view === 'Setlist' && document.getElementById('view-Setlist')) renderSetlist();
+    if (view === 'Gear' && document.getElementById('view-Gear')) {
       renderGear();
       lcIcons();
     }
-    if (view === 'Members') {
+    if (view === 'Members' && document.getElementById('view-Members')) {
       renderMembersView();
       lcIcons();
     }
-    if (view === 'Export') {
+    if (view === 'Export' && document.getElementById('view-Export')) {
       if (prevView !== 'Export') state.prevView = prevView || 'Editor';
       refreshExport();
     }

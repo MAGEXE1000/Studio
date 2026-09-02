@@ -45,6 +45,15 @@ import {
   type BouncyAccordionItem,
 } from '../../../components/motion/bouncy-accordion';
 import { ShareMenu } from '../../../components/share-menu';
+import {
+  StageSetupHub,
+  StageRiderView,
+  StageSetlistView,
+  StageGearView,
+  StageMembersView,
+  StagePreferencesView,
+} from '../components';
+import { useStagexStore } from '../state/useStagexStore';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
@@ -610,6 +619,7 @@ export default function StagexPanel() {
 
   useEffect(() => {
     useSessionStore.getState().setLastSession({ stagexView: curView });
+    useStagexStore.getState().reloadFromStorage();
   }, [curView]);
 
   const returnToStudioHub = useCallback(() => {
@@ -3435,12 +3445,101 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   width: '100%',
                   height: '100%',
                   border: 'none',
-                  display: 'block',
+                  display: curView === 'Editor' || curView === 'Export' ? 'block' : 'none',
                   backgroundColor: stageBg,
                   transform: collapseHeader ? 'translateZ(0.01px)' : 'translateZ(0px)',
                 }}
                 allow="clipboard-write"
               />
+              {curView === 'Setup' || curView === 'SetupHub' ? (
+                <div
+                  className="w-full h-full overflow-y-auto"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 5,
+                    backgroundColor: stageBg,
+                    paddingTop: showCanonicalHeader ? '8px' : '64px',
+                  }}
+                >
+                  <StageSetupHub
+                    onSelectSubView={(sv) => {
+                      const viewMap: Record<string, string> = {
+                        rider: 'Rider',
+                        setlist: 'Setlist',
+                        gear: 'Gear',
+                        members: 'Members',
+                      };
+                      transitionToView(viewMap[sv] || 'Setup');
+                    }}
+                  />
+                </div>
+              ) : curView === 'Rider' ? (
+                <div
+                  className="w-full h-full overflow-y-auto"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 5,
+                    backgroundColor: stageBg,
+                    paddingTop: '64px',
+                  }}
+                >
+                  <StageRiderView onBack={() => NavigationDispatcher.pop()} />
+                </div>
+              ) : curView === 'Setlist' ? (
+                <div
+                  className="w-full h-full overflow-y-auto"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 5,
+                    backgroundColor: stageBg,
+                    paddingTop: '64px',
+                  }}
+                >
+                  <StageSetlistView onBack={() => NavigationDispatcher.pop()} />
+                </div>
+              ) : curView === 'Gear' ? (
+                <div
+                  className="w-full h-full overflow-y-auto"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 5,
+                    backgroundColor: stageBg,
+                    paddingTop: '64px',
+                  }}
+                >
+                  <StageGearView onBack={() => NavigationDispatcher.pop()} />
+                </div>
+              ) : curView === 'Members' ? (
+                <div
+                  className="w-full h-full overflow-y-auto"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 5,
+                    backgroundColor: stageBg,
+                    paddingTop: '64px',
+                  }}
+                >
+                  <StageMembersView onBack={() => NavigationDispatcher.pop()} />
+                </div>
+              ) : curView === 'Preferences' || curView === 'Assistant' ? (
+                <div
+                  className="w-full h-full overflow-y-auto"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    zIndex: 5,
+                    backgroundColor: stageBg,
+                    paddingTop: showCanonicalHeader ? '8px' : '64px',
+                  }}
+                >
+                  <StagePreferencesView />
+                </div>
+              ) : null}
               {iframeLoading && (
                 <div style={{ position: 'absolute', inset: 0, zIndex: 10, background: stageBg }}>
                   <SmartLoading app="stagex" />

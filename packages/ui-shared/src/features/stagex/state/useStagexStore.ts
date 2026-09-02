@@ -1,0 +1,359 @@
+import { create } from 'zustand';
+
+export interface RiderNeed {
+  id: string;
+  type: 'foh' | 'monitor' | 'power' | 'hospitality' | 'custom';
+  value: string;
+}
+
+export interface RiderChannel {
+  ch: number;
+  source: string;
+  mic: string;
+  stand: string;
+  phantom: boolean;
+  notes: string;
+}
+
+export interface RiderMix {
+  mix: number;
+  name: string;
+  type: 'iem' | 'wedge';
+  notes: string;
+}
+
+export interface RiderConfig {
+  contactName?: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  venue?: string;
+  date?: string;
+  notes?: string;
+}
+
+export interface SetlistSong {
+  id: string;
+  title: string;
+  artist?: string;
+  key?: string;
+  bpm?: number;
+  duration: string; // e.g. "3:45"
+  notes?: string;
+  energy?: number; // 1 - 100
+}
+
+export interface SetlistSegment {
+  id: string;
+  name: string;
+  color?: string;
+}
+
+export interface GearItem {
+  id: string;
+  name: string;
+  category: 'mics' | 'inst' | 'amps' | 'mon' | 'util' | 'cables' | 'misc';
+  model?: string;
+  qty?: number;
+  notes?: string;
+}
+
+export interface BandMember {
+  id: string;
+  name: string;
+  role: string;
+  color?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+}
+
+export interface StagexPreferences {
+  canvasBg: string;
+  gridVisible: boolean;
+  snapToGrid: boolean;
+  gridSize: number;
+  connectionsVisible: boolean;
+  connLineStyle: 'solid' | 'dashed' | 'dotted';
+  labelsVisible: boolean;
+  reducedAnimations: boolean;
+  stageUnits: 'meters' | 'feet';
+  stageWidth: number;
+  stageDepth: number;
+  amoled: boolean;
+}
+
+export type StagexSubView = 'hub' | 'rider' | 'setlist' | 'gear' | 'members';
+
+interface StagexStoreState {
+  // Navigation inside Setup
+  setupSubView: StagexSubView;
+  setSetupSubView: (subView: StagexSubView) => void;
+
+  // Rider
+  riderNeeds: RiderNeed[];
+  riderChannels: RiderChannel[];
+  riderMixes: RiderMix[];
+  riderConfig: RiderConfig;
+  setRiderNeeds: (needs: RiderNeed[]) => void;
+  addRiderNeed: (need: Omit<RiderNeed, 'id'>) => void;
+  updateRiderNeed: (id: string, updates: Partial<RiderNeed>) => void;
+  removeRiderNeed: (id: string) => void;
+  updateRiderConfig: (config: Partial<RiderConfig>) => void;
+
+  // Setlist
+  setlist: SetlistSong[];
+  segments: SetlistSegment[];
+  addSong: (song: Omit<SetlistSong, 'id'>) => void;
+  updateSong: (id: string, updates: Partial<SetlistSong>) => void;
+  removeSong: (id: string) => void;
+  reorderSongs: (fromIndex: number, toIndex: number) => void;
+  addSegment: (segment: Omit<SetlistSegment, 'id'>) => void;
+  removeSegment: (id: string) => void;
+
+  // Gear
+  gear: GearItem[];
+  addGearItem: (item: Omit<GearItem, 'id'>) => void;
+  updateGearItem: (id: string, updates: Partial<GearItem>) => void;
+  removeGearItem: (id: string) => void;
+
+  // Members
+  members: BandMember[];
+  addMember: (member: Omit<BandMember, 'id'>) => boolean;
+  updateMember: (id: string, updates: Partial<BandMember>) => void;
+  removeMember: (id: string) => void;
+
+  // Preferences
+  preferences: StagexPreferences;
+  updatePreferences: (updates: Partial<StagexPreferences>) => void;
+
+  // Synchronization helpers
+  reloadFromStorage: () => void;
+}
+
+const PROJECT_STORAGE_KEY = 'stagecoreProject';
+const SETTINGS_STORAGE_KEY = 'stagecoreSettings';
+
+const DEFAULT_RIDER_NEEDS: RiderNeed[] = [
+  { id: 'rn1', type: 'foh', value: 'Dante Primary/Secondary @ 96kHz' },
+  { id: 'rn2', type: 'monitor', value: 'Minimum 4 discrete stereo IEM mixes' },
+  { id: 'rn3', type: 'power', value: '2× 20A circuits, distro Stage Left' },
+];
+
+const DEFAULT_PREFERENCES: StagexPreferences = {
+  canvasBg: '#0e0e0e',
+  gridVisible: true,
+  snapToGrid: false,
+  gridSize: 80,
+  connectionsVisible: true,
+  connLineStyle: 'solid',
+  labelsVisible: true,
+  reducedAnimations: false,
+  stageUnits: 'meters',
+  stageWidth: 12,
+  stageDepth: 8,
+  amoled: false,
+};
+
+function readProjectStorage(): Record<string, any> {
+  try {
+    const raw =
+      typeof localStorage !== 'undefined' ? localStorage.getItem(PROJECT_STORAGE_KEY) : null;
+    return raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    console.error('[StagexStore] Failed to read project from storage:', err);
+    return {};
+  }
+}
+
+function writeProjectStorage(updates: Record<string, any>) {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const current = readProjectStorage();
+    const merged = {
+      schemaVersion: 9,
+      elements: current.elements || [],
+      connections: current.connections || [],
+      scenes: current.scenes || [
+        { id: 's1', name: 'Scene 1', elements: [], connections: [], nextId: 1 },
+      ],
+      currentSceneIdx: current.currentSceneIdx || 0,
+      ...current,
+      ...updates,
+      lastModified: new Date().toISOString(),
+    };
+    localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(merged));
+  } catch (err) {
+    console.error('[StagexStore] Failed to write project to storage:', err);
+  }
+}
+
+function readSettingsStorage(): Partial<StagexPreferences> {
+  try {
+    const raw =
+      typeof localStorage !== 'undefined' ? localStorage.getItem(SETTINGS_STORAGE_KEY) : null;
+    return raw ? JSON.parse(raw) : {};
+  } catch (err) {
+    console.error('[StagexStore] Failed to read settings from storage:', err);
+    return {};
+  }
+}
+
+function writeSettingsStorage(updates: Partial<StagexPreferences>) {
+  try {
+    if (typeof localStorage === 'undefined') return;
+    const current = readSettingsStorage();
+    const merged = { ...current, ...updates };
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
+  } catch (err) {
+    console.error('[StagexStore] Failed to write settings to storage:', err);
+  }
+}
+
+const initialProj = readProjectStorage();
+const initialSettings = readSettingsStorage();
+
+export const useStagexStore = create<StagexStoreState>((set, get) => ({
+  setupSubView: 'hub',
+  setSetupSubView: (setupSubView) => set({ setupSubView }),
+
+  // Rider
+  riderNeeds: initialProj.riderNeeds || DEFAULT_RIDER_NEEDS,
+  riderChannels: initialProj.riderChannels || [],
+  riderMixes: initialProj.riderMixes || [],
+  riderConfig: initialProj.riderConfig || {},
+  setRiderNeeds: (riderNeeds) => {
+    set({ riderNeeds });
+    writeProjectStorage({ riderNeeds });
+  },
+  addRiderNeed: (need) => {
+    const id = 'rn_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const updated = [...get().riderNeeds, { ...need, id }];
+    set({ riderNeeds: updated });
+    writeProjectStorage({ riderNeeds: updated });
+  },
+  updateRiderNeed: (id, updates) => {
+    const updated = get().riderNeeds.map((n) => (n.id === id ? { ...n, ...updates } : n));
+    set({ riderNeeds: updated });
+    writeProjectStorage({ riderNeeds: updated });
+  },
+  removeRiderNeed: (id) => {
+    const updated = get().riderNeeds.filter((n) => n.id !== id);
+    set({ riderNeeds: updated });
+    writeProjectStorage({ riderNeeds: updated });
+  },
+  updateRiderConfig: (config) => {
+    const updated = { ...get().riderConfig, ...config };
+    set({ riderConfig: updated });
+    writeProjectStorage({ riderConfig: updated });
+  },
+
+  // Setlist
+  setlist: initialProj.setlist || [],
+  segments: initialProj.segments || [],
+  addSong: (song) => {
+    const id = 'sl_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const updated = [...get().setlist, { ...song, id }];
+    set({ setlist: updated });
+    writeProjectStorage({ setlist: updated });
+  },
+  updateSong: (id, updates) => {
+    const updated = get().setlist.map((s) => (s.id === id ? { ...s, ...updates } : s));
+    set({ setlist: updated });
+    writeProjectStorage({ setlist: updated });
+  },
+  removeSong: (id) => {
+    const updated = get().setlist.filter((s) => s.id !== id);
+    set({ setlist: updated });
+    writeProjectStorage({ setlist: updated });
+  },
+  reorderSongs: (fromIndex, toIndex) => {
+    const current = [...get().setlist];
+    if (fromIndex < 0 || fromIndex >= current.length || toIndex < 0 || toIndex >= current.length)
+      return;
+    const [moved] = current.splice(fromIndex, 1);
+    current.splice(toIndex, 0, moved);
+    set({ setlist: current });
+    writeProjectStorage({ setlist: current });
+  },
+  addSegment: (segment) => {
+    const id = 'seg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const updated = [...get().segments, { ...segment, id }];
+    set({ segments: updated });
+    writeProjectStorage({ segments: updated });
+  },
+  removeSegment: (id) => {
+    const updated = get().segments.filter((s) => s.id !== id);
+    set({ segments: updated });
+    writeProjectStorage({ segments: updated });
+  },
+
+  // Gear
+  gear: initialProj.gear || [],
+  addGearItem: (item) => {
+    const id = 'g_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const updated = [...get().gear, { ...item, id }];
+    set({ gear: updated });
+    writeProjectStorage({ gear: updated });
+  },
+  updateGearItem: (id, updates) => {
+    const updated = get().gear.map((g) => (g.id === id ? { ...g, ...updates } : g));
+    set({ gear: updated });
+    writeProjectStorage({ gear: updated });
+  },
+  removeGearItem: (id) => {
+    const updated = get().gear.filter((g) => g.id !== id);
+    set({ gear: updated });
+    writeProjectStorage({ gear: updated });
+  },
+
+  // Members (Enforces 8-member limit)
+  members: initialProj.members || [],
+  addMember: (member) => {
+    if (get().members.length >= 8) return false;
+    const id = 'm_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const updated = [...get().members, { ...member, id }];
+    set({ members: updated });
+    writeProjectStorage({ members: updated });
+    return true;
+  },
+  updateMember: (id, updates) => {
+    const updated = get().members.map((m) => (m.id === id ? { ...m, ...updates } : m));
+    set({ members: updated });
+    writeProjectStorage({ members: updated });
+  },
+  removeMember: (id) => {
+    const updated = get().members.filter((m) => m.id !== id);
+    set({ members: updated });
+    writeProjectStorage({ members: updated });
+  },
+
+  // Preferences
+  preferences: {
+    ...DEFAULT_PREFERENCES,
+    ...initialSettings,
+  },
+  updatePreferences: (updates) => {
+    const updated = { ...get().preferences, ...updates };
+    set({ preferences: updated });
+    writeSettingsStorage(updated);
+  },
+
+  reloadFromStorage: () => {
+    const proj = readProjectStorage();
+    const settings = readSettingsStorage();
+    set({
+      riderNeeds: proj.riderNeeds || DEFAULT_RIDER_NEEDS,
+      riderChannels: proj.riderChannels || [],
+      riderMixes: proj.riderMixes || [],
+      riderConfig: proj.riderConfig || {},
+      setlist: proj.setlist || [],
+      segments: proj.segments || [],
+      gear: proj.gear || [],
+      members: proj.members || [],
+      preferences: {
+        ...DEFAULT_PREFERENCES,
+        ...settings,
+      },
+    });
+  },
+}));

@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.50';
-export const NATIVE_VERSION_CODE = 40550;
-export const WEB_VERSION = '4.5.50';
+export const NATIVE_VERSION = '4.5.51';
+export const NATIVE_VERSION_CODE = 40551;
+export const WEB_VERSION = '4.5.51';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'afb892e6';
+export const APP_COMMIT_SHA = 'db2cb23b';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/2/2026, 10:16:18 AM CST';
+export const APP_BUILD_TIMESTAMP = '9/2/2026, 5:50:42 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,16 +96,18 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: 'Improved',
+    heading: 'Added',
     items: [
-      'Canonical Tab Transitions Across Studio Apps: Unified navigation animations onto `StudioPageTransition` with canonical `200ms cubic-bezier(0.22, 1, 0.36, 1)` easing and zero-overshoot motion, eliminating spring bounce across Groovex, Vocalex, and Hub tabs.',
-      'Android UI Runtime Performance: Coalesced `BottomNavigationController` DOM mutation sweeps with `requestAnimationFrame` to eliminate layout query storms, decoupled `SongPracticeView` playback timer to eliminate 60 FPS effect teardown churn, and narrowed broad Zustand store subscriptions in `App.tsx`, `StudioHub.tsx`, `UpdateIndicator.tsx`, and `StageCorePanel.tsx` to stop cascaded re-renders.',
+      'Stagex Canonical React Architecture: Migrated the Stagex application shell to native React, fully unifying navigation, headers, page transitions, and layouts with canonical Studio applications (Chordex, Drumex, Groovex, Vocalex).',
+      'Persistent Stage Canvas Isolation: Confined the specialized Stagex 2D canvas and cable routing engine into an isolated renderer with zero reload state persistence across tab switching.',
+      'Modular React Setup & Preferences: Extracted native React subviews for Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences with canonical floating headers and hardware back navigation.',
     ],
   },
   {
-    heading: 'Fixed',
+    heading: 'Improved',
     items: [
-      'Stagex Header Architecture Alignment: Aligned Stagex Android header architecture with canonical Studio headers, removed obsolete pill navigation measurements and orphaned timers, and guarded canvas touch telemetry against unnecessary state mutations.',
+      'Stagex Codebase Complexity Reduction: Reduced StageCorePanel from 4,257 lines down to 222 lines (a 94.7% code reduction), extracting dedicated StageCanvasView, StageSetupContainer, and StageCollabDialog components.',
+      'Single Source of Truth Asset Architecture: Established packages/ui-shared stage-core as authoritative single source of truth across Web and Android with automated build synchronization and byte-identity verification.',
     ],
   },
 ];
@@ -117,6 +119,17 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.51',
+    date: '2026-09-02',
+    highlights: [
+      'Stagex Canonical React Architecture: Migrated the Stagex application shell to native React, fully unifying navigation, headers, page transitions, and layouts with canonical Studio applications (Chordex, Drumex, Groovex, Vocalex).',
+      'Persistent Stage Canvas Isolation: Confined the specialized Stagex 2D canvas and cable routing engine into an isolated renderer with zero reload state persistence across tab switching.',
+      'Modular React Setup & Preferences: Extracted native React subviews for Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences with canonical floating headers and hardware back navigation.',
+      'Stagex Codebase Complexity Reduction: Reduced StageCorePanel from 4,257 lines down to 222 lines (a 94.7% code reduction), extracting dedicated StageCanvasView, StageSetupContainer, and StageCollabDialog components.',
+      'Single Source of Truth Asset Architecture: Established packages/ui-shared stage-core as authoritative single source of truth across Web and Android with automated build synchronization and byte-identity verification.',
+    ],
+  },
   {
     version: '4.5.50',
     date: '2026-09-02',
@@ -211,16 +224,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Performance Diagnostics Layout Overflow: Applied flexWrap and responsive truncation across component lifecycle profiler, frame pacing histograms, memory gauges, and GPU renderer strings to eliminate horizontal overflow on narrow Android viewports.',
       'Network Sniffer Consolidation: Consolidated standalone Network Sniffer into Logs, removing redundant subview routing while preserving full HTTP request inspection and 404 diagnostics.',
       'Tap-to-select capturing handler in Developer Inspector overlay for seamless element selection and automatic exit on select.',
-    ],
-  },
-  {
-    version: '4.5.41',
-    date: '2026-08-23',
-    highlights: [
-      "Global HeroUI Dialog & Modal Migration: Unified all application dialogs, confirmation dialogs, and modal overlays under HeroUI's AlertDialog compound components (AlertDialog, Backdrop, Container, Dialog, CloseTrigger, Header, Icon, Heading, Body, Footer) across Stagex, Chordex, Drumex, Vocalex, and Hub.",
-      'Destructive Confirmation Safety: Applied danger status and enforced backdrop dismissal prevention on destructive operations to avoid accidental data loss.',
-      'Global HeroUI Button & ButtonGroup System: Replaced custom buttons and standalone action triggers with HeroUI Button, and unified paired/connected actions (measure/timeline tools, regenerate/random templates, clear/copy logs) under HeroUI ButtonGroup.',
-      'Verifiable Developer Diagnostics: Rebuilt Developer Options (System, Apps, Performance, Logs) with real, verifiable runtime telemetry for Android OS, WebView version, battery, storage, display characteristics, network Wi-Fi filters, and live memory metrics.',
     ],
   },
 ];

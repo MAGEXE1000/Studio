@@ -1,10 +1,4 @@
-import {
-  useChordStore,
-  ACCENT_COLORS,
-  resolveAccent,
-  translations,
-  useSettingsStore,
-} from '@workspace/studio-core';
+import type { StageLibraryItem, StageWin } from '../types';
 
 export function hexToRgb(hex: string): [number, number, number] {
   return [
@@ -37,12 +31,7 @@ export function injectAccentVars(iframe: HTMLIFrameElement, from: string, to: st
     root.style.setProperty('--hot', to);
     root.style.setProperty('--hot-dark', `rgba(${hr},${hg},${hb},0.25)`);
     root.style.setProperty('--hot-10', `rgba(${hr},${hg},${hb},0.10)`);
-    root.style.setProperty('--hot-20', `rgba(${hr},${hg},${hb},0.20)`);
-    const pill = doc?.getElementById('sc-nav-pill');
-    if (pill) {
-      pill.style.background = `linear-gradient(135deg, ${from}, ${to})`;
-      pill.style.boxShadow = `0 2px 18px rgba(${r},${g},${b},0.35)`;
-    }
+    root.style.setProperty('--hot-20', `rgba(${hr},${hb},${hb},0.20)`);
   } catch {}
 }
 
@@ -79,95 +68,88 @@ export function injectAmoled(iframe: HTMLIFrameElement, amoled: boolean) {
   } catch {}
 }
 
-export function injectStartOnPicker(iframe: HTMLIFrameElement) {
-  try {
-    const doc = iframe.contentDocument;
-    if (!doc) return;
-    const prefsScroll = doc.querySelector('.sc-prefs-scroll');
-    if (!prefsScroll || doc.getElementById('sc-start-on-injected')) return;
+/**
+ * StageBridge: Strongly-typed, contract-based bridge between React and the isolated canvas engine.
+ */
+export const StageBridge = {
+  getWin(iframe: HTMLIFrameElement | null): StageWin | null {
+    try {
+      return (iframe?.contentWindow as StageWin) || null;
+    } catch {
+      return null;
+    }
+  },
 
-    const store = useSettingsStore.getState();
-    const lang = store.settings.language ?? 'en';
-    const t = translations[lang as keyof typeof translations] ?? translations.en;
-    const sp = t.stagePrefs;
-    const cur = store.settings.defaultStageView ?? 'Editor';
-    const accent = resolveAccent(store.settings.accentColor);
+  updateCanvasBg(iframe: HTMLIFrameElement | null, bg: string): void {
+    const win = this.getWin(iframe);
+    win?.updateCanvasBg?.(bg);
+  },
 
-    const section = doc.createElement('div');
-    section.id = 'sc-start-on-injected';
+  activateMeasure(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe);
+    win?.scActivateMeasure?.();
+  },
 
-    const label = doc.createElement('div');
-    label.className = 'sc-prefs-section-label';
-    label.innerHTML = `<span class="material-symbols-outlined sc-sec-icon">dashboard</span><span class="sc-sec-text">${sp.startOn}</span>`;
-    section.appendChild(label);
+  openPresetsPanel(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe);
+    win?.openPresetsPanel?.();
+  },
 
-    const card = doc.createElement('div');
-    card.className = 'sc-prefs-card';
+  openTimelinePanel(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe);
+    win?.openTimelinePanel?.();
+  },
 
-    const row = doc.createElement('div');
-    row.className = 'sc-prefs-row';
-    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;';
+  toggleZones(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe);
+    win?.scToggleZones?.();
+  },
 
-    const textCol = doc.createElement('div');
-    const rl = doc.createElement('p');
-    rl.className = 'sc-prefs-row-label';
-    rl.textContent = sp.startOn;
-    const rh = doc.createElement('p');
-    rh.className = 'sc-prefs-row-hint';
-    rh.textContent = sp.startOnDesc;
-    textCol.appendChild(rl);
-    textCol.appendChild(rh);
-    row.appendChild(textCol);
+  toggleCableLength(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe);
+    win?.scToggleCableLength?.();
+  },
 
-    const btnWrap = doc.createElement('div');
-    btnWrap.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
+  addItemToStage(iframe: HTMLIFrameElement | null, item: StageLibraryItem): void {
+    const win = this.getWin(iframe);
+    win?.addItemToStage?.(item);
+  },
 
-    const views: { value: string; icon: string }[] = [
-      { value: 'Editor', icon: 'grid_view' },
-      { value: 'Setup', icon: 'folder_open' },
-      { value: 'Preferences', icon: 'tune' },
-    ];
+  switchView(iframe: HTMLIFrameElement | null, view: string): void {
+    const win = this.getWin(iframe);
+    win?.switchView?.(view);
+  },
 
-    views.forEach(({ value, icon }) => {
-      const btn = doc.createElement('button');
-      const active = cur === value;
-      btn.style.cssText = `
-        width:40px;height:40px;display:flex;align-items:center;justify-content:center;
-        border-radius:10px;cursor:pointer;transition:all 150ms ease;flex-shrink:0;
-        border:${active ? `2px solid ${accent.from}` : '2px solid transparent'};
-        background:${active ? `linear-gradient(135deg, ${accent.from}22, ${accent.to}18)` : 'rgba(255,255,255,0.06)'};
-        color:${active ? accent.from : 'rgba(160,160,180,0.8)'};
-      `;
-      const ic = doc.createElement('span');
-      ic.className = 'material-symbols-outlined';
-      ic.style.fontSize = '20px';
-      ic.textContent = icon;
-      btn.appendChild(ic);
+  exportPdf(
+    iframe: HTMLIFrameElement | null,
+    options: { name: string; includeBackdrop: boolean }
+  ): Promise<void> {
+    const win = this.getWin(iframe);
+    if (win?.exportPDFWithOptions) {
+      return win.exportPDFWithOptions(options);
+    }
+    return Promise.resolve();
+  },
 
-      btn.onclick = () => {
-        useSettingsStore
-          .getState()
-          .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
-        const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
-        const a2 = resolveAccent(useSettingsStore.getState().settings.accentColor);
-        btnWrap.querySelectorAll('button').forEach((b, idx) => {
-          const isActive = views[idx].value === updated;
-          (b as HTMLButtonElement).style.border = isActive
-            ? `2px solid ${a2.from}`
-            : '2px solid transparent';
-          (b as HTMLButtonElement).style.background = isActive
-            ? `linear-gradient(135deg, ${a2.from}22, ${a2.to}18)`
-            : 'rgba(255,255,255,0.06)';
-          (b as HTMLButtonElement).style.color = isActive ? a2.from : 'rgba(160,160,180,0.8)';
-        });
-      };
+  getSceneInfo(
+    iframe: HTMLIFrameElement | null
+  ): { count: number; currentIdx: number; names: string[] } | null {
+    const win = this.getWin(iframe);
+    return win?.__getSceneInfo ? win.__getSceneInfo() : null;
+  },
 
-      btnWrap.appendChild(btn);
-    });
+  goBack(iframe: HTMLIFrameElement | null): boolean {
+    const win = this.getWin(iframe);
+    return win?.stageGoBack ? win.stageGoBack() : false;
+  },
 
-    row.appendChild(btnWrap);
-    card.appendChild(row);
-    section.appendChild(card);
-    prefsScroll.appendChild(section);
-  } catch {}
-}
+  hasOpenOverlay(iframe: HTMLIFrameElement | null): boolean {
+    const win = this.getWin(iframe);
+    return win?.stageHasOpenOverlay ? win.stageHasOpenOverlay() : false;
+  },
+
+  openCustomElementModal(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe);
+    win?.openCustomElementModal?.();
+  },
+};

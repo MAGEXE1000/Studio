@@ -8,6 +8,8 @@ interface StageToolbarProps {
   callIframe: (fn: string, arg?: string | number) => void;
   transitionToView: (view: string) => void;
   openPdfSheet: () => void;
+  collabState?: string;
+  onOpenCollab?: () => void;
 }
 
 export const StageToolbar: React.FC<StageToolbarProps> = ({
@@ -17,6 +19,8 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
   callIframe,
   transitionToView,
   openPdfSheet,
+  collabState,
+  onOpenCollab,
 }) => {
   return (
     <Toolbar
@@ -48,7 +52,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
               onClick={() => callIframe('scActivateMeasure')}
               icon={<span className="material-symbols-outlined text-[15px]">straighten</span>}
             >
-              {tr.stagex.toolMeasure}
+              {tr.stagex?.toolMeasure || 'Measure'}
             </Button>
             <Button
               size="sm"
@@ -56,7 +60,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
               onClick={() => callIframe('openTimelinePanel')}
               icon={<span className="material-symbols-outlined text-[15px]">history</span>}
             >
-              {tr.stagex.toolHistory}
+              {tr.stagex?.toolHistory || 'History'}
             </Button>
           </ButtonGroup>
 
@@ -76,6 +80,23 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
           >
             Export Rider
           </Button>
+          {onOpenCollab && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={onOpenCollab}
+              icon={
+                <span
+                  className="material-symbols-outlined text-[15px]"
+                  style={{ color: collabState === 'connected' ? '#10b981' : undefined }}
+                >
+                  {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
+                </span>
+              }
+            >
+              {collabState === 'connected' ? 'Live' : 'Collab'}
+            </Button>
+          )}
         </div>
       )}
 

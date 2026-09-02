@@ -53,10 +53,20 @@ import {
   StageMembersView,
   StagePreferencesView,
 } from '../components';
+import { StageToolbar } from '../components/StageToolbar';
+import { StageLibraryPanel } from '../components/StageLibraryPanel';
+import {
+  StageBridge,
+  hexToRgb,
+  injectAccentVars,
+  injectTheme,
+  injectAmoled,
+} from '../services/StageBridgeService';
 import { useStagexStore } from '../state/useStagexStore';
 
 type StageWin = Window & {
   stageGoBack?: () => boolean;
+  stageHasOpenOverlay?: () => boolean;
   openPresetsPanel?: () => void;
   switchView?: (v: string) => void;
   __onViewChange?: (view: string) => void;
@@ -64,333 +74,8 @@ type StageWin = Window & {
   scToggleZones?: () => void;
   scToggleCableLength?: () => void;
   openTimelinePanel?: () => void;
-};
-
-function hexToRgb(hex: string): [number, number, number] {
-  return [
-    parseInt(hex.slice(1, 3), 16),
-    parseInt(hex.slice(3, 5), 16),
-    parseInt(hex.slice(5, 7), 16),
-  ];
-}
-
-function injectAccentVars(iframe: HTMLIFrameElement, from: string, to: string) {
-  try {
-    const doc = iframe.contentDocument;
-    const root = doc?.documentElement;
-    if (!root) return;
-    const [r, g, b] = hexToRgb(from);
-    const [hr, hg, hb] = hexToRgb(to);
-    root.style.setProperty('--accent', from);
-    root.style.setProperty('--accent-dark', '#fff');
-    root.style.setProperty('--accent-08', `rgba(${r},${g},${b},0.08)`);
-    root.style.setProperty('--accent-10', `rgba(${r},${g},${b},0.10)`);
-    root.style.setProperty('--accent-12', `rgba(${r},${g},${b},0.12)`);
-    root.style.setProperty('--accent-14', `rgba(${r},${g},${b},0.14)`);
-    root.style.setProperty('--accent-20', `rgba(${r},${g},${b},0.20)`);
-    root.style.setProperty('--accent-22', `rgba(${r},${g},${b},0.22)`);
-    root.style.setProperty('--accent-30', `rgba(${r},${g},${b},0.30)`);
-    root.style.setProperty('--accent-40', `rgba(${r},${g},${b},0.40)`);
-    root.style.setProperty('--accent-50', `rgba(${r},${g},${b},0.50)`);
-    root.style.setProperty('--accent-60', `rgba(${r},${g},${b},0.60)`);
-    root.style.setProperty('--accent-70', `rgba(${r},${g},${b},0.70)`);
-    root.style.setProperty('--hot', to);
-    root.style.setProperty('--hot-dark', `rgba(${hr},${hg},${hb},0.25)`);
-    root.style.setProperty('--hot-10', `rgba(${hr},${hg},${hb},0.10)`);
-    root.style.setProperty('--hot-20', `rgba(${hr},${hg},${hb},0.20)`);
-    const pill = doc?.getElementById('sc-nav-pill');
-    if (pill) {
-      pill.style.background = `linear-gradient(135deg, ${from}, ${to})`;
-      pill.style.boxShadow = `0 2px 18px rgba(${r},${g},${b},0.35)`;
-    }
-  } catch {}
-}
-
-function injectTheme(iframe: HTMLIFrameElement, theme: string) {
-  try {
-    const root = iframe.contentDocument?.documentElement;
-    if (!root) return;
-    if (theme === 'light') {
-      root.setAttribute('data-theme', 'light');
-      const win = iframe.contentWindow as
-        (Window & { updateCanvasBg?: (c: string) => void }) | null;
-      win?.updateCanvasBg?.('#ffffff');
-    } else {
-      root.removeAttribute('data-theme');
-      const win = iframe.contentWindow as
-        (Window & { updateCanvasBg?: (c: string) => void }) | null;
-      win?.updateCanvasBg?.('#0e0e0e');
-    }
-  } catch {}
-}
-
-function injectAmoled(iframe: HTMLIFrameElement, amoled: boolean) {
-  try {
-    const root = iframe.contentDocument?.documentElement;
-    if (!root) return;
-    if (amoled) {
-      root.setAttribute('data-amoled', '1');
-      const win = iframe.contentWindow as
-        (Window & { updateCanvasBg?: (c: string) => void }) | null;
-      win?.updateCanvasBg?.('#000000');
-    } else {
-      root.removeAttribute('data-amoled');
-    }
-  } catch {}
-}
-
-function injectStartOnPicker(iframe: HTMLIFrameElement) {
-  try {
-    const doc = iframe.contentDocument;
-    if (!doc) return;
-    const prefsScroll = doc.querySelector('.sc-prefs-scroll');
-    if (!prefsScroll || doc.getElementById('sc-start-on-injected')) return;
-
-    const store = useSettingsStore.getState();
-    const lang = store.settings.language ?? 'en';
-    const t = translations[lang as keyof typeof translations] ?? translations.en;
-    const sp = t.stagePrefs;
-    const cur = store.settings.defaultStageView ?? 'Editor';
-    const accent = resolveAccent(store.settings.accentColor);
-
-    const section = doc.createElement('div');
-    section.id = 'sc-start-on-injected';
-
-    const label = doc.createElement('div');
-    label.className = 'sc-prefs-section-label';
-    label.innerHTML = `<span class="material-symbols-outlined sc-sec-icon">dashboard</span><span class="sc-sec-text">${sp.startOn}</span>`;
-    section.appendChild(label);
-
-    const card = doc.createElement('div');
-    card.className = 'sc-prefs-card';
-
-    const row = doc.createElement('div');
-    row.className = 'sc-prefs-row';
-    row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;';
-
-    const textCol = doc.createElement('div');
-    const rl = doc.createElement('p');
-    rl.className = 'sc-prefs-row-label';
-    rl.textContent = sp.startOn;
-    const rh = doc.createElement('p');
-    rh.className = 'sc-prefs-row-hint';
-    rh.textContent = sp.startOnDesc;
-    textCol.appendChild(rl);
-    textCol.appendChild(rh);
-    row.appendChild(textCol);
-
-    const btnWrap = doc.createElement('div');
-    btnWrap.style.cssText = 'display:flex;gap:6px;flex-shrink:0;';
-
-    const views: { value: string; icon: string }[] = [
-      { value: 'Editor', icon: 'dashboard' },
-      { value: 'Setup', icon: 'layers' },
-      { value: 'Preferences', icon: 'tune' },
-    ];
-
-    views.forEach(({ value, icon }) => {
-      const btn = doc.createElement('button');
-      const active = cur === value;
-      btn.style.cssText = `
-        width:40px;height:40px;display:flex;align-items:center;justify-content:center;
-        border-radius:10px;cursor:pointer;transition:all 150ms ease;flex-shrink:0;
-        border:${active ? `2px solid ${accent.from}` : '2px solid transparent'};
-        background:${active ? `linear-gradient(135deg, ${accent.from}22, ${accent.to}18)` : 'rgba(255,255,255,0.06)'};
-        color:${active ? accent.from : 'rgba(160,160,180,0.8)'};
-      `;
-      const ic = doc.createElement('span');
-      ic.className = 'material-symbols-outlined';
-      ic.style.fontSize = '20px';
-      ic.textContent = icon;
-      btn.appendChild(ic);
-
-      btn.onclick = () => {
-        useSettingsStore
-          .getState()
-          .updateSettings({ defaultStageView: value as 'Editor' | 'Setup' | 'Preferences' });
-        const updated = useSettingsStore.getState().settings.defaultStageView ?? 'Editor';
-        const a2 = resolveAccent(useSettingsStore.getState().settings.accentColor);
-        btnWrap.querySelectorAll('button').forEach((b, idx) => {
-          const isActive = views[idx].value === updated;
-          (b as HTMLButtonElement).style.border = isActive
-            ? `2px solid ${a2.from}`
-            : '2px solid transparent';
-          (b as HTMLButtonElement).style.background = isActive
-            ? `linear-gradient(135deg, ${a2.from}22, ${a2.to}18)`
-            : 'rgba(255,255,255,0.06)';
-          (b as HTMLButtonElement).style.color = isActive ? a2.from : 'rgba(160,160,180,0.8)';
-        });
-      };
-
-      btnWrap.appendChild(btn);
-    });
-
-    row.appendChild(btnWrap);
-    card.appendChild(row);
-    section.appendChild(card);
-    prefsScroll.appendChild(section);
-  } catch {}
-}
-
-const STAGEX_LIBRARY: Record<string, { name: string; icon: string; type: string }[]> = {
-  mics: [
-    { name: 'SM58', icon: 'mic', type: 'Dynamic Mic' },
-    { name: 'Condenser', icon: 'mic-2', type: 'Condenser Mic' },
-    { name: 'Amp Mic', icon: 'mic', type: 'Instrument Mic' },
-    { name: 'Wireless', icon: 'cx-wireless', type: 'Wireless Mic' },
-    { name: 'Boundary', icon: 'cx-boundary', type: 'PZM Mic' },
-    { name: 'Drum Clip', icon: 'cx-drum-clip', type: 'Instrument Clip' },
-    { name: 'Mic Stand', icon: 'cx-mic-stand', type: 'Mic Stand' },
-  ],
-  drums: [
-    { name: 'Drum Kit', icon: 'drum', type: 'Acoustic Drums' },
-    { name: 'E-Drums', icon: 'cx-edrum', type: 'Electronic Drums' },
-    { name: 'Percussion', icon: 'cx-percussion', type: 'Percussion' },
-    { name: 'Cajón', icon: 'cx-cajon', type: 'Cajón' },
-  ],
-  inst: [
-    { name: 'Elec Guitar', icon: 'cx-elec-guitar', type: 'Electric Guitar' },
-    { name: 'Acou Guitar', icon: 'guitar', type: 'Acoustic Guitar' },
-    { name: 'Bass Guitar', icon: 'cx-bass-guitar', type: 'Bass Guitar' },
-    { name: 'Keyboard', icon: 'piano', type: 'Keyboard DI' },
-    { name: 'Synth', icon: 'cx-synth', type: 'Synthesizer' },
-    { name: 'Brass / Horn', icon: 'cx-trumpet', type: 'Brass Instrument' },
-    { name: 'Strings', icon: 'cx-violin', type: 'String Instrument' },
-    { name: 'Shaker', icon: 'cx-shaker', type: 'Shaker' },
-    { name: 'Tambourine', icon: 'cx-tambourine', type: 'Tambourine' },
-  ],
-  amps: [
-    { name: 'Guitar Amp', icon: 'cx-guitar-amp', type: 'Guitar Amplifier' },
-    { name: 'Bass Amp', icon: 'cx-bass-amp', type: 'Bass Amplifier' },
-    { name: 'Amp Cab', icon: 'cx-amp-cab', type: 'Guitar Cabinet' },
-    { name: 'Bass Cab', icon: 'cx-bass-cab', type: 'Bass Cabinet' },
-  ],
-  mon: [
-    { name: 'Wedge', icon: 'cx-wedge', type: 'Floor Wedge' },
-    { name: 'Floor PA', icon: 'volume-2', type: 'Powered Floor PA' },
-    { name: 'Stage Sub', icon: 'disc', type: 'Stage Sub-Woofer' },
-    { name: 'IEM Pack', icon: 'headphones', type: 'In-Ear Monitor' },
-    { name: 'Drum Fill', icon: 'speaker', type: 'Drum Fill Monitor' },
-    { name: 'Drum Sub', icon: 'disc-2', type: 'Drum Sub Monitor' },
-    { name: 'Side Fill', icon: 'megaphone', type: 'Side Fill' },
-    { name: 'Main PA L', icon: 'volume-2', type: 'Main PA Left' },
-    { name: 'Main PA R', icon: 'volume-2', type: 'Main PA Right' },
-    { name: 'Delay Tower', icon: 'radio', type: 'Delay Speaker Tower' },
-    { name: 'Front Fill', icon: 'cx-front-fill', type: 'Front Fill Speaker' },
-    { name: 'Headphone Amp', icon: 'headset', type: 'Headphone Amplifier' },
-  ],
-  util: [
-    { name: 'Mixer', icon: 'sliders-horizontal', type: 'Stage Mixer' },
-    { name: 'Power Distro', icon: 'zap', type: 'Power Distro' },
-    { name: 'Stage Box', icon: 'box', type: 'Stage Box' },
-    { name: 'Patch Bay', icon: 'grid-3x3', type: 'Patch Bay' },
-    { name: 'Router', icon: 'network', type: 'Network Router' },
-    { name: 'Splitter', icon: 'git-branch', type: 'Audio Splitter' },
-    { name: 'FOH Console', icon: 'sliders-vertical', type: 'FOH Mixing Console' },
-    { name: 'MON Console', icon: 'sliders-horizontal', type: 'Monitor Console' },
-    { name: 'Amp Rack', icon: 'server', type: 'Amplifier Rack' },
-    { name: 'Effects Rack', icon: 'cpu', type: 'Effects Rack' },
-    { name: 'Wireless Rack', icon: 'cx-wireless-rack', type: 'Wireless Rack' },
-    { name: 'Laptop', icon: 'laptop', type: 'Laptop / Computer' },
-    { name: 'Intercom', icon: 'headset', type: 'Intercom System' },
-    { name: 'DI Box', icon: 'cx-di-box', type: 'DI Box' },
-    { name: 'Loop Station', icon: 'repeat-2', type: 'Loop Station' },
-    { name: 'Playback', icon: 'play-circle', type: 'Playback Device' },
-    { name: 'Outlet', icon: 'cx-outlet', type: 'Power Outlet' },
-  ],
-  people: [
-    { name: 'Performer', icon: 'cx-person', type: 'Person' },
-    { name: 'Vocalist', icon: 'cx-vocalist', type: 'Person' },
-    { name: 'Guitarist', icon: 'cx-guitarist', type: 'Person' },
-    { name: 'Bassist', icon: 'cx-bassist', type: 'Person' },
-    { name: 'Drummer', icon: 'cx-drummer', type: 'Person' },
-    { name: 'Keyboardist', icon: 'cx-keyboardist', type: 'Person' },
-    { name: 'Saxophonist', icon: 'cx-saxophonist', type: 'Person' },
-    { name: 'Tech', icon: 'cx-tech', type: 'Person' },
-  ],
-};
-
-const STAGEX_ICON_MAP: Record<string, string> = {
-  mic: '/stage-core/icons/mic-sm58.png',
-  'mic-2': '/stage-core/icons/mic-condenser.png',
-  'cx-wireless': '/stage-core/icons/wireless-handheld.png',
-  'cx-boundary': '/stage-core/icons/boundary-mic.png',
-  'cx-drum-clip': '/stage-core/icons/drum-clip.png',
-  'cx-mic-stand': '/stage-core/icons/mic-stand.svg',
-  drum: '/stage-core/icons/drum-kit.png',
-  'cx-edrum': '/stage-core/icons/edrum.png',
-  'cx-percussion': '/stage-core/icons/percussion.png',
-  'cx-cajon': '/stage-core/icons/cajon.svg',
-  'cx-elec-guitar': '/stage-core/icons/elec-guitar.png',
-  guitar: '/stage-core/icons/acoustic-guitar.png',
-  'cx-bass-guitar': '/stage-core/icons/bass-guitar.png',
-  piano: '/stage-core/icons/keyboard.png',
-  'cx-synth': '/stage-core/icons/synth.png',
-  'cx-trumpet': '/stage-core/icons/trumpet.png',
-  'cx-violin': '/stage-core/icons/violin.png',
-  'cx-shaker': '/stage-core/icons/shaker.svg',
-  'cx-tambourine': '/stage-core/icons/tambourine.svg',
-  'cx-guitar-amp': '/stage-core/icons/guitar-amp.png',
-  'cx-bass-amp': '/stage-core/icons/bass-amp.png',
-  'cx-amp-cab': '/stage-core/icons/amp-cab.png',
-  'cx-bass-cab': '/stage-core/icons/bass-cab.png',
-  'cx-wedge': '/stage-core/icons/wedge.png',
-  'volume-2': '/stage-core/icons/main-pa.png',
-  disc: '/stage-core/icons/stage-sub.png',
-  headphones: '/stage-core/icons/iem-pack.png',
-  speaker: '/stage-core/icons/drum-fill.png',
-  'disc-2': '/stage-core/icons/drum-sub.svg',
-  megaphone: '/stage-core/icons/side-fill.png',
-  radio: '/stage-core/icons/delay-tower.svg',
-  'cx-front-fill': '/stage-core/icons/front-fill.png',
-  headset: '/stage-core/icons/headphone-amp.svg',
-  'sliders-horizontal': '/stage-core/icons/mon-console.png',
-  zap: '/stage-core/icons/power-distro.png',
-  box: '/stage-core/icons/stage-box.png',
-  'grid-3x3': '/stage-core/icons/patch-bay.png',
-  network: '/stage-core/icons/router.svg',
-  'git-branch': '/stage-core/icons/splitter.png',
-  'sliders-vertical': '/stage-core/icons/foh-console.png',
-  server: '/stage-core/icons/amp-rack.png',
-  cpu: '/stage-core/icons/effects-rack.png',
-  'cx-wireless-rack': '/stage-core/icons/wireless-rack.png',
-  laptop: '/stage-core/icons/laptop.svg',
-  'cx-di-box': '/stage-core/icons/di-box.png',
-  'repeat-2': '/stage-core/icons/loop-station.svg',
-  'play-circle': '/stage-core/icons/playback.svg',
-  'cx-outlet': '/stage-core/icons/outlet.webp',
-  'cx-person': '/stage-core/icons/person.png',
-  'cx-vocalist': '/stage-core/icons/vocalist.png',
-  'cx-guitarist': '/stage-core/icons/guitarist.png',
-  'cx-bassist': '/stage-core/icons/bassist.png',
-  'cx-drummer': '/stage-core/icons/drummer.png',
-  'cx-keyboardist': '/stage-core/icons/keyboardist.png',
-  'cx-saxophonist': '/stage-core/icons/saxophonist.png',
-  'cx-tech': '/stage-core/icons/tech.png',
-};
-
-const CATEGORY_ICONS: Record<string, string> = {
-  mics: 'mic',
-  drums: 'music_note',
-  inst: 'electric_bolt',
-  amps: 'speaker',
-  mon: 'volume_up',
-  util: 'settings_input_component',
-  people: 'person',
-  custom: 'add_circle',
-  presets: 'bookmark',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  mics: 'Mics',
-  drums: 'Drums',
-  inst: 'Instruments',
-  amps: 'Amps',
-  mon: 'Audio',
-  util: 'Utilities',
-  people: 'People',
-  custom: 'Custom',
-  presets: 'Presets',
+  addItemToStage?: (item: any) => void;
+  updateCanvasBg?: (c: string) => void;
 };
 
 const HIDE_IFRAME_UI = `
@@ -399,7 +84,6 @@ const HIDE_IFRAME_UI = `
   #sc-item-sheet { display: none !important; }
   #sc-dial-backdrop { display: none !important; }
   #sc-el-presets-panel { bottom: 80px !important; }
-  #mobile-nav-bar { opacity: 0 !important; pointer-events: none !important; }
   @media screen and (orientation: landscape) and (max-width: 960px) {
     #sc-fab-wrap { display: none !important; }
   }
@@ -407,7 +91,6 @@ const HIDE_IFRAME_UI = `
 
 const HIDE_IFRAME_UI_MOBILE = `
   #sc-fab-btn { display: none !important; }
-  #mobile-nav-bar { display: none !important; opacity: 0 !important; pointer-events: none !important; }
   #canvas-container {
     top: 0 !important;
     bottom: 0 !important;
@@ -418,34 +101,7 @@ const HIDE_IFRAME_UI_MOBILE = `
     top: 0 !important;
     bottom: calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
   }
-  /* Setup Hub: Hide duplicate HTML header and align cards with canonical Studio vertical rhythm */
-  #view-SetupHub {
-    top: 0 !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
-  #view-SetupHub > div {
-    padding: 6px var(--page-inset-h, 24px) calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  #view-SetupHub > div > div:first-child {
-    display: none !important;
-  }
-  /* Preferences: Hide duplicate HTML header and align settings sections with canonical vertical rhythm */
-  #view-Assistant {
-    top: 0 !important;
-    height: 100% !important;
-    padding-top: 0 !important;
-  }
-  #view-Assistant .sc-prefs-scroll {
-    padding: 6px var(--page-inset-h, 24px) calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  #view-Assistant .sc-prefs-scroll > div:first-child {
-    display: none !important;
-  }
-  #view-Assistant .sc-prefs-scroll .sc-prefs-section-label:first-of-type {
-    margin-top: 0 !important;
-  }
-  /* Stage Viewport: remove duplicate safe-area-inset-top (handled by canonical StudioHeader), clear bottom nav */
+  /* Stage Viewport: clear top safe-area (handled by canonical StudioHeader) and clear bottom padding */
   #stage-viewport {
     padding-top: 6px !important;
     padding-bottom: calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
@@ -561,29 +217,6 @@ export default function StagexPanel() {
       console.error('Failed to add element to stage', err);
     }
   }, []);
-
-  const getSearchResults = useCallback(() => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return [];
-
-    const results: any[] = [];
-
-    Object.entries(STAGEX_LIBRARY).forEach(([cat, items]) => {
-      items.forEach((item) => {
-        if (item.name.toLowerCase().includes(query) || item.type.toLowerCase().includes(query)) {
-          results.push({ ...item, category: cat });
-        }
-      });
-    });
-
-    customElements.forEach((item) => {
-      if (item.name && item.name.toLowerCase().includes(query)) {
-        results.push({ ...item, category: 'custom' });
-      }
-    });
-
-    return results;
-  }, [searchQuery, customElements]);
 
   const currentRoute = useNavigationStore((s) => s.history[s.history.length - 1]) || { app: 'hub' };
   const curView = useMemo(() => {
@@ -1599,26 +1232,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             s.textContent = isWebDesktop ? HIDE_IFRAME_UI : HIDE_IFRAME_UI_MOBILE;
             doc.head.appendChild(s);
           }
-          if (!doc.getElementById('sc-scroll-spy')) {
-            const scr = doc.createElement('script');
-            scr.id = 'sc-scroll-spy';
-            scr.textContent = `(function(){
-            var ly=0;
-            function h(e){
-              var t=e.target;
-              if(t&&t.closest&&t.closest('#bottom-toolbar,#properties-panel'))return;
-              var y=t.scrollTop;
-              if(typeof y!=='number')return;
-              if(y<30){window.parent.postMessage({type:'sc-scroll-dir',down:false},'*');ly=y;return;}
-              var dy=y-ly;
-              if(Math.abs(dy)<6)return;
-              window.parent.postMessage({type:'sc-scroll-dir',down:dy>0},'*');
-              ly=y;
-            }
-            document.addEventListener('scroll',h,{passive:true,capture:true});
-          })();`;
-            doc.body.appendChild(scr);
-          }
         }
       } catch {}
       try {
@@ -1638,8 +1251,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           win?.switchView?.(targetView);
         }
       } catch {}
-
-      injectStartOnPicker(iframe);
     },
     [accent.from, accent.to, stageTheme, isAmoled, isWebDesktop]
   );
@@ -2015,152 +1626,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     setNavCollapsed(false);
   }, [curView]);
 
-  const renderItemIcon = (item: any) => {
-    if (item.isCustom) {
-      if (item.imageData) {
-        return (
-          <img
-            src={item.imageData}
-            style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-            alt=""
-          />
-        );
-      }
-      return <span style={{ fontSize: '18px', lineHeight: 1 }}>{item.emoji || '🎵'}</span>;
-    }
-    const svgPath = STAGEX_ICON_MAP[item.icon];
-    if (svgPath) {
-      const isRaster = svgPath.endsWith('.png') || svgPath.endsWith('.webp');
-      const filterStyle = isRaster
-        ? undefined
-        : isLight
-          ? 'opacity(0.7)'
-          : 'invert(1) opacity(0.7)';
-      return (
-        <img
-          src={svgPath}
-          style={{ width: '20px', height: '20px', objectFit: 'contain', filter: filterStyle }}
-          alt=""
-        />
-      );
-    }
-    return (
-      <span
-        className="material-symbols-outlined"
-        style={{ fontSize: '20px', color: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)' }}
-      >
-        {item.icon}
-      </span>
-    );
-  };
-
-  const renderCard = (item: any) => {
-    return (
-      <button
-        key={item.name}
-        onClick={() => handleAddElement(item)}
-        className={`btn-smooth ${isLight ? 'hover:bg-black/5' : 'hover:bg-white/5'} text-left`}
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '8px 4px',
-          background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-          border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.05)',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          height: '68px',
-          width: '100%',
-          boxSizing: 'border-box',
-          transition: 'all 150ms ease',
-        }}
-      >
-        <div
-          style={{
-            height: '26px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {renderItemIcon(item)}
-        </div>
-        <span
-          style={{
-            fontSize: '8px',
-            fontWeight: 700,
-            color: isLight ? 'rgba(0,0,0,0.75)' : 'rgba(255,255,255,0.65)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            textAlign: 'center',
-            marginTop: '6px',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            width: '100%',
-            padding: '0 4px',
-            boxSizing: 'border-box',
-          }}
-        >
-          {item.name}
-        </span>
-      </button>
-    );
-  };
-
-  const renderStageCollapsibleSection = (
-    id: string,
-    title: string,
-    icon: string,
-    content: React.ReactNode,
-    isAccent = false,
-    isGold = false
-  ) => {
-    const isCollapsed = !expandedCats[id];
-    const headerColor = isAccent
-      ? accent.from
-      : isGold
-        ? '#f0b429'
-        : isLight
-          ? 'rgba(0,0,0,0.55)'
-          : 'rgba(255, 255, 255, 0.4)';
-
-    const item: BouncyAccordionItem = {
-      id,
-      title: (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span
-            className="material-symbols-outlined"
-            style={{ fontSize: '16px', color: headerColor }}
-          >
-            {icon}
-          </span>
-          <span
-            style={{
-              fontSize: '10px',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-            }}
-          >
-            {title}
-          </span>
-        </div>
-      ),
-      description: <div style={{ padding: '4px 2px 0 2px' }}>{content}</div>,
-    };
-
-    return (
-      <BouncyAccordion
-        key={id}
-        items={[item]}
-        value={!isCollapsed ? id : null}
-        onValueChange={(val) => setExpandedCats((prev) => ({ ...prev, [id]: val === id }))}
-      />
-    );
-  };
-
   if (isWebDesktop) {
     return (
       <div
@@ -2192,109 +1657,16 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
           }}
         >
           {/* Top header/toolbar */}
-          <Toolbar
-            className="h-12 flex-shrink-0 select-none"
-            style={{
-              background: 'var(--c-surface-mid)',
-              borderBottom: '1px solid var(--c-border)',
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="font-extrabold text-[10px] uppercase tracking-widest"
-                style={{ letterSpacing: '0.08em', color: 'var(--c-text-primary)' }}
-              >
-                Stagex
-              </span>
-              <div className="h-4 w-[1px]" style={{ backgroundColor: 'var(--c-border)' }} />
-              <span
-                className="text-[8.5px] font-extrabold uppercase tracking-widest"
-                style={{ color: 'var(--c-text-secondary)' }}
-              >
-                {curView === 'Editor'
-                  ? 'Stage Plot Editor'
-                  : curView === 'Export'
-                    ? 'Rider Export'
-                    : 'Setup & Options'}
-              </span>
-            </div>
-
-            {curView === 'Editor' && (
-              <div className="flex gap-1.5">
-                {[
-                  {
-                    label: tr.stagex.toolMeasure,
-                    icon: 'straighten',
-                    fn: () => callIframe('scActivateMeasure'),
-                  },
-                  {
-                    label: tr.stagex.toolHistory,
-                    icon: 'history',
-                    fn: () => callIframe('openTimelinePanel'),
-                  },
-                ].map(({ label, icon, fn }) => (
-                  <Button key={label} onClick={fn} variant="secondary" className="h-8 !px-2.5">
-                    <span className="material-symbols-outlined text-[15px]">{icon}</span>
-                    {label}
-                  </Button>
-                ))}
-                <Button
-                  onClick={() => callIframe('openPresetsPanel')}
-                  variant="secondary"
-                  className="h-8 !px-2.5"
-                >
-                  <span className="material-symbols-outlined text-[15px]">save</span>
-                  Save Preset
-                </Button>
-                <Button
-                  onClick={() => transitionToView('Export')}
-                  variant="secondary"
-                  className="h-8 !px-2.5"
-                >
-                  <span className="material-symbols-outlined text-[15px]">picture_as_pdf</span>
-                  Export Rider
-                </Button>
-                <Button
-                  onClick={() => setCollabModalOpen(true)}
-                  variant="secondary"
-                  className="h-8 !px-2.5"
-                >
-                  <span
-                    className="material-symbols-outlined text-[15px]"
-                    style={{ color: collabState === 'connected' ? '#10b981' : undefined }}
-                  >
-                    {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
-                  </span>
-                  {collabState === 'connected' ? 'Live' : 'Collab'}
-                </Button>
-              </div>
-            )}
-
-            {curView === 'Export' && (
-              <div className="flex gap-1.5">
-                <Button
-                  onClick={() => transitionToView('Editor')}
-                  variant="secondary"
-                  className="h-8 !px-2.5"
-                >
-                  <span className="material-symbols-outlined text-[15px]">arrow_back</span>
-                  Editor
-                </Button>
-                <Button
-                  onClick={() => callIframe('toggleExportOptions')}
-                  variant="secondary"
-                  className="h-8 !px-2.5"
-                >
-                  <span className="material-symbols-outlined text-[15px]">tune</span>
-                  Sections
-                </Button>
-                <Button onClick={openPdfSheet} variant="primary" className="h-8 !px-2.5">
-                  <span className="material-symbols-outlined text-[15px]">download</span>
-                  Get PDF
-                </Button>
-              </div>
-            )}
-          </Toolbar>
+          <StageToolbar
+            curView={curView}
+            isLight={isLight}
+            tr={tr}
+            callIframe={callIframe}
+            transitionToView={transitionToView}
+            openPdfSheet={openPdfSheet}
+            collabState={collabState}
+            onOpenCollab={() => setCollabModalOpen(true)}
+          />
 
           {/* Main workspace area */}
           <div style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
@@ -2420,304 +1792,19 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
                   overflow: 'hidden',
                 }}
               >
-                {/* Scrollable Elements Area */}
-                <div
-                  style={{
-                    flex: 1,
-                    overflowY: 'auto',
-                    padding: '16px 16px var(--content-bottom-pad, 96px) 16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '16px',
-                  }}
-                >
-                  {/* Title & Search */}
-                  <div>
-                    <h4
-                      style={{
-                        fontSize: '9px',
-                        fontWeight: 800,
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.12em',
-                        color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.3)',
-                        marginBottom: '8px',
-                      }}
-                    >
-                      Stage Elements
-                    </h4>
-
-                    <div style={{ position: 'relative', width: '100%', marginBottom: '4px' }}>
-                      <span
-                        className="material-symbols-outlined"
-                        style={{
-                          position: 'absolute',
-                          left: '10px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          fontSize: '16px',
-                          color: isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.35)',
-                        }}
-                      >
-                        search
-                      </span>
-                      <input
-                        type="text"
-                        placeholder="Search elements..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{
-                          width: '100%',
-                          height: '32px',
-                          background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                          border: isLight
-                            ? '1px solid rgba(0,0,0,0.1)'
-                            : '1px solid rgba(255,255,255,0.07)',
-                          borderRadius: '6px',
-                          paddingLeft: '32px',
-                          paddingRight: searchQuery ? '28px' : '10px',
-                          fontSize: '11px',
-                          color: isLight ? '#000' : '#fff',
-                          outline: 'none',
-                          boxSizing: 'border-box',
-                        }}
-                      />
-                      {searchQuery && (
-                        <button
-                          onClick={() => setSearchQuery('')}
-                          style={{
-                            position: 'absolute',
-                            right: '8px',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.4)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            padding: 0,
-                          }}
-                        >
-                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-                            close
-                          </span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Elements List */}
-                  {searchQuery ? (
-                    <div>
-                      <h5
-                        style={{
-                          fontSize: '8.5px',
-                          fontWeight: 800,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.08em',
-                          color: isLight ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.35)',
-                          marginBottom: '8px',
-                        }}
-                      >
-                        Search Results
-                      </h5>
-                      {(() => {
-                        const results = getSearchResults();
-                        if (results.length === 0) {
-                          return (
-                            <div
-                              style={{
-                                textAlign: 'center',
-                                padding: '24px 12px',
-                                color: isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.25)',
-                                fontSize: '11px',
-                              }}
-                            >
-                              No elements found
-                            </div>
-                          );
-                        }
-                        return (
-                          <div
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(2, 1fr)',
-                              gap: '8px',
-                            }}
-                          >
-                            {results.map((item, idx) => (
-                              <div key={idx} style={{ width: '100%' }}>
-                                {renderCard(item)}
-                              </div>
-                            ))}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      {renderStageCollapsibleSection(
-                        'presets',
-                        CATEGORY_LABELS.presets,
-                        CATEGORY_ICONS.presets,
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <button
-                            onClick={() => callIframe('openPresetsPanel')}
-                            className="btn-smooth"
-                            style={{
-                              width: '100%',
-                              padding: '8px 12px',
-                              background: 'var(--c-surface-low)',
-                              border: '1px solid var(--c-border)',
-                              color: 'var(--c-text-primary)',
-                              borderRadius: '8px',
-                              fontSize: '9px',
-                              fontWeight: 800,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.08em',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                            }}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: '14px' }}
-                            >
-                              save
-                            </span>
-                            Save Preset
-                          </button>
-                          <button
-                            onClick={() => callIframe('scOpenElPresets')}
-                            className="btn-smooth"
-                            style={{
-                              width: '100%',
-                              padding: '8px 12px',
-                              background: 'var(--c-surface-low)',
-                              border: '1px solid var(--c-border)',
-                              color: 'var(--c-text-primary)',
-                              borderRadius: '8px',
-                              fontSize: '9px',
-                              fontWeight: 800,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.08em',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                            }}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: '14px' }}
-                            >
-                              bookmark
-                            </span>
-                            Manage Presets
-                          </button>
-                        </div>,
-                        false,
-                        true
-                      )}
-
-                      {renderStageCollapsibleSection(
-                        'custom',
-                        CATEGORY_LABELS.custom,
-                        CATEGORY_ICONS.custom,
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                          <button
-                            onClick={() => {
-                              try {
-                                const win = iframeRef.current?.contentWindow as any;
-                                win?.openCustomElementModal?.();
-                              } catch {}
-                            }}
-                            className="btn-smooth"
-                            style={{
-                              width: '100%',
-                              padding: '8px 12px',
-                              background: 'transparent',
-                              border: '1px dashed var(--c-border)',
-                              color: 'var(--c-text-secondary)',
-                              borderRadius: '8px',
-                              fontSize: '9px',
-                              fontWeight: 800,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.08em',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '6px',
-                            }}
-                          >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: '14px' }}
-                            >
-                              add
-                            </span>
-                            Create Custom
-                          </button>
-
-                          {customElements.length > 0 ? (
-                            <div
-                              style={{
-                                display: 'grid',
-                                gridTemplateColumns: 'repeat(2, 1fr)',
-                                gap: '8px',
-                                marginTop: '4px',
-                              }}
-                            >
-                              {customElements.map((item, idx) => (
-                                <div key={idx} style={{ width: '100%' }}>
-                                  {renderCard({ ...item, isCustom: true })}
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div
-                              style={{
-                                fontSize: '9px',
-                                color: isLight ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.3)',
-                                textAlign: 'center',
-                                padding: '12px 6px',
-                              }}
-                            >
-                              No custom elements yet.
-                            </div>
-                          )}
-                        </div>,
-                        true
-                      )}
-
-                      {Object.keys(STAGEX_LIBRARY).map((catKey) =>
-                        renderStageCollapsibleSection(
-                          catKey,
-                          CATEGORY_LABELS[catKey],
-                          CATEGORY_ICONS[catKey],
-                          <div
-                            style={{
-                              display: 'grid',
-                              gridTemplateColumns: 'repeat(2, 1fr)',
-                              gap: '8px',
-                            }}
-                          >
-                            {STAGEX_LIBRARY[catKey].map((item, idx) => (
-                              <div key={idx} style={{ width: '100%' }}>
-                                {renderCard(item)}
-                              </div>
-                            ))}
-                          </div>
-                        )
-                      )}
-                    </div>
-                  )}
+                <div style={{ flex: 1, overflowY: 'auto' }}>
+                  <StageLibraryPanel
+                    isLight={isLight}
+                    accent={accent}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    customElements={customElements}
+                    expandedCats={expandedCats}
+                    setExpandedCats={setExpandedCats}
+                    callIframe={callIframe}
+                    iframeRef={iframeRef}
+                    handleAddElement={handleAddElement}
+                  />
                 </div>
 
                 {/* Fixed Bottom Section */}

@@ -2482,27 +2482,27 @@ function buildLibraryItem(item) {
 })();
 
 // Close song modal on backdrop click or Escape
-document.getElementById('song-modal').addEventListener('click', function (e) {
+document.getElementById('song-modal')?.addEventListener('click', function (e) {
   if (e.target === this) closeSongModal();
 });
-document.getElementById('segment-modal').addEventListener('click', function (e) {
+document.getElementById('segment-modal')?.addEventListener('click', function (e) {
   if (e.target === this) closeSegmentModal();
 });
-document.getElementById('smart-sort-modal').addEventListener('click', function (e) {
+document.getElementById('smart-sort-modal')?.addEventListener('click', function (e) {
   if (e.target === this) closeSmartSortModal();
 });
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
-    if (document.getElementById('song-modal').style.display !== 'none') closeSongModal();
-    if (document.getElementById('segment-modal').style.display !== 'none') closeSegmentModal();
-    if (document.getElementById('smart-sort-modal').style.display !== 'none') closeSmartSortModal();
+    if (document.getElementById('song-modal')?.style?.display !== 'none') closeSongModal?.();
+    if (document.getElementById('segment-modal')?.style?.display !== 'none') closeSegmentModal?.();
+    if (document.getElementById('smart-sort-modal')?.style?.display !== 'none') closeSmartSortModal?.();
   }
 });
 // Save on Enter in title field
-document.getElementById('sng-title').addEventListener('keydown', function (e) {
+document.getElementById('sng-title')?.addEventListener('keydown', function (e) {
   if (e.key === 'Enter') saveSong();
 });
-document.getElementById('seg-name').addEventListener('keydown', function (e) {
+document.getElementById('seg-name')?.addEventListener('keydown', function (e) {
   if (e.key === 'Enter') saveSegment();
 });
 
@@ -8002,6 +8002,10 @@ window.switchView = switchView;
 window.toggleSCDial = toggleSCDial;
 window.toggleGigMode = toggleGigMode;
 window.openPresetsPanel = openPresetsPanel;
+window.state = state;
+window.addItemToStage = addItemToStage;
+window.selectElement = selectElement;
+window.updateCanvasBg = updateCanvasBg;
 
 function setAutosaveUI(mode) {
   const dot = document.getElementById('autosave-dot');

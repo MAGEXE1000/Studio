@@ -8,7 +8,7 @@ param (
 
 # 1. Single Source of Truth Version Bump
 Write-Host "1. Bumping Single Source of Truth (root package.json)..."
-$npmResult = npm version $BumpType --no-git-tag-version
+$npmResult = npm.cmd version $BumpType --no-git-tag-version
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Failed to bump root package.json version."
     exit 1

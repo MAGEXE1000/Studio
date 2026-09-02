@@ -1019,6 +1019,9 @@ function UpdateModal({
   const hubVisTheme = useSettingsStore(
     (s) => s.settings.perApp?.hub?.theme ?? s.settings.theme ?? 'dark'
   );
+  const isAmoledMode = useSettingsStore(
+    (s) => s.settings.perApp?.hub?.amoledMode ?? s.settings.amoledMode ?? false
+  );
   const dynamicLightStart = useSettingsStore((s) => s.settings.dynamicLightStart ?? 7);
   const dynamicLightEnd = useSettingsStore((s) => s.settings.dynamicLightEnd ?? 20);
   const isLight = (() => {
@@ -1034,6 +1037,7 @@ function UpdateModal({
     }
     return false;
   })();
+  const isAmoled = !isLight && isAmoledMode;
 
   const [interpolatedProgress, setInterpolatedProgress] = useState(0);
 
@@ -2249,54 +2253,254 @@ function UpdateModal({
     return [];
   })();
 
-  const finalNotes = notesList;
+  const parsedNotes = notesList.map((raw) => {
+    let text = sanitizeUTF8String(raw || '').trim();
+    // Strip leading bullet or dash e.g. "• ", "- ", "* "
+    text = text.replace(/^[-*•]\s*/, '').trim();
+
+    let tag: string | null = null;
+    let tagType: 'improved' | 'fixed' | 'added' | 'changed' | 'default' = 'default';
+
+    // 1. Check for [Category] tag e.g. [Improved], [Fixed], [Added], [Changed]
+    const tagMatch = text.match(
+      /^\[(Added|Improved|Fixed|Changed|Bug\s*Fixes|Fixes|Features|Security)\]\s*(.*)$/i
+    );
+    if (tagMatch) {
+      tag = tagMatch[1];
+      const rawTag = tag.toLowerCase();
+      if (rawTag.startsWith('improv')) tagType = 'improved';
+      else if (rawTag.startsWith('fix') || rawTag.startsWith('bug')) tagType = 'fixed';
+      else if (rawTag.startsWith('add') || rawTag.startsWith('feat')) tagType = 'added';
+      else tagType = 'changed';
+      text = tagMatch[2].trim();
+    }
+
+    // 2. Check for Title: Description pattern
+    let title: string | null = null;
+    let body = text;
+    const colonIdx = text.indexOf(':');
+    if (colonIdx > 0 && colonIdx < 65 && !text.slice(0, colonIdx).includes('\n')) {
+      title = text.slice(0, colonIdx + 1).trim();
+      body = text.slice(colonIdx + 1).trim();
+    }
+
+    return { tag, tagType, title, body };
+  });
+
+  const getTagStyle = (
+    tagType: 'improved' | 'fixed' | 'added' | 'changed' | 'default'
+  ): { bg: string; color: string; border: string } => {
+    switch (tagType) {
+      case 'improved':
+        return {
+          bg: isLight
+            ? 'rgba(2, 132, 199, 0.09)'
+            : isAmoled
+              ? 'rgba(56, 189, 248, 0.14)'
+              : 'rgba(56, 189, 248, 0.12)',
+          color: isLight ? '#0369a1' : isAmoled ? '#bae6fd' : '#7dd3fc',
+          border: isLight
+            ? '1px solid rgba(2, 132, 199, 0.24)'
+            : '1px solid rgba(56, 189, 248, 0.28)',
+        };
+      case 'fixed':
+        return {
+          bg: isLight
+            ? 'rgba(22, 163, 74, 0.09)'
+            : isAmoled
+              ? 'rgba(74, 222, 128, 0.14)'
+              : 'rgba(74, 222, 128, 0.12)',
+          color: isLight ? '#15803d' : isAmoled ? '#bbf7d0' : '#86efac',
+          border: isLight
+            ? '1px solid rgba(22, 163, 74, 0.24)'
+            : '1px solid rgba(74, 222, 128, 0.28)',
+        };
+      case 'added':
+        return {
+          bg: isLight
+            ? 'rgba(124, 58, 237, 0.09)'
+            : isAmoled
+              ? 'rgba(168, 85, 247, 0.14)'
+              : 'rgba(168, 85, 247, 0.12)',
+          color: isLight ? '#6d28d9' : isAmoled ? '#e9d5ff' : '#d8b4fe',
+          border: isLight
+            ? '1px solid rgba(124, 58, 237, 0.24)'
+            : '1px solid rgba(168, 85, 247, 0.28)',
+        };
+      case 'changed':
+      default:
+        return {
+          bg: isLight
+            ? 'rgba(100, 116, 139, 0.09)'
+            : isAmoled
+              ? 'rgba(148, 163, 184, 0.14)'
+              : 'rgba(148, 163, 184, 0.12)',
+          color: isLight ? '#475569' : isAmoled ? '#e2e8f0' : '#cbd5e1',
+          border: isLight
+            ? '1px solid rgba(100, 116, 139, 0.24)'
+            : '1px solid rgba(148, 163, 184, 0.28)',
+        };
+    }
+  };
 
   const changelogContent = (
     <div
+      className="studio-updater-changelog-scroll"
       style={{
         width: '100%',
-        background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-        border: isLight ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(255,255,255,0.08)',
+        background: isLight
+          ? 'rgba(0, 0, 0, 0.025)'
+          : isAmoled
+            ? '#050505'
+            : 'rgba(255, 255, 255, 0.03)',
+        border: isLight
+          ? '1px solid rgba(0, 0, 0, 0.08)'
+          : isAmoled
+            ? '1px solid rgba(255, 255, 255, 0.12)'
+            : '1px solid rgba(255, 255, 255, 0.08)',
         borderRadius: 14,
         padding: '12px 14px',
         textAlign: 'left',
         display: 'flex',
         flexDirection: 'column',
-        gap: 6,
-        maxHeight: 150,
+        gap: 8,
+        maxHeight: 'min(250px, 34vh)',
         overflowY: 'auto',
         boxSizing: 'border-box',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
       }}
     >
       <div
         style={{
-          fontSize: 11,
-          fontWeight: 800,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          color: 'var(--c-accent-from, #679cff)',
-          fontFamily: 'Manrope, sans-serif',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingBottom: 4,
+          borderBottom: isLight
+            ? '1px solid rgba(0, 0, 0, 0.05)'
+            : '1px solid rgba(255, 255, 255, 0.06)',
         }}
       >
-        What's New
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            color: `var(--c-accent-from, ${accentFrom || '#679cff'})`,
+            fontFamily: 'Manrope, sans-serif',
+          }}
+        >
+          What's New
+        </span>
+        {targetVer && (
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              fontFamily: 'Inter, sans-serif',
+              color: isLight ? '#64748b' : '#94a3b8',
+              background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+              padding: '1px 6px',
+              borderRadius: 4,
+            }}
+          >
+            v{targetVer}
+          </span>
+        )}
       </div>
-      <ul
+
+      <div
         style={{
-          margin: 0,
-          paddingLeft: 16,
           display: 'flex',
           flexDirection: 'column',
-          gap: 4,
-          fontSize: 12,
-          color: isLight ? '#334155' : '#e2e8f0',
-          fontFamily: 'Inter, sans-serif',
-          lineHeight: 1.4,
+          gap: 10,
+          margin: 0,
+          padding: 0,
         }}
       >
-        {finalNotes.map((note, idx) => (
-          <li key={idx}>{note}</li>
-        ))}
-      </ul>
+        {parsedNotes.map((note, idx) => {
+          const tagStyle = getTagStyle(note.tagType);
+          const isLast = idx === parsedNotes.length - 1;
+          return (
+            <div
+              key={idx}
+              style={{
+                display: 'block',
+                paddingBottom: isLast ? 0 : 8,
+                borderBottom: isLast
+                  ? 'none'
+                  : isLight
+                    ? '1px solid rgba(0, 0, 0, 0.04)'
+                    : '1px solid rgba(255, 255, 255, 0.04)',
+                textAlign: 'left',
+                lineHeight: 1.55,
+              }}
+            >
+              {note.tag ? (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    fontFamily: 'Manrope, sans-serif',
+                    letterSpacing: '0.03em',
+                    padding: '1.5px 6px',
+                    borderRadius: 5,
+                    background: tagStyle.bg,
+                    color: tagStyle.color,
+                    border: tagStyle.border,
+                    lineHeight: 1.25,
+                    marginRight: 6,
+                    verticalAlign: 'baseline',
+                    flexShrink: 0,
+                  }}
+                >
+                  [{note.tag}]
+                </span>
+              ) : (
+                <span
+                  style={{
+                    display: 'inline-block',
+                    width: 5,
+                    height: 5,
+                    borderRadius: '50%',
+                    background: `var(--c-accent-from, ${accentFrom || '#679cff'})`,
+                    marginRight: 6,
+                    verticalAlign: 'middle',
+                  }}
+                />
+              )}
+              {note.title && (
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    fontFamily: 'Inter, sans-serif',
+                    color: isLight ? '#0f172a' : isAmoled ? '#ffffff' : '#f8fafc',
+                    marginRight: 4,
+                  }}
+                >
+                  {note.title}
+                </span>
+              )}
+              <span
+                style={{
+                  fontSize: 12,
+                  fontFamily: 'Inter, sans-serif',
+                  color: isLight ? '#334155' : isAmoled ? '#e5e5e5' : '#cbd5e1',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {note.body}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -2326,6 +2530,7 @@ function UpdateModal({
       onClose={onClose}
       progressComponent={progressComponent}
       isLight={isLight}
+      isAmoled={isAmoled}
       fromVersion={fromLabel}
       toVersion={toVersion}
     />

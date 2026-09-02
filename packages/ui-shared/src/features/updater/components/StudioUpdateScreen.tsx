@@ -5,7 +5,6 @@ import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import { Loader } from '../../../components/motion/loader';
 import { MorphingModal } from '../../../components/motion/morphing-modal';
 
-
 interface StudioUpdateScreenProps {
   state: string;
   progress?: number;
@@ -23,6 +22,7 @@ interface StudioUpdateScreenProps {
   onClose?: () => void;
   progressComponent?: React.ReactNode;
   isLight?: boolean;
+  isAmoled?: boolean;
   fromVersion?: string;
   toVersion?: string;
   bottomSection?: React.ReactNode;
@@ -45,6 +45,7 @@ export default memo(function StudioUpdateScreen({
   onClose,
   progressComponent,
   isLight = false,
+  isAmoled = false,
   fromVersion,
   toVersion,
   bottomSection,
@@ -113,6 +114,16 @@ export default memo(function StudioUpdateScreen({
       50% { transform: translateX(100%); }
       100% { transform: translateX(100%); }
     }
+    .studio-updater-changelog-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .studio-updater-changelog-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .studio-updater-changelog-scroll::-webkit-scrollbar-thumb {
+      background: rgba(128, 128, 128, 0.28);
+      border-radius: 4px;
+    }
   `;
 
   // Map icon names to material symbols according to official HTML spec
@@ -133,11 +144,10 @@ export default memo(function StudioUpdateScreen({
       viewId={state || 'update'}
       onClose={canClose && onClose ? onClose : () => {}}
       placement="center"
-      className="glow-animation max-w-sm w-full p-8 text-center flex flex-col items-center gap-6"
+      className="glow-animation max-w-sm w-full text-center flex flex-col items-center max-h-[calc(100dvh-32px)] overflow-y-auto"
     >
       <style>{customKeyframes}</style>
-      <div className="relative w-full flex flex-col items-center gap-6 text-center">
-
+      <div className="relative w-full flex flex-col items-center gap-4 sm:gap-5 text-center">
         {/* Close Button matching HTML spec */}
         {canClose && onClose && (
           <button
@@ -165,19 +175,28 @@ export default memo(function StudioUpdateScreen({
         )}
 
         {/* Icon Circle Header matching HTML spec */}
-        {['idle', 'installed', 'update_success', 'completed', 'installedOrReady'].includes(state) ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '12px 0 6px' }}>
-            <AnimatedIcon name="check" state="success" size={80} color="#22c55e" strokeWidth={3} />
+        {['idle', 'installed', 'update_success', 'completed', 'installedOrReady'].includes(
+          state
+        ) ? (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '12px 0 6px',
+            }}
+          >
+            <AnimatedIcon name="check" state="success" size={72} color="#22c55e" strokeWidth={3} />
           </div>
         ) : (
           <motion.div
             layoutId="updater-icon-container"
             transition={emphasizedTransition}
             style={{
-              width: 80,
-              height: 80,
+              width: 72,
+              height: 72,
               borderRadius: '50%',
-              background: isLight ? '#f1f5f9' : '#252626',
+              background: isLight ? '#f1f5f9' : isAmoled ? '#121212' : '#252626',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -199,7 +218,12 @@ export default memo(function StudioUpdateScreen({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.2 }}
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 1,
+                }}
               >
                 {showSpinner ? (
                   <Loader variant="spinner" size={36} />
@@ -260,10 +284,14 @@ export default memo(function StudioUpdateScreen({
             transition={emphasizedTransition}
             style={{
               width: '100%',
-              background: isLight ? '#f8fafc' : '#131313',
-              border: isLight ? '1px solid rgba(0, 0, 0, 0.06)' : 'none',
+              background: isLight ? '#f8fafc' : isAmoled ? '#000000' : '#131313',
+              border: isLight
+                ? '1px solid rgba(0, 0, 0, 0.06)'
+                : isAmoled
+                  ? '1px solid rgba(255, 255, 255, 0.12)'
+                  : 'none',
               borderRadius: 12,
-              padding: 16,
+              padding: '12px 14px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -412,7 +440,5 @@ export default memo(function StudioUpdateScreen({
         </AnimatePresence>
       </div>
     </MorphingModal>
-
   );
 });
-

@@ -407,23 +407,48 @@ const HIDE_IFRAME_UI_MOBILE = `
   }
   .scrollable-view {
     top: 0 !important;
-    bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px) !important;
+    bottom: calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
   }
+  /* Setup Hub: Hide duplicate HTML header and align cards with canonical Studio vertical rhythm */
+  #view-SetupHub {
+    top: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  #view-SetupHub > div {
+    padding: 6px var(--page-inset-h, 24px) calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  #view-SetupHub > div > div:first-child {
+    display: none !important;
+  }
+  /* Preferences: Hide duplicate HTML header and align settings sections with canonical vertical rhythm */
   #view-Assistant {
+    top: 0 !important;
+    height: 100% !important;
     padding-top: 0 !important;
   }
+  #view-Assistant .sc-prefs-scroll {
+    padding: 6px var(--page-inset-h, 24px) calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  #view-Assistant .sc-prefs-scroll > div:first-child {
+    display: none !important;
+  }
+  #view-Assistant .sc-prefs-scroll .sc-prefs-section-label:first-of-type {
+    margin-top: 0 !important;
+  }
+  /* Stage Viewport: remove duplicate safe-area-inset-top (handled by canonical StudioHeader), clear bottom nav */
   #stage-viewport {
-    padding-top: calc(max(10px, env(safe-area-inset-top, 0px))) !important;
-    padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px) !important;
-    padding-left: calc(max(10px, env(safe-area-inset-left, 0px))) !important;
-    padding-right: calc(max(10px, env(safe-area-inset-right, 0px))) !important;
+    padding-top: 6px !important;
+    padding-bottom: calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
+    padding-left: calc(max(12px, env(safe-area-inset-left, 0px))) !important;
+    padding-right: calc(max(12px, env(safe-area-inset-right, 0px))) !important;
   }
   #stage-canvas, #sc-scenes-bar {
     max-width: min(
       1080px,
-      calc(100vw - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc((100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 104px) * 16 / 9)
+      calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
     ) !important;
+    max-height: calc(100% - 48px) !important;
   }
   @media screen and (orientation: landscape) and (max-width: 960px) {
     #stage-viewport {
@@ -436,8 +461,9 @@ const HIDE_IFRAME_UI_MOBILE = `
       max-width: min(
         1080px,
         calc(100vw - 12px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-        calc((100vh - 96px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+        calc((100vh - 48px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
       ) !important;
+      max-height: calc(100% - 8px) !important;
     }
   }
 `;
@@ -3018,6 +3044,229 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     );
   }
 
+  const isPrimaryStageTab = ['Editor', 'Setup', 'SetupHub', 'Preferences', 'Assistant'].includes(
+    curView
+  );
+  const showCanonicalHeader =
+    !isWebDesktop &&
+    !isStageExpanded &&
+    !isLandscape &&
+    !liveMode &&
+    !showBack &&
+    isPrimaryStageTab;
+
+  const headerTitle =
+    curView === 'Editor'
+      ? 'Stagex'
+      : curView === 'Setup' || curView === 'SetupHub'
+        ? tr.stagex?.navSetup || 'Setup'
+        : tr.stagex?.navPreferences || 'Preferences';
+
+  const headerSubtitle =
+    curView === 'Editor'
+      ? (tr.stagex as any)?.subtitle || 'Stage Plot Editor'
+      : curView === 'Setup' || curView === 'SetupHub'
+        ? (tr.stagex as any)?.setupSubtitle || 'Your show documents & band info'
+        : (tr.stagex as any)?.prefSubtitle || 'Customize your Stagex experience';
+
+  const floatingActionsPill = (
+    <div
+      className="stagex-floating-actions-pill"
+      data-testid="stagex-floating-actions"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '3px 5px',
+        background: isAmoled
+          ? 'rgba(4, 4, 6, 0.88)'
+          : isLight
+            ? 'rgba(255, 255, 255, 0.72)'
+            : 'var(--surface-topbar-bg, rgba(20, 20, 26, 0.76))',
+        border: isAmoled
+          ? '1px solid rgba(255, 255, 255, 0.12)'
+          : isLight
+            ? '1px solid rgba(0, 0, 0, 0.08)'
+            : 'var(--surface-topbar-border, 1px solid rgba(255, 255, 255, 0.10))',
+        backdropFilter: 'var(--surface-topbar-blur, blur(16px))',
+        WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(16px))',
+        boxShadow: 'var(--surface-topbar-shadow, 0 4px 16px rgba(0, 0, 0, 0.25))',
+        borderRadius: '9999px',
+        pointerEvents: 'auto',
+        boxSizing: 'border-box',
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => callIframe('scActivateMeasure')}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          callIframe('scActivateMeasure');
+        }}
+        title={tr.stagex.toolMeasure || 'Measure'}
+        aria-label={tr.stagex.toolMeasure || 'Measure'}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
+          color: isLight ? 'rgba(0,0,0,0.70)' : 'rgba(220,225,240,0.90)',
+          border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+          cursor: 'pointer',
+          flexShrink: 0,
+          padding: 0,
+          outline: 'none',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1 }}>
+          straighten
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={openPdfSheet}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          openPdfSheet();
+        }}
+        title={tr.stagex.toolExport || 'Export PDF'}
+        aria-label={tr.stagex.toolExport || 'Export PDF'}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
+          color: isLight ? '#111' : '#fff',
+          border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+          cursor: 'pointer',
+          flexShrink: 0,
+          padding: 0,
+          outline: 'none',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1 }}>
+          picture_as_pdf
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => callIframe('openPresetsPanel')}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          callIframe('openPresetsPanel');
+        }}
+        title={tr.stagex.toolPresets || 'Presets'}
+        aria-label={tr.stagex.toolPresets || 'Presets'}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
+          color: isLight ? 'rgba(0,0,0,0.70)' : 'rgba(220,225,240,0.90)',
+          border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+          cursor: 'pointer',
+          flexShrink: 0,
+          padding: 0,
+          outline: 'none',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1 }}>
+          bookmark
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => callIframe('openTimelinePanel')}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          callIframe('openTimelinePanel');
+        }}
+        title={tr.stagex.toolHistory || 'History'}
+        aria-label={tr.stagex.toolHistory || 'History'}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
+          color: isLight ? 'rgba(0,0,0,0.70)' : 'rgba(220,225,240,0.90)',
+          border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
+          cursor: 'pointer',
+          flexShrink: 0,
+          padding: 0,
+          outline: 'none',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1 }}>
+          history
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setCollabModalOpen(true)}
+        onTouchEnd={(e) => {
+          e.preventDefault();
+          setCollabModalOpen(true);
+        }}
+        title="Collaboration"
+        aria-label="Collaboration"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 32,
+          height: 32,
+          borderRadius: '50%',
+          background:
+            collabState === 'connected'
+              ? isLight
+                ? 'rgba(16,185,129,0.15)'
+                : 'rgba(16,185,129,0.20)'
+              : isLight
+                ? 'rgba(0,0,0,0.05)'
+                : 'rgba(255,255,255,0.06)',
+          color:
+            collabState === 'connected'
+              ? '#10b981'
+              : isLight
+                ? 'rgba(0,0,0,0.70)'
+                : 'rgba(220,225,240,0.90)',
+          border: `1px solid ${
+            collabState === 'connected'
+              ? '#10b981'
+              : isLight
+                ? 'rgba(0,0,0,0.08)'
+                : 'rgba(255,255,255,0.08)'
+          }`,
+          cursor: 'pointer',
+          flexShrink: 0,
+          padding: 0,
+          outline: 'none',
+          WebkitTapHighlightColor: 'transparent',
+        }}
+      >
+        <span className="material-symbols-outlined" style={{ fontSize: 16, lineHeight: 1 }}>
+          {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
+        </span>
+      </button>
+    </div>
+  );
+
   return (
     <div
       style={{
@@ -3060,18 +3309,14 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
             position: 'relative',
           }}
         >
-          {/* Canonical page header: on Android/mobile when in Editor and not fullscreen/landscape/live */}
-          {!isWebDesktop &&
-            curView === 'Editor' &&
-            !isStageExpanded &&
-            !isLandscape &&
-            !liveMode &&
-            !showBack && (
-              <StudioHeader
-                title="Stagex"
-                subtitle={(tr.stagex as any)?.subtitle || 'Stage Plot Editor'}
-              />
-            )}
+          {/* Canonical page header: on Android/mobile for primary tabs when not fullscreen/landscape/live */}
+          {showCanonicalHeader && (
+            <StudioHeader
+              title={headerTitle}
+              subtitle={headerSubtitle}
+              actions={curView === 'Editor' ? floatingActionsPill : undefined}
+            />
+          )}
 
           {/* Drilldown floating header for subviews with back navigation */}
           {showBack && !isStageExpanded && !isLandscape && !liveMode && (
@@ -3204,220 +3449,17 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
               {hideBottomNav && <div className="hide-bottom-nav" style={{ display: 'none' }} />}
             </div>
 
-            {/* ── Compact Floating Action Pill (Upper-Right) ── */}
-            {curView === 'Editor' && !liveMode && (
+            {/* Fallback Floating Action Pill when canonical header is hidden (expanded or landscape) */}
+            {curView === 'Editor' && !liveMode && !showCanonicalHeader && (
               <div
-                className="stagex-floating-actions-pill"
-                data-testid="stagex-floating-actions"
                 style={{
                   position: 'absolute',
-                  top:
-                    isStageExpanded || isLandscape
-                      ? 'calc(max(12px, env(safe-area-inset-top, 0px)))'
-                      : '12px',
+                  top: 'calc(max(12px, env(safe-area-inset-top, 0px)))',
                   right: 'calc(max(14px, env(safe-area-inset-right, 0px)))',
                   zIndex: 25,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
-                  padding: '4px 6px',
-                  background: isAmoled
-                    ? 'rgba(4, 4, 6, 0.88)'
-                    : 'var(--surface-topbar-bg, rgba(20, 20, 26, 0.76))',
-                  border: isAmoled
-                    ? '1px solid rgba(255, 255, 255, 0.12)'
-                    : 'var(--surface-topbar-border, 1px solid rgba(255, 255, 255, 0.10))',
-                  backdropFilter: 'var(--surface-topbar-blur, blur(16px))',
-                  WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(16px))',
-                  boxShadow: 'var(--surface-topbar-shadow, 0 4px 16px rgba(0, 0, 0, 0.25))',
-                  borderRadius: '9999px',
-                  pointerEvents: 'auto',
-                  boxSizing: 'border-box',
                 }}
               >
-                <button
-                  type="button"
-                  onClick={() => callIframe('scActivateMeasure')}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    callIframe('scActivateMeasure');
-                  }}
-                  title={tr.stagex.toolMeasure || 'Measure'}
-                  aria-label={tr.stagex.toolMeasure || 'Measure'}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
-                    color: isLight ? 'rgba(0,0,0,0.70)' : 'rgba(220,225,240,0.90)',
-                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    padding: 0,
-                    outline: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 16, lineHeight: 1 }}
-                  >
-                    straighten
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={openPdfSheet}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    openPdfSheet();
-                  }}
-                  title={tr.stagex.toolExport || 'Export PDF'}
-                  aria-label={tr.stagex.toolExport || 'Export PDF'}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
-                    color: isLight ? '#111' : '#fff',
-                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    padding: 0,
-                    outline: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 16, lineHeight: 1 }}
-                  >
-                    picture_as_pdf
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => callIframe('openPresetsPanel')}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    callIframe('openPresetsPanel');
-                  }}
-                  title={tr.stagex.toolPresets || 'Presets'}
-                  aria-label={tr.stagex.toolPresets || 'Presets'}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
-                    color: isLight ? 'rgba(0,0,0,0.70)' : 'rgba(220,225,240,0.90)',
-                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    padding: 0,
-                    outline: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 16, lineHeight: 1 }}
-                  >
-                    bookmark
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => callIframe('openTimelinePanel')}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    callIframe('openTimelinePanel');
-                  }}
-                  title={tr.stagex.toolHistory || 'History'}
-                  aria-label={tr.stagex.toolHistory || 'History'}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.06)',
-                    color: isLight ? 'rgba(0,0,0,0.70)' : 'rgba(220,225,240,0.90)',
-                    border: `1px solid ${isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)'}`,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    padding: 0,
-                    outline: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 16, lineHeight: 1 }}
-                  >
-                    history
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setCollabModalOpen(true)}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    setCollabModalOpen(true);
-                  }}
-                  title="Collaboration"
-                  aria-label="Collaboration"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 32,
-                    height: 32,
-                    borderRadius: '50%',
-                    background:
-                      collabState === 'connected'
-                        ? isLight
-                          ? 'rgba(16,185,129,0.15)'
-                          : 'rgba(16,185,129,0.20)'
-                        : isLight
-                          ? 'rgba(0,0,0,0.05)'
-                          : 'rgba(255,255,255,0.06)',
-                    color:
-                      collabState === 'connected'
-                        ? '#10b981'
-                        : isLight
-                          ? 'rgba(0,0,0,0.70)'
-                          : 'rgba(220,225,240,0.90)',
-                    border: `1px solid ${
-                      collabState === 'connected'
-                        ? '#10b981'
-                        : isLight
-                          ? 'rgba(0,0,0,0.08)'
-                          : 'rgba(255,255,255,0.08)'
-                    }`,
-                    cursor: 'pointer',
-                    flexShrink: 0,
-                    padding: 0,
-                    outline: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                  }}
-                >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: 16, lineHeight: 1 }}
-                  >
-                    {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
-                  </span>
-                </button>
+                {floatingActionsPill}
               </div>
             )}
 

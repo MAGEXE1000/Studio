@@ -238,11 +238,11 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
 
-  // References
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lineRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
+  const elapsedTimeRef = useRef<number>(0);
 
   // Chord Provider States
   const [activeChart, setActiveChart] = useState<NormalizedChordChart | null>(null);
@@ -654,9 +654,12 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
       return;
     }
 
+    startTimeRef.current = Date.now() - elapsedTimeRef.current;
+
     const tick = () => {
       const delta = Date.now() - startTimeRef.current;
       const nextTime = Math.min(totalDuration, delta);
+      elapsedTimeRef.current = nextTime;
       setElapsedTime(nextTime);
 
       if (nextTime >= totalDuration) {
@@ -666,13 +669,12 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
       }
     };
 
-    startTimeRef.current = Date.now() - elapsedTime;
     animationFrameRef.current = requestAnimationFrame(tick);
 
     return () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
     };
-  }, [isPlaying, totalDuration, elapsedTime]);
+  }, [isPlaying, totalDuration]);
 
   // Scroll to active line
   useEffect(() => {
@@ -691,7 +693,8 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
   }, [activeLine, activeSections.length]);
 
   const handlePlayToggle = () => {
-    if (elapsedTime >= totalDuration) {
+    if (elapsedTimeRef.current >= totalDuration) {
+      elapsedTimeRef.current = 0;
       setElapsedTime(0);
     }
     setIsPlaying(!isPlaying);
@@ -699,6 +702,7 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const nextTime = parseFloat(e.target.value);
+    elapsedTimeRef.current = nextTime;
     setElapsedTime(nextTime);
     if (isPlaying) {
       startTimeRef.current = Date.now() - nextTime;
@@ -2138,7 +2142,10 @@ export function SongPracticeView({ song, onClose }: SongPracticeViewProps) {
           {/* Action Control Row */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24 }}>
             <button
-              onClick={() => setElapsedTime(0)}
+              onClick={() => {
+                elapsedTimeRef.current = 0;
+                setElapsedTime(0);
+              }}
               style={{
                 background: 'none',
                 border: 'none',

@@ -319,23 +319,21 @@ export default function UpdateIndicator({
   const checkRef = useRef<HTMLDivElement | null>(null);
   const pillRef = useRef<HTMLButtonElement | null>(null);
 
-  const settings = useSettingsStore((s) => s.settings);
-  const hubVis = settings.perApp?.hub ?? {
-    theme: settings.theme ?? 'dark',
-    amoledMode: settings.amoledMode ?? false,
-  };
+  const hubVisTheme = useSettingsStore(
+    (s) => s.settings.perApp?.hub?.theme ?? s.settings.theme ?? 'dark'
+  );
+  const dynamicLightStart = useSettingsStore((s) => s.settings.dynamicLightStart ?? 7);
+  const dynamicLightEnd = useSettingsStore((s) => s.settings.dynamicLightEnd ?? 20);
   const isLight = (() => {
-    if (hubVis.theme === 'light') return true;
-    if (hubVis.theme === 'system') {
+    if (hubVisTheme === 'light') return true;
+    if (hubVisTheme === 'system') {
       return (
         typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches
       );
     }
-    if (hubVis.theme === 'dynamic') {
+    if (hubVisTheme === 'dynamic') {
       const h = new Date().getHours();
-      const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd = settings.dynamicLightEnd ?? 20;
-      return h >= lightStart && h < lightEnd;
+      return h >= dynamicLightStart && h < dynamicLightEnd;
     }
     return false;
   })();
@@ -1018,23 +1016,21 @@ function UpdateModal({
     window.open('https://github.com/MAGEXE1000/Studio/releases', '_system');
   };
 
-  const settings = useSettingsStore((s) => s.settings);
-  const hubVis = settings.perApp?.hub ?? {
-    theme: settings.theme ?? 'dark',
-    amoledMode: settings.amoledMode ?? false,
-  };
+  const hubVisTheme = useSettingsStore(
+    (s) => s.settings.perApp?.hub?.theme ?? s.settings.theme ?? 'dark'
+  );
+  const dynamicLightStart = useSettingsStore((s) => s.settings.dynamicLightStart ?? 7);
+  const dynamicLightEnd = useSettingsStore((s) => s.settings.dynamicLightEnd ?? 20);
   const isLight = (() => {
-    if (hubVis.theme === 'light') return true;
-    if (hubVis.theme === 'system') {
+    if (hubVisTheme === 'light') return true;
+    if (hubVisTheme === 'system') {
       return (
         typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches
       );
     }
-    if (hubVis.theme === 'dynamic') {
+    if (hubVisTheme === 'dynamic') {
       const h = new Date().getHours();
-      const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd = settings.dynamicLightEnd ?? 20;
-      return h >= lightStart && h < lightEnd;
+      return h >= dynamicLightStart && h < dynamicLightEnd;
     }
     return false;
   })();

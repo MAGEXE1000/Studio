@@ -40,7 +40,8 @@ if (typeof window !== 'undefined') {
 }
 
 export default function App() {
-  const settings = useSettingsStore((s) => s.settings);
+  const theme = useSettingsStore((s) => s.settings.theme);
+  const hubAmoled = useSettingsStore((s) => s.settings.perApp?.hub?.amoledMode);
   const isDev = import.meta.env.DEV || !Capacitor.isNativePlatform();
   const [showLaunchOverlay, setShowLaunchOverlay] = useState(!isDev);
   const initialPresetRef = useRef<any>(
@@ -85,12 +86,12 @@ export default function App() {
                 skipIntro={false}
                 onComplete={() => setShowLaunchOverlay(false)}
                 isLight={
-                  settings.theme === 'light' ||
-                  (settings.theme === 'system' &&
+                  theme === 'light' ||
+                  (theme === 'system' &&
                     typeof window !== 'undefined' &&
                     window.matchMedia('(prefers-color-scheme: light)').matches)
                 }
-                isAmoled={settings.perApp?.hub?.amoledMode}
+                isAmoled={hubAmoled}
               />
             )
           : undefined

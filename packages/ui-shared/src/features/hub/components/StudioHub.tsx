@@ -436,17 +436,24 @@ function useStartupComplete() {
 }
 
 export default function StudioHub() {
-  const settings = useSettingsStore((state) => state.settings);
+  const lang = useSettingsStore((s) => s.settings.language ?? 'en');
+  const accentColor = useSettingsStore((s) => s.settings.accentColor);
+  const theme = useSettingsStore((s) => s.settings.theme);
+  const hubTheme = useSettingsStore(
+    (s) => s.settings.perApp?.hub?.theme ?? s.settings.theme ?? 'dark'
+  );
+  const dynamicLightStart = useSettingsStore((s) => s.settings.dynamicLightStart ?? 7);
+  const dynamicLightEnd = useSettingsStore((s) => s.settings.dynamicLightEnd ?? 20);
+  const hubUserName = useSettingsStore((s) => s.settings.hubUserName);
+
   const updater = useAppUpdate();
   const currentApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 
   const startupComplete = useStartupComplete();
   const isWebDesktop = useIsWebDesktop();
   const t = useT();
-  const lang = settings.language ?? 'en';
-  const accent = resolveAccent(settings.accentColor);
+  const accent = resolveAccent(accentColor);
   const isHubLight = (() => {
-    const hubTheme = settings.perApp?.hub?.theme ?? settings.theme ?? 'dark';
     if (hubTheme === 'light') return true;
     if (hubTheme === 'system') {
       return (
@@ -455,9 +462,7 @@ export default function StudioHub() {
     }
     if (hubTheme === 'dynamic') {
       const h = new Date().getHours();
-      const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd = settings.dynamicLightEnd ?? 20;
-      return h >= lightStart && h < lightEnd;
+      return h >= dynamicLightStart && h < dynamicLightEnd;
     }
     return false;
   })();
@@ -496,8 +501,8 @@ export default function StudioHub() {
   const routeTab = activeRoute.tab;
   const routePage = activeRoute.page;
   const isLight =
-    settings.theme === 'light' ||
-    (settings.theme === 'system' &&
+    theme === 'light' ||
+    (theme === 'system' &&
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
 
@@ -971,7 +976,7 @@ export default function StudioHub() {
   }, [currentApp, zooming]);
 
   const sessionIdx = getSessionIndex();
-  const greetName = authUser?.displayName?.trim() || settings.hubUserName;
+  const greetName = authUser?.displayName?.trim() || hubUserName;
   const { greeting, subtitle } = useMemo(
     () => getGreetingPair(greetName, sessionIdx, lang),
     // eslint-disable-next-line react-hooks/exhaustive-deps

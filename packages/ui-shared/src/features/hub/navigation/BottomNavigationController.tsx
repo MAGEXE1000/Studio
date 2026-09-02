@@ -280,9 +280,22 @@ export function BottomNavigationController() {
 
     checkDOM();
 
-    // Event-driven reactive DOM observer replaces periodic polling loop
+    let checkRafId: number | null = null;
+    const scheduleCheckDOM = () => {
+      if (checkRafId !== null) return;
+      if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+        checkRafId = window.requestAnimationFrame(() => {
+          checkRafId = null;
+          checkDOM();
+        });
+      } else {
+        checkDOM();
+      }
+    };
+
+    // Event-driven reactive DOM observer replaces periodic polling loop with frame-coalesced checks
     const observer = new MutationObserver(() => {
-      checkDOM();
+      scheduleCheckDOM();
     });
 
     observer.observe(document.body, {
@@ -293,17 +306,24 @@ export function BottomNavigationController() {
     });
 
     const unsubRegistry = activeOverlaysRegistry.subscribe(() => {
-      checkDOM();
+      scheduleCheckDOM();
     });
 
-    document.addEventListener('fullscreenchange', checkDOM);
-    window.addEventListener('resize', checkDOM, { passive: true });
+    document.addEventListener('fullscreenchange', scheduleCheckDOM);
+    window.addEventListener('resize', scheduleCheckDOM, { passive: true });
 
     return () => {
+      if (
+        checkRafId !== null &&
+        typeof window !== 'undefined' &&
+        typeof window.cancelAnimationFrame === 'function'
+      ) {
+        window.cancelAnimationFrame(checkRafId);
+      }
       observer.disconnect();
       unsubRegistry();
-      document.removeEventListener('fullscreenchange', checkDOM);
-      window.removeEventListener('resize', checkDOM);
+      document.removeEventListener('fullscreenchange', scheduleCheckDOM);
+      window.removeEventListener('resize', scheduleCheckDOM);
     };
   }, []);
 

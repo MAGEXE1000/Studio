@@ -7,7 +7,6 @@ import {
   resolveAccent,
   translations,
   useT,
-  useNavCollapsed,
   setNavCollapsed,
   useIsWebDesktop,
   registerDebugProvider,
@@ -467,7 +466,15 @@ export default function StagexPanel() {
   }, [isWebDesktop]);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const iframeReady = useRef(false);
-  const settings = useSettingsStore((state) => state.settings);
+  const stageTheme = useSettingsStore(
+    (s) => s.settings.perApp?.stagex?.theme ?? s.settings.theme ?? 'dark'
+  );
+  const stageAmoled = useSettingsStore(
+    (s) => s.settings.perApp?.stagex?.amoledMode ?? s.settings.amoledMode ?? false
+  );
+  const accentColor = useSettingsStore((s) => s.settings.accentColor);
+  const dynamicLightStart = useSettingsStore((s) => s.settings.dynamicLightStart ?? 7);
+  const dynamicLightEnd = useSettingsStore((s) => s.settings.dynamicLightEnd ?? 20);
   const currentRouteNav = useNavigationStore((s) => s.history[s.history.length - 1]);
   const isActiveApp = !currentRouteNav || currentRouteNav.app === 'stagex';
   const tr = useT();
@@ -585,16 +592,7 @@ export default function StagexPanel() {
     }
   }, []);
 
-  /* ── Glassmorphism bottom nav state ─────────────────────── */
-  const stageNavRef = useRef<HTMLDivElement | null>(null);
   const stageBtnRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const prevTabRef = useRef(0);
-  const stageStretchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [stagePill, setStagePill] = useState<{ left: number; right: number; ready: boolean }>({
-    left: 0,
-    right: 0,
-    ready: false,
-  });
   const [fabOpen, setFabOpen] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState<{
     open: boolean;
@@ -629,9 +627,6 @@ export default function StagexPanel() {
   const [layoutsOpen, setLayoutsOpen] = useState(false);
   const [liveMode, setLiveMode] = useState(false);
   const [iframeLoading, setIframeLoading] = useState(true);
-  const navCollapsed = useNavCollapsed();
-  const [expandedStageH, setExpandedStageH] = useState(52);
-  const [expandedStageW, setExpandedStageW] = useState(380);
   const [propPanelOpen, setPropPanelOpen] = useState(false);
   const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
   const [pdfFileName, setPdfFileName] = useState('');
@@ -1307,27 +1302,21 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     return () => clearTimeout(timer);
   }, [isLandscape]);
 
-  const stageVis = settings.perApp?.stagex ?? {
-    theme: (settings.theme ?? 'dark') as typeof settings.theme,
-    amoledMode: settings.amoledMode ?? false,
-  };
-  const accent = resolveAccent(settings.accentColor);
+  const accent = resolveAccent(accentColor);
   const isLight = (() => {
-    if (stageVis.theme === 'light') return true;
-    if (stageVis.theme === 'system') {
+    if (stageTheme === 'light') return true;
+    if (stageTheme === 'system') {
       return (
         typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches
       );
     }
-    if (stageVis.theme === 'dynamic') {
+    if (stageTheme === 'dynamic') {
       const h = new Date().getHours();
-      const lightStart = settings.dynamicLightStart ?? 7;
-      const lightEnd = settings.dynamicLightEnd ?? 20;
-      return h >= lightStart && h < lightEnd;
+      return h >= dynamicLightStart && h < dynamicLightEnd;
     }
     return false;
   })();
-  const isAmoled = isLight ? false : isWebDesktop ? true : stageVis.amoledMode;
+  const isAmoled = isLight ? false : isWebDesktop ? true : stageAmoled;
 
   const baseOrigin = typeof window !== 'undefined' ? window.location.origin : '';
   const iframeSrc = useRef(
@@ -1562,7 +1551,7 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         iframe.contentWindow?.postMessage('stage-core-ping', '*');
       } catch {}
       injectAccentVars(iframe, accent.from, accent.to);
-      injectTheme(iframe, stageVis.theme ?? 'dark');
+      injectTheme(iframe, stageTheme);
       injectAmoled(iframe, isAmoled);
       try {
         const doc = iframe.contentDocument;
@@ -1616,17 +1605,17 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
 
       injectStartOnPicker(iframe);
     },
-    [accent.from, accent.to, stageVis.theme, isAmoled, isWebDesktop]
+    [accent.from, accent.to, stageTheme, isAmoled, isWebDesktop]
   );
 
   useEffect(() => {
     const iframe = iframeRef.current;
     if (iframe) {
       injectAccentVars(iframe, accent.from, accent.to);
-      injectTheme(iframe, stageVis.theme ?? 'dark');
+      injectTheme(iframe, stageTheme);
       injectAmoled(iframe, isAmoled);
     }
-  }, [accent.from, accent.to, stageVis.theme, isAmoled]);
+  }, [accent.from, accent.to, stageTheme, isAmoled]);
 
   useEffect(() => {
     const onMsg = (e: MessageEvent) => {
@@ -1768,11 +1757,13 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
         }
       }
       if (e.data?.type === 'sc-scene-touch') {
-        setSceneTouchTelemetry((prev) => {
-          const next = [...prev, e.data];
-          if (next.length > 5) return next.slice(next.length - 5);
-          return next;
-        });
+        if (showDiagnostics) {
+          setSceneTouchTelemetry((prev) => {
+            const next = [...prev, e.data];
+            if (next.length > 5) return next.slice(next.length - 5);
+            return next;
+          });
+        }
       }
       if (e.data?.type === 'sc-scene-info' && e.data.info) {
         setPdfSceneInfo({
@@ -1889,19 +1880,6 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
-    injectAccentVars(iframe, accent.from, accent.to);
-    injectTheme(iframe, stageVis.theme ?? 'dark');
-  }, [accent.from, accent.to, stageVis.theme]);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    injectAmoled(iframe, isAmoled);
-  }, [isAmoled]);
-
-  useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
     try {
       const doc = iframe.contentDocument;
       if (doc) {
@@ -1995,67 +1973,10 @@ ComposedPath: ${path.slice(0, 3).join(' > ')}`;
     callIframe('toggleSCDial');
   }, [callIframe]);
 
-  /* ── Glassmorphism pill bg ──────────────────────────────── */
-  const stagePillBg = isAmoled
-    ? 'rgba(4,4,4,0.88)'
-    : isLight
-      ? 'rgba(255, 255, 255, 0.40)'
-      : 'rgba(26,26,30,0.82)';
-
-  /* ── Pill measurement helpers ───────────────────────────── */
-  const measureStageBtn = (idx: number) => {
-    const btn = stageBtnRefs.current[idx];
-    const nav = stageNavRef.current;
-    if (!btn || !nav) return null;
-    const nr = nav.getBoundingClientRect();
-    const br = btn.getBoundingClientRect();
-    return { left: br.left - nr.left, right: br.right - nr.left };
-  };
-
-  /* Init pill on mount */
-  useEffect(() => {
-    const idx = navTabs.findIndex((t) => isTabActive(t.view));
-    const m = measureStageBtn(idx >= 0 ? idx : 0);
-    if (m) setStagePill({ left: m.left, right: m.right, ready: true });
-    if (stageNavRef.current) {
-      setExpandedStageH(stageNavRef.current.offsetHeight);
-      setExpandedStageW(stageNavRef.current.offsetWidth);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /* Animate pill when view changes + always show nav on view change */
+  /* ── Animate nav when view changes ───────────────────────── */
   useEffect(() => {
     // Any view transition (including back-button from scrollable sections) resets nav visibility
     setNavCollapsed(false);
-
-    const newIdx = navTabs.findIndex((t) => isTabActive(t.view));
-    if (newIdx < 0) return;
-    const oldIdx = prevTabRef.current;
-    if (newIdx === oldIdx) return;
-    prevTabRef.current = newIdx;
-    const newM = measureStageBtn(newIdx);
-    if (!newM) return;
-    if (stageStretchRef.current) {
-      clearTimeout(stageStretchRef.current);
-      stageStretchRef.current = null;
-      setStagePill((p) => ({ ...p, left: newM.left, right: newM.right }));
-      return;
-    }
-    if (newIdx > oldIdx) {
-      setStagePill((p) => ({ ...p, right: newM.right }));
-      stageStretchRef.current = setTimeout(() => {
-        setStagePill((p) => ({ ...p, left: newM.left }));
-        stageStretchRef.current = null;
-      }, 90);
-    } else {
-      setStagePill((p) => ({ ...p, left: newM.left }));
-      stageStretchRef.current = setTimeout(() => {
-        setStagePill((p) => ({ ...p, right: newM.right }));
-        stageStretchRef.current = null;
-      }, 90);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [curView]);
 
   const renderItemIcon = (item: any) => {

@@ -231,7 +231,6 @@ export default function PitchPanel({ active: panelActive = true }: { active?: bo
 
   return (
     <div
-      className="spring-in"
       style={{
         display: 'flex',
         flexDirection: 'column',

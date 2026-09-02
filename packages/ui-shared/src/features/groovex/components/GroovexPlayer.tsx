@@ -449,7 +449,6 @@ export default function GroovexPlayer() {
   return (
     <div
       ref={scrollRef}
-      className="spring-in"
       style={{
         height: '100%',
         overflowY: 'auto',

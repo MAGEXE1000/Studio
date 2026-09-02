@@ -84,7 +84,7 @@ export default function GroovexPreferences() {
   return (
     <div
       ref={scrollRef}
-      className="spring-in w-full"
+      className="w-full"
       style={{
         height: '100%',
         overflowY: 'auto',

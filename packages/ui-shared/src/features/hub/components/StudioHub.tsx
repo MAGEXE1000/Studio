@@ -1116,7 +1116,7 @@ export default function StudioHub() {
         <SharedNavigationContainer
           activeView={tab}
           viewOrder={['home', 'settings', 'profile', 'help']}
-          variant="fade-through"
+          variant="tab"
         >
           {(tabId) => {
             const currentScrollRef =

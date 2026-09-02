@@ -254,7 +254,6 @@ export default function RecordingView({
 
   return (
     <div
-      className="spring-in"
       style={{
         display: 'flex',
         flexDirection: 'column',

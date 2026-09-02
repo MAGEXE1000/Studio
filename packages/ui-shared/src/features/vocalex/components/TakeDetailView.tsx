@@ -180,7 +180,7 @@ export default function TakeDetailView({
 
   return (
     <div
-      className="spring-in relative"
+      className="relative"
       style={{
         padding: '16px 20px',
         paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',

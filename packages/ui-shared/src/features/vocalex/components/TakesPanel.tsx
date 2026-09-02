@@ -140,7 +140,6 @@ export default function TakesPanel() {
 
   return (
     <div
-      className="spring-in"
       style={{
         padding: '0 var(--page-header-inset-h, var(--page-inset-h, 24px)) 24px',
         minHeight: '100%',

@@ -2323,7 +2323,10 @@ body.gig-mode #sc-vtools,
 body.gig-mode #bottom-toolbar,
 body.gig-mode .el-resize-bar,
 body.gig-mode .el-rotate-handle,
-body.gig-mode .el-connect-dot {
+body.gig-mode .el-connect-dot,
+body.gig-mode #sc-scenes-bar,
+body.gig-mode #live-mode-exit,
+#live-mode-exit {
   display: none !important;
 }
 
@@ -2443,11 +2446,12 @@ body.gig-fade-out #mobile-cat-bar {
 /* Mobile: whole toolbar fades — scoped in media query below */
 
 body.gig-mode #stage-viewport {
-  padding: 20px 24px !important;
+  padding: 8px !important;
+  justify-content: center !important;
 }
 
 body.gig-mode #stage-canvas {
-  max-width: min(calc(100vw - 48px), calc((100vh - 152px) * 16 / 9)) !important;
+  max-width: min(calc(100vw - 24px), calc((100vh - 48px) * 16 / 9)) !important;
 }
 
 /* Hide selection ring and interaction handles in gig mode */

@@ -4579,10 +4579,15 @@ function zoomOut() {
 }
 function resetView() {
   state.zoom = 1;
+  state.panX = 0;
+  state.panY = 0;
   applyZoom();
 }
 function applyZoom() {
-  stageCanvas.style.transform = `scale(${state.zoom})`;
+  const z = state.zoom || 1;
+  const px = state.panX || 0;
+  const py = state.panY || 0;
+  stageCanvas.style.transform = `translate(${px}px, ${py}px) scale(${z})`;
   stageCanvas.style.transformOrigin = 'center center';
   updateStatusBar();
   const selectedDom = document.querySelector('.stage-element.selected');
@@ -4590,6 +4595,108 @@ function applyZoom() {
     repositionResizeBar(selectedDom);
   }
 }
+
+// ── Multi-touch Gesture Controller (Pinch-to-zoom & Pan) ──
+(function initCanvasGestureController() {
+  const viewport = document.getElementById('stage-viewport') || document.getElementById('canvas-container');
+  if (!viewport) return;
+
+  let _pinchStartDist = 0;
+  let _pinchStartZoom = 1;
+  let _pinchStartMidX = 0;
+  let _pinchStartMidY = 0;
+  let _pinchStartPanX = 0;
+  let _pinchStartPanY = 0;
+  let _isPinching = false;
+
+  let _panStartX = 0;
+  let _panStartY = 0;
+  let _panStartPanX = 0;
+  let _panStartPanY = 0;
+  let _isPanning = false;
+
+  viewport.addEventListener(
+    'touchstart',
+    (e) => {
+      if (e.touches.length === 2) {
+        _isPinching = true;
+        _isPanning = false;
+        _pinchStartDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        _pinchStartZoom = state.zoom || 1;
+        _pinchStartMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        _pinchStartMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        _pinchStartPanX = state.panX || 0;
+        _pinchStartPanY = state.panY || 0;
+      } else if (e.touches.length === 1) {
+        const target = e.target;
+        const isElement = target && target.closest && target.closest('.stage-element');
+        if (state.gigMode || !isElement) {
+          _isPanning = true;
+          _isPinching = false;
+          _panStartX = e.touches[0].clientX;
+          _panStartY = e.touches[0].clientY;
+          _panStartPanX = state.panX || 0;
+          _panStartPanY = state.panY || 0;
+        }
+      }
+    },
+    { passive: false }
+  );
+
+  viewport.addEventListener(
+    'touchmove',
+    (e) => {
+      if (_isPinching && e.touches.length === 2) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        if (_pinchStartDist > 0) {
+          const factor = dist / _pinchStartDist;
+          state.zoom = Math.max(0.35, Math.min(3.5, _pinchStartZoom * factor));
+          const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+          const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+          state.panX = _pinchStartPanX + (midX - _pinchStartMidX) / state.zoom;
+          state.panY = _pinchStartPanY + (midY - _pinchStartMidY) / state.zoom;
+          applyZoom();
+        }
+      } else if (_isPanning && e.touches.length === 1 && state.gigMode) {
+        e.preventDefault();
+        const dx = (e.touches[0].clientX - _panStartX) / (state.zoom || 1);
+        const dy = (e.touches[0].clientY - _panStartY) / (state.zoom || 1);
+        state.panX = _panStartPanX + dx;
+        state.panY = _panStartPanY + dy;
+        applyZoom();
+      }
+    },
+    { passive: false }
+  );
+
+  const endGesture = () => {
+    _isPinching = false;
+    _isPanning = false;
+  };
+  viewport.addEventListener('touchend', endGesture, { passive: true });
+  viewport.addEventListener('touchcancel', endGesture, { passive: true });
+
+  // Mouse wheel zoom support for desktop / browser testing
+  viewport.addEventListener(
+    'wheel',
+    (e) => {
+      if (state.gigMode || e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        state.zoom = Math.max(0.35, Math.min(3.5, (state.zoom || 1) + delta));
+        applyZoom();
+      }
+    },
+    { passive: false }
+  );
+})();
 
 // ══════════════════════════════════════════════════════════
 //  THEME SYSTEM
@@ -8033,6 +8140,7 @@ window.state = state;
 window.addItemToStage = addItemToStage;
 window.selectElement = selectElement;
 window.updateCanvasBg = updateCanvasBg;
+window.resetView = resetView;
 
 function setAutosaveUI(mode) {
   const dot = document.getElementById('autosave-dot');
@@ -11034,6 +11142,7 @@ function toggleGigMode() {
       requestAnimationFrame(() => {
         body.classList.remove('gig-fade-out');
         state.gigMode = false;
+        resetView();
         _applyGigEyeState();
         _notifyLiveMode(false);
         saveSettings();

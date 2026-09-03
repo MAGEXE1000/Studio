@@ -9,9 +9,13 @@ import {
   getFirebaseConfigDetails,
   getFirestoreDiagnostics,
   APP_VERSION,
+  lockOrientation,
+  setNavHidden,
+  setNavLocked,
 } from '@workspace/studio-core';
 import { StageToolbar } from './StageToolbar';
 import { StageLibraryPanel } from './StageLibraryPanel';
+import { StageElementDrawer } from './StageElementDrawer';
 import { ExportPdfDialog } from './dialogs/ExportPdfDialog';
 import { StageCollabDialog } from './dialogs/StageCollabDialog';
 import { StageBridge } from '../services/StageBridgeService';
@@ -59,7 +63,36 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
 
   // Floating controls (Mobile)
   const [fabOpen, setFabOpen] = useState(false);
-  const [isStageExpanded, setIsStageExpanded] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
+
+  // Sync orientation changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(orientation: landscape)');
+    const handleMql = (e: MediaQueryListEvent) => {
+      setIsLandscape(e.matches);
+    };
+    setIsLandscape(mql.matches);
+    mql.addEventListener('change', handleMql);
+    return () => mql.removeEventListener('change', handleMql);
+  }, []);
+
+  // Ensure bottom navigation reflects landscape and inspection modes
+  useEffect(() => {
+    if (isWebDesktop) return;
+    const shouldHide = isLandscape || liveMode;
+    setNavLocked(shouldHide);
+    setNavHidden(shouldHide);
+  }, [isLandscape, liveMode, isWebDesktop]);
+
+  // Clean up orientation lock on unmount
+  useEffect(() => {
+    return () => {
+      lockOrientation('portrait').catch(() => {});
+      setNavLocked(false);
+      setNavHidden(false);
+    };
+  }, []);
 
   // Export PDF Dialog state
   const [pdfSheetOpen, setPdfSheetOpen] = useState(false);
@@ -109,6 +142,30 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   const handleAddElement = useCallback((item: any) => {
     StageBridge.addItemToStage(iframeRef.current, item);
   }, []);
+
+  const handleToggleRotate = useCallback(async () => {
+    const next = !isLandscape;
+    setIsLandscape(next);
+    const shouldHide = next || liveMode;
+    setNavLocked(shouldHide);
+    setNavHidden(shouldHide);
+    try {
+      await lockOrientation(next ? 'landscape' : 'portrait');
+    } catch {}
+    callIframe('sc-landscape', { isLandscape: next });
+  }, [isLandscape, liveMode, callIframe]);
+
+  const handleToggleEye = useCallback(() => {
+    const next = !liveMode;
+    setLiveMode(next);
+    const shouldHide = next || isLandscape;
+    setNavLocked(shouldHide);
+    setNavHidden(shouldHide);
+    callIframe('toggleGigMode');
+    if (!next) {
+      callIframe('resetView');
+    }
+  }, [liveMode, isLandscape, setLiveMode, callIframe]);
 
   // Update canvas background on theme changes
   useEffect(() => {
@@ -402,89 +459,122 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       {/* Mobile Floating Action Controls */}
       {!isWebDesktop && (
         <>
-          {/* Rotation Toggle */}
-          <button
-            onClick={() => {
-              setIsStageExpanded(!isStageExpanded);
-              callIframe('rotateSelectedElement');
-            }}
-            className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer"
-            style={{
-              bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 196px)',
-              right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
-              width: 44,
-              height: 44,
-              background: isStageExpanded
-                ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
-                : 'var(--surface-topbar-bg)',
-              border: isStageExpanded
-                ? '1px solid var(--studio-accent-border)'
-                : '1px solid var(--c-border)',
-              boxShadow: 'var(--elevation-high)',
-            }}
-            aria-label="Toggle Expand"
-          >
-            <span
-              className="material-symbols-outlined text-[22px]"
-              style={{ color: isStageExpanded ? '#fff' : 'var(--c-text-primary)' }}
-            >
-              sync
-            </span>
-          </button>
+          {/* Normal Mode Controls: Rotate & Add FAB */}
+          {!liveMode && (
+            <>
+              {/* Rotation Toggle */}
+              <button
+                data-testid="stagex-rotate-btn"
+                onClick={handleToggleRotate}
+                className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer transition-all active:scale-95"
+                style={{
+                  bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 196px)',
+                  right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
+                  width: 44,
+                  height: 44,
+                  background: isLandscape
+                    ? '#ec4899'
+                    : isAmoled
+                      ? 'rgba(10, 10, 12, 0.88)'
+                      : isLight
+                        ? 'rgba(255, 255, 255, 0.85)'
+                        : 'rgba(20, 20, 26, 0.80)',
+                  border: isLandscape
+                    ? '1px solid #ec4899'
+                    : isAmoled
+                      ? '1px solid rgba(255, 255, 255, 0.12)'
+                      : isLight
+                        ? '1px solid rgba(0, 0, 0, 0.08)'
+                        : '1px solid rgba(255, 255, 255, 0.10)',
+                  color: isLandscape ? '#ffffff' : isLight ? '#09090b' : '#ffffff',
+                  boxShadow: isLandscape
+                    ? '0 4px 14px rgba(236, 72, 153, 0.45)'
+                    : '0 4px 16px rgba(0, 0, 0, 0.35)',
+                  backdropFilter: 'blur(16px)',
+                  WebkitBackdropFilter: 'blur(16px)',
+                }}
+                aria-label={isLandscape ? 'Switch to Portrait' : 'Switch to Landscape'}
+                title={isLandscape ? 'Switch to Portrait' : 'Switch to Landscape'}
+              >
+                <span className="material-symbols-outlined text-[22px]">sync</span>
+              </button>
 
-          {/* Live Mode Toggle (Eye) */}
+              {/* Add Element FAB */}
+              <button
+                data-testid="stagex-fab-add"
+                onClick={() => setFabOpen((prev) => !prev)}
+                className="absolute rounded-full flex items-center justify-center p-0 cursor-pointer active:scale-95"
+                style={{
+                  zIndex: 50,
+                  bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
+                  right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
+                  width: 44,
+                  height: 44,
+                  background: '#ec4899',
+                  border: 'none',
+                  color: '#ffffff',
+                  boxShadow: '0 4px 14px rgba(236, 72, 153, 0.45)',
+                  transform: fabOpen ? 'rotate(45deg) scale(1.08)' : 'rotate(0deg) scale(1)',
+                  transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)',
+                }}
+                aria-label={fabOpen ? 'Close Catalog' : 'Add Element'}
+                title={fabOpen ? 'Close Catalog' : 'Add Element'}
+              >
+                <span className="material-symbols-outlined text-[24px]">add</span>
+              </button>
+            </>
+          )}
+
+          {/* Live Mode Toggle (Eye) - Stays accessible in both normal and liveMode */}
           <button
-            onClick={() => {
-              setLiveMode(!liveMode);
-              callIframe('toggleGigMode');
-            }}
-            className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer"
+            data-testid="stagex-eye-btn"
+            onClick={handleToggleEye}
+            className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer active:scale-95 transition-all"
             style={{
-              bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 140px)',
+              bottom: liveMode
+                ? 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 24px)'
+                : 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 140px)',
               right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
               width: 44,
               height: 44,
               background: liveMode
-                ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
-                : 'var(--surface-topbar-bg)',
+                ? '#ec4899'
+                : isAmoled
+                  ? 'rgba(10, 10, 12, 0.88)'
+                  : isLight
+                    ? 'rgba(255, 255, 255, 0.85)'
+                    : 'rgba(20, 20, 26, 0.80)',
               border: liveMode
-                ? '1px solid var(--studio-accent-border)'
-                : '1px solid var(--c-border)',
-              boxShadow: 'var(--elevation-high)',
+                ? '1px solid #ec4899'
+                : isAmoled
+                  ? '1px solid rgba(255, 255, 255, 0.12)'
+                  : isLight
+                    ? '1px solid rgba(0, 0, 0, 0.08)'
+                    : '1px solid rgba(255, 255, 255, 0.10)',
+              color: liveMode ? '#ffffff' : isLight ? '#09090b' : '#ffffff',
+              boxShadow: liveMode
+                ? '0 4px 14px rgba(236, 72, 153, 0.45)'
+                : '0 4px 16px rgba(0, 0, 0, 0.35)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
             }}
-            aria-label={liveMode ? 'Exit Live Mode' : 'Enter Live Mode'}
+            aria-label={liveMode ? 'Exit Inspection Mode' : 'Enter Inspection Mode'}
+            title={liveMode ? 'Exit Inspection Mode' : 'Enter Inspection Mode'}
           >
-            <span
-              className="material-symbols-outlined text-[22px]"
-              style={{ color: liveMode ? '#ffffff' : 'var(--c-text-primary)' }}
-            >
-              {liveMode ? 'visibility' : 'visibility_off'}
+            <span className="material-symbols-outlined text-[22px]">
+              {liveMode ? 'visibility_off' : 'visibility'}
             </span>
           </button>
 
-          {/* Add Instrument FAB */}
-          <button
-            onClick={() => {
-              setFabOpen(!fabOpen);
-              callIframe('toggleSCDial');
-            }}
-            className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer"
-            style={{
-              bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
-              right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
-              width: 44,
-              height: 44,
-              background: '#ec4899',
-              border: 'none',
-              color: '#ffffff',
-              boxShadow: '0 4px 14px rgba(236, 72, 153, 0.45)',
-              transform: fabOpen ? 'rotate(45deg) scale(1.08)' : 'rotate(0deg) scale(1)',
-              transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
-            }}
-            aria-label="Add Element"
-          >
-            <span className="material-symbols-outlined text-[24px]">add</span>
-          </button>
+          {/* Compact Bottom Element Drawer */}
+          <StageElementDrawer
+            isOpen={fabOpen && !liveMode}
+            onClose={() => setFabOpen(false)}
+            onSelectElement={handleAddElement}
+            isLight={isLight}
+            isAmoled={isAmoled}
+            accent={accent}
+          />
         </>
       )}
 

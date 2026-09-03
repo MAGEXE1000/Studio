@@ -4,3 +4,4 @@ export { StageSetlistView } from './setup/StageSetlistView';
 export { StageGearView } from './setup/StageGearView';
 export { StageMembersView } from './setup/StageMembersView';
 export { StagePreferencesView } from './preferences/StagePreferencesView';
+export { StageElementDrawer } from './StageElementDrawer';

@@ -12,7 +12,7 @@ export const STAGEX_LIBRARY: Record<string, { name: string; icon: string; type: 
     { name: 'Drum Kit', icon: 'drum', type: 'Acoustic Drums' },
     { name: 'E-Drums', icon: 'cx-edrum', type: 'Electronic Drums' },
     { name: 'Percussion', icon: 'cx-percussion', type: 'Percussion' },
-    { name: 'CajÃ³n', icon: 'cx-cajon', type: 'CajÃ³n' },
+    { name: 'Cajon', icon: 'cx-cajon', type: 'Cajon' },
   ],
   inst: [
     { name: 'Elec Guitar', icon: 'cx-elec-guitar', type: 'Electric Guitar' },

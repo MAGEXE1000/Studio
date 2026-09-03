@@ -172,41 +172,46 @@ export default function StagexPanel() {
 
                   {/* Preferences Native View */}
                   {viewId === 'Preferences' && (
-                    <div className="w-full h-full overflow-y-auto px-4 sm:px-6 pb-32">
+                    <div className="w-full h-full flex flex-col relative overflow-hidden bg-transparent">
+                      {/* Seamless header at the root of Preferences */}
                       <div
-                        className="w-full max-w-3xl mx-auto"
+                        className="flex-shrink-0 px-4 sm:px-6"
                         style={{
                           paddingTop:
                             'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
                           paddingBottom: '10px',
                         }}
                       >
-                        <h1
-                          style={{
-                            fontFamily: 'Manrope, sans-serif',
-                            fontSize: '28px',
-                            fontWeight: 800,
-                            letterSpacing: '-0.03em',
-                            lineHeight: 1.15,
-                            color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
-                            margin: 0,
-                          }}
-                        >
-                          {tr.stagex?.preferences || 'Preferences'}
-                        </h1>
-                        <p
-                          style={{
-                            fontFamily: 'Inter, sans-serif',
-                            fontSize: '13px',
-                            fontWeight: 500,
-                            color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
-                            margin: '2px 0 0 0',
-                          }}
-                        >
-                          Customize your Stagex experience
-                        </p>
+                        <div className="w-full max-w-3xl mx-auto flex items-center justify-between">
+                          <h1
+                            style={{
+                              fontFamily: 'Manrope, sans-serif',
+                              fontSize: '28px',
+                              fontWeight: 800,
+                              letterSpacing: '-0.03em',
+                              lineHeight: 1.15,
+                              color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+                              margin: 0,
+                            }}
+                          >
+                            {tr.stagex?.preferences || 'Preferences'}
+                          </h1>
+                        </div>
                       </div>
-                      <StagePreferencesView />
+
+                      {/* Content Area with Safe-Area Inset Bottom Padding */}
+                      <div
+                        className="flex-1 overflow-y-auto px-4 sm:px-6"
+                        style={{
+                          paddingBottom:
+                            'calc(var(--content-bottom-pad, 88px) + env(safe-area-inset-bottom, 0px) + 32px)',
+                          WebkitOverflowScrolling: 'touch',
+                        }}
+                      >
+                        <div className="w-full max-w-3xl mx-auto">
+                          <StagePreferencesView isLight={isLight} isAmoled={isAmoled} />
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

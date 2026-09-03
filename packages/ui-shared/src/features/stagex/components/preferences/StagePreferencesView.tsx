@@ -1,41 +1,199 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { useStagexStore } from '../../state/useStagexStore';
-import { SectionHeader, Toggle } from '../../../../shared/settings/SettingControls';
+import { Toggle } from '../../../../shared/settings/SettingControls';
+import { useSettingsStore } from '@workspace/studio-core';
 
-export const StagePreferencesView: React.FC = () => {
+export interface StagePreferencesViewProps {
+  isLight?: boolean;
+  isAmoled?: boolean;
+}
+
+interface PrefRowProps {
+  title: string;
+  description: string;
+  control: React.ReactNode;
+  isLight?: boolean;
+}
+
+const PrefRow: React.FC<PrefRowProps> = ({ title, description, control, isLight }) => (
+  <div className="py-3 px-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 transition-colors">
+    <div className="flex-1 min-w-0 pr-2">
+      <p
+        className="text-[13.5px] font-bold tracking-tight"
+        style={{
+          color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+          fontFamily: 'Manrope, sans-serif',
+          margin: 0,
+        }}
+      >
+        {title}
+      </p>
+      <p
+        className="text-[11.5px] leading-relaxed mt-0.5"
+        style={{
+          color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
+          fontFamily: 'Inter, sans-serif',
+          margin: '2px 0 0 0',
+        }}
+      >
+        {description}
+      </p>
+    </div>
+    <div className="shrink-0 self-start sm:self-center">{control}</div>
+  </div>
+);
+
+interface SegmentedControlProps<T extends string | number> {
+  options: Array<{ label: string; value: T; testId?: string }>;
+  value: T;
+  onChange: (val: T) => void;
+  isLight?: boolean;
+}
+
+function SegmentedControl<T extends string | number>({
+  options,
+  value,
+  onChange,
+  isLight,
+}: SegmentedControlProps<T>) {
+  return (
+    <div
+      className="flex items-center gap-1 p-1 rounded-xl border"
+      style={{
+        backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(0, 0, 0, 0.45)',
+        borderColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)',
+      }}
+    >
+      {options.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={String(opt.value)}
+            type="button"
+            data-testid={opt.testId}
+            onClick={() => onChange(opt.value)}
+            className="px-3 py-1.5 rounded-[9px] text-[11px] font-bold tracking-wider transition-all cursor-pointer border"
+            style={{
+              backgroundColor: active
+                ? isLight
+                  ? 'rgba(236, 72, 153, 0.12)'
+                  : 'rgba(236, 72, 153, 0.18)'
+                : 'transparent',
+              borderColor: active ? 'var(--studio-accent, #ec4899)' : 'transparent',
+              color: active
+                ? isLight
+                  ? '#db2777'
+                  : 'var(--studio-accent, #ec4899)'
+                : isLight
+                  ? '#71717a'
+                  : '#a1a1aa',
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+interface PrefSectionHeaderProps {
+  icon: string;
+  title: string;
+  isLight?: boolean;
+}
+
+const PrefSectionHeader: React.FC<PrefSectionHeaderProps> = ({ icon, title, isLight }) => (
+  <div className="flex items-center gap-2 mb-2 mt-5 first:mt-1">
+    <span
+      className="material-symbols-outlined"
+      style={{
+        fontSize: '15px',
+        color: isLight ? 'var(--c-text-tertiary, #71717a)' : 'rgba(255, 255, 255, 0.5)',
+      }}
+    >
+      {icon}
+    </span>
+    <p
+      style={{
+        color: isLight ? 'var(--c-text-tertiary, #71717a)' : 'rgba(255, 255, 255, 0.5)',
+        fontFamily: 'Inter, sans-serif',
+        fontWeight: 800,
+        fontSize: '10px',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        margin: 0,
+      }}
+    >
+      {title}
+    </p>
+  </div>
+);
+
+export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
+  isLight: isLightProp,
+  isAmoled: isAmoledProp,
+}) => {
+  const settings = useSettingsStore((s) => s.settings);
+  const activeVis = settings.perApp?.stagex;
+  const isLight =
+    isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+  const isAmoled =
+    isAmoledProp !== undefined ? isAmoledProp : activeVis ? Boolean(activeVis.amoledMode) : false;
+
   const { preferences, updatePreferences } = useStagexStore();
 
   const bgPresets = [
-    { label: 'SHADOW', value: '#16161a', desc: 'Standard studio contrast' },
-    { label: 'VOID', value: '#000000', desc: 'Maximum battery savings' },
-    { label: 'GRAPHITE', value: '#1e2229', desc: 'Cool dark slate' },
-    { label: 'SLATE', value: '#1c2430', desc: 'Muted slate blue' },
-    { label: 'MIDNIGHT', value: '#1a1a2e', desc: 'Deep midnight navy' },
-    { label: 'FOREST', value: '#16241a', desc: 'Deep forest green' },
+    { label: 'Shadow', value: '#16161a', desc: 'Standard studio contrast' },
+    { label: 'Void', value: '#000000', desc: 'Maximum battery savings' },
+    { label: 'Graphite', value: '#1e2229', desc: 'Cool dark slate' },
+    { label: 'Slate', value: '#1c2430', desc: 'Muted slate blue' },
+    { label: 'Midnight', value: '#1a1a2e', desc: 'Deep midnight navy' },
+    { label: 'Forest', value: '#16241a', desc: 'Deep forest green' },
   ];
 
   const gridSizes = [
-    { label: 'FINE', value: 40 },
-    { label: 'NORMAL', value: 80 },
-    { label: 'COARSE', value: 120 },
+    { label: 'FINE', value: 40, testId: 'grid-size-fine' },
+    { label: 'NORMAL', value: 80, testId: 'grid-size-normal' },
+    { label: 'COARSE', value: 120, testId: 'grid-size-coarse' },
   ];
 
+  const stageShapes = [
+    { label: 'Rectangle', value: 'rectangular', testId: 'stage-shape-rectangle' },
+    { label: 'Square', value: 'square', testId: 'stage-shape-square' },
+  ];
+
+  const stageUnitsList = [
+    { label: 'Meters (m)', value: 'meters', testId: 'units-meters' },
+    { label: 'Feet (ft)', value: 'feet', testId: 'units-feet' },
+  ];
+
+  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #0d0d11)';
+
+  const cardBorder = isLight
+    ? 'rgba(0, 0, 0, 0.08)'
+    : isAmoled
+      ? 'rgba(255, 255, 255, 0.12)'
+      : 'var(--c-border, rgba(255, 255, 255, 0.08))';
+
+  const rowDivider = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
+
   return (
-    <div className="w-full max-w-3xl mx-auto pt-2 pb-24">
-      {/* ── APPEARANCE SECTION ── */}
-      <SectionHeader icon="palette" title="APPEARANCE" />
+    <div className="w-full pb-4">
+      {/* ── 1. APPEARANCE SECTION ── */}
+      <PrefSectionHeader icon="palette" title="APPEARANCE" isLight={isLight} />
       <div
-        className="rounded-[22px] border p-5 sm:p-6 mb-6"
+        className="rounded-[20px] border p-4 sm:p-5 mb-5 shadow-sm"
         style={{
-          backgroundColor: 'var(--c-bg-card, #0a0a0c)',
-          borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
+          backgroundColor: cardBg,
+          borderColor: cardBorder,
         }}
       >
-        <div className="mb-2">
+        <div>
           <p
-            className="text-[15px] font-bold leading-tight"
+            className="text-[13.5px] font-bold leading-tight"
             style={{
-              color: 'var(--c-text-primary, #ffffff)',
+              color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
               fontFamily: 'Manrope, sans-serif',
               margin: 0,
             }}
@@ -43,9 +201,9 @@ export const StagePreferencesView: React.FC = () => {
             Canvas Background
           </p>
           <p
-            className="text-[12px] font-normal leading-normal mt-1"
+            className="text-[11.5px] leading-relaxed mt-0.5"
             style={{
-              color: 'var(--c-text-secondary, #a1a1aa)',
+              color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
               fontFamily: 'Inter, sans-serif',
               margin: '2px 0 0 0',
             }}
@@ -54,32 +212,36 @@ export const StagePreferencesView: React.FC = () => {
           </p>
         </div>
 
-        {/* 6-Swatch Swatch Grid matching reference */}
-        <div className="grid grid-cols-4 gap-2.5 mt-3.5">
+        {/* 6-Swatch Grid */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mt-3.5">
           {bgPresets.map((bg) => {
             const active = preferences.canvasBg === bg.value;
             return (
               <button
                 key={bg.value}
+                type="button"
                 data-testid={`bg-swatch-${bg.label.toLowerCase()}`}
                 onClick={() =>
                   updatePreferences({ canvasBg: bg.value, amoled: bg.value === '#000000' })
                 }
-                className="h-16 sm:h-18 rounded-[12px] border flex flex-col justify-end p-2 transition-all cursor-pointer relative overflow-hidden"
+                className="h-12 sm:h-13 rounded-[12px] border flex flex-col justify-end p-1.5 transition-all cursor-pointer relative overflow-hidden"
                 style={{
                   backgroundColor: bg.value,
                   borderColor: active
                     ? 'var(--studio-accent, #ec4899)'
-                    : 'rgba(255, 255, 255, 0.1)',
+                    : isLight
+                      ? 'rgba(0, 0, 0, 0.12)'
+                      : 'rgba(255, 255, 255, 0.10)',
                   boxShadow: active
-                    ? '0 0 0 1px var(--studio-accent, #ec4899), 0 4px 12px rgba(236, 72, 153, 0.25)'
+                    ? '0 0 0 1.5px var(--studio-accent, #ec4899), 0 2px 8px rgba(236, 72, 153, 0.3)'
                     : 'none',
+                  transform: active ? 'scale(1.02)' : 'scale(1)',
                 }}
               >
                 <span
-                  className="text-[9.5px] font-extrabold tracking-wider uppercase text-center block w-full truncate"
+                  className="text-[9px] font-black tracking-wider uppercase text-center block w-full truncate"
                   style={{
-                    color: active ? '#ffffff' : '#71717a',
+                    color: active ? '#ffffff' : '#a1a1aa',
                     fontFamily: 'Inter, sans-serif',
                   }}
                 >
@@ -91,436 +253,195 @@ export const StagePreferencesView: React.FC = () => {
         </div>
       </div>
 
-      {/* ── CANVAS SECTION ── */}
-      <SectionHeader icon="grid_4x4" title="CANVAS" />
+      {/* ── 2. CANVAS SECTION (Contains Grid Size, Stage Plot Shape, and Toggles) ── */}
+      <PrefSectionHeader icon="grid_4x4" title="CANVAS" isLight={isLight} />
       <div
-        className="rounded-[22px] border overflow-hidden mb-6 divide-y"
+        className="rounded-[20px] border overflow-hidden mb-5 shadow-sm divide-y"
         style={{
-          backgroundColor: 'var(--c-bg-card, #0a0a0c)',
-          borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
+          backgroundColor: cardBg,
+          borderColor: cardBorder,
         }}
       >
         {/* Grid Size Row */}
-        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Grid Size
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Controls the spacing of the stage grid lines.
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5 self-start sm:self-auto">
-            {gridSizes.map((gs) => {
-              const active = preferences.gridSize === gs.value;
-              return (
-                <button
-                  key={gs.value}
-                  data-testid={`grid-size-${gs.label.toLowerCase()}`}
-                  onClick={() => updatePreferences({ gridSize: gs.value })}
-                  className="px-3.5 py-1.5 rounded-[10px] text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer border"
-                  style={{
-                    backgroundColor: active ? 'rgba(236, 72, 153, 0.12)' : 'transparent',
-                    borderColor: active ? 'var(--studio-accent, #ec4899)' : 'transparent',
-                    color: active ? 'var(--studio-accent, #ec4899)' : '#a1a1aa',
-                  }}
-                >
-                  {gs.label}
-                </button>
-              );
-            })}
-          </div>
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Grid Size"
+            description="Controls the spacing of the stage grid lines."
+            isLight={isLight}
+            control={
+              <SegmentedControl
+                options={gridSizes}
+                value={preferences.gridSize || 80}
+                onChange={(val) => updatePreferences({ gridSize: val })}
+                isLight={isLight}
+              />
+            }
+          />
+        </div>
+
+        {/* Stage Plot Shape Row (NEW CANONICAL PREFERENCE) */}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Stage Plot Shape"
+            description="Aspect ratio and geometry of the stage canvas plot."
+            isLight={isLight}
+            control={
+              <SegmentedControl
+                options={stageShapes}
+                value={preferences.stageShape || 'rectangular'}
+                onChange={(val) =>
+                  updatePreferences({ stageShape: val as 'rectangular' | 'square' })
+                }
+                isLight={isLight}
+              />
+            }
+          />
         </div>
 
         {/* Snap to Grid Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Snap to Grid
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Elements snap to grid when dragging.
-            </p>
-          </div>
-          <Toggle
-            checked={preferences.snapToGrid}
-            onChange={(val) => updatePreferences({ snapToGrid: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Snap to Grid"
+            description="Elements snap to grid when dragging."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={preferences.snapToGrid}
+                onChange={(val) => updatePreferences({ snapToGrid: val })}
+              />
+            }
           />
         </div>
 
         {/* Show Cable Length Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Show Cable Length
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Display the approximate length of every connection in meters.
-            </p>
-          </div>
-          <Toggle
-            checked={Boolean(preferences.showCableLength)}
-            onChange={(val) => updatePreferences({ showCableLength: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Show Cable Length"
+            description="Display the approximate length of every connection in meters."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={Boolean(preferences.showCableLength)}
+                onChange={(val) => updatePreferences({ showCableLength: val })}
+              />
+            }
           />
         </div>
 
         {/* Auto Wire Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Auto Wire
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Automatically connect compatible elements when placed.
-            </p>
-          </div>
-          <Toggle
-            checked={Boolean(preferences.autoWire)}
-            onChange={(val) => updatePreferences({ autoWire: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Auto Wire"
+            description="Automatically connect compatible elements when placed."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={Boolean(preferences.autoWire)}
+                onChange={(val) => updatePreferences({ autoWire: val })}
+              />
+            }
           />
         </div>
 
         {/* Stage Balance Visualizer Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Stage Balance Visualizer
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Show stage weight distribution when elements are placed.
-            </p>
-          </div>
-          <Toggle
-            checked={Boolean(preferences.stageBalanceVisible)}
-            onChange={(val) => updatePreferences({ stageBalanceVisible: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Stage Balance Visualizer"
+            description="Show stage weight distribution when elements are placed."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={Boolean(preferences.stageBalanceVisible)}
+                onChange={(val) => updatePreferences({ stageBalanceVisible: val })}
+              />
+            }
           />
         </div>
       </div>
 
-      {/* ── EDITOR SECTION ── */}
-      <SectionHeader icon="edit" title="EDITOR" />
+      {/* ── 3. EDITOR SECTION ── */}
+      <PrefSectionHeader icon="tune" title="EDITOR" isLight={isLight} />
       <div
-        className="rounded-[22px] border overflow-hidden mb-6 divide-y"
+        className="rounded-[20px] border overflow-hidden mb-5 shadow-sm divide-y"
         style={{
-          backgroundColor: 'var(--c-bg-card, #0a0a0c)',
-          borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
+          backgroundColor: cardBg,
+          borderColor: cardBorder,
         }}
       >
-        {/* Stage Shape Row */}
-        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Stage Shape
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Aspect ratio and geometry of the stage canvas plot.
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5 self-start sm:self-auto">
-            <button
-              data-testid="stage-shape-rectangle"
-              onClick={() => updatePreferences({ stageShape: 'rectangular' })}
-              className="px-3.5 py-1.5 rounded-[10px] text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer border"
-              style={{
-                backgroundColor:
-                  (preferences.stageShape || 'rectangular') === 'rectangular'
-                    ? 'rgba(236, 72, 153, 0.12)'
-                    : 'transparent',
-                borderColor:
-                  (preferences.stageShape || 'rectangular') === 'rectangular'
-                    ? 'var(--studio-accent, #ec4899)'
-                    : 'transparent',
-                color:
-                  (preferences.stageShape || 'rectangular') === 'rectangular'
-                    ? 'var(--studio-accent, #ec4899)'
-                    : '#a1a1aa',
-              }}
-            >
-              Rectangle
-            </button>
-            <button
-              data-testid="stage-shape-square"
-              onClick={() => updatePreferences({ stageShape: 'square' })}
-              className="px-3.5 py-1.5 rounded-[10px] text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer border"
-              style={{
-                backgroundColor:
-                  preferences.stageShape === 'square' ? 'rgba(236, 72, 153, 0.12)' : 'transparent',
-                borderColor:
-                  preferences.stageShape === 'square'
-                    ? 'var(--studio-accent, #ec4899)'
-                    : 'transparent',
-                color:
-                  preferences.stageShape === 'square' ? 'var(--studio-accent, #ec4899)' : '#a1a1aa',
-              }}
-            >
-              Square
-            </button>
-          </div>
-        </div>
-
         {/* Measurement Units Row */}
-        <div className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Measurement Units
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Units used for stage width, depth, and distance indicators.
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5 self-start sm:self-auto">
-            <button
-              data-testid="units-meters"
-              onClick={() => updatePreferences({ stageUnits: 'meters' })}
-              className="px-3.5 py-1.5 rounded-[10px] text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer border"
-              style={{
-                backgroundColor:
-                  preferences.stageUnits === 'meters' ? 'rgba(236, 72, 153, 0.12)' : 'transparent',
-                borderColor:
-                  preferences.stageUnits === 'meters'
-                    ? 'var(--studio-accent, #ec4899)'
-                    : 'transparent',
-                color:
-                  preferences.stageUnits === 'meters' ? 'var(--studio-accent, #ec4899)' : '#a1a1aa',
-              }}
-            >
-              Meters (m)
-            </button>
-            <button
-              data-testid="units-feet"
-              onClick={() => updatePreferences({ stageUnits: 'feet' })}
-              className="px-3.5 py-1.5 rounded-[10px] text-[11px] font-bold tracking-wider uppercase transition-all cursor-pointer border"
-              style={{
-                backgroundColor:
-                  preferences.stageUnits === 'feet' ? 'rgba(236, 72, 153, 0.12)' : 'transparent',
-                borderColor:
-                  preferences.stageUnits === 'feet'
-                    ? 'var(--studio-accent, #ec4899)'
-                    : 'transparent',
-                color:
-                  preferences.stageUnits === 'feet' ? 'var(--studio-accent, #ec4899)' : '#a1a1aa',
-              }}
-            >
-              Feet (ft)
-            </button>
-          </div>
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Measurement Units"
+            description="Units used for stage width, depth, and distance indicators."
+            isLight={isLight}
+            control={
+              <SegmentedControl
+                options={stageUnitsList}
+                value={preferences.stageUnits || 'meters'}
+                onChange={(val) => updatePreferences({ stageUnits: val as 'meters' | 'feet' })}
+                isLight={isLight}
+              />
+            }
+          />
         </div>
 
         {/* Reduced Animations Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Reduced Animations
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Minimize transitions and layout motions for performance.
-            </p>
-          </div>
-          <Toggle
-            checked={preferences.reducedAnimations}
-            onChange={(val) => updatePreferences({ reducedAnimations: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Reduced Animations"
+            description="Minimize transitions and layout motions for performance."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={Boolean(preferences.reducedAnimations)}
+                onChange={(val) => updatePreferences({ reducedAnimations: val })}
+              />
+            }
           />
         </div>
 
         {/* Grid Overlay Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Grid Overlay
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Display layout alignment grid on the stage canvas.
-            </p>
-          </div>
-          <Toggle
-            checked={preferences.gridVisible}
-            onChange={(val) => updatePreferences({ gridVisible: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Grid Overlay"
+            description="Display layout alignment grid on the stage canvas."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={preferences.gridVisible !== false}
+                onChange={(val) => updatePreferences({ gridVisible: val })}
+              />
+            }
           />
         </div>
 
         {/* Cable Connections Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Cable Connections
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Show signal and power routes between stage elements.
-            </p>
-          </div>
-          <Toggle
-            checked={preferences.connectionsVisible}
-            onChange={(val) => updatePreferences({ connectionsVisible: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Cable Connections"
+            description="Show signal and power routes between stage elements."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={preferences.connectionsVisible !== false}
+                onChange={(val) => updatePreferences({ connectionsVisible: val })}
+              />
+            }
           />
         </div>
 
         {/* Element Labels Row */}
-        <div className="p-4 sm:p-5 flex items-center justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <p
-              className="text-[15px] font-bold"
-              style={{
-                color: 'var(--c-text-primary, #ffffff)',
-                fontFamily: 'Manrope, sans-serif',
-                margin: 0,
-              }}
-            >
-              Element Labels
-            </p>
-            <p
-              className="text-[12px] font-normal mt-0.5"
-              style={{
-                color: 'var(--c-text-secondary, #a1a1aa)',
-                fontFamily: 'Inter, sans-serif',
-                margin: '2px 0 0 0',
-              }}
-            >
-              Show name and channel tag below instruments and audio boxes.
-            </p>
-          </div>
-          <Toggle
-            checked={preferences.labelsVisible}
-            onChange={(val) => updatePreferences({ labelsVisible: val })}
+        <div style={{ borderColor: rowDivider }}>
+          <PrefRow
+            title="Element Labels"
+            description="Show name and channel tag below instruments and audio boxes."
+            isLight={isLight}
+            control={
+              <Toggle
+                checked={preferences.labelsVisible !== false}
+                onChange={(val) => updatePreferences({ labelsVisible: val })}
+              />
+            }
           />
         </div>
       </div>

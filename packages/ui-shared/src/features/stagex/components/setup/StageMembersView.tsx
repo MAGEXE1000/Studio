@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStagexStore } from '../../state/useStagexStore';
 import { StageSetupDetailLayout } from './StageSetupDetailLayout';
-import { StageSetupStatsStrip } from './StageSetupStatsStrip';
-import { StageSetupEmptyState } from './StageSetupEmptyState';
 import { useSettingsStore } from '@workspace/studio-core';
 
 interface StageMembersViewProps {
@@ -76,28 +74,10 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
     }
   };
 
-  const statItems = [
-    {
-      label: 'Roster Capacity',
-      value: `${members.length} / 8`,
-      accentColor: isAtLimit ? '#f87171' : isLight ? '#09090b' : '#ffffff',
-    },
-    {
-      label: 'Performers',
-      value: performersCount,
-      accentColor: '#10b981',
-    },
-    {
-      label: 'Crew & Tech',
-      value: crewCount,
-      accentColor: '#38bdf8',
-    },
-    {
-      label: 'Spots Available',
-      value: Math.max(0, 8 - members.length),
-      accentColor: '#a855f7',
-    },
-  ];
+  const cardBg = isLight ? '#ffffff' : 'var(--c-bg-card, #0d0d11)';
+  const cardBorder = isLight ? 'rgba(0, 0, 0, 0.08)' : 'var(--c-border, rgba(255, 255, 255, 0.08))';
+  const textPrimary = isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff';
+  const textSecondary = isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa';
 
   return (
     <StageSetupDetailLayout
@@ -109,7 +89,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
           type="button"
           onClick={() => !isAtLimit && setIsAdding((prev) => !prev)}
           disabled={isAtLimit}
-          className="w-10 h-10 rounded-full flex items-center justify-center border transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
           style={{
             backgroundColor: isAdding
               ? '#10b981'
@@ -119,25 +99,23 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
             borderColor: isAdding
               ? '#10b981'
               : isLight
-                ? 'rgba(0, 0, 0, 0.05)'
-                : 'rgba(255, 255, 255, 0.08)',
-            color: isAdding ? '#000000' : isLight ? '#09090b' : '#ffffff',
+                ? 'rgba(0, 0, 0, 0.08)'
+                : 'rgba(255, 255, 255, 0.10)',
+            color: isAdding ? '#000000' : textPrimary,
           }}
           title={isAtLimit ? 'Capacity reached' : isAdding ? 'Cancel' : 'Add Member'}
           aria-label={isAdding ? 'Cancel' : 'Add Member'}
         >
           <span
-            className="material-symbols-outlined text-[20px] transition-transform duration-200"
+            className="material-symbols-outlined text-[16px] transition-transform duration-200"
             style={{ transform: isAdding ? 'rotate(45deg)' : 'rotate(0deg)' }}
           >
             add
           </span>
+          <span className="hidden min-[380px]:inline">{isAdding ? 'Cancel' : 'Add Member'}</span>
         </button>
       }
     >
-      {/* Compact Statistics Summary Strip */}
-      <StageSetupStatsStrip items={statItems} isLight={isLight} />
-
       {/* Capacity Warning Banner */}
       {isAtLimit && (
         <div
@@ -150,77 +128,17 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
         >
           <span className="material-symbols-outlined text-[18px]">info</span>
           <span className="font-semibold">
-            Maximum band & crew capacity reached (8 / 8 members). Remove a member to add another.
+            Maximum roster capacity reached (8 / 8 members). Remove a member to add another.
           </span>
         </div>
       )}
 
-      {/* Main Members Card */}
+      {/* 1. Main Band & Crew Card */}
       <div
         className="p-5 rounded-[20px] border mb-4 shadow-sm"
-        style={{
-          backgroundColor: isLight ? '#ffffff' : 'var(--c-bg-card, #0e0e12)',
-          borderColor: isLight
-            ? 'rgba(0, 0, 0, 0.08)'
-            : 'var(--c-border, rgba(255, 255, 255, 0.08))',
-        }}
+        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
       >
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center border"
-              style={{
-                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
-                borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <span className="material-symbols-outlined text-[17px]" style={{ color: '#10b981' }}>
-                badge
-              </span>
-            </div>
-            <div>
-              <h3
-                className="text-[14px] font-bold tracking-tight"
-                style={{
-                  color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
-                  fontFamily: 'Manrope, sans-serif',
-                }}
-              >
-                Band & Crew Roster
-              </h3>
-              <p
-                className="text-[11.5px]"
-                style={{ color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa' }}
-              >
-                Performers, production crew & stage assignments
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => !isAtLimit && setIsAdding(!isAdding)}
-            disabled={isAtLimit}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
-            style={{
-              backgroundColor: isAdding
-                ? isLight
-                  ? 'rgba(0, 0, 0, 0.08)'
-                  : 'rgba(255, 255, 255, 0.12)'
-                : isLight
-                  ? '#09090b'
-                  : '#ffffff',
-              color: isAdding ? (isLight ? '#09090b' : '#ffffff') : isLight ? '#ffffff' : '#09090b',
-            }}
-          >
-            <span className="material-symbols-outlined text-[15px]">
-              {isAdding ? 'close' : 'add'}
-            </span>
-            <span>{isAdding ? 'Cancel' : 'Add Member'}</span>
-          </button>
-        </div>
-
-        {/* Expandable Inline Add Form */}
+        {/* Inline Add Member Form */}
         <AnimatePresence>
           {isAdding && !isAtLimit && (
             <motion.form
@@ -228,9 +146,9 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               onSubmit={handleAdd}
-              className="p-4 rounded-[16px] border mb-4 overflow-hidden flex flex-col gap-3"
+              className="p-4 rounded-[16px] border mb-5 overflow-hidden flex flex-col gap-3"
               style={{
-                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
+                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
                 borderColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)',
               }}
             >
@@ -244,7 +162,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   style={{
                     backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                     borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: isLight ? '#09090b' : '#ffffff',
+                    color: textPrimary,
                   }}
                   autoFocus
                   required
@@ -258,7 +176,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   style={{
                     backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                     borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: isLight ? '#09090b' : '#ffffff',
+                    color: textPrimary,
                   }}
                   required
                 />
@@ -268,7 +186,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               <div className="flex items-center gap-2 py-1">
                 <span
                   className="text-[10.5px] font-bold uppercase tracking-wider mr-1"
-                  style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
+                  style={{ color: textSecondary }}
                 >
                   Badge Color:
                 </span>
@@ -300,7 +218,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   style={{
                     backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                     borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: isLight ? '#09090b' : '#ffffff',
+                    color: textPrimary,
                   }}
                 />
                 <input
@@ -312,7 +230,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   style={{
                     backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                     borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: isLight ? '#09090b' : '#ffffff',
+                    color: textPrimary,
                   }}
                 />
                 <input
@@ -324,7 +242,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   style={{
                     backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                     borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: isLight ? '#09090b' : '#ffffff',
+                    color: textPrimary,
                   }}
                 />
               </div>
@@ -344,22 +262,48 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Member Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {members.length === 0 ? (
-            <div className="col-span-full">
-              <StageSetupEmptyState
-                icon="badge"
-                title="No band or crew members yet"
-                description="Add performers, audio engineers, and stage crew to assign roles and gear"
-                actionLabel="Add First Member"
-                onAction={() => setIsAdding(true)}
-                iconColor="#10b981"
-                isLight={isLight}
-              />
+        {members.length === 0 ? (
+          <div className="py-8 flex flex-col items-center justify-center text-center">
+            <div
+              className="w-12 h-12 rounded-[16px] flex items-center justify-center mb-3 border"
+              style={{
+                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
+                borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+              }}
+            >
+              <span className="material-symbols-outlined text-[24px]" style={{ color: '#10b981' }}>
+                badge
+              </span>
             </div>
-          ) : (
-            members.map((member) => {
+            <h4
+              className="text-xs font-black uppercase tracking-wider mb-1"
+              style={{ color: textPrimary, letterSpacing: '0.08em' }}
+            >
+              No Band or Crew Yet
+            </h4>
+            <p
+              className="text-[12px] max-w-xs leading-relaxed mb-4"
+              style={{ color: textSecondary }}
+            >
+              Add performers, audio engineers, and stage crew
+            </p>
+
+            <button
+              type="button"
+              onClick={() => !isAtLimit && setIsAdding(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
+              style={{
+                backgroundColor: isLight ? '#09090b' : '#ffffff',
+                color: isLight ? '#ffffff' : '#09090b',
+              }}
+            >
+              <span className="material-symbols-outlined text-[15px]">add</span>
+              <span>Add Member</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {members.map((member) => {
               const initials = member.name
                 .split(' ')
                 .map((p) => p[0])
@@ -372,8 +316,8 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   key={member.id}
                   className="flex items-center justify-between p-3.5 rounded-[16px] border transition-all"
                   style={{
-                    backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
-                    borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+                    backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.02)',
+                    borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)',
                   }}
                 >
                   <div className="flex items-center gap-3 min-w-0 pr-2">
@@ -401,19 +345,8 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                         {member.role}
                       </span>
                       {(member.phone || member.email) && (
-                        <p
-                          className="text-[10px] truncate mt-0.5"
-                          style={{ color: isLight ? '#71717a' : '#71717a' }}
-                        >
+                        <p className="text-[10px] truncate mt-0.5" style={{ color: textSecondary }}>
                           {member.phone || member.email}
-                        </p>
-                      )}
-                      {member.notes && (
-                        <p
-                          className="text-[10px] italic truncate mt-0.5"
-                          style={{ color: isLight ? '#a1a1aa' : '#52525b' }}
-                        >
-                          {member.notes}
                         </p>
                       )}
                     </div>
@@ -423,15 +356,134 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                     type="button"
                     onClick={() => removeMember(member.id)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-                    style={{ color: isLight ? '#a1a1aa' : '#71717a' }}
+                    style={{ color: textSecondary }}
                     title="Remove Member"
                   >
                     <span className="material-symbols-outlined text-[16px]">delete</span>
                   </button>
                 </div>
               );
-            })
-          )}
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* 2. 2x2 Metric Grid Card */}
+      <div
+        className="p-5 rounded-[20px] border shadow-sm"
+        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+      >
+        <div className="grid grid-cols-2 gap-4">
+          {/* Roster Capacity */}
+          <div
+            className="flex items-center justify-between p-3 rounded-[16px] border"
+            style={{
+              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
+              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
+            }}
+          >
+            <div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider block"
+                style={{ color: textSecondary }}
+              >
+                Roster Capacity
+              </span>
+              <p
+                className="text-[20px] font-black tracking-tight mt-0.5"
+                style={{
+                  color: isAtLimit ? '#f87171' : textPrimary,
+                  fontFamily: 'Manrope, sans-serif',
+                }}
+              >
+                {members.length} / 8
+              </p>
+            </div>
+            <span className="material-symbols-outlined text-[20px]" style={{ color: '#ec4899' }}>
+              group
+            </span>
+          </div>
+
+          {/* Performers */}
+          <div
+            className="flex items-center justify-between p-3 rounded-[16px] border"
+            style={{
+              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
+              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
+            }}
+          >
+            <div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider block"
+                style={{ color: textSecondary }}
+              >
+                Performers
+              </span>
+              <p
+                className="text-[20px] font-black tracking-tight mt-0.5"
+                style={{ color: '#10b981', fontFamily: 'Manrope, sans-serif' }}
+              >
+                {performersCount}
+              </p>
+            </div>
+            <span className="material-symbols-outlined text-[20px]" style={{ color: '#10b981' }}>
+              music_note
+            </span>
+          </div>
+
+          {/* Crew & Tech */}
+          <div
+            className="flex items-center justify-between p-3 rounded-[16px] border"
+            style={{
+              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
+              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
+            }}
+          >
+            <div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider block"
+                style={{ color: textSecondary }}
+              >
+                Crew & Tech
+              </span>
+              <p
+                className="text-[20px] font-black tracking-tight mt-0.5"
+                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+              >
+                {crewCount}
+              </p>
+            </div>
+            <span className="material-symbols-outlined text-[20px]" style={{ color: '#38bdf8' }}>
+              engineering
+            </span>
+          </div>
+
+          {/* Spots Available */}
+          <div
+            className="flex items-center justify-between p-3 rounded-[16px] border"
+            style={{
+              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
+              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
+            }}
+          >
+            <div>
+              <span
+                className="text-[10px] font-bold uppercase tracking-wider block"
+                style={{ color: textSecondary }}
+              >
+                Spots Available
+              </span>
+              <p
+                className="text-[20px] font-black tracking-tight mt-0.5"
+                style={{ color: '#a855f7', fontFamily: 'Manrope, sans-serif' }}
+              >
+                {Math.max(0, 8 - members.length)}
+              </p>
+            </div>
+            <span className="material-symbols-outlined text-[20px]" style={{ color: '#a855f7' }}>
+              event_seat
+            </span>
+          </div>
         </div>
       </div>
     </StageSetupDetailLayout>

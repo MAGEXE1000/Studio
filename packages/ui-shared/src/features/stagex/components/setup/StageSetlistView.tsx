@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStagexStore } from '../../state/useStagexStore';
 import { StageSetupDetailLayout } from './StageSetupDetailLayout';
-import { StageSetupStatsStrip } from './StageSetupStatsStrip';
-import { StageSetupEmptyState } from './StageSetupEmptyState';
 import { useSettingsStore } from '@workspace/studio-core';
 
 interface StageSetlistViewProps {
@@ -45,19 +43,9 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
   }, [setlist]);
 
   const avgEnergy = useMemo(() => {
-    if (!setlist.length) return 0;
+    if (!setlist.length) return null;
     const total = setlist.reduce((acc, s) => acc + (s.energy || 50), 0);
     return Math.round(total / setlist.length);
-  }, [setlist]);
-
-  const tempoRange = useMemo(() => {
-    const bpms = setlist
-      .map((s) => s.bpm)
-      .filter((b): b is number => typeof b === 'number' && !isNaN(b));
-    if (!bpms.length) return '—';
-    const min = Math.min(...bpms);
-    const max = Math.max(...bpms);
-    return min === max ? `${min} BPM` : `${min} - ${max} BPM`;
   }, [setlist]);
 
   const handleAddSong = (e: React.FormEvent) => {
@@ -80,28 +68,10 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
     setIsAdding(false);
   };
 
-  const statItems = [
-    {
-      label: 'Total Songs',
-      value: setlist.length,
-      accentColor: isLight ? '#09090b' : '#ffffff',
-    },
-    {
-      label: 'Set Duration',
-      value: totalDuration,
-      accentColor: '#c084fc',
-    },
-    {
-      label: 'Avg Energy',
-      value: setlist.length > 0 ? `${avgEnergy}/100` : '—',
-      accentColor: '#f59e0b',
-    },
-    {
-      label: 'Tempo Flow',
-      value: tempoRange,
-      accentColor: '#38bdf8',
-    },
-  ];
+  const cardBg = isLight ? '#ffffff' : 'var(--c-bg-card, #0d0d11)';
+  const cardBorder = isLight ? 'rgba(0, 0, 0, 0.08)' : 'var(--c-border, rgba(255, 255, 255, 0.08))';
+  const textPrimary = isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff';
+  const textSecondary = isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa';
 
   return (
     <StageSetupDetailLayout
@@ -109,103 +79,44 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
       onBack={onBack}
       isLight={isLight}
       toolbarActions={
-        <button
-          type="button"
-          onClick={() => setIsAdding((prev) => !prev)}
-          className="w-10 h-10 rounded-full flex items-center justify-center border transition-all active:scale-95 cursor-pointer shadow-sm"
-          style={{
-            backgroundColor: isAdding
-              ? '#a855f7'
-              : isLight
-                ? 'rgba(0, 0, 0, 0.04)'
-                : 'rgba(255, 255, 255, 0.06)',
-            borderColor: isAdding
-              ? '#a855f7'
-              : isLight
-                ? 'rgba(0, 0, 0, 0.05)'
-                : 'rgba(255, 255, 255, 0.08)',
-            color: isAdding ? '#ffffff' : isLight ? '#09090b' : '#ffffff',
-          }}
-          title={isAdding ? 'Cancel' : 'Add Song'}
-          aria-label={isAdding ? 'Cancel' : 'Add Song'}
-        >
-          <span
-            className="material-symbols-outlined text-[20px] transition-transform duration-200"
-            style={{ transform: isAdding ? 'rotate(45deg)' : 'rotate(0deg)' }}
-          >
-            add
-          </span>
-        </button>
-      }
-    >
-      {/* Compact Statistics Summary Strip */}
-      <StageSetupStatsStrip items={statItems} isLight={isLight} />
-
-      {/* Main Setlist Card */}
-      <div
-        className="p-5 rounded-[20px] border mb-4 shadow-sm"
-        style={{
-          backgroundColor: isLight ? '#ffffff' : 'var(--c-bg-card, #0e0e12)',
-          borderColor: isLight
-            ? 'rgba(0, 0, 0, 0.08)'
-            : 'var(--c-border, rgba(255, 255, 255, 0.08))',
-        }}
-      >
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-xl flex items-center justify-center border"
-              style={{
-                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
-                borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <span className="material-symbols-outlined text-[17px]" style={{ color: '#a855f7' }}>
-                format_list_numbered
-              </span>
-            </div>
-            <div>
-              <h3
-                className="text-[14px] font-bold tracking-tight"
-                style={{
-                  color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
-                  fontFamily: 'Manrope, sans-serif',
-                }}
-              >
-                Song Order & Cues
-              </h3>
-              <p
-                className="text-[11.5px]"
-                style={{ color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa' }}
-              >
-                Order songs, monitor keys, and track performance timing
-              </p>
-            </div>
-          </div>
-
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
-            onClick={() => setIsAdding(!isAdding)}
-            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
+            onClick={() => setIsAdding((prev) => !prev)}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 cursor-pointer shadow-sm"
             style={{
               backgroundColor: isAdding
-                ? isLight
-                  ? 'rgba(0, 0, 0, 0.08)'
-                  : 'rgba(255, 255, 255, 0.12)'
+                ? '#a855f7'
                 : isLight
-                  ? '#09090b'
-                  : '#ffffff',
-              color: isAdding ? (isLight ? '#09090b' : '#ffffff') : isLight ? '#ffffff' : '#09090b',
+                  ? 'rgba(0, 0, 0, 0.04)'
+                  : 'rgba(255, 255, 255, 0.06)',
+              borderColor: isAdding
+                ? '#a855f7'
+                : isLight
+                  ? 'rgba(0, 0, 0, 0.08)'
+                  : 'rgba(255, 255, 255, 0.10)',
+              color: isAdding ? '#ffffff' : textPrimary,
             }}
+            title={isAdding ? 'Cancel' : 'Add Track'}
+            aria-label={isAdding ? 'Cancel' : 'Add Track'}
           >
-            <span className="material-symbols-outlined text-[15px]">
-              {isAdding ? 'close' : 'add'}
+            <span
+              className="material-symbols-outlined text-[15px] transition-transform duration-200"
+              style={{ transform: isAdding ? 'rotate(45deg)' : 'rotate(0deg)' }}
+            >
+              add
             </span>
-            <span>{isAdding ? 'Cancel' : 'Add Song'}</span>
+            <span className="hidden min-[380px]:inline">{isAdding ? 'Cancel' : 'Add Track'}</span>
           </button>
         </div>
-
-        {/* Expandable Inline Add Form */}
+      }
+    >
+      {/* 1. Setlist Card */}
+      <div
+        className="p-5 rounded-[20px] border mb-4 shadow-sm"
+        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+      >
+        {/* Inline Add Song Form */}
         <AnimatePresence>
           {isAdding && (
             <motion.form
@@ -213,9 +124,9 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               onSubmit={handleAddSong}
-              className="p-4 rounded-[16px] border mb-4 overflow-hidden flex flex-col gap-3"
+              className="p-4 rounded-[16px] border mb-5 overflow-hidden flex flex-col gap-3"
               style={{
-                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
+                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
                 borderColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)',
               }}
             >
@@ -229,7 +140,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                   style={{
                     backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                     borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: isLight ? '#09090b' : '#ffffff',
+                    color: textPrimary,
                   }}
                   autoFocus
                   required
@@ -243,7 +154,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                   style={{
                     backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                     borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: isLight ? '#09090b' : '#ffffff',
+                    color: textPrimary,
                   }}
                 />
               </div>
@@ -252,20 +163,20 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 <div>
                   <label
                     className="block text-[10px] font-bold uppercase tracking-wider mb-1"
-                    style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
+                    style={{ color: textSecondary }}
                   >
                     Musical Key
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Am, G, Dm"
+                    placeholder="e.g. Am"
                     value={songKey}
                     onChange={(e) => setSongKey(e.target.value)}
                     className="w-full px-3 py-1.5 rounded-xl text-xs border focus:outline-none"
                     style={{
                       backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                       borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                      color: isLight ? '#09090b' : '#ffffff',
+                      color: textPrimary,
                     }}
                   />
                 </div>
@@ -273,7 +184,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 <div>
                   <label
                     className="block text-[10px] font-bold uppercase tracking-wider mb-1"
-                    style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
+                    style={{ color: textSecondary }}
                   >
                     BPM Tempo
                   </label>
@@ -286,7 +197,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                     style={{
                       backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                       borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                      color: isLight ? '#09090b' : '#ffffff',
+                      color: textPrimary,
                     }}
                   />
                 </div>
@@ -294,7 +205,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 <div>
                   <label
                     className="block text-[10px] font-bold uppercase tracking-wider mb-1"
-                    style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
+                    style={{ color: textSecondary }}
                   >
                     Duration
                   </label>
@@ -307,7 +218,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                     style={{
                       backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                       borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                      color: isLight ? '#09090b' : '#ffffff',
+                      color: textPrimary,
                     }}
                   />
                 </div>
@@ -315,7 +226,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 <div>
                   <label
                     className="block text-[10px] font-bold uppercase tracking-wider mb-1"
-                    style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
+                    style={{ color: textSecondary }}
                   >
                     Energy (1-100)
                   </label>
@@ -330,7 +241,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                     style={{
                       backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
                       borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                      color: isLight ? '#09090b' : '#ffffff',
+                      color: textPrimary,
                     }}
                   />
                 </div>
@@ -351,32 +262,60 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
           )}
         </AnimatePresence>
 
-        {/* Song List */}
-        <div className="flex flex-col gap-2">
-          {setlist.length === 0 ? (
-            <StageSetupEmptyState
-              icon="queue_music"
-              title="No songs in setlist"
-              description="Add songs, assign keys and tempos, and map your performance flow"
-              actionLabel="Add First Song"
-              onAction={() => setIsAdding(true)}
-              iconColor="#a855f7"
-              isLight={isLight}
-            />
-          ) : (
-            setlist.map((song, idx) => (
+        {setlist.length === 0 ? (
+          <div className="py-6 flex flex-col items-center justify-center text-center">
+            <div
+              className="w-12 h-12 rounded-[16px] flex items-center justify-center mb-3 border"
+              style={{
+                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
+                borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+              }}
+            >
+              <span className="material-symbols-outlined text-[24px]" style={{ color: '#a855f7' }}>
+                queue_music
+              </span>
+            </div>
+            <h4
+              className="text-xs font-black uppercase tracking-wider mb-1"
+              style={{ color: textPrimary, letterSpacing: '0.08em' }}
+            >
+              No Songs Yet
+            </h4>
+            <p
+              className="text-[12px] max-w-xs leading-relaxed mb-4"
+              style={{ color: textSecondary }}
+            >
+              Tap Add New Track to start your setlist.
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setIsAdding(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
+              style={{
+                backgroundColor: isLight ? '#09090b' : '#ffffff',
+                color: isLight ? '#ffffff' : '#09090b',
+              }}
+            >
+              <span className="material-symbols-outlined text-[15px]">add</span>
+              <span>Add New Track</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 mb-4">
+            {setlist.map((song, idx) => (
               <div
                 key={song.id}
                 className="flex items-center justify-between p-3 rounded-[14px] border transition-all"
                 style={{
-                  backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
-                  borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+                  backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.02)',
+                  borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)',
                 }}
               >
                 <div className="flex items-center gap-3 min-w-0 pr-2">
                   <span
                     className="text-xs font-mono font-bold w-5 text-right shrink-0"
-                    style={{ color: isLight ? '#71717a' : '#71717a' }}
+                    style={{ color: textSecondary }}
                   >
                     {idx + 1}
                   </span>
@@ -413,10 +352,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                       )}
                     </div>
                     {song.artist && (
-                      <p
-                        className="text-[11px] truncate mt-0.5"
-                        style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
-                      >
+                      <p className="text-[11px] truncate mt-0.5" style={{ color: textSecondary }}>
                         {song.artist}
                       </p>
                     )}
@@ -424,10 +360,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <span
-                    className="text-[11px] font-mono mr-1"
-                    style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
-                  >
+                  <span className="text-[11px] font-mono mr-1" style={{ color: textSecondary }}>
                     {song.duration}
                   </span>
 
@@ -436,7 +369,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                     onClick={() => reorderSongs(idx, idx - 1)}
                     disabled={idx === 0}
                     className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors disabled:opacity-20 cursor-pointer"
-                    style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
+                    style={{ color: textSecondary }}
                     title="Move Up"
                   >
                     <span className="material-symbols-outlined text-[16px]">arrow_upward</span>
@@ -447,7 +380,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                     onClick={() => reorderSongs(idx, idx + 1)}
                     disabled={idx === setlist.length - 1}
                     className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors disabled:opacity-20 cursor-pointer"
-                    style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
+                    style={{ color: textSecondary }}
                     title="Move Down"
                   >
                     <span className="material-symbols-outlined text-[16px]">arrow_downward</span>
@@ -457,15 +390,116 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                     type="button"
                     onClick={() => removeSong(song.id)}
                     className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors cursor-pointer"
-                    style={{ color: isLight ? '#a1a1aa' : '#71717a' }}
+                    style={{ color: textSecondary }}
                     title="Delete Song"
                   >
                     <span className="material-symbols-outlined text-[16px]">delete</span>
                   </button>
                 </div>
               </div>
-            ))
-          )}
+            ))}
+          </div>
+        )}
+
+        {/* Divider & Bottom Metrics Strip */}
+        <div
+          className="w-full h-px my-2"
+          style={{ backgroundColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)' }}
+        />
+
+        <div className="grid grid-cols-3 pt-3 text-left">
+          <div>
+            <span
+              className="text-[10px] font-bold uppercase tracking-wider block"
+              style={{ color: textSecondary }}
+            >
+              Songs Count
+            </span>
+            <p
+              className="text-[20px] font-black tracking-tight mt-0.5"
+              style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+            >
+              {setlist.length}
+            </p>
+          </div>
+
+          <div>
+            <span
+              className="text-[10px] font-bold uppercase tracking-wider block"
+              style={{ color: textSecondary }}
+            >
+              Total Duration
+            </span>
+            <p
+              className="text-[20px] font-black tracking-tight mt-0.5"
+              style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+            >
+              {totalDuration}
+            </p>
+          </div>
+
+          <div>
+            <span
+              className="text-[10px] font-bold uppercase tracking-wider block"
+              style={{ color: textSecondary }}
+            >
+              Avg Energy
+            </span>
+            <p
+              className="text-[20px] font-black tracking-tight mt-0.5"
+              style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+            >
+              {avgEnergy !== null ? `${avgEnergy}` : '—'}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Setlist Insights Card */}
+      <div
+        className="p-5 rounded-[20px] border shadow-sm"
+        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+      >
+        <h3
+          className="text-[11px] font-black uppercase tracking-wider mb-3"
+          style={{ color: textPrimary, letterSpacing: '0.08em' }}
+        >
+          Setlist Insights
+        </h3>
+
+        <div className="flex flex-col gap-2.5">
+          <div
+            className="flex items-center justify-between py-1 border-b"
+            style={{ borderColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <span className="text-xs font-medium" style={{ color: textSecondary }}>
+              Tempo Stability
+            </span>
+            <span className="text-xs font-mono font-bold" style={{ color: textPrimary }}>
+              —
+            </span>
+          </div>
+
+          <div
+            className="flex items-center justify-between py-1 border-b"
+            style={{ borderColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.04)' }}
+          >
+            <span className="text-xs font-medium" style={{ color: textSecondary }}>
+              Key Variety
+            </span>
+            <span className="text-xs font-mono font-bold" style={{ color: textPrimary }}>
+              —
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between py-1">
+            <span className="text-xs font-medium" style={{ color: textSecondary }}>
+              Transition Fluidity
+            </span>
+            <span className="text-xs font-mono font-bold" style={{ color: textPrimary }}>
+              —
+            </span>
+          </div>
         </div>
       </div>
     </StageSetupDetailLayout>

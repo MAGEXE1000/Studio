@@ -220,6 +220,31 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       if (!selectedElement) return;
       StageBridge.updateElement(iframeRef.current, selectedElement.id, updates);
       setSelectedElement((prev: any) => (prev ? { ...prev, ...updates } : null));
+
+      // Keep useStagexStore elements synchronized in real time
+      const store = useStagexStore.getState();
+      const currentList = store.elements || [];
+      const exists = currentList.some((e) => e.id === selectedElement.id);
+      const nextElements = exists
+        ? currentList.map((e) => (e.id === selectedElement.id ? { ...e, ...updates } : e))
+        : [...currentList, { ...selectedElement, ...updates }];
+      useStagexStore.setState({ elements: nextElements });
+
+      // Keep localStorage stagecoreProject synchronized
+      try {
+        const raw = localStorage.getItem('stagecoreProject');
+        if (raw) {
+          const proj = JSON.parse(raw);
+          const updated = (proj.elements || []).map((e: any) =>
+            e.id === selectedElement.id ? { ...e, ...updates } : e
+          );
+          proj.elements = updated;
+          if (Array.isArray(proj.scenes) && proj.scenes[proj.currentSceneIdx || 0]) {
+            proj.scenes[proj.currentSceneIdx || 0].elements = updated;
+          }
+          localStorage.setItem('stagecoreProject', JSON.stringify(proj));
+        }
+      } catch {}
     },
     [selectedElement]
   );

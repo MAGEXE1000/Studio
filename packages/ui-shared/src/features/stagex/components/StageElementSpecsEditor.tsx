@@ -29,6 +29,20 @@ export interface StageElementSpecsEditorProps {
   accent: { from: string; to: string };
 }
 
+export function stepScaleUp(currentScale: number): number {
+  const current = typeof currentScale === 'number' ? currentScale : 100;
+  const normalized = Math.round(current / 20) * 20;
+  const next = normalized <= current ? normalized + 20 : normalized;
+  return Math.min(200, Math.max(20, next));
+}
+
+export function stepScaleDown(currentScale: number): number {
+  const current = typeof currentScale === 'number' ? currentScale : 100;
+  const normalized = Math.round(current / 20) * 20;
+  const next = normalized >= current ? normalized - 20 : normalized;
+  return Math.max(20, Math.min(200, next));
+}
+
 const COLOR_SWATCHES = [
   { hex: '#6B97FF', name: 'Blue' },
   { hex: '#10B981', name: 'Emerald' },
@@ -905,7 +919,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                   <button
                     type="button"
                     data-testid="specs-scale-minus"
-                    onClick={() => onUpdateElement({ scale: Math.max(30, scale - 10) })}
+                    onClick={() => onUpdateElement({ scale: stepScaleDown(scale) })}
                     className="w-8 h-full flex items-center justify-center text-zinc-400 hover:text-white cursor-pointer active:scale-90 transition-all"
                     title="Smaller"
                   >
@@ -915,18 +929,28 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                     data-testid="input-specs-scale"
                     type="number"
                     value={scale}
-                    onChange={(e) =>
-                      onUpdateElement({
-                        scale: Math.max(30, Math.min(250, parseInt(e.target.value, 10) || 100)),
-                      })
-                    }
+                    step={20}
+                    min={20}
+                    max={200}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (!isNaN(val)) {
+                        onUpdateElement({ scale: val });
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      const safeVal = isNaN(val) ? 100 : val;
+                      const normalized = Math.max(20, Math.min(200, Math.round(safeVal / 20) * 20));
+                      onUpdateElement({ scale: normalized });
+                    }}
                     className="flex-1 min-w-0 text-center text-[11px] font-bold bg-transparent outline-none"
                     style={{ color: isLight ? '#09090b' : '#ffffff' }}
                   />
                   <button
                     type="button"
                     data-testid="specs-scale-plus"
-                    onClick={() => onUpdateElement({ scale: Math.min(250, scale + 10) })}
+                    onClick={() => onUpdateElement({ scale: stepScaleUp(scale) })}
                     className="w-8 h-full flex items-center justify-center text-zinc-400 hover:text-white cursor-pointer active:scale-90 transition-all"
                     title="Larger"
                   >

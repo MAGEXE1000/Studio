@@ -337,91 +337,11 @@ html[data-amoled='1'] .sc-help-card {
 .stage-element.selected .el-label {
   color: var(--el-color, var(--accent));
 }
-/* Resize toolbar shown on selection */
-.el-resize-bar {
-  display: flex;
-  position: absolute;
-  background: var(--studio-surface-elevated, rgba(14, 14, 14, 0.95));
-  border: 1px solid var(--studio-border, rgba(255, 255, 255, 0.08));
-  border-radius: 20px;
-  flex-direction: row;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 6px;
-  z-index: 100;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  transition: opacity 0.15s ease;
-}
-.stage-element.selected .el-resize-bar {
-  opacity: 1;
-  pointer-events: auto;
-}
-.stage-element.dragging .el-resize-bar {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: opacity 0.1s ease;
-}
-.el-resize-bar button {
-  width: 24px;
-  height: 24px;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-family: 'Manrope', sans-serif;
-  transition:
-    background 0.12s ease,
-    color 0.12s ease,
-    transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.el-resize-bar button:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--accent);
-}
-.el-resize-bar button:active {
-  transform: scale(0.88);
-}
-.el-resize-bar .el-scale-display {
-  font-size: 8px;
-  font-family: 'Manrope', sans-serif;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.35);
-  min-width: 20px;
-  text-align: center;
-  line-height: 1;
-  padding: 1px 0;
-}
 html[data-theme='light'] .stage-element .el-label {
   color: #18181b;
 }
 html[data-theme='light'] .stage-element.selected .el-label {
   color: var(--el-color, #1d4ed8);
-}
-html[data-theme='light'] .el-resize-bar {
-  background: rgba(255, 255, 255, 0.96) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
-}
-html[data-theme='light'] .el-resize-bar button {
-  color: #09090b !important;
-}
-html[data-theme='light'] .el-resize-bar button:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--accent);
-}
-html[data-theme='light'] .el-resize-bar .el-scale-display {
-  color: #09090b !important;
 }
 
 .draggable-item {
@@ -2371,7 +2291,6 @@ body.gig-mode #mobile-fab,
 body.gig-mode #sc-fab-wrap,
 body.gig-mode #sc-vtools,
 body.gig-mode #bottom-toolbar,
-body.gig-mode .el-resize-bar,
 body.gig-mode .el-rotate-handle,
 body.gig-mode .el-connect-dot,
 body.gig-mode #sc-scenes-bar,
@@ -2658,7 +2577,6 @@ body.share-mode #mobile-fab,
 body.share-mode #smart-suggest-card,
 body.share-mode #properties-panel,
 body.share-mode #mode-pill,
-body.share-mode .el-resize-bar,
 body.share-mode .el-rotate-handle,
 body.share-mode .el-connect-dot,
 body.share-mode .el-item.selected::after {

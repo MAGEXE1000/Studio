@@ -2236,105 +2236,11 @@ function isPointerInBounds(e, dom, el) {
 }
 
 function repositionResizeBar(wrap) {
-  const bar = wrap.querySelector('.el-resize-bar');
-  if (!bar) return;
-  if (!wrap.classList.contains('selected')) return;
-
-  const canvas = document.getElementById('stage-canvas') || document.body;
-  const canvasRect = canvas.getBoundingClientRect();
-
-  const elId = wrap.id.replace('elem-', '');
-  const elementObj = state.elements.find((e) => e.id === elId);
-  if (!elementObj) return;
-
-  const scale = elementObj.scale / 100;
-  const zoom = state.zoom || 1;
-
-  const isMobile = window.innerWidth < 768;
-  const targetOnScreenScale = isMobile ? 0.82 : 1.0;
-  const scaleCorrection = targetOnScreenScale / (scale * zoom);
-
-  const barW = 140;
-  const barH = 32;
-
-  let absX = elementObj.x - barW / 2;
-  let absY = elementObj.y - 40;
-
-  const pad = 12;
-  let finalAbsX = Math.max(pad, Math.min(canvasRect.width - barW - pad, absX));
-  let finalAbsY = Math.max(pad, Math.min(canvasRect.height - barH - pad, absY));
-
-  const relX = (finalAbsX - elementObj.x) / (scale * zoom);
-  const relY = (finalAbsY - elementObj.y) / (scale * zoom);
-
-  bar.style.position = 'absolute';
-  bar.style.top = '0px';
-  bar.style.left = '0px';
-  bar.style.transform = `translate(${relX}px, ${relY}px) scale(${scaleCorrection})`;
+  // Obsolete floating transform pill permanently removed
 }
 
 function getDefaultScale(item) {
-  const isMobile = window.innerWidth < 768;
-  const baseScale = isMobile ? 65 : 100;
-  if (!item) return baseScale;
-  const type = (item.type || '').toLowerCase();
-  const name = (item.name || '').toLowerCase();
-  const icon = (item.icon || '').toLowerCase();
-
-  if (type.includes('drum') || icon.includes('drum')) {
-    return isMobile ? 80 : 125;
-  }
-  if (
-    type.includes('person') ||
-    icon.includes('person') ||
-    icon.includes('performer') ||
-    icon.includes('vocalist') ||
-    icon.includes('bassist') ||
-    icon.includes('drummer') ||
-    icon.includes('guitarist') ||
-    icon.includes('keyboardist') ||
-    icon.includes('saxophonist') ||
-    icon.includes('tech')
-  ) {
-    return isMobile ? 78 : 120;
-  }
-  if (
-    type.includes('mic') ||
-    type.includes('stand') ||
-    icon.includes('mic') ||
-    name.includes('sm58') ||
-    name.includes('wireless') ||
-    name.includes('condenser')
-  ) {
-    return isMobile ? 55 : 85;
-  }
-  if (
-    type.includes('guitar') ||
-    icon.includes('guitar') ||
-    name.includes('guitar') ||
-    icon.includes('bass')
-  ) {
-    return isMobile ? 75 : 115;
-  }
-  if (
-    type.includes('amplifier') ||
-    type.includes('cabinet') ||
-    type.includes('cab') ||
-    type.includes('speaker') ||
-    type.includes('wedge') ||
-    type.includes('fill') ||
-    type.includes('pa') ||
-    icon.includes('amp') ||
-    icon.includes('cab') ||
-    icon.includes('wedge') ||
-    icon.includes('speaker') ||
-    icon.includes('volume') ||
-    name.includes('amp') ||
-    name.includes('cab')
-  ) {
-    return isMobile ? 75 : 115;
-  }
-  return isMobile ? 65 : 100;
+  return 100;
 }
 
 // ── Mobile: add library item directly to center of stage ──────
@@ -2921,25 +2827,12 @@ function createElementDOM(el) {
         </div>
         <div class="el-label" style="${state.labelsVisible ? '' : 'display:none;'}">${el.label}</div>
       </div>
-    </div>
-    <div class="el-resize-bar">
-      <button title="Larger" data-action="larger"><span class="material-symbols-outlined" style="font-size:15px;">add</span></button>
-      <span class="el-scale-display">${el.scale}%</span>
-      <button title="Smaller" data-action="smaller"><span class="material-symbols-outlined" style="font-size:15px;">remove</span></button>
-      <button title="Rotate" data-action="rotate"><span class="material-symbols-outlined" style="font-size:15px;">rotate_left</span></button>
-      <div style="width:1px;height:16px;background:rgba(255,255,255,0.08);margin:0 2px;"></div>
-      <button title="Remove" data-action="remove" style="color:rgba(255,113,108,0.7);">
-        <span class="material-symbols-outlined" style="font-size:15px;">delete</span>
-      </button>
     </div>`);
 
   const src = el.imageData || ICON_IMAGES[el.icon];
   if (src) {
     getAssetAlphaBounds(src, (bounds) => {
       wrap.dataset.bounds = JSON.stringify(bounds);
-      if (state.selectedId === el.id) {
-        repositionResizeBar(wrap);
-      }
     });
   }
 
@@ -2975,7 +2868,7 @@ function createElementDOM(el) {
       msClear();
     }
     selectElement(el.id);
-    if (!e.target.closest('.el-resize-bar')) startDragElement(e, el);
+    startDragElement(e, el);
   });
   // Touch: select + drag on mobile (or fire connect in connect mode)
   wrap.addEventListener(
@@ -3008,43 +2901,10 @@ function createElementDOM(el) {
         return;
       }
       selectElement(el.id);
-      if (!e.target.closest('.el-resize-bar')) {
-        startTouchDragElement(touch, el);
-      }
+      startTouchDragElement(touch, el);
     },
     { passive: true }
   );
-
-  // Resize toolbar buttons
-  wrap.querySelector('[data-action="smaller"]').addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    scaleElementBy(el, -10);
-  });
-  wrap.querySelector('[data-action="larger"]').addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    scaleElementBy(el, +10);
-  });
-  wrap.querySelector('[data-action="rotate"]').addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    el.rotation = (el.rotation + 45) % 360;
-    const iconWrap = wrap.querySelector('.el-icon-wrap');
-    if (iconWrap) iconWrap.style.transform = `rotate(${el.rotation}deg)`;
-    const inputRot = document.getElementById('input-rotation');
-    if (inputRot) inputRot.value = el.rotation;
-    pushHistory();
-    repositionResizeBar(wrap);
-    try {
-      window.parent.postMessage({ type: 'sc-element-selected', elementId: el.id, element: JSON.parse(JSON.stringify(el)) }, '*');
-    } catch (err) {}
-  });
-  const removeBtn = wrap.querySelector('[data-action="remove"]');
-  removeBtn.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-    removeSelected();
-  });
-  removeBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
 
   layer.appendChild(wrap);
 }
@@ -3052,16 +2912,24 @@ function createElementDOM(el) {
 let _scaleHistoryTid = 0;
 let _scaleAnimTid = 0;
 function scaleElementBy(el, delta) {
-  el.scale = Math.max(30, Math.min(300, (el.scale || 100) + delta));
+  const current = typeof el.scale === 'number' ? el.scale : 100;
+  let next;
+  if (delta > 0) {
+    const normalized = Math.round(current / 20) * 20;
+    next = normalized <= current ? normalized + 20 : normalized;
+  } else if (delta < 0) {
+    const normalized = Math.round(current / 20) * 20;
+    next = normalized >= current ? normalized - 20 : normalized;
+  } else {
+    next = Math.round(current / 20) * 20;
+  }
+  el.scale = Math.max(20, Math.min(200, next));
   const dom = document.getElementById('elem-' + el.id);
   if (dom) {
     dom.classList.add('scaling');
     dom.style.transform = `translate(-50%,-50%) scale(${el.scale / 100})`;
-    const disp = dom.querySelector('.el-scale-display');
-    if (disp) disp.textContent = el.scale + '%';
     clearTimeout(_scaleAnimTid);
     _scaleAnimTid = setTimeout(() => dom.classList.remove('scaling'), 250);
-    repositionResizeBar(dom);
   }
   const inputScale = document.getElementById('input-scale');
   if (inputScale) inputScale.value = el.scale;

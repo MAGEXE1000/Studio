@@ -25,4 +25,5 @@ export type StageWin = Window & {
   stageHasOpenOverlay?: () => boolean;
   openCustomElementModal?: () => void;
   __getSceneInfo?: () => { count: number; currentIdx: number; names: string[] };
+  setStageShape?: (shape: 'rectangular' | 'square') => void;
 };

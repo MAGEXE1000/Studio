@@ -80,6 +80,7 @@ export interface StagexPreferences {
   stageWidth: number;
   stageDepth: number;
   amoled: boolean;
+  stageShape?: 'rectangular' | 'square';
 }
 
 export type StagexSubView = 'hub' | 'rider' | 'setlist' | 'gear' | 'members';
@@ -152,6 +153,7 @@ const DEFAULT_PREFERENCES: StagexPreferences = {
   stageWidth: 12,
   stageDepth: 8,
   amoled: false,
+  stageShape: 'rectangular',
 };
 
 function readProjectStorage(): Record<string, any> {

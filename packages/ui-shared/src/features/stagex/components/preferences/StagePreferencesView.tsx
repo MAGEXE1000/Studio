@@ -125,6 +125,38 @@ export const StagePreferencesView: React.FC = () => {
           borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
         }}
       >
+        <SettingRow label="Stage Shape" desc="Aspect ratio and geometry of the stage canvas plot">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/40 border border-white/5">
+            <button
+              onClick={() => updatePreferences({ stageShape: 'rectangular' })}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+              style={{
+                backgroundColor:
+                  (preferences.stageShape || 'rectangular') === 'rectangular'
+                    ? 'rgba(255, 255, 255, 0.15)'
+                    : 'transparent',
+                color:
+                  (preferences.stageShape || 'rectangular') === 'rectangular'
+                    ? '#ffffff'
+                    : '#a1a1aa',
+              }}
+            >
+              Rectangle
+            </button>
+            <button
+              onClick={() => updatePreferences({ stageShape: 'square' })}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+              style={{
+                backgroundColor:
+                  preferences.stageShape === 'square' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                color: preferences.stageShape === 'square' ? '#ffffff' : '#a1a1aa',
+              }}
+            >
+              Square
+            </button>
+          </div>
+        </SettingRow>
+
         <SettingRow
           label="Measurement Units"
           desc="Units used for stage width, depth, and distance indicators"

@@ -996,6 +996,7 @@ select option {
     padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px) !important;
     padding-left: calc(max(10px, env(safe-area-inset-left, 0px))) !important;
     padding-right: calc(max(10px, env(safe-area-inset-right, 0px))) !important;
+    justify-content: center !important;
   }
 
   /* Responsive canvas and scenes bar constraint in portrait mobile */
@@ -1010,11 +1011,102 @@ select option {
     ) !important;
   }
 
-  /* DOWNSTAGE label: keep on one line, smaller tracking */
-  #stage-canvas .absolute.font-headline[style*='bottom:-22px'] {
+  /* Square stage plot mode */
+  body[data-stage-shape='square'] #stage-canvas,
+  [data-stage-shape='square'] #stage-canvas {
+    aspect-ratio: 1 / 1 !important;
+    width: min(
+      calc(100vw - 36px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(100vh - 280px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      440px
+    ) !important;
+    max-width: none !important;
+  }
+
+  body[data-stage-shape='square'] #sc-scenes-bar,
+  [data-stage-shape='square'] #sc-scenes-bar {
+    width: min(
+      calc(100vw - 36px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(100vh - 280px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      440px
+    ) !important;
+    max-width: none !important;
+  }
+
+  /* Scenes bar & buttons matching reference */
+  #sc-scenes-bar {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 4px 6px 4px !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+  }
+
+  .sc-scene-label {
+    font-family: 'Space Grotesk', 'Manrope', sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    color: #ffffff !important;
+    margin-right: 4px !important;
+    user-select: none !important;
+  }
+
+  .sc-scene-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 4px 14px !important;
+    border-radius: 9999px !important;
+    font-family: 'Inter', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #a1a1aa !important;
+    transition: all 180ms ease !important;
+  }
+
+  .sc-scene-btn.active {
+    background: #ffffff !important;
+    color: #09090b !important;
+    font-weight: 700 !important;
+    border-color: #ffffff !important;
+  }
+
+  .sc-scene-close {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 11px !important;
+    margin-left: 2px !important;
+    opacity: 0.6 !important;
+    cursor: pointer !important;
+  }
+
+  .sc-scene-add-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 9999px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    transition: all 180ms ease !important;
+  }
+
+  /* DOWNSTAGE label: keep on one line, clean tracking */
+  #stage-canvas .absolute.font-headline[style*='bottom:-22px'],
+  [data-i18n="downstageLabel"] {
     white-space: nowrap !important;
-    letter-spacing: 0.18em !important;
-    font-size: 8px !important;
+    letter-spacing: 0.35em !important;
+    font-size: 9px !important;
   }
 
   /* Export view: full-width flex column on mobile */

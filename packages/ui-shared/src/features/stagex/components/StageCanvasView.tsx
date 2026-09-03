@@ -15,6 +15,7 @@ import { StageLibraryPanel } from './StageLibraryPanel';
 import { ExportPdfDialog } from './dialogs/ExportPdfDialog';
 import { StageCollabDialog } from './dialogs/StageCollabDialog';
 import { StageBridge } from '../services/StageBridgeService';
+import { useStagexStore } from '../state/useStagexStore';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { resolveAccent } from '@workspace/studio-core';
 
@@ -187,12 +188,21 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     [pdfFileName]
   );
 
+  const stageShape = useStagexStore((s) => s.preferences.stageShape || 'rectangular');
+
   // Handle iframe load
   const handleIframeLoad = () => {
     setIframeLoading(false);
     registerStageIframe(iframeRef.current);
     StageBridge.updateCanvasBg(iframeRef.current, stageBg);
+    StageBridge.setStageShape(iframeRef.current, stageShape);
   };
+
+  useEffect(() => {
+    if (!iframeLoading && iframeRef.current) {
+      StageBridge.setStageShape(iframeRef.current, stageShape);
+    }
+  }, [stageShape, iframeLoading]);
 
   return (
     <div
@@ -397,7 +407,10 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         <>
           {/* Rotation Toggle */}
           <button
-            onClick={() => setIsStageExpanded(!isStageExpanded)}
+            onClick={() => {
+              setIsStageExpanded(!isStageExpanded);
+              callIframe('rotateSelectedElement');
+            }}
             className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer"
             style={{
               bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 196px)',

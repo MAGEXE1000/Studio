@@ -3598,6 +3598,33 @@ window.scaleSelectedElement = function (delta) {
   }
 };
 
+window.setStageShape = function (shape) {
+  var s = shape === 'square' ? 'square' : 'rectangular';
+  state.stageShape = s;
+  document.body.setAttribute('data-stage-shape', s);
+  var canvas = document.getElementById('stage-canvas');
+  if (canvas) {
+    canvas.setAttribute('data-stage-shape', s);
+  }
+  var scenesBar = document.getElementById('sc-scenes-bar');
+  if (scenesBar) {
+    scenesBar.setAttribute('data-stage-shape', s);
+  }
+  requestAnimationFrame(function () {
+    if (typeof _rescaleElementsOnResize === 'function') {
+      _rescaleElementsOnResize();
+    }
+    if (typeof _renderStageLayout === 'function') {
+      _renderStageLayout();
+    } else if (typeof window._renderStageLayout === 'function') {
+      window._renderStageLayout();
+    }
+    if (typeof renderScenesBar === 'function') {
+      renderScenesBar();
+    }
+  });
+};
+
 function removeSelected() {
   if (!state.selectedId) return;
   const id = state.selectedId;
@@ -9836,6 +9863,7 @@ function saveSettings() {
         smConflictEnabled: state.smConflictEnabled,
         smPredictEnabled: state.smPredictEnabled,
         showLastUpdated: state.showLastUpdated,
+        stageShape: state.stageShape || 'rectangular',
       })
     );
   } catch (e) {}
@@ -9865,6 +9893,14 @@ function loadSettings() {
     if (s.smConflictEnabled !== undefined) state.smConflictEnabled = s.smConflictEnabled;
     if (s.smPredictEnabled !== undefined) state.smPredictEnabled = s.smPredictEnabled;
     if (s.showLastUpdated !== undefined) state.showLastUpdated = s.showLastUpdated;
+    if (s.stageShape) {
+      state.stageShape = s.stageShape;
+      document.body.setAttribute('data-stage-shape', s.stageShape);
+      var canvas = document.getElementById('stage-canvas');
+      if (canvas) canvas.setAttribute('data-stage-shape', s.stageShape);
+      var scenesBar = document.getElementById('sc-scenes-bar');
+      if (scenesBar) scenesBar.setAttribute('data-stage-shape', s.stageShape);
+    }
   } catch (e) {}
 }
 

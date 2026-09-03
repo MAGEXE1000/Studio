@@ -85,6 +85,11 @@ export const StageBridge = {
     win?.updateCanvasBg?.(bg);
   },
 
+  setStageShape(iframe: HTMLIFrameElement | null, shape: 'rectangular' | 'square'): void {
+    const win = this.getWin(iframe);
+    win?.setStageShape?.(shape);
+  },
+
   activateMeasure(iframe: HTMLIFrameElement | null): void {
     const win = this.getWin(iframe);
     win?.scActivateMeasure?.();

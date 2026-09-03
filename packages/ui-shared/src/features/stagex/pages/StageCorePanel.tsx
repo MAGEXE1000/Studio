@@ -192,7 +192,7 @@ export default function StagexPanel() {
                             margin: 0,
                           }}
                         >
-                          {tr.stagex?.preferences || 'Stagex Preferences'}
+                          {tr.stagex?.preferences || 'Preferences'}
                         </h1>
                         <p
                           style={{
@@ -203,7 +203,7 @@ export default function StagexPanel() {
                             margin: '2px 0 0 0',
                           }}
                         >
-                          Configure backdrop style, measurement units, and grid rules.
+                          Customize your Stagex experience
                         </p>
                       </div>
                       <StagePreferencesView />

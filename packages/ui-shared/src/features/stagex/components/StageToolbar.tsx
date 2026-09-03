@@ -33,14 +33,14 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
         >
           Stagex
         </span>
-        <div className={`h-4 w-[1px] ${isLight ? 'bg-zinc-200' : 'bg-zinc-800'}`} />
-        <span className="text-[8.5px] text-zinc-500 font-extrabold uppercase tracking-widest">
-          {curView === 'Editor'
-            ? 'Stage Plot Editor'
-            : curView === 'Export'
-              ? 'Rider Export'
-              : 'Setup & Options'}
-        </span>
+        {curView !== 'Editor' && (
+          <>
+            <div className={`h-4 w-[1px] ${isLight ? 'bg-zinc-200' : 'bg-zinc-800'}`} />
+            <span className="text-[8.5px] text-zinc-500 font-extrabold uppercase tracking-widest">
+              {curView === 'Export' ? 'Rider Export' : 'Setup & Options'}
+            </span>
+          </>
+        )}
       </div>
 
       {curView === 'Editor' && (

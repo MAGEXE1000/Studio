@@ -399,7 +399,6 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
           <div className="w-full pointer-events-auto">
             <StudioHeader
               title="Stagex"
-              subtitle="Stage Plot Editor"
               actions={
                 <div
                   className="stagex-floating-actions-pill flex items-center gap-1 p-1 rounded-full"
@@ -480,11 +479,11 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
               containerStyle={{
                 paddingTop:
                   'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
-                paddingBottom: '2px',
+                paddingBottom: '0px',
                 paddingLeft: '16px',
                 paddingRight: '16px',
                 background: 'transparent',
-                alignItems: 'flex-start',
+                alignItems: 'center',
               }}
               titleStyle={{
                 fontFamily: 'Manrope, sans-serif',
@@ -494,13 +493,6 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                 lineHeight: 1.15,
                 color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
                 margin: 0,
-              }}
-              subtitleStyle={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '13px',
-                fontWeight: 500,
-                color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
-                margin: '2px 0 0 0',
               }}
             />
           </div>

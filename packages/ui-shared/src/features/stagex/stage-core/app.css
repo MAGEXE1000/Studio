@@ -701,68 +701,158 @@ select option {
 #sc-scenes-bar {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
-  padding: 0 4px 6px 4px !important;
+  gap: 6px !important;
+  padding: 2px 16px 8px 16px !important;
   background: transparent !important;
   box-sizing: border-box !important;
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+  -webkit-overflow-scrolling: touch !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  user-select: none !important;
+}
+#sc-scenes-bar::-webkit-scrollbar {
+  display: none !important;
 }
 
 .sc-scene-label {
   font-family: 'Space Grotesk', 'Manrope', sans-serif !important;
-  font-size: 10px !important;
+  font-size: 9.5px !important;
   font-weight: 800 !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
-  color: #ffffff !important;
-  margin-right: 4px !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  margin-right: 2px !important;
+  flex-shrink: 0 !important;
   user-select: none !important;
 }
 
+html[data-theme='light'] .sc-scene-label {
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.sc-scene-chip,
 .sc-scene-btn {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 4px 14px !important;
+  gap: 5px !important;
+  height: 28px !important;
+  padding: 0 10px !important;
   border-radius: 9999px !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 11px !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   cursor: pointer !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
   background: rgba(255, 255, 255, 0.05) !important;
   color: #a1a1aa !important;
-  transition: all 180ms ease !important;
+  flex-shrink: 0 !important;
+  max-width: 140px !important;
+  transition: all 150ms ease !important;
+  box-sizing: border-box !important;
+  user-select: none !important;
+  outline: none !important;
 }
 
+.sc-scene-chip:hover,
+.sc-scene-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+.sc-scene-chip.active,
 .sc-scene-btn.active {
   background: #ffffff !important;
   color: #09090b !important;
   font-weight: 700 !important;
   border-color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20) !important;
 }
 
+html[data-theme='light'] .sc-scene-chip,
+html[data-theme='light'] .sc-scene-btn {
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: #71717a !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] .sc-scene-chip:hover,
+html[data-theme='light'] .sc-scene-btn:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: #18181b !important;
+}
+
+html[data-theme='light'] .sc-scene-chip.active,
+html[data-theme='light'] .sc-scene-btn.active {
+  background: #09090b !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  border-color: #09090b !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+.sc-scene-name {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 85px !important;
+}
+
+.sc-scene-del-btn,
 .sc-scene-close {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 11px !important;
-  margin-left: 2px !important;
-  opacity: 0.6 !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin-left: 1px !important;
   cursor: pointer !important;
+  color: currentColor !important;
+  opacity: 0.5 !important;
+  transition: opacity 120ms ease, background 120ms ease !important;
+}
+
+.sc-scene-del-btn:hover,
+.sc-scene-close:hover {
+  opacity: 1 !important;
+  background: rgba(255, 113, 108, 0.20) !important;
+  color: #ff716c !important;
 }
 
 .sc-scene-add-btn {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 28px !important;
-  height: 28px !important;
+  width: 26px !important;
+  height: 26px !important;
   border-radius: 9999px !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   background: rgba(255, 255, 255, 0.05) !important;
   color: #ffffff !important;
   cursor: pointer !important;
-  transition: all 180ms ease !important;
+  flex-shrink: 0 !important;
+  transition: all 150ms ease !important;
+  outline: none !important;
+}
+
+.sc-scene-add-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  transform: scale(1.05) !important;
+}
+
+html[data-theme='light'] .sc-scene-add-btn {
+  border: 1px solid rgba(0, 0, 0, 0.10) !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: #09090b !important;
+}
+
+html[data-theme='light'] .sc-scene-add-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* ────────────────────────────────────────────────
@@ -1147,74 +1237,6 @@ select option {
     max-width: none !important;
     margin-top: auto !important;
     margin-bottom: auto !important;
-  }
-
-  /* Scenes bar & buttons matching reference */
-  #sc-scenes-bar {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding: 0 4px 6px 4px !important;
-    background: transparent !important;
-    box-sizing: border-box !important;
-  }
-
-  .sc-scene-label {
-    font-family: 'Space Grotesk', 'Manrope', sans-serif !important;
-    font-size: 10px !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.12em !important;
-    text-transform: uppercase !important;
-    color: #ffffff !important;
-    margin-right: 4px !important;
-    user-select: none !important;
-  }
-
-  .sc-scene-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    padding: 4px 14px !important;
-    border-radius: 9999px !important;
-    font-family: 'Inter', sans-serif !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #a1a1aa !important;
-    transition: all 180ms ease !important;
-  }
-
-  .sc-scene-btn.active {
-    background: #ffffff !important;
-    color: #09090b !important;
-    font-weight: 700 !important;
-    border-color: #ffffff !important;
-  }
-
-  .sc-scene-close {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    font-size: 11px !important;
-    margin-left: 2px !important;
-    opacity: 0.6 !important;
-    cursor: pointer !important;
-  }
-
-  .sc-scene-add-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 9999px !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    color: #ffffff !important;
-    cursor: pointer !important;
-    transition: all 180ms ease !important;
   }
 
   /* DOWNSTAGE label: keep on one line, clean tracking */

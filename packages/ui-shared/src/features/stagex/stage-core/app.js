@@ -7818,7 +7818,7 @@ if (typeof window !== 'undefined') {
 function duplicateScene(idx) {
   _ensureScenes();
   if (state.scenes.length >= SCENES_MAX) {
-    showToast(state.lang === 'es' ? 'Máximo 3 escenas' : 'Max 3 scenes');
+    showToast(state.lang === 'es' ? 'Máximo 8 escenas' : 'Max 8 scenes');
     return;
   }
   _persistCurrentScene();
@@ -7853,19 +7853,25 @@ function renderScenesBar() {
     .map((s, i) => {
       const active = i === state.currentSceneIdx;
       return `
-      <button onclick="switchScene(${i})" title="${s.name}"
+      <div role="button" tabindex="0" onclick="switchScene(${i})" title="${s.name}"
         oncontextmenu="event.preventDefault();renameScenePrompt(${i});return false;"
-        class="sc-scene-btn ${active ? 'active' : ''}">
-        <span>${s.name}</span>
-        ${state.scenes.length > 1 ? `<span onclick="event.stopPropagation();removeScene(${i})" class="sc-scene-close">×</span>` : ''}
-      </button>`;
+        class="sc-scene-chip ${active ? 'active' : ''}">
+        <span class="sc-scene-name">${s.name}</span>
+        ${
+          state.scenes.length > 1
+            ? `<button type="button" onclick="event.stopPropagation();removeScene(${i})" class="sc-scene-del-btn" title="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}" aria-label="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}">
+                 <span class="material-symbols-outlined" style="font-size:13px;line-height:1;">close</span>
+               </button>`
+            : ''
+        }
+      </div>`;
     })
     .join('');
 
   const addHtml =
     state.scenes.length < SCENES_MAX
-      ? `<button onclick="addScene()" title="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" class="sc-scene-add-btn">
-         <span class="material-symbols-outlined" style="font-size:14px;line-height:1;">add</span>
+      ? `<button type="button" onclick="addScene()" title="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" aria-label="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" class="sc-scene-add-btn">
+         <span class="material-symbols-outlined" style="font-size:15px;line-height:1;">add</span>
        </button>`
       : '';
 
@@ -7888,8 +7894,12 @@ function initScenesBarTouchHandler() {
   const getElementDebugData = (btn, clientX, clientY) => {
     const rect = btn.getBoundingClientRect();
     const isCloseOrAdd =
-      btn.classList.contains('sc-scene-close') || btn.classList.contains('sc-scene-add-btn');
-    const isSceneBtn = btn.classList.contains('sc-scene-btn');
+      btn.classList.contains('sc-scene-close') ||
+      btn.classList.contains('sc-scene-del-btn') ||
+      btn.classList.contains('sc-scene-add-btn');
+    const isSceneBtn =
+      btn.classList.contains('sc-scene-btn') ||
+      btn.classList.contains('sc-scene-chip');
     const borderSize = isCloseOrAdd ? 14 : 0;
 
     const touchRect = {
@@ -8324,9 +8334,9 @@ function _doAutosave() {
 }
 
 // ══════════════════════════════════════════════════════════
-//  SCENES (v3.0.63+) — up to 3 stage-plot scenes per project
+//  SCENES — stage-plot scenes per project (horizontal scrollable)
 // ══════════════════════════════════════════════════════════
-const SCENES_MAX = 3;
+const SCENES_MAX = 8;
 
 function _ensureScenes() {
   if (!Array.isArray(state.scenes) || state.scenes.length === 0) {
@@ -8385,6 +8395,11 @@ function switchScene(idx) {
   state.historyIndex = -1;
   renderAll();
   renderScenesBar();
+  try {
+    const bar = document.getElementById('sc-scenes-bar');
+    const activeChip = bar?.querySelector('.sc-scene-chip.active');
+    activeChip?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  } catch (e) {}
   pushHistory(); // seed new scene's history with current snapshot
   saveProject();
 }
@@ -8392,7 +8407,7 @@ function switchScene(idx) {
 function addScene() {
   _ensureScenes();
   if (state.scenes.length >= SCENES_MAX) {
-    showToast(state.lang === 'es' ? 'Máximo 3 escenas' : 'Max 3 scenes');
+    showToast(state.lang === 'es' ? 'Máximo 8 escenas' : 'Max 8 scenes');
     return;
   }
   _persistCurrentScene();
@@ -8407,6 +8422,11 @@ function addScene() {
   _loadScene(state.scenes.length - 1);
   renderAll();
   renderScenesBar();
+  try {
+    const bar = document.getElementById('sc-scenes-bar');
+    const activeChip = bar?.querySelector('.sc-scene-chip.active');
+    activeChip?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+  } catch (e) {}
   saveProject();
 }
 
@@ -8419,8 +8439,8 @@ function removeScene(idx) {
   const title = state.lang === 'es' ? '¿Eliminar escena?' : 'Delete scene?';
   const body =
     state.lang === 'es'
-      ? 'Esto eliminará esta escena de tu plano de escenario. Esta acción no se puede deshacer.'
-      : 'This will remove this scene from your stage plot. This action cannot be undone.';
+      ? `¿Estás seguro de que deseas eliminar "${sceneName}"? Esta acción no se puede deshacer.`
+      : `Are you sure you want to delete "${sceneName}"? This action cannot be undone.`;
   const deleteBtnText = state.lang === 'es' ? 'Eliminar' : 'Delete';
   const cancelBtnText = state.lang === 'es' ? 'Cancelar' : 'Cancel';
 

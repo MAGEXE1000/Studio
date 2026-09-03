@@ -68,7 +68,7 @@ export const StageElementDrawer: React.FC<StageElementDrawerProps> = ({
         <img
           src={iconPath}
           alt={item.name}
-          className="w-6 h-6 object-contain pointer-events-none"
+          className="w-7 h-7 object-contain pointer-events-none"
           style={{
             filter: isLight ? undefined : 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
           }}
@@ -92,92 +92,118 @@ export const StageElementDrawer: React.FC<StageElementDrawerProps> = ({
         />
       )}
 
-      {/* Floating Bottom Drawer */}
+      {/* Floating Bottom Production Tool Palette */}
       <div
         data-testid="stagex-element-drawer"
         role="region"
         aria-label="Stage Element Catalog"
         className="fixed z-40 flex flex-col pointer-events-auto"
         style={{
-          bottom: 'calc(var(--content-bottom-pad, 88px) + env(safe-area-inset-bottom, 0px) + 8px)',
-          left: '12px',
-          right: 'calc(max(16px, env(safe-area-inset-right, 0px)) + 54px)',
-          maxWidth: '520px',
+          bottom: 'calc(max(10px, env(safe-area-inset-bottom, 0px)) + 4px)',
+          left: 'calc(max(10px, env(safe-area-inset-left, 0px)) + 4px)',
+          right: 'calc(max(10px, env(safe-area-inset-right, 0px)) + 4px)',
+          maxWidth: '680px',
+          margin: '0 auto',
           background: isAmoled
-            ? 'rgba(12, 12, 16, 0.90)'
+            ? 'rgba(10, 10, 14, 0.94)'
             : isLight
-              ? 'rgba(255, 255, 255, 0.92)'
-              : 'rgba(20, 20, 26, 0.88)',
+              ? 'rgba(255, 255, 255, 0.95)'
+              : 'rgba(18, 18, 24, 0.92)',
           border: isAmoled
             ? '1px solid rgba(255, 255, 255, 0.12)'
             : isLight
               ? '1px solid rgba(0, 0, 0, 0.08)'
               : '1px solid rgba(255, 255, 255, 0.10)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45)',
-          borderRadius: '20px',
-          padding: '8px 10px 10px 10px',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          boxShadow: isLight
+            ? '0 12px 36px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.04)'
+            : '0 16px 40px rgba(0, 0, 0, 0.65), 0 2px 10px rgba(0, 0, 0, 0.40)',
+          borderRadius: '24px',
+          padding: '10px 12px 12px 12px',
           pointerEvents: isOpen ? 'auto' : 'none',
           opacity: isOpen ? 1 : 0,
-          transform: isOpen ? 'translateY(0px) scale(1)' : 'translateY(12px) scale(0.97)',
+          transform: isOpen ? 'translateY(0px) scale(1)' : 'translateY(12px) scale(0.98)',
           transition:
-            'opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+            'opacity 0.20s cubic-bezier(0.16, 1, 0.3, 1), transform 0.20s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* Category Horizontal Selector */}
-        <div
-          data-testid="drawer-categories-row"
-          className="flex items-center gap-1.5 overflow-x-auto pb-2"
-          style={{
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-        >
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat.key;
-            return (
-              <button
-                key={cat.key}
-                type="button"
-                data-testid={`drawer-cat-${cat.key}`}
-                onClick={() => setActiveCategory(cat.key)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold flex-shrink-0 transition-all active:scale-95 cursor-pointer"
-                style={{
-                  background: isActive
-                    ? isLight
-                      ? '#09090b'
-                      : '#ffffff'
-                    : isLight
-                      ? 'rgba(0, 0, 0, 0.05)'
-                      : 'rgba(255, 255, 255, 0.06)',
-                  color: isActive
-                    ? isLight
-                      ? '#ffffff'
-                      : '#09090b'
-                    : isLight
-                      ? '#52525b'
-                      : '#a1a1aa',
-                  border: isActive
-                    ? isLight
-                      ? '1px solid #09090b'
-                      : '1px solid #ffffff'
-                    : '1px solid transparent',
-                  fontWeight: isActive ? 700 : 600,
-                }}
-              >
-                <span className="material-symbols-outlined text-[15px]">{cat.icon}</span>
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
+        {/* Header: Category Horizontal Selector + Close Button */}
+        <div className="flex items-center justify-between gap-2 pb-2">
+          <div
+            data-testid="drawer-categories-row"
+            className="flex items-center gap-1.5 overflow-x-auto min-w-0 flex-1 py-0.5"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+            }}
+          >
+            {CATEGORIES.map((cat) => {
+              const isActive = activeCategory === cat.key;
+              return (
+                <button
+                  key={cat.key}
+                  type="button"
+                  data-testid={`drawer-cat-${cat.key}`}
+                  onClick={() => setActiveCategory(cat.key)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold flex-shrink-0 transition-all active:scale-95 cursor-pointer"
+                  style={{
+                    background: isActive
+                      ? isLight
+                        ? '#09090b'
+                        : '#ffffff'
+                      : isLight
+                        ? 'rgba(0, 0, 0, 0.05)'
+                        : 'rgba(255, 255, 255, 0.06)',
+                    color: isActive
+                      ? isLight
+                        ? '#ffffff'
+                        : '#09090b'
+                      : isLight
+                        ? '#52525b'
+                        : '#a1a1aa',
+                    border: isActive
+                      ? isLight
+                        ? '1px solid #09090b'
+                        : '1px solid #ffffff'
+                      : isLight
+                        ? '1px solid rgba(0, 0, 0, 0.04)'
+                        : '1px solid rgba(255, 255, 255, 0.04)',
+                    fontWeight: isActive ? 700 : 600,
+                  }}
+                >
+                  <span className="material-symbols-outlined text-[15px]">{cat.icon}</span>
+                  <span>{cat.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Dedicated Close Button */}
+          <button
+            type="button"
+            data-testid="stagex-drawer-close-btn"
+            onClick={onClose}
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer active:scale-90 transition-all"
+            style={{
+              background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+              color: isLight ? '#52525b' : '#a1a1aa',
+              border: isLight
+                ? '1px solid rgba(0, 0, 0, 0.06)'
+                : '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+            aria-label="Close Element Drawer"
+            title="Close"
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
         </div>
 
         {/* Elements Horizontal Scrolling Shelf */}
         <div
           ref={itemsContainerRef}
           data-testid="drawer-elements-row"
-          className="flex items-center gap-2 overflow-x-auto pt-1"
+          className="flex items-center gap-2 overflow-x-auto pt-0.5"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
@@ -192,11 +218,11 @@ export const StageElementDrawer: React.FC<StageElementDrawerProps> = ({
                 onSelectElement(item);
                 onClose();
               }}
-              className="flex flex-col items-center justify-center p-1.5 rounded-xl transition-all active:scale-95 flex-shrink-0 cursor-pointer"
+              className="flex flex-col items-center justify-center p-1.5 rounded-2xl transition-all active:scale-95 flex-shrink-0 cursor-pointer group"
               style={{
-                width: '66px',
-                height: '66px',
-                background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.05)',
+                width: '74px',
+                height: '74px',
+                background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
                 border: isLight
                   ? '1px solid rgba(0, 0, 0, 0.07)'
                   : '1px solid rgba(255, 255, 255, 0.07)',
@@ -204,11 +230,11 @@ export const StageElementDrawer: React.FC<StageElementDrawerProps> = ({
               }}
               title={`Add ${item.name}`}
             >
-              <div className="w-6 h-6 flex items-center justify-center mb-1">
+              <div className="w-7 h-7 flex items-center justify-center mb-1.5 transition-transform group-hover:scale-105">
                 {renderIcon(item)}
               </div>
               <span
-                className="text-[9.5px] font-medium text-center w-full truncate px-0.5"
+                className="text-[9.5px] font-semibold text-center w-full truncate px-0.5 leading-tight"
                 style={{
                   fontFamily: 'Inter, sans-serif',
                   color: isLight ? '#27272a' : '#d4d4d8',

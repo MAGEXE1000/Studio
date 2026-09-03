@@ -31,6 +31,9 @@ export function setNavLocked(locked: boolean) {
     if (_hidden) {
       _hidden = false;
       emit(false);
+      if (typeof window !== 'undefined') {
+        document.documentElement.removeAttribute('data-nav-hidden');
+      }
     }
   }
   onStateChanged();

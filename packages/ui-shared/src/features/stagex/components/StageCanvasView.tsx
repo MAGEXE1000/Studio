@@ -12,6 +12,7 @@ import {
   lockOrientation,
   setNavHidden,
   setNavLocked,
+  useBackHandler,
 } from '@workspace/studio-core';
 import { StageToolbar } from './StageToolbar';
 import { StageLibraryPanel } from './StageLibraryPanel';
@@ -77,13 +78,26 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     return () => mql.removeEventListener('change', handleMql);
   }, []);
 
-  // Ensure bottom navigation reflects landscape and inspection modes
+  // Ensure bottom navigation reflects landscape, inspection mode, and element picker drawer state
   useEffect(() => {
     if (isWebDesktop) return;
-    const shouldHide = isLandscape || liveMode;
+    const shouldHide = isLandscape || liveMode || fabOpen;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
-  }, [isLandscape, liveMode, isWebDesktop]);
+  }, [isLandscape, liveMode, fabOpen, isWebDesktop]);
+
+  // Dismiss element drawer on Android hardware back button
+  useBackHandler(
+    'overlay',
+    () => {
+      if (fabOpen) {
+        setFabOpen(false);
+        return true;
+      }
+      return false;
+    },
+    [fabOpen]
+  );
 
   // Clean up orientation lock on unmount
   useEffect(() => {
@@ -146,6 +160,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   const handleToggleRotate = useCallback(async () => {
     const next = !isLandscape;
     setIsLandscape(next);
+    if (fabOpen) setFabOpen(false);
     const shouldHide = next || liveMode;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
@@ -153,11 +168,12 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       await lockOrientation(next ? 'landscape' : 'portrait');
     } catch {}
     callIframe('sc-landscape', { isLandscape: next });
-  }, [isLandscape, liveMode, callIframe]);
+  }, [isLandscape, liveMode, fabOpen, callIframe]);
 
   const handleToggleEye = useCallback(() => {
     const next = !liveMode;
     setLiveMode(next);
+    if (fabOpen) setFabOpen(false);
     const shouldHide = next || isLandscape;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
@@ -165,7 +181,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     if (!next) {
       callIframe('resetView');
     }
-  }, [liveMode, isLandscape, setLiveMode, callIframe]);
+  }, [liveMode, isLandscape, fabOpen, setLiveMode, callIframe]);
 
   // Update canvas background on theme changes
   useEffect(() => {
@@ -459,8 +475,8 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       {/* Mobile Floating Action Controls */}
       {!isWebDesktop && (
         <>
-          {/* Normal Mode Controls: Rotate & Add FAB */}
-          {!liveMode && (
+          {/* Normal Mode Controls: Rotate & Add FAB (hidden in liveMode and when drawer is open) */}
+          {!liveMode && !fabOpen && (
             <>
               {/* Rotation Toggle */}
               <button
@@ -514,57 +530,59 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                   border: 'none',
                   color: '#ffffff',
                   boxShadow: '0 4px 14px rgba(236, 72, 153, 0.45)',
-                  transform: fabOpen ? 'rotate(45deg) scale(1.08)' : 'rotate(0deg) scale(1)',
+                  transform: 'rotate(0deg) scale(1)',
                   transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)',
                 }}
-                aria-label={fabOpen ? 'Close Catalog' : 'Add Element'}
-                title={fabOpen ? 'Close Catalog' : 'Add Element'}
+                aria-label="Add Element"
+                title="Add Element"
               >
                 <span className="material-symbols-outlined text-[24px]">add</span>
               </button>
             </>
           )}
 
-          {/* Live Mode Toggle (Eye) - Stays accessible in both normal and liveMode */}
-          <button
-            data-testid="stagex-eye-btn"
-            onClick={handleToggleEye}
-            className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer active:scale-95 transition-all"
-            style={{
-              bottom: liveMode
-                ? 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 24px)'
-                : 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 140px)',
-              right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
-              width: 44,
-              height: 44,
-              background: liveMode
-                ? '#ec4899'
-                : isAmoled
-                  ? 'rgba(10, 10, 12, 0.88)'
-                  : isLight
-                    ? 'rgba(255, 255, 255, 0.85)'
-                    : 'rgba(20, 20, 26, 0.80)',
-              border: liveMode
-                ? '1px solid #ec4899'
-                : isAmoled
-                  ? '1px solid rgba(255, 255, 255, 0.12)'
-                  : isLight
-                    ? '1px solid rgba(0, 0, 0, 0.08)'
-                    : '1px solid rgba(255, 255, 255, 0.10)',
-              color: liveMode ? '#ffffff' : isLight ? '#09090b' : '#ffffff',
-              boxShadow: liveMode
-                ? '0 4px 14px rgba(236, 72, 153, 0.45)'
-                : '0 4px 16px rgba(0, 0, 0, 0.35)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-            }}
-            aria-label={liveMode ? 'Exit Inspection Mode' : 'Enter Inspection Mode'}
-            title={liveMode ? 'Exit Inspection Mode' : 'Enter Inspection Mode'}
-          >
-            <span className="material-symbols-outlined text-[22px]">
-              {liveMode ? 'visibility_off' : 'visibility'}
-            </span>
-          </button>
+          {/* Live Mode Toggle (Eye) - Hidden when drawer is open */}
+          {!fabOpen && (
+            <button
+              data-testid="stagex-eye-btn"
+              onClick={handleToggleEye}
+              className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer active:scale-95 transition-all"
+              style={{
+                bottom: liveMode
+                  ? 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 24px)'
+                  : 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 140px)',
+                right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
+                width: 44,
+                height: 44,
+                background: liveMode
+                  ? '#ec4899'
+                  : isAmoled
+                    ? 'rgba(10, 10, 12, 0.88)'
+                    : isLight
+                      ? 'rgba(255, 255, 255, 0.85)'
+                      : 'rgba(20, 20, 26, 0.80)',
+                border: liveMode
+                  ? '1px solid #ec4899'
+                  : isAmoled
+                    ? '1px solid rgba(255, 255, 255, 0.12)'
+                    : isLight
+                      ? '1px solid rgba(0, 0, 0, 0.08)'
+                      : '1px solid rgba(255, 255, 255, 0.10)',
+                color: liveMode ? '#ffffff' : isLight ? '#09090b' : '#ffffff',
+                boxShadow: liveMode
+                  ? '0 4px 14px rgba(236, 72, 153, 0.45)'
+                  : '0 4px 16px rgba(0, 0, 0, 0.35)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+              }}
+              aria-label={liveMode ? 'Exit Inspection Mode' : 'Enter Inspection Mode'}
+              title={liveMode ? 'Exit Inspection Mode' : 'Enter Inspection Mode'}
+            >
+              <span className="material-symbols-outlined text-[22px]">
+                {liveMode ? 'visibility_off' : 'visibility'}
+              </span>
+            </button>
+          )}
 
           {/* Compact Bottom Element Drawer */}
           <StageElementDrawer

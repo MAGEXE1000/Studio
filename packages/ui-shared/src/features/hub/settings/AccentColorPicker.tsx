@@ -524,7 +524,7 @@ export function AccentColorPicker() {
               <span
                 style={{
                   fontFamily: 'Manrope, sans-serif',
-                  fontSize: 11,
+                  fontSize: 'var(--font-section-label)',
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   letterSpacing: '0.14em',
@@ -543,7 +543,7 @@ export function AccentColorPicker() {
                   color: 'var(--c-text-secondary)',
                   cursor: 'pointer',
                   padding: '2px 8px',
-                  fontSize: 11,
+                  fontSize: 'var(--font-section-label)',
                   fontWeight: 700,
                   display: 'flex',
                   alignItems: 'center',

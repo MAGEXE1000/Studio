@@ -2814,7 +2814,7 @@ if (typeof _origAddItemToStage === 'function') {
       const el = _findEl(e.target);
       if (el) {
         _haptic();
-        _show(e.clientX, e.clientY, el);
+        if (typeof selectElement === 'function') selectElement(el.id);
       }
     });
 
@@ -2837,7 +2837,7 @@ if (typeof _origAddItemToStage === 'function') {
           if (el) {
             e.preventDefault();
             _haptic();
-            _show(_lpTouch.x, _lpTouch.y, el);
+            if (typeof selectElement === 'function') selectElement(el.id);
           }
           _lpTimer = null;
         }, LP_DELAY);
@@ -5172,4 +5172,12 @@ function _injectCtxExtras(el) {
       console.warn('[SC] _initProfessionalTools error:', e);
     }
   }, 100);
+
+  window.scDuplicateEl = typeof scDuplicateEl === 'function' ? scDuplicateEl : null;
+  window.scAddMicNear = typeof scAddMicNear === 'function' ? scAddMicNear : null;
+  window.scAssignChannel = typeof scAssignChannel === 'function' ? scAssignChannel : null;
+  window.scToggleLock = typeof scToggleLock === 'function' ? scToggleLock : null;
+  window.scTogglePin = typeof scTogglePin === 'function' ? scTogglePin : null;
+  window.scSaveAsPreset = typeof scSaveAsPreset === 'function' ? scSaveAsPreset : null;
+  window.scCtxDelete = typeof scCtxDelete === 'function' ? scCtxDelete : null;
 })();

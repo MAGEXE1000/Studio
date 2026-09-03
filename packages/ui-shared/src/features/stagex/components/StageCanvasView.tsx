@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion } from 'motion/react';
 import {
   useIsWebDesktop,
@@ -17,6 +17,7 @@ import {
 import { StageToolbar } from './StageToolbar';
 import { StageLibraryPanel } from './StageLibraryPanel';
 import { StageElementDrawer } from './StageElementDrawer';
+import { StageElementSpecsEditor } from './StageElementSpecsEditor';
 import { ExportPdfDialog } from './dialogs/ExportPdfDialog';
 import { StageCollabDialog } from './dialogs/StageCollabDialog';
 import { StageBridge } from '../services/StageBridgeService';
@@ -65,6 +66,8 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   // Floating controls (Mobile)
   const [fabOpen, setFabOpen] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<any | null>(null);
+  const [specsOpen, setSpecsOpen] = useState(false);
 
   // Sync orientation changes
   useEffect(() => {
@@ -78,25 +81,52 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     return () => mql.removeEventListener('change', handleMql);
   }, []);
 
-  // Ensure bottom navigation reflects landscape, inspection mode, and element picker drawer state
+  // Listen for selection and specs events from the canvas engine
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (!e.data || typeof e.data !== 'object') return;
+      if (e.data.type === 'sc-element-selected') {
+        setSelectedElement(e.data.element || null);
+        if (!e.data.element) {
+          setSpecsOpen(false);
+        }
+      } else if (e.data.type === 'sc-open-specs') {
+        if (e.data.element) {
+          setSelectedElement(e.data.element);
+        } else if (iframeRef.current) {
+          const el = StageBridge.getSelectedElement(iframeRef.current);
+          if (el) setSelectedElement(el);
+        }
+        setSpecsOpen(true);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Ensure bottom navigation reflects landscape, inspection mode, element picker drawer, and specs editor state
   useEffect(() => {
     if (isWebDesktop) return;
-    const shouldHide = isLandscape || liveMode || fabOpen;
+    const shouldHide = isLandscape || liveMode || fabOpen || specsOpen;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
-  }, [isLandscape, liveMode, fabOpen, isWebDesktop]);
+  }, [isLandscape, liveMode, fabOpen, specsOpen, isWebDesktop]);
 
-  // Dismiss element drawer on Android hardware back button
+  // Dismiss Specs editor or element drawer on Android hardware back button
   useBackHandler(
     'overlay',
     () => {
+      if (specsOpen) {
+        setSpecsOpen(false);
+        return true;
+      }
       if (fabOpen) {
         setFabOpen(false);
         return true;
       }
       return false;
     },
-    [fabOpen]
+    [specsOpen, fabOpen]
   );
 
   // Clean up orientation lock on unmount
@@ -161,6 +191,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     const next = !isLandscape;
     setIsLandscape(next);
     if (fabOpen) setFabOpen(false);
+    if (specsOpen) setSpecsOpen(false);
     const shouldHide = next || liveMode;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
@@ -168,12 +199,13 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       await lockOrientation(next ? 'landscape' : 'portrait');
     } catch {}
     callIframe('sc-landscape', { isLandscape: next });
-  }, [isLandscape, liveMode, fabOpen, callIframe]);
+  }, [isLandscape, liveMode, fabOpen, specsOpen, callIframe]);
 
   const handleToggleEye = useCallback(() => {
     const next = !liveMode;
     setLiveMode(next);
     if (fabOpen) setFabOpen(false);
+    if (specsOpen) setSpecsOpen(false);
     const shouldHide = next || isLandscape;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
@@ -181,7 +213,52 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     if (!next) {
       callIframe('resetView');
     }
-  }, [liveMode, isLandscape, fabOpen, setLiveMode, callIframe]);
+  }, [liveMode, isLandscape, fabOpen, specsOpen, setLiveMode, callIframe]);
+
+  const handleUpdateElement = useCallback(
+    (updates: Record<string, any>) => {
+      if (!selectedElement) return;
+      StageBridge.updateElement(iframeRef.current, selectedElement.id, updates);
+      setSelectedElement((prev: any) => (prev ? { ...prev, ...updates } : null));
+    },
+    [selectedElement]
+  );
+
+  const handleDuplicateElement = useCallback(() => {
+    StageBridge.duplicateSelected(iframeRef.current);
+  }, []);
+
+  const handleDeleteElement = useCallback(() => {
+    StageBridge.deleteSelected(iframeRef.current);
+    setSelectedElement(null);
+    setSpecsOpen(false);
+  }, []);
+
+  const handleToggleLock = useCallback(() => {
+    StageBridge.toggleLockSelected(iframeRef.current);
+    setSelectedElement((prev: any) => (prev ? { ...prev, locked: !prev.locked } : null));
+  }, []);
+
+  const handleTogglePin = useCallback(() => {
+    StageBridge.togglePinSelected(iframeRef.current);
+    setSelectedElement((prev: any) => (prev ? { ...prev, pinned: !prev.pinned } : null));
+  }, []);
+
+  const handleSavePreset = useCallback(() => {
+    StageBridge.savePresetSelected(iframeRef.current);
+  }, []);
+
+  const handleAddMicNearby = useCallback(() => {
+    StageBridge.addMicNearbySelected(iframeRef.current);
+  }, []);
+
+  const handleAssignChannel = useCallback(() => {
+    StageBridge.assignChannelSelected(iframeRef.current);
+  }, []);
+
+  const bandMembers = useMemo(() => {
+    return StageBridge.getBandMembers(iframeRef.current);
+  }, [iframeRef.current, specsOpen]);
 
   // Update canvas background on theme changes
   useEffect(() => {
@@ -472,11 +549,57 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         )}
       </div>
 
-      {/* Mobile Floating Action Controls */}
+      {/* Mobile Floating Action Controls & Specs */}
       {!isWebDesktop && (
         <>
-          {/* Normal Mode Controls: Rotate & Add FAB (hidden in liveMode and when drawer is open) */}
-          {!liveMode && !fabOpen && (
+          {/* Selected Element Specs Pill Button */}
+          {selectedElement && !fabOpen && !specsOpen && !liveMode && (
+            <button
+              data-testid="stagex-specs-btn"
+              onClick={() => setSpecsOpen(true)}
+              className="absolute z-30 flex items-center gap-2 h-10 px-3.5 rounded-full cursor-pointer active:scale-95 transition-all"
+              style={{
+                bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                background: isAmoled
+                  ? 'rgba(10, 10, 14, 0.90)'
+                  : isLight
+                    ? 'rgba(255, 255, 255, 0.92)'
+                    : 'rgba(20, 20, 26, 0.88)',
+                border: isAmoled
+                  ? '1px solid rgba(255, 255, 255, 0.14)'
+                  : isLight
+                    ? '1px solid rgba(0, 0, 0, 0.08)'
+                    : '1px solid rgba(255, 255, 255, 0.12)',
+                boxShadow: isLight
+                  ? '0 4px 16px rgba(0, 0, 0, 0.12)'
+                  : '0 4px 20px rgba(0, 0, 0, 0.50)',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+              }}
+              aria-label="Edit Specs"
+              title="Edit Specs"
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                style={{ background: selectedElement.color || '#6B97FF' }}
+              />
+              <span
+                className="text-[12px] font-bold max-w-[120px] truncate"
+                style={{ color: isLight ? '#09090b' : '#ffffff' }}
+              >
+                {selectedElement.label || selectedElement.name}
+              </span>
+              <span className="text-[11px] font-bold text-pink-400 uppercase tracking-wider flex items-center gap-1">
+                Specs
+                <span className="material-symbols-outlined text-[15px]">tune</span>
+              </span>
+            </button>
+          )}
+
+          {/* Normal Mode Controls: Rotate & Add FAB (hidden in liveMode, when drawer is open, and when specs is open) */}
+          {!liveMode && !fabOpen && !specsOpen && (
             <>
               {/* Rotation Toggle */}
               <button
@@ -541,8 +664,8 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
             </>
           )}
 
-          {/* Live Mode Toggle (Eye) - Hidden when drawer is open */}
-          {!fabOpen && (
+          {/* Live Mode Toggle (Eye) - Hidden when drawer is open or specs is open */}
+          {!fabOpen && !specsOpen && (
             <button
               data-testid="stagex-eye-btn"
               onClick={handleToggleEye}
@@ -589,6 +712,25 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
             isOpen={fabOpen && !liveMode}
             onClose={() => setFabOpen(false)}
             onSelectElement={handleAddElement}
+            isLight={isLight}
+            isAmoled={isAmoled}
+            accent={accent}
+          />
+
+          {/* Compact Floating Specs Editor */}
+          <StageElementSpecsEditor
+            isOpen={specsOpen && !!selectedElement}
+            element={selectedElement}
+            onClose={() => setSpecsOpen(false)}
+            onUpdateElement={handleUpdateElement}
+            onDuplicate={handleDuplicateElement}
+            onDelete={handleDeleteElement}
+            onToggleLock={handleToggleLock}
+            onTogglePin={handleTogglePin}
+            onSavePreset={handleSavePreset}
+            onAddMicNearby={handleAddMicNearby}
+            onAssignChannel={handleAssignChannel}
+            bandMembers={bandMembers}
             isLight={isLight}
             isAmoled={isAmoled}
             accent={accent}

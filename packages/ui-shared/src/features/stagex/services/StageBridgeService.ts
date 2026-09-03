@@ -157,4 +157,111 @@ export const StageBridge = {
     const win = this.getWin(iframe);
     win?.openCustomElementModal?.();
   },
+
+  getSelectedElement(iframe: HTMLIFrameElement | null): any | null {
+    const win = this.getWin(iframe) as any;
+    if (!win || !win.state) return null;
+    const selectedId = win.state.selectedId;
+    if (!selectedId) return null;
+    const el = win.state.elements?.find((e: any) => e.id === selectedId);
+    return el ? JSON.parse(JSON.stringify(el)) : null;
+  },
+
+  updateElement(iframe: HTMLIFrameElement | null, id: any, updates: Record<string, any>): void {
+    const win = this.getWin(iframe) as any;
+    if (!win || !win.state) return;
+    const el = win.state.elements?.find((e: any) => e.id === id);
+    if (!el) return;
+    Object.assign(el, updates);
+    const dom = win.document?.getElementById('elem-' + id);
+    if (dom) {
+      if (updates.scale !== undefined) {
+        dom.style.transform = `translate(-50%,-50%) scale(${el.scale / 100})`;
+        const disp = dom.querySelector('.el-scale-display');
+        if (disp) disp.textContent = el.scale + '%';
+      }
+      if (updates.rotation !== undefined) {
+        const iconWrap = dom.querySelector('.el-icon-wrap');
+        if (iconWrap) iconWrap.style.transform = `rotate(${el.rotation}deg)`;
+      }
+      if (updates.label !== undefined) {
+        const lbl = dom.querySelector('.el-label');
+        if (lbl) lbl.textContent = el.label;
+      }
+      if (updates.color !== undefined) {
+        dom.style.setProperty('--el-color', el.color);
+        const ico = dom.querySelector('.el-icon');
+        if (ico) ico.style.color = el.color;
+      }
+      if (typeof win.repositionResizeBar === 'function') {
+        win.repositionResizeBar(dom);
+      }
+    }
+    if (typeof win.pushHistory === 'function') win.pushHistory();
+    if (typeof win.markAutosaveDirty === 'function') win.markAutosaveDirty();
+    if (typeof win.renderConnections === 'function') win.renderConnections();
+  },
+
+  duplicateSelected(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    if (typeof win?.duplicateSelected === 'function') {
+      win.duplicateSelected();
+    } else if (typeof win?.scDuplicateEl === 'function' && win.state?.selectedId) {
+      const el = win.state.elements?.find((e: any) => e.id === win.state.selectedId);
+      if (el) win.scDuplicateEl(el);
+    }
+  },
+
+  deleteSelected(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    if (typeof win?.removeSelected === 'function') {
+      win.removeSelected();
+    } else if (typeof win?.deleteSelectedElement === 'function') {
+      win.deleteSelectedElement();
+    }
+  },
+
+  toggleLockSelected(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    if (typeof win?.scToggleLock === 'function' && win.state?.selectedId) {
+      const el = win.state.elements?.find((e: any) => e.id === win.state.selectedId);
+      if (el) win.scToggleLock(el);
+    }
+  },
+
+  togglePinSelected(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    if (typeof win?.scTogglePin === 'function' && win.state?.selectedId) {
+      const el = win.state.elements?.find((e: any) => e.id === win.state.selectedId);
+      if (el) win.scTogglePin(el);
+    }
+  },
+
+  savePresetSelected(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    win?.scSaveAsPreset?.();
+  },
+
+  addMicNearbySelected(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    if (typeof win?.scAddMicNear === 'function' && win.state?.selectedId) {
+      const el = win.state.elements?.find((e: any) => e.id === win.state.selectedId);
+      if (el) win.scAddMicNear(el);
+    }
+  },
+
+  assignChannelSelected(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    if (typeof win?.scAssignChannel === 'function' && win.state?.selectedId) {
+      const el = win.state.elements?.find((e: any) => e.id === win.state.selectedId);
+      if (el) win.scAssignChannel(el);
+    }
+  },
+
+  getBandMembers(iframe: HTMLIFrameElement | null): Array<{ id: string; name: string }> {
+    const win = this.getWin(iframe) as any;
+    if (!win || !win.state) return [];
+    const raw = win.state.bandMembers || win.state.members || [];
+    return Array.isArray(raw) ? raw : [];
+  },
 };

@@ -2923,6 +2923,11 @@ function createElementDOM(el) {
       </div>
     </div>
     <div class="el-resize-bar">
+      <button title="Specs" data-action="specs" class="el-specs-bar-btn" style="display:inline-flex;align-items:center;gap:3px;padding:0 6px;color:#ffffff;font-weight:700;font-size:10.5px;border-radius:10px;background:rgba(236,72,153,0.20);border:1px solid rgba(236,72,153,0.40);margin-right:2px;cursor:pointer;">
+        <span class="material-symbols-outlined" style="font-size:13px;color:#ec4899;">tune</span>
+        <span>Specs</span>
+      </button>
+      <div style="width:1px;height:16px;background:rgba(255,255,255,0.08);margin:0 2px;"></div>
       <button title="Larger" data-action="larger"><span class="material-symbols-outlined" style="font-size:15px;">add</span></button>
       <span class="el-scale-display">${el.scale}%</span>
       <button title="Smaller" data-action="smaller"><span class="material-symbols-outlined" style="font-size:15px;">remove</span></button>
@@ -3033,6 +3038,17 @@ function createElementDOM(el) {
     pushHistory();
     repositionResizeBar(wrap);
   });
+  const specsBtn = wrap.querySelector('[data-action="specs"]');
+  if (specsBtn) {
+    specsBtn.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      openElementSpecs(el);
+    });
+    specsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openElementSpecs(el);
+    });
+  }
   const removeBtn = wrap.querySelector('[data-action="remove"]');
   removeBtn.addEventListener('mousedown', (e) => {
     e.stopPropagation();
@@ -3357,6 +3373,21 @@ function closePropPanel() {
   setPropState('hidden');
 }
 
+function openElementSpecs(el) {
+  try {
+    const target = el || state.elements.find((e) => e.id === state.selectedId);
+    window.parent.postMessage(
+      {
+        type: 'sc-open-specs',
+        elementId: target ? target.id : null,
+        element: target ? JSON.parse(JSON.stringify(target)) : null,
+      },
+      '*'
+    );
+  } catch (e) {}
+}
+window.openElementSpecs = openElementSpecs;
+
 function selectElement(id) {
   const differentElement = id !== state.selectedId;
   state.selectedId = id;
@@ -3368,9 +3399,18 @@ function selectElement(id) {
   }
   updatePropertiesPanel();
   updateStatusBar(); // refresh SEL stat
-  // Selecting a different element always resets the dismissed flag and peeks
-  if (differentElement) _propUserDismissed = false;
-  if (!_propUserDismissed) setPropState('open');
+  setPropState('hidden');
+  try {
+    const el = state.elements.find((e) => e.id === id);
+    window.parent.postMessage(
+      {
+        type: 'sc-element-selected',
+        elementId: id,
+        element: el ? JSON.parse(JSON.stringify(el)) : null,
+      },
+      '*'
+    );
+  } catch (e) {}
   updateDropHint();
 }
 
@@ -3381,6 +3421,16 @@ function deselectAll() {
   updatePropertiesPanel();
   updateStatusBar(); // refresh SEL stat
   setPropState('hidden');
+  try {
+    window.parent.postMessage(
+      {
+        type: 'sc-element-selected',
+        elementId: null,
+        element: null,
+      },
+      '*'
+    );
+  } catch (e) {}
   updateDropHint();
 }
 

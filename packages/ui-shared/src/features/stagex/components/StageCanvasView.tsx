@@ -17,6 +17,7 @@ import { StageCollabDialog } from './dialogs/StageCollabDialog';
 import { StageBridge } from '../services/StageBridgeService';
 import { useStagexStore } from '../state/useStagexStore';
 import SmartLoading from '../../../shared/loading/SmartLoading';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { resolveAccent } from '@workspace/studio-core';
 
 export interface StageCanvasViewProps {
@@ -225,118 +226,114 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
 
       {/* Mobile Seamless Header & Floating Actions */}
       {!isWebDesktop && !liveMode && (
-        <div
-          className="w-full flex-shrink-0 px-4 z-20 pointer-events-none"
-          style={{
-            paddingTop: 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
-            paddingBottom: '8px',
-          }}
-        >
-          <div className="flex items-center justify-between w-full pointer-events-auto">
-            {/* Title & Subtitle */}
-            <div className="flex flex-col">
-              <h1
-                style={{
-                  fontFamily: 'Manrope, sans-serif',
-                  fontSize: '28px',
-                  fontWeight: 800,
-                  letterSpacing: '-0.03em',
-                  lineHeight: 1.15,
-                  color: 'var(--c-text-primary, #ffffff)',
-                  margin: 0,
-                }}
-              >
-                Stagex
-              </h1>
-              <p
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '13px',
-                  fontWeight: 500,
-                  color: 'var(--c-text-secondary, #a1a1aa)',
-                  margin: '2px 0 0 0',
-                }}
-              >
-                Stage Plot Editor
-              </p>
-            </div>
-
-            {/* Floating Actions Capsule */}
-            <div
-              className="stagex-floating-actions-pill flex items-center gap-1 p-1 rounded-full"
-              style={{
-                background: isAmoled
-                  ? 'rgba(10, 10, 12, 0.88)'
-                  : isLight
-                    ? 'rgba(255, 255, 255, 0.85)'
-                    : 'rgba(20, 20, 26, 0.80)',
-                border: isAmoled
-                  ? '1px solid rgba(255, 255, 255, 0.12)'
-                  : isLight
-                    ? '1px solid rgba(0, 0, 0, 0.08)'
-                    : '1px solid rgba(255, 255, 255, 0.10)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => callIframe('scActivateMeasure')}
-                title={tr.stagex?.toolMeasure || 'Measure'}
-                aria-label={tr.stagex?.toolMeasure || 'Measure'}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-              >
-                <span className="material-symbols-outlined text-[17px]">straighten</span>
-              </button>
-              <button
-                type="button"
-                onClick={openPdfSheet}
-                title={tr.stagex?.toolExport || 'Export PDF'}
-                aria-label={tr.stagex?.toolExport || 'Export PDF'}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-              >
-                <span className="material-symbols-outlined text-[17px]">picture_as_pdf</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => callIframe('openPresetsPanel')}
-                title="Presets"
-                aria-label="Presets"
-                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-              >
-                <span className="material-symbols-outlined text-[17px]">bookmark</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => callIframe('openTimelinePanel')}
-                title={tr.stagex?.toolHistory || 'History'}
-                aria-label={tr.stagex?.toolHistory || 'History'}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-              >
-                <span className="material-symbols-outlined text-[17px]">history</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCollabModalOpen(true)}
-                title="Collaboration"
-                aria-label="Collaboration"
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
-                style={{
-                  color:
-                    collabState === 'connected'
-                      ? '#10b981'
+        <div className="w-full flex-shrink-0 z-20 pointer-events-none">
+          <div className="w-full pointer-events-auto">
+            <StudioHeader
+              title="Stagex"
+              subtitle="Stage Plot Editor"
+              actions={
+                <div
+                  className="stagex-floating-actions-pill flex items-center gap-1 p-1 rounded-full"
+                  style={{
+                    background: isAmoled
+                      ? 'rgba(10, 10, 12, 0.88)'
                       : isLight
-                        ? 'rgba(0,0,0,0.70)'
-                        : 'rgba(255,255,255,0.85)',
-                  background: collabState === 'connected' ? 'rgba(16,185,129,0.15)' : undefined,
-                }}
-              >
-                <span className="material-symbols-outlined text-[17px]">
-                  {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
-                </span>
-              </button>
-            </div>
+                        ? 'rgba(255, 255, 255, 0.85)'
+                        : 'rgba(20, 20, 26, 0.80)',
+                    border: isAmoled
+                      ? '1px solid rgba(255, 255, 255, 0.12)'
+                      : isLight
+                        ? '1px solid rgba(0, 0, 0, 0.08)'
+                        : '1px solid rgba(255, 255, 255, 0.10)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => callIframe('scActivateMeasure')}
+                    title={tr.stagex?.toolMeasure || 'Measure'}
+                    aria-label={tr.stagex?.toolMeasure || 'Measure'}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">straighten</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openPdfSheet}
+                    title={tr.stagex?.toolExport || 'Export PDF'}
+                    aria-label={tr.stagex?.toolExport || 'Export PDF'}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">picture_as_pdf</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => callIframe('openPresetsPanel')}
+                    title="Presets"
+                    aria-label="Presets"
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">bookmark</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => callIframe('openTimelinePanel')}
+                    title={tr.stagex?.toolHistory || 'History'}
+                    aria-label={tr.stagex?.toolHistory || 'History'}
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[17px]">history</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCollabModalOpen(true)}
+                    title="Collaboration"
+                    aria-label="Collaboration"
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
+                    style={{
+                      color:
+                        collabState === 'connected'
+                          ? '#10b981'
+                          : isLight
+                            ? 'rgba(0,0,0,0.70)'
+                            : 'rgba(255,255,255,0.85)',
+                      background: collabState === 'connected' ? 'rgba(16,185,129,0.15)' : undefined,
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-[17px]">
+                      {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
+                    </span>
+                  </button>
+                </div>
+              }
+              containerStyle={{
+                paddingTop:
+                  'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
+                paddingBottom: '2px',
+                paddingLeft: '16px',
+                paddingRight: '16px',
+                background: 'transparent',
+                alignItems: 'flex-start',
+              }}
+              titleStyle={{
+                fontFamily: 'Manrope, sans-serif',
+                fontSize: '28px',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.15,
+                color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+                margin: 0,
+              }}
+              subtitleStyle={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
+                margin: '2px 0 0 0',
+              }}
+            />
           </div>
         </div>
       )}
@@ -350,7 +347,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
           }`}
           style={{
             borderColor: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)',
-            background: stageBg,
+            background: 'transparent',
           }}
         >
           <iframe
@@ -359,7 +356,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
             title="Stagex Canvas Engine"
             onLoad={handleIframeLoad}
             className="w-full h-full border-none block relative z-0"
-            style={{ width: '100%', height: '100%' }}
+            style={{ width: '100%', height: '100%', background: 'transparent' }}
           />
 
           {iframeLoading && (
@@ -431,7 +428,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
               className="material-symbols-outlined text-[22px]"
               style={{ color: isStageExpanded ? '#fff' : 'var(--c-text-primary)' }}
             >
-              screen_rotation
+              sync
             </span>
           </button>
 
@@ -473,15 +470,14 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
             }}
             className="absolute rounded-full z-20 flex items-center justify-center p-0 cursor-pointer"
             style={{
-              bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 80px)',
+              bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
               right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
-              width: 50,
-              height: 50,
-              background:
-                'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))',
-              border: '1px solid var(--studio-accent-border)',
+              width: 44,
+              height: 44,
+              background: '#ec4899',
+              border: 'none',
               color: '#ffffff',
-              boxShadow: 'var(--studio-accent-glow)',
+              boxShadow: '0 4px 14px rgba(236, 72, 153, 0.45)',
               transform: fabOpen ? 'rotate(45deg) scale(1.08)' : 'rotate(0deg) scale(1)',
               transition: 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1)',
             }}

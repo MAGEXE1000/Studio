@@ -745,23 +745,29 @@
         background: #fff;
       }
 
-      /* Unify the canvas background — body, html and the canvas container all use the same dark
+      /* Unify the canvas background — body, html and the canvas container use transparent
    base so there is no visible seam between the React header above and the iframe content */
       html,
       body {
-        background: #000000 !important;
+        background: transparent !important;
       }
       #canvas-container {
-        background: #000000 !important;
+        background: transparent !important;
       }
-      /* stage-viewport no longer needs the 52px top push — the toolbar floats above the canvas rect */
+      /* stage-viewport centers the stage plot vertically in the available workspace */
       #stage-viewport {
         display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
         justify-content: flex-start !important;
-        padding-top: 10px !important;
-        padding-bottom: 20px !important;
+        width: 100% !important;
+        height: 100% !important;
+        box-sizing: border-box !important;
+        padding-top: 0px !important;
+        padding-bottom: calc(var(--content-bottom-pad, 88px) + env(safe-area-inset-bottom, 0px)) !important;
+        padding-left: calc(max(12px, env(safe-area-inset-left, 0px))) !important;
+        padding-right: calc(max(12px, env(safe-area-inset-right, 0px))) !important;
+        overflow: hidden !important;
         /* Smooth slide when vtools panel opens/closes */
         transition: transform 300ms cubic-bezier(0.34, 1.1, 0.64, 1) !important;
       }
@@ -4157,8 +4163,7 @@
         <!-- Stage Viewport -->
         <div
           id="stage-viewport"
-          class="w-full h-full flex flex-col items-center justify-center"
-          style="padding: 10px 16px 20px 16px; gap: 8px"
+          class="w-full h-full flex flex-col items-center"
           ondragover="event.preventDefault()"
           ondrop="handleDrop(event)"
         >
@@ -4168,24 +4173,8 @@
             style="
               position: relative;
               display: none;
-              align-items: center;
-              justify-content: flex-start;
-              gap: 6px;
-              padding: 6px 8px;
-              background: none;
-              border: none;
-              box-shadow: none;
               overflow-x: auto;
               flex-wrap: nowrap;
-              width: 100%;
-              max-width: min(
-                1080px,
-                calc(100vw - 32px),
-                calc((100vh - var(--dock-safe-gap, 40px)) * 16 / 9)
-              );
-              margin-bottom: 0px;
-              z-index: 30;
-              transition: opacity 220ms ease;
               scrollbar-width: none;
               -ms-overflow-style: none;
             "
@@ -4194,13 +4183,6 @@
             id="stage-canvas"
             class="stage-grid relative"
             style="
-              width: 100%;
-              max-width: min(
-                1080px,
-                calc(100vw - 32px),
-                calc((100vh - var(--dock-safe-gap, 40px)) * 16 / 9)
-              );
-              aspect-ratio: 16/9;
               border: 1px solid rgba(255, 255, 255, 0.08);
               border-radius: 12px;
               overflow: visible;
@@ -6955,10 +6937,8 @@
             day: 'numeric',
           });
       })();
-    </script>
 
-
-        /* ── Swipe-right back gesture (touch-within-iframe fallback) ─────────── */
+      /* ── Swipe-right back gesture (touch-within-iframe fallback) ─────────── */
         var _swipeX = 0,
           _swipeY = 0;
         document.addEventListener(

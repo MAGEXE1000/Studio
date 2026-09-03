@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useBackHandler, useT } from '@workspace/studio-core';
-import { SharedFloatingHeader } from '../../../../shared/layout/StudioLayoutSystem';
 import { StudioPageTransition } from '../../../../components/StudioPageTransition';
 import { StageSetupHub } from './StageSetupHub';
 import { StageRiderView } from './StageRiderView';
@@ -53,7 +52,7 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
   return (
     <div className="w-full h-full flex flex-col relative overflow-hidden bg-transparent">
       {/* Seamless header at the root of Setup */}
-      {activeSubView === 'hub' ? (
+      {activeSubView === 'hub' && (
         <div
           className="flex-shrink-0 px-4 sm:px-6"
           style={{
@@ -94,48 +93,41 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
             />
           </div>
         </div>
-      ) : (
-        /* Drilldown floating header on subviews with back button */
-        <SharedFloatingHeader
-          title={subViewTitles[activeSubView] || 'Setup'}
-          onBack={() => setActiveSubView('hub')}
-          hideBack={false}
-        />
       )}
 
       {/* Content Area with Canonical StudioPageTransition */}
-      <div className="flex-1 overflow-y-auto relative w-full h-full">
+      <div className="flex-1 relative w-full h-full overflow-hidden">
         <StudioPageTransition
           pageKey={activeSubView}
           variant={activeSubView === 'hub' ? 'tab' : 'drilldown'}
         >
           {activeSubView === 'hub' && (
-            <div className="w-full h-full">
+            <div className="w-full h-full overflow-y-auto">
               <StageSetupHub onSelectSubView={(sv) => setActiveSubView(sv)} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'rider' && (
-            <div className="pt-16 pb-28">
-              <StageRiderView onBack={() => setActiveSubView('hub')} />
+            <div className="w-full h-full">
+              <StageRiderView onBack={() => setActiveSubView('hub')} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'setlist' && (
-            <div className="pt-16 pb-28">
-              <StageSetlistView onBack={() => setActiveSubView('hub')} />
+            <div className="w-full h-full">
+              <StageSetlistView onBack={() => setActiveSubView('hub')} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'gear' && (
-            <div className="pt-16 pb-28">
-              <StageGearView onBack={() => setActiveSubView('hub')} />
+            <div className="w-full h-full">
+              <StageGearView onBack={() => setActiveSubView('hub')} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'members' && (
-            <div className="pt-16 pb-28">
-              <StageMembersView onBack={() => setActiveSubView('hub')} />
+            <div className="w-full h-full">
+              <StageMembersView onBack={() => setActiveSubView('hub')} isLight={isLight} />
             </div>
           )}
         </StudioPageTransition>

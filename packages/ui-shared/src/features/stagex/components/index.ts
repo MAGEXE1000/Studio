@@ -5,3 +5,6 @@ export { StageGearView } from './setup/StageGearView';
 export { StageMembersView } from './setup/StageMembersView';
 export { StagePreferencesView } from './preferences/StagePreferencesView';
 export { StageElementDrawer } from './StageElementDrawer';
+export { StageSetupDetailLayout } from './setup/StageSetupDetailLayout';
+export { StageSetupStatsStrip } from './setup/StageSetupStatsStrip';
+export { StageSetupEmptyState } from './setup/StageSetupEmptyState';

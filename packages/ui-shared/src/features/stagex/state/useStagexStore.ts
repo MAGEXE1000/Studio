@@ -55,6 +55,7 @@ export interface GearItem {
   model?: string;
   qty?: number;
   notes?: string;
+  packed?: boolean;
 }
 
 export interface BandMember {

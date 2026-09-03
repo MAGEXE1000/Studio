@@ -98,15 +98,15 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Stagex Square Stage Aspect Ratio Preference: Added a user-selectable and persisted Stage Shape preference (Rectangle vs Square) with instant reactive viewport adaptation, dedicated square stage CSS framing, and zero reload state preservation.',
-      'Canonical Studio Preferences Architecture: Redesigned the Stagex mobile Preferences view with compact charcoal surfaces, small tracked uppercase section headers (APPEARANCE, CANVAS, EDITOR), a 6-color swatch backdrop grid (SHADOW, VOID, GRAPHITE, SLATE, MIDNIGHT, FOREST), and compact segmented controls for grid sizing, stage shape, and measurement units.',
+      'Stagex Stage Plot Shape Integration: Added a dedicated, persisted Stage Plot Shape segmented preference under the Canvas category allowing seamless switching between canonical wide Rectangle and true 1:1 Square plotting geometries.',
+      'Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance.',
     ],
   },
   {
     heading: 'Improved',
     items: [
-      'Canonical Mobile Setup View Redesign: Restored the full-width vertical card stack architecture for Technical Rider, Setlist, Gear Inventory, and Band & Crew with bespoke squircle icons, dynamic item count badges, and seamless drilldown transitions.',
-      'Stagex Mobile Header & Visual Polish: Unified mobile page headers with seamless top insets, standardized 28px typography, floating action utility pills, and generous scroll clearance above the floating bottom dock.',
+      'Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.',
+      'Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports.',
     ],
   },
 ];
@@ -118,6 +118,16 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.53',
+    date: '2026-09-02',
+    highlights: [
+      'Stagex Stage Plot Shape Integration: Added a dedicated, persisted Stage Plot Shape segmented preference under the Canvas category allowing seamless switching between canonical wide Rectangle and true 1:1 Square plotting geometries.',
+      'Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance.',
+      'Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.',
+      'Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports.',
+    ],
+  },
   {
     version: '4.5.52',
     date: '2026-09-02',
@@ -211,16 +221,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Component Resolution Cache: Implemented module-level $O(1)$ component lookup caching in `AnimatedIcon`, removing per-render string parsing and Lucide reflection overhead.',
       'Livex Tab Animation Parity: Standardized tab-change animations to a unified 200ms cubic-bezier transition across all five Livex applications.',
       'Unified Subsection Top Bar: Finalized and unified the shared top bar structure across Chordex, Drumex, Stagex, Groovex, and Vocalex.',
-    ],
-  },
-  {
-    version: '4.5.43',
-    date: '2026-08-25',
-    highlights: [
-      'Modal Surface Transparency: Eliminated excessive transparency across modal, alert, and dialog surfaces across all five Livex applications (Chordex, Drumex, Stagex, Groovex, Vocalex) by introducing canonical `--surface-dialog-bg` and `--surface-modal-surface` theme tokens and multi-layered elevation shadows.',
-      'Navigation Icon Mapping: Resolved unmapped icon warnings for `drumex`, `stagex`, and `disc` in `AnimatedNavigationIcon` through normalized routing and complete filled variant support tables.',
-      "Deprecated Vocalex Back Navigation: Migrated legacy `setVocalexBack` calls across Practice, Recording, Take Detail, and Mixer Lab panels to canonical priority-based `useBackHandler('nested', ...)` hooks.",
-      'Theme System Integration: Standardized CSS token inheritance for interactive controls and floating headers across Light, Dark, and AMOLED themes.',
     ],
   },
 ];

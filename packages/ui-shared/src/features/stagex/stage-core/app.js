@@ -2836,9 +2836,8 @@ function createElementDOM(el) {
     });
   }
 
-  // Click to select / drag (pointer events – mouse & trackpad only; touch uses touchstart below)
+  // Unified pointer drag handler (mouse, trackpad, pen, touch)
   wrap.addEventListener('pointerdown', (e) => {
-    if (e.pointerType === 'touch') return; // handled by touchstart
     if (e.button !== 0) return;
     if (!isPointerInBounds(e, wrap, el)) {
       const prevPE = wrap.style.pointerEvents;
@@ -2846,12 +2845,13 @@ function createElementDOM(el) {
       const behind = document.elementFromPoint(e.clientX, e.clientY);
       wrap.style.pointerEvents = prevPE;
       if (behind && behind !== wrap) {
-        const newEvent = new MouseEvent(e.type, e);
+        const newEvent = window.PointerEvent ? new PointerEvent(e.type, e) : new MouseEvent(e.type, e);
         behind.dispatchEvent(newEvent);
         return;
       }
     }
     e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
     if (state.connectMode) {
       handleConnectClick(el.id);
       return;
@@ -2870,10 +2870,11 @@ function createElementDOM(el) {
     selectElement(el.id);
     startDragElement(e, el);
   });
-  // Touch: select + drag on mobile (or fire connect in connect mode)
+  // Touch fallback (only for legacy browsers lacking PointerEvent)
   wrap.addEventListener(
     'touchstart',
     (e) => {
+      if (window.PointerEvent) return; // Handled by unified pointerdown
       if (e.touches.length !== 1) return;
       const touch = e.touches[0];
       if (!isPointerInBounds(touch, wrap, el)) {
@@ -3017,13 +3018,13 @@ function startDragElement(e, el) {
     initY = el.y;
   const rect = stageCanvas.getBoundingClientRect();
   const zoom = state.zoom || 1;
+  const isTouch = e.pointerType === 'touch';
   let dragging = false;
   let rafId = null;
   let pendingX = initX,
     pendingY = initY;
 
   // Snapshot starting positions of every other element in the multi-select group
-  // multiSel stores string IDs (from DOM attribute); state element IDs may be numbers — compare via String()
   const groupStarts = new Map();
   if (typeof multiSel !== 'undefined' && multiSel.size > 1 && multiSel.has(String(el.id))) {
     multiSel.forEach((eid) => {
@@ -3033,15 +3034,15 @@ function startDragElement(e, el) {
     });
   }
 
-  // Capture the pointer so we get events even when cursor leaves the window
+  // Capture pointer hardware tracking across the entire viewport
   try {
     wrap.setPointerCapture(e.pointerId);
   } catch (_) {}
   wrap.classList.add('dragging');
   wrap.style.willChange = 'left, top';
   _propPeek(true);
-  var _tb = document.getElementById('bottom-toolbar');
-  if (_tb) _tb.classList.add('tb-dragging');
+  const tb = document.getElementById('bottom-toolbar');
+  if (tb) tb.classList.add('tb-dragging');
 
   const commit = () => {
     rafId = null;
@@ -3049,13 +3050,14 @@ function startDragElement(e, el) {
     el.y = pendingY;
     wrap.style.left = pendingX + 'px';
     wrap.style.top = pendingY + 'px';
+
     // Move every other grouped element by the same delta
     if (groupStarts.size > 0) {
-      const dx = pendingX - initX;
-      const dy = pendingY - initY;
+      const gdx = pendingX - initX;
+      const gdy = pendingY - initY;
       groupStarts.forEach((start, eid) => {
-        const nx = Math.max(0, Math.min(rect.width, start.x + dx));
-        const ny = Math.max(0, Math.min(rect.height, start.y + dy));
+        const nx = Math.max(0, Math.min(rect.width, start.x + gdx));
+        const ny = Math.max(0, Math.min(rect.height, start.y + gdy));
         start.elem.x = nx;
         start.elem.y = ny;
         const dom = document.getElementById('elem-' + eid);
@@ -3065,7 +3067,12 @@ function startDragElement(e, el) {
         }
       });
     }
-    renderConnections();
+
+    // Only redraw connections if active connections exist
+    if (state.connections && state.connections.length > 0) {
+      renderConnections();
+    }
+
     const coords = document.getElementById('status-coords');
     if (coords) coords.textContent = `X: ${Math.round(pendingX)} | Y: ${Math.round(pendingY)}`;
   };
@@ -3074,9 +3081,126 @@ function startDragElement(e, el) {
     if (mv.pointerId !== e.pointerId) return;
     const dx = (mv.clientX - startX) / zoom;
     const dy = (mv.clientY - startY) / zoom;
-    // Minimum 5px threshold to avoid ghost drags from light trackpad touches
-    if (!dragging && Math.hypot(dx, dy) < 5) return;
-    dragging = true;
+
+    // Threshold: 0 for touch (immediate response, zero lag), 2px for mouse (prevents jitter on clicks)
+    const threshold = isTouch ? 0 : 2;
+    if (!dragging) {
+      if (Math.hypot(dx, dy) < threshold) return;
+      dragging = true;
+    }
+
+    let nx = initX + dx;
+    let ny = initY + dy;
+
+    if (state.snapToGrid) {
+      nx = Math.round(nx / 20) * 20;
+      ny = Math.round(ny / 20) * 20;
+    }
+
+    nx = Math.max(0, Math.min(rect.width, nx));
+    ny = Math.max(0, Math.min(rect.height, ny));
+
+    pendingX = nx;
+    pendingY = ny;
+
+    if (!rafId) rafId = requestAnimationFrame(commit);
+  };
+
+  const onUp = (mv) => {
+    if (mv && mv.pointerId !== e.pointerId) return;
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      commit();
+    }
+    cleanup();
+    state.canvasW = rect.width;
+    state.canvasH = rect.height;
+    _propPeek(false);
+    if (dragging) {
+      pushHistory();
+      try {
+        window.parent.postMessage(
+          {
+            type: 'sc-element-selected',
+            elementId: el.id,
+            element: JSON.parse(JSON.stringify(el)),
+          },
+          '*'
+        );
+      } catch (_) {}
+    }
+  };
+
+  const cleanup = () => {
+    window._cancelActiveDrag = null;
+    wrap.removeEventListener('pointermove', onMove);
+    wrap.removeEventListener('pointerup', onUp);
+    wrap.removeEventListener('pointercancel', onUp);
+    wrap.removeEventListener('lostpointercapture', onUp);
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    try {
+      wrap.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+    wrap.classList.remove('dragging');
+    wrap.style.willChange = '';
+    _propPeek(false);
+    const tb2 = document.getElementById('bottom-toolbar');
+    if (tb2) tb2.classList.remove('tb-dragging');
+    repositionResizeBar(wrap);
+  };
+
+  window._cancelActiveDrag = cleanup;
+  wrap.addEventListener('pointermove', onMove);
+  wrap.addEventListener('pointerup', onUp);
+  wrap.addEventListener('pointercancel', onUp);
+  wrap.addEventListener('lostpointercapture', onUp);
+}
+
+function startTouchDragElement(touch, el) {
+  const startX = touch.clientX,
+    startY = touch.clientY;
+  const initX = el.x,
+    initY = el.y;
+  const rect = stageCanvas.getBoundingClientRect();
+  const zoom = state.zoom || 1;
+  _propPeek(true);
+  const tb = document.getElementById('bottom-toolbar');
+  if (tb) tb.classList.add('tb-dragging');
+  const dom = document.getElementById('elem-' + el.id);
+  if (dom) {
+    dom.classList.add('dragging');
+    dom.style.willChange = 'left, top';
+  }
+  let rafId = null;
+  let pendingX = initX,
+    pendingY = initY;
+  let dragging = false;
+
+  const commit = () => {
+    rafId = null;
+    el.x = pendingX;
+    el.y = pendingY;
+    if (dom) {
+      dom.style.left = pendingX + 'px';
+      dom.style.top = pendingY + 'px';
+    }
+    if (state.connections && state.connections.length > 0) {
+      renderConnections();
+    }
+  };
+
+  const onMove = (ev) => {
+    if (ev.cancelable) ev.preventDefault();
+    const t = ev.touches[0];
+    if (!t) return;
+    const dx = (t.clientX - startX) / zoom;
+    const dy = (t.clientY - startY) / zoom;
+    if (!dragging) {
+      dragging = true;
+    }
     let nx = initX + dx;
     let ny = initY + dy;
     if (state.snapToGrid) {
@@ -3090,93 +3214,40 @@ function startDragElement(e, el) {
     if (!rafId) rafId = requestAnimationFrame(commit);
   };
 
-  const onUp = (mv) => {
-    if (mv.pointerId !== e.pointerId) return;
-    cleanup();
-    state.canvasW = rect.width;
-    state.canvasH = rect.height;
-    _propPeek(false);
-    if (dragging) pushHistory();
-  };
-
-  const cleanup = () => {
-    window._cancelActiveDrag = null;
-    wrap.removeEventListener('pointermove', onMove);
-    wrap.removeEventListener('pointerup', onUp);
-    wrap.removeEventListener('pointercancel', cleanup);
-    wrap.removeEventListener('lostpointercapture', cleanup);
-    if (rafId) {
-      cancelAnimationFrame(rafId);
-      rafId = null;
-    }
-    try {
-      wrap.releasePointerCapture(e.pointerId);
-    } catch (_) {}
-    wrap.classList.remove('dragging');
-    wrap.style.willChange = '';
-    _propPeek(false);
-    var _tb2 = document.getElementById('bottom-toolbar');
-    if (_tb2) _tb2.classList.remove('tb-dragging');
-    repositionResizeBar(wrap);
-  };
-
-  window._cancelActiveDrag = cleanup;
-  wrap.addEventListener('pointermove', onMove);
-  wrap.addEventListener('pointerup', onUp);
-  wrap.addEventListener('pointercancel', cleanup);
-  wrap.addEventListener('lostpointercapture', cleanup);
-}
-
-function startTouchDragElement(touch, el) {
-  const startX = touch.clientX,
-    startY = touch.clientY;
-  const initX = el.x,
-    initY = el.y;
-  const rect = stageCanvas.getBoundingClientRect();
-  _propPeek(true);
-  var _tb = document.getElementById('bottom-toolbar');
-  if (_tb) _tb.classList.add('tb-dragging');
-  let _touchRaf = null;
-
-  const onMove = (ev) => {
-    ev.preventDefault();
-    const t = ev.touches[0];
-    let nx = initX + (t.clientX - startX);
-    let ny = initY + (t.clientY - startY);
-    if (state.snapToGrid) {
-      nx = Math.round(nx / 20) * 20;
-      ny = Math.round(ny / 20) * 20;
-    }
-    nx = Math.max(0, Math.min(rect.width, nx));
-    ny = Math.max(0, Math.min(rect.height, ny));
-    el.x = nx;
-    el.y = ny;
-    const dom = document.getElementById('elem-' + el.id);
-    if (dom) {
-      dom.style.left = nx + 'px';
-      dom.style.top = ny + 'px';
-    }
-    // Throttle connection redraws to one per animation frame
-    if (!_touchRaf)
-      _touchRaf = requestAnimationFrame(() => {
-        _touchRaf = null;
-        renderConnections();
-      });
-  };
   const onEnd = () => {
     window._cancelActiveDrag = null;
     window.removeEventListener('touchmove', onMove);
     window.removeEventListener('touchend', onEnd);
     window.removeEventListener('touchcancel', onEnd);
+    if (rafId) {
+      cancelAnimationFrame(rafId);
+      commit();
+    }
     state.canvasW = rect.width;
     state.canvasH = rect.height;
     _propPeek(false);
-    var _tb2 = document.getElementById('bottom-toolbar');
-    if (_tb2) _tb2.classList.remove('tb-dragging');
-    pushHistory();
-    const dom = document.getElementById('elem-' + el.id);
+    const tb2 = document.getElementById('bottom-toolbar');
+    if (tb2) tb2.classList.remove('tb-dragging');
+    if (dom) {
+      dom.classList.remove('dragging');
+      dom.style.willChange = '';
+    }
+    if (dragging) {
+      pushHistory();
+      try {
+        window.parent.postMessage(
+          {
+            type: 'sc-element-selected',
+            elementId: el.id,
+            element: JSON.parse(JSON.stringify(el)),
+          },
+          '*'
+        );
+      } catch (_) {}
+    }
     if (dom) repositionResizeBar(dom);
   };
+
   window._cancelActiveDrag = onEnd;
   window.addEventListener('touchmove', onMove, { passive: false });
   window.addEventListener('touchend', onEnd);
@@ -4414,6 +4485,11 @@ function applyZoom() {
     'touchstart',
     (e) => {
       if (e.touches.length === 2) {
+        if (typeof window._cancelActiveDrag === 'function') {
+          try {
+            window._cancelActiveDrag();
+          } catch (_) {}
+        }
         _isPinching = true;
         _isPanning = false;
         _pinchStartDist = Math.hypot(

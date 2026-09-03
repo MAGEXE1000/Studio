@@ -15,7 +15,6 @@ import {
   type AppKey,
 } from '@workspace/studio-core';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
-import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import WebAppSectionDock from '../../../shared/layout/WebAppSectionDock';
 import { StageCanvasView } from '../components/StageCanvasView';
 import { StageSetupContainer } from '../components/setup/StageSetupContainer';
@@ -156,17 +155,6 @@ export default function StagexPanel() {
 
         {/* Primary Content Region */}
         <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-          {/* Canonical StudioHeader on mobile/Android for Editor view */}
-          {!isWebDesktop && curView === 'Editor' && !liveMode && (
-            <div className="flex-shrink-0 px-4 pt-1">
-              <StudioHeader
-                title="Stagex"
-                subtitle="Stage Plot & Production Designer"
-                disableHorizontalPadding={true}
-              />
-            </div>
-          )}
-
           {/* Canonical SharedNavigationContainer with StudioPageTransition */}
           <div className="flex-1 overflow-hidden relative w-full h-full">
             <SharedNavigationContainer activeView={curView} viewOrder={VIEW_ORDER} variant="tab">
@@ -175,18 +163,49 @@ export default function StagexPanel() {
                   {/* Setup Native View */}
                   {viewId === 'Setup' && (
                     <div className="w-full h-full overflow-y-auto">
-                      <StageSetupContainer onBackToStage={() => navigate('Editor')} />
+                      <StageSetupContainer
+                        onBackToStage={() => navigate('Editor')}
+                        isLight={isLight}
+                      />
                     </div>
                   )}
 
                   {/* Preferences Native View */}
                   {viewId === 'Preferences' && (
-                    <div className="w-full h-full overflow-y-auto px-4 sm:px-6 pt-2 pb-28">
-                      <StudioHeader
-                        title={tr.stagex?.preferences || 'Stagex Preferences'}
-                        subtitle="Configure backdrop style, measurement units, and grid rules."
-                        disableHorizontalPadding={true}
-                      />
+                    <div className="w-full h-full overflow-y-auto px-4 sm:px-6 pb-32">
+                      <div
+                        className="w-full max-w-3xl mx-auto"
+                        style={{
+                          paddingTop:
+                            'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
+                          paddingBottom: '10px',
+                        }}
+                      >
+                        <h1
+                          style={{
+                            fontFamily: 'Manrope, sans-serif',
+                            fontSize: '28px',
+                            fontWeight: 800,
+                            letterSpacing: '-0.03em',
+                            lineHeight: 1.15,
+                            color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+                            margin: 0,
+                          }}
+                        >
+                          {tr.stagex?.preferences || 'Stagex Preferences'}
+                        </h1>
+                        <p
+                          style={{
+                            fontFamily: 'Inter, sans-serif',
+                            fontSize: '13px',
+                            fontWeight: 500,
+                            color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
+                            margin: '2px 0 0 0',
+                          }}
+                        >
+                          Configure backdrop style, measurement units, and grid rules.
+                        </p>
+                      </div>
                       <StagePreferencesView />
                     </div>
                   )}

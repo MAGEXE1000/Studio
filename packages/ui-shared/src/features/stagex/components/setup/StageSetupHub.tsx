@@ -4,9 +4,13 @@ import { useStagexStore, type StagexSubView } from '../../state/useStagexStore';
 
 interface StageSetupHubProps {
   onSelectSubView: (view: StagexSubView) => void;
+  isLight?: boolean;
 }
 
-export const StageSetupHub: React.FC<StageSetupHubProps> = ({ onSelectSubView }) => {
+export const StageSetupHub: React.FC<StageSetupHubProps> = ({
+  onSelectSubView,
+  isLight = false,
+}) => {
   const { riderNeeds, riderChannels, setlist, gear, members } = useStagexStore();
 
   const totalDuration = useMemo(() => {
@@ -63,8 +67,8 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({ onSelectSubView })
   ];
 
   return (
-    <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6 pb-28">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-2 pb-32">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
         {cards.map((card) => (
           <motion.button
             key={card.id}
@@ -72,9 +76,9 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({ onSelectSubView })
             onClick={() => onSelectSubView(card.id)}
             whileTap={{ scale: 0.985 }}
             whileHover={{ y: -2 }}
-            className="flex flex-col text-left p-5 rounded-2xl border transition-all duration-200"
+            className="flex flex-col text-left p-5 rounded-[18px] border transition-all duration-200"
             style={{
-              backgroundColor: 'var(--c-bg-card, rgba(24, 24, 27, 0.75))',
+              backgroundColor: 'var(--c-bg-card, rgba(20, 20, 24, 0.65))',
               borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
               backdropFilter: 'blur(12px)',
             }}
@@ -95,7 +99,7 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({ onSelectSubView })
                 className="px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  color: 'var(--c-text-secondary, #a1a1aa)',
+                  color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
                 }}
               >
                 {card.stat}
@@ -104,13 +108,16 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({ onSelectSubView })
 
             <h3
               className="text-base font-bold tracking-tight mb-1"
-              style={{ color: 'var(--c-text-primary, #ffffff)', fontFamily: 'Manrope, sans-serif' }}
+              style={{
+                color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+                fontFamily: 'Manrope, sans-serif',
+              }}
             >
               {card.title}
             </h3>
             <p
               className="text-xs font-medium leading-relaxed"
-              style={{ color: 'var(--c-text-secondary, #a1a1aa)' }}
+              style={{ color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa' }}
             >
               {card.desc}
             </p>

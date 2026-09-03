@@ -18,13 +18,13 @@ export const StagePreferencesView: React.FC = () => {
   ];
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-28">
+    <div className="w-full max-w-3xl mx-auto pt-2 pb-12">
       {/* Appearance Section */}
       <SectionHeader icon="palette" title="Appearance & Theme" />
       <div
-        className="rounded-2xl border overflow-hidden mb-6"
+        className="rounded-[18px] border overflow-hidden mb-6"
         style={{
-          backgroundColor: 'var(--c-bg-card, rgba(24, 24, 27, 0.75))',
+          backgroundColor: 'var(--c-bg-card, rgba(20, 20, 24, 0.65))',
           borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
         }}
       >
@@ -68,9 +68,9 @@ export const StagePreferencesView: React.FC = () => {
       {/* Grid & Snapping Section */}
       <SectionHeader icon="grid_4x4" title="Grid & Snapping" />
       <div
-        className="rounded-2xl border overflow-hidden mb-6"
+        className="rounded-[18px] border overflow-hidden mb-6"
         style={{
-          backgroundColor: 'var(--c-bg-card, rgba(24, 24, 27, 0.75))',
+          backgroundColor: 'var(--c-bg-card, rgba(20, 20, 24, 0.65))',
           borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
         }}
       >
@@ -119,9 +119,9 @@ export const StagePreferencesView: React.FC = () => {
       {/* Stage Layout Section */}
       <SectionHeader icon="straighten" title="Stage Dimensions & Units" />
       <div
-        className="rounded-2xl border overflow-hidden mb-6"
+        className="rounded-[18px] border overflow-hidden mb-6"
         style={{
-          backgroundColor: 'var(--c-bg-card, rgba(24, 24, 27, 0.75))',
+          backgroundColor: 'var(--c-bg-card, rgba(20, 20, 24, 0.65))',
           borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
         }}
       >
@@ -177,9 +177,9 @@ export const StagePreferencesView: React.FC = () => {
       {/* Overlays & Routing Section */}
       <SectionHeader icon="hub" title="Connections & Overlays" />
       <div
-        className="rounded-2xl border overflow-hidden"
+        className="rounded-[18px] border overflow-hidden"
         style={{
-          backgroundColor: 'var(--c-bg-card, rgba(24, 24, 27, 0.75))',
+          backgroundColor: 'var(--c-bg-card, rgba(20, 20, 24, 0.65))',
           borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
         }}
       >

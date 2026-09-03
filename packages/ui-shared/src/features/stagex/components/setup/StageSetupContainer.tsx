@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useBackHandler, useT } from '@workspace/studio-core';
-import { StudioHeader } from '../../../../shared/layout/StudioHeader';
 import { SharedFloatingHeader } from '../../../../shared/layout/StudioLayoutSystem';
 import { StudioPageTransition } from '../../../../components/StudioPageTransition';
 import { StageSetupHub } from './StageSetupHub';
@@ -13,11 +12,13 @@ import { type StagexSubView } from '../../state/useStagexStore';
 export interface StageSetupContainerProps {
   initialSubView?: StagexSubView | 'hub';
   onBackToStage?: () => void;
+  isLight?: boolean;
 }
 
 export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
   initialSubView = 'hub',
   onBackToStage,
+  isLight = false,
 }) => {
   const [activeSubView, setActiveSubView] = useState<StagexSubView | 'hub'>(initialSubView);
   const t = useT();
@@ -50,17 +51,43 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
   };
 
   return (
-    <div className="w-full h-full flex flex-col relative overflow-hidden bg-[var(--app-bg)]">
-      {/* Canonical StudioHeader at the root of Setup */}
+    <div className="w-full h-full flex flex-col relative overflow-hidden bg-transparent">
+      {/* Seamless header at the root of Setup */}
       {activeSubView === 'hub' ? (
-        <div className="flex-shrink-0 px-4 sm:px-6 pt-2">
-          <StudioHeader
-            title={tr.stagex?.setup || 'Setup & Options'}
-            subtitle={
-              tr.stagex?.setupSubtitle || 'Configure stage plot equipment, setlist, and crew specs.'
-            }
-            disableHorizontalPadding={true}
-          />
+        <div
+          className="flex-shrink-0 px-4 sm:px-6"
+          style={{
+            paddingTop: 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
+            paddingBottom: '10px',
+          }}
+        >
+          <div className="w-full max-w-3xl mx-auto">
+            <h1
+              style={{
+                fontFamily: 'Manrope, sans-serif',
+                fontSize: '28px',
+                fontWeight: 800,
+                letterSpacing: '-0.03em',
+                lineHeight: 1.15,
+                color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+                margin: 0,
+              }}
+            >
+              {tr.stagex?.setup || 'Setup & Options'}
+            </h1>
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
+                margin: '2px 0 0 0',
+              }}
+            >
+              {tr.stagex?.setupSubtitle ||
+                'Configure stage plot equipment, setlist, and crew specs.'}
+            </p>
+          </div>
         </div>
       ) : (
         /* Drilldown floating header on subviews with back button */
@@ -78,8 +105,8 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
           variant={activeSubView === 'hub' ? 'tab' : 'drilldown'}
         >
           {activeSubView === 'hub' && (
-            <div className="p-4 sm:p-6 pb-28 max-w-4xl mx-auto">
-              <StageSetupHub onSelectSubView={(sv) => setActiveSubView(sv)} />
+            <div className="w-full h-full">
+              <StageSetupHub onSelectSubView={(sv) => setActiveSubView(sv)} isLight={isLight} />
             </div>
           )}
 

@@ -167,7 +167,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     hub: { theme: 'light', amoledMode: false },
     chordex: { theme: 'light', amoledMode: false },
     drumex: { theme: 'light', amoledMode: false },
-    stagex: { theme: 'light', amoledMode: false },
+    stagex: { theme: 'dark', amoledMode: false },
     vocalex: { theme: 'light', amoledMode: false },
     groovex: { theme: 'light', amoledMode: false },
     devtools: { theme: 'light', amoledMode: false },

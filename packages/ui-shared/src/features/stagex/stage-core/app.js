@@ -8422,6 +8422,12 @@ function removeScene(idx, skipConfirm = false) {
 function saveProject() {
   try {
     _persistCurrentScene();
+    let currentExt = {};
+    try {
+      const raw = localStorage.getItem('stagecoreProject');
+      if (raw) currentExt = JSON.parse(raw);
+    } catch (_) {}
+
     localStorage.setItem(
       'stagecoreProject',
       JSON.stringify({
@@ -8430,16 +8436,16 @@ function saveProject() {
         connections: JSON.parse(JSON.stringify(state.connections)),
         scenes: JSON.parse(JSON.stringify(state.scenes)),
         currentSceneIdx: state.currentSceneIdx,
-        members: state.members,
-        riderNeeds: state.riderNeeds,
-        riderChannels: state.riderChannels || [],
-        riderConfig: state.riderConfig || {},
-        riderMixes: state.riderMixes || [],
+        members: currentExt.members || state.members,
+        riderNeeds: currentExt.riderNeeds || state.riderNeeds,
+        riderChannels: currentExt.riderChannels || state.riderChannels || [],
+        riderConfig: currentExt.riderConfig || state.riderConfig || {},
+        riderMixes: currentExt.riderMixes || state.riderMixes || [],
         lang: state.lang,
-        segments: state.segments,
-        setlist: state.setlist,
+        segments: currentExt.segments || state.segments,
+        setlist: currentExt.setlist || state.setlist,
         timeline: state.timeline,
-        gear: state.gear,
+        gear: currentExt.gear || state.gear,
         canvasW: state.canvasW,
         canvasH: state.canvasH,
         nextId: state.nextId,

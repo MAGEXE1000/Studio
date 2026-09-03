@@ -46,14 +46,7 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
   };
 
   const handleBackFromRider = () => {
-    if (fromToolbarPdf && onBackToStage) {
-      setFromToolbarPdf(false);
-      setStoreSubView('hub');
-      setActiveSubView('hub');
-      onBackToStage();
-    } else {
-      handleSubViewChange('hub');
-    }
+    handleSubViewChange('hub');
   };
 
   // Handle hardware / system back navigation
@@ -61,19 +54,12 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
     'nested',
     () => {
       if (activeSubView !== 'hub') {
-        if (activeSubView === 'rider' && fromToolbarPdf && onBackToStage) {
-          setFromToolbarPdf(false);
-          setStoreSubView('hub');
-          setActiveSubView('hub');
-          onBackToStage();
-          return true;
-        }
         handleSubViewChange('hub');
         return true;
       }
       return false;
     },
-    [activeSubView, fromToolbarPdf, onBackToStage]
+    [activeSubView]
   );
 
   const subViewTitles: Record<StagexSubView | 'hub', string> = {

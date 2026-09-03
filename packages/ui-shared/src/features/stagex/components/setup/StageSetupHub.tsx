@@ -11,9 +11,16 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
   onSelectSubView,
   isLight = false,
 }) => {
-  const { setlist, gear, members } = useStagexStore();
+  const { riderNeeds, riderChannels, setlist, gear, members } = useStagexStore();
 
   const cards = [
+    {
+      id: 'rider' as StagexSubView,
+      title: 'Technical Rider',
+      desc: 'Hospitality, sound & power specs for production',
+      icon: 'description',
+      badge: `${riderNeeds.length + riderChannels.length} Items`,
+    },
     {
       id: 'setlist' as StagexSubView,
       title: 'Setlist',

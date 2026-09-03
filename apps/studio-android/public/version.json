@@ -1,24 +1,15 @@
 {
   "platform": "android",
-  "version": "4.5.53",
-  "versionName": "4.5.53",
-  "versionCode": 40553,
-  "version_code": 40553,
-  "commit": "1b711683",
-  "releasedAt": "9/2/2026, 10:34:01 PM CST",
-  "buildTimestamp": "9/2/2026, 10:34:01 PM CST",
+  "version": "4.5.54",
+  "versionName": "4.5.54",
+  "versionCode": 40554,
+  "version_code": 40554,
+  "commit": "19443a69",
+  "releasedAt": "9/3/2026, 6:40:09 AM CST",
+  "buildTimestamp": "9/3/2026, 6:40:09 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Stagex Stage Plot Shape Integration: Added a dedicated, persisted Stage Plot Shape segmented preference under the Canvas category allowing seamless switching between canonical wide Rectangle and true 1:1 Square plotting geometries.\n• Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance.\n• Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.\n• Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports.",
-  "whatsNew": "• Stagex Stage Plot Shape Integration: Added a dedicated, persisted Stage Plot Shape segmented preference under the Canvas category allowing seamless switching between canonical wide Rectangle and true 1:1 Square plotting geometries.\n• Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance.\n• Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.\n• Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports.",
-  "releaseNotes": {
-    "added": [
-      "Stagex Stage Plot Shape Integration: Added a dedicated, persisted Stage Plot Shape segmented preference under the Canvas category allowing seamless switching between canonical wide Rectangle and true 1:1 Square plotting geometries.",
-      "Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance."
-    ],
-    "improved": [
-      "Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.",
-      "Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports."
-    ]
-  },
+  "changelog": "",
+  "whatsNew": "",
+  "releaseNotes": {},
   "mandatory": false
 }

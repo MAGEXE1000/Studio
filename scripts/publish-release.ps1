@@ -30,7 +30,7 @@ $BranchName = (git symbolic-ref --short HEAD).Trim()
 Write-Host "Current branch: $BranchName"
 
 Write-Host "3. Committing and pushing version changes to Git..."
-git add -A
+git add -u
 
 if (git diff --staged --quiet) {
     Write-Host "No changes to commit."

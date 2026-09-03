@@ -2923,11 +2923,6 @@ function createElementDOM(el) {
       </div>
     </div>
     <div class="el-resize-bar">
-      <button title="Specs" data-action="specs" class="el-specs-bar-btn" style="display:inline-flex;align-items:center;gap:3px;padding:0 6px;color:#ffffff;font-weight:700;font-size:10.5px;border-radius:10px;background:rgba(236,72,153,0.20);border:1px solid rgba(236,72,153,0.40);margin-right:2px;cursor:pointer;">
-        <span class="material-symbols-outlined" style="font-size:13px;color:#ec4899;">tune</span>
-        <span>Specs</span>
-      </button>
-      <div style="width:1px;height:16px;background:rgba(255,255,255,0.08);margin:0 2px;"></div>
       <button title="Larger" data-action="larger"><span class="material-symbols-outlined" style="font-size:15px;">add</span></button>
       <span class="el-scale-display">${el.scale}%</span>
       <button title="Smaller" data-action="smaller"><span class="material-symbols-outlined" style="font-size:15px;">remove</span></button>
@@ -3034,21 +3029,14 @@ function createElementDOM(el) {
     el.rotation = (el.rotation + 45) % 360;
     const iconWrap = wrap.querySelector('.el-icon-wrap');
     if (iconWrap) iconWrap.style.transform = `rotate(${el.rotation}deg)`;
-    document.getElementById('input-rotation').value = el.rotation;
+    const inputRot = document.getElementById('input-rotation');
+    if (inputRot) inputRot.value = el.rotation;
     pushHistory();
     repositionResizeBar(wrap);
+    try {
+      window.parent.postMessage({ type: 'sc-element-selected', elementId: el.id, element: JSON.parse(JSON.stringify(el)) }, '*');
+    } catch (err) {}
   });
-  const specsBtn = wrap.querySelector('[data-action="specs"]');
-  if (specsBtn) {
-    specsBtn.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-      openElementSpecs(el);
-    });
-    specsBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openElementSpecs(el);
-    });
-  }
   const removeBtn = wrap.querySelector('[data-action="remove"]');
   removeBtn.addEventListener('mousedown', (e) => {
     e.stopPropagation();
@@ -3075,10 +3063,14 @@ function scaleElementBy(el, delta) {
     _scaleAnimTid = setTimeout(() => dom.classList.remove('scaling'), 250);
     repositionResizeBar(dom);
   }
-  document.getElementById('input-scale').value = el.scale;
+  const inputScale = document.getElementById('input-scale');
+  if (inputScale) inputScale.value = el.scale;
   // Debounce: only push one history snapshot after rapid clicks settle
   clearTimeout(_scaleHistoryTid);
   _scaleHistoryTid = setTimeout(pushHistory, 250);
+  try {
+    window.parent.postMessage({ type: 'sc-element-selected', elementId: el.id, element: JSON.parse(JSON.stringify(el)) }, '*');
+  } catch (err) {}
 }
 
 function renderAll() {
@@ -3095,54 +3087,21 @@ function renderAll() {
 let _propUserDismissed = false; // true after user manually closes via X
 
 function setPropState(newState) {
-  var isLand = _isLandscapeMobile();
-  if (isLand && newState === 'peek') newState = 'open';
-  const p = document.getElementById('properties-panel');
-  if (!p) return;
-  p.classList.remove('prop-open', 'prop-peek');
-  if (newState === 'open') p.classList.add('prop-open');
-  else if (newState === 'peek') p.classList.add('prop-peek');
-  var _tb = document.getElementById('bottom-toolbar');
-  if (_tb) {
-    if (newState === 'open') _tb.classList.add('tb-dragging');
-    else _tb.classList.remove('tb-dragging');
-  }
-  if ((newState === 'open' || newState === 'peek') && _dialOpen) {
-    closeSCDial();
-  }
-  if (isLand) {
-    var fab = document.getElementById('sc-fab-wrap');
-    if (fab) {
-      var hide = newState === 'open' || newState === 'peek';
-      fab.style.opacity = hide ? '0' : '';
-      fab.style.pointerEvents = hide ? 'none' : '';
-      fab.style.visibility = hide ? 'hidden' : '';
-    }
-  }
-  try {
-    window.parent.postMessage({ type: 'sc-prop-state', state: newState }, '*');
-  } catch (e) {}
+  // Legacy properties panel permanently removed - Specs editor handles element specifications
 }
 function _getPropState() {
-  const p = document.getElementById('properties-panel');
-  if (!p) return 'hidden';
-  if (p.classList.contains('prop-open')) return 'open';
-  if (p.classList.contains('prop-peek')) return 'peek';
   return 'hidden';
 }
 // X button: dismiss panel without deselecting the element
 function dismissPropPanel() {
   _propUserDismissed = true;
-  setPropState('hidden');
 }
 window.addEventListener('orientationchange', function () {
-  setPropState('hidden');
   _rescaleElementsOnResize();
 });
 try {
   var _landscapeMql = window.matchMedia('(orientation: landscape) and (max-width: 960px)');
   _landscapeMql.addEventListener('change', function (e) {
-    setPropState('hidden');
     setTimeout(_rescaleElementsOnResize, 200);
   });
 } catch (e) {}
@@ -3170,14 +3129,8 @@ function _rescaleElementsOnResize() {
   state.canvasH = rect.height;
   renderElements();
 }
-// Drag peek — fully hidden while moving, peek when released (unless dismissed)
-function _propPeek(on) {
-  if (on) {
-    if (_getPropState() !== 'hidden') setPropState('hidden');
-  } else {
-    if (!_propUserDismissed && state.selectedId) setPropState('open');
-  }
-}
+// Drag peek - no-op since legacy panel is removed
+function _propPeek(on) {}
 function _isLandscapeMobile() {
   try {
     return window.matchMedia('(orientation: landscape) and (max-width: 960px)').matches;
@@ -3397,9 +3350,7 @@ function selectElement(id) {
     dom.classList.add('selected');
     repositionResizeBar(dom);
   }
-  updatePropertiesPanel();
   updateStatusBar(); // refresh SEL stat
-  setPropState('hidden');
   try {
     const el = state.elements.find((e) => e.id === id);
     window.parent.postMessage(
@@ -3416,11 +3367,9 @@ function selectElement(id) {
 
 function deselectAll() {
   state.selectedId = null;
-  _propUserDismissed = false; // reset so next selection shows peek
+  _propUserDismissed = false;
   document.querySelectorAll('.stage-element').forEach((d) => d.classList.remove('selected'));
-  updatePropertiesPanel();
   updateStatusBar(); // refresh SEL stat
-  setPropState('hidden');
   try {
     window.parent.postMessage(
       {
@@ -3434,32 +3383,6 @@ function deselectAll() {
   updateDropHint();
 }
 
-// Tap anywhere on the panel to ensure it's open
-document.addEventListener('DOMContentLoaded', function () {
-  const panel = document.getElementById('properties-panel');
-  if (!panel) return;
-  panel.addEventListener('click', function (e) {
-    e.stopPropagation();
-    if (_getPropState() === 'peek') {
-      setPropState('open');
-    }
-  });
-  panel.addEventListener(
-    'touchstart',
-    function (e) {
-      e.stopPropagation();
-    },
-    { passive: true }
-  );
-  panel.addEventListener(
-    'touchend',
-    function (e) {
-      e.stopPropagation();
-    },
-    { passive: true }
-  );
-});
-
 // Click/tap canvas background to deselect
 const _canvasBg = (e) => {
   if (e.target === stageCanvas || e.target === document.getElementById('elements-layer'))
@@ -3471,81 +3394,18 @@ document
   .addEventListener('touchstart', _canvasBg, { passive: true });
 
 function togglePropMoreFields() {
-  const container = document.getElementById('prop-more-fields');
-  const icon = document.getElementById('prop-more-toggle-icon');
-  if (!container) return;
-  const isHidden = container.classList.contains('hidden');
-  if (isHidden) {
-    container.classList.remove('hidden');
-    if (icon) icon.style.transform = 'rotate(180deg)';
-  } else {
-    container.classList.add('hidden');
-    if (icon) icon.style.transform = 'rotate(0deg)';
-  }
+  // Legacy panel removed
 }
 
 // ══════════════════════════════════════════════════════════
-//  PROPERTIES PANEL
+//  PROPERTIES PANEL (LEGACY REMOVED - NO-OP IMPLEMENTATIONS)
 // ══════════════════════════════════════════════════════════
 function updatePropertiesPanel() {
-  const el = state.elements.find((e) => e.id === state.selectedId);
-  const empty = document.getElementById('prop-empty');
-  const controls = document.getElementById('prop-controls');
-
-  if (!el) {
-    empty.classList.remove('hidden');
-    controls.classList.add('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
-  controls.classList.remove('hidden');
-
-  if (!el.roles) el.roles = [];
-  updatePropIconSym(el);
-  document.getElementById('prop-name-display').textContent = el.name;
-  document.getElementById('prop-type-display').textContent = el.type || '';
-  document.getElementById('input-label').value = el.label;
-  _repopulateMemberDropdown();
-  document.getElementById('input-member').value = el.memberId || '';
-  document.getElementById('input-chid').value = el.channelId;
-  document.getElementById('input-rotation').value = el.rotation;
-  document.getElementById('input-scale').value = el.scale;
-  document.getElementById('input-source').value = el.source;
-  document.getElementById('input-output').value = el.output || 'FOH';
-  document.getElementById('input-notes').value = el.notes;
-  updatePhantomUI(el.phantom);
-  updateColorTags(el.color);
-  renderRolesList(el);
-  document.getElementById('role-picker').classList.add('hidden');
-
-  const moreFields = document.getElementById('prop-more-fields');
-  const moreIcon = document.getElementById('prop-more-toggle-icon');
-  if (moreFields) {
-    moreFields.classList.add('hidden');
-    if (moreIcon) moreIcon.style.transform = 'rotate(0deg)';
-  }
+  // Legacy properties panel permanently removed - Specs editor handles element specifications
 }
 
 function updateSelectedElement() {
-  const el = state.elements.find((e) => e.id === state.selectedId);
-  if (!el) return;
-  el.label = document.getElementById('input-label').value;
-  el.memberId = document.getElementById('input-member').value;
-  el.channelId = document.getElementById('input-chid').value;
-  el.rotation = parseInt(document.getElementById('input-rotation').value) || 0;
-  el.scale = parseInt(document.getElementById('input-scale').value) || 100;
-  el.source = document.getElementById('input-source').value;
-  el.output = document.getElementById('input-output').value;
-  el.notes = document.getElementById('input-notes').value;
-  // Update DOM
-  const dom = document.getElementById('elem-' + el.id);
-  if (dom) {
-    dom.style.transform = `translate(-50%,-50%) scale(${el.scale / 100})`;
-    const iconWrap = dom.querySelector('.el-icon-wrap');
-    if (iconWrap) iconWrap.style.transform = `rotate(${el.rotation}deg)`;
-    const lbl = dom.querySelector('.el-label');
-    if (lbl) lbl.textContent = el.label;
-  }
+  // Legacy properties panel permanently removed - Specs editor handles element specifications
 }
 
 // Color tags
@@ -3561,7 +3421,8 @@ document.querySelectorAll('.color-tag').forEach((btn) => {
       const ico = dom.querySelector('.el-icon');
       if (ico) ico.style.color = el.color;
     }
-    document.getElementById('prop-icon-sym').style.color = el.color;
+    const sym = document.getElementById('prop-icon-sym');
+    if (sym) sym.style.color = el.color;
     pushHistory();
   });
 });
@@ -3610,9 +3471,11 @@ function togglePhantom() {
 function updatePhantomUI(on) {
   const track = document.getElementById('phantom-track');
   const knob = document.getElementById('phantom-knob');
-  track.style.background = on ? '#ff7439' : '#484847';
-  knob.style.transform = on ? 'translateX(20px)' : 'translateX(0)';
-  knob.style.background = on ? '#fff' : '#adaaaa';
+  if (track) track.style.background = on ? '#ff7439' : '#484847';
+  if (knob) {
+    knob.style.transform = on ? 'translateX(20px)' : 'translateX(0)';
+    knob.style.background = on ? '#fff' : '#adaaaa';
+  }
 }
 
 window.deleteSelectedElement = removeSelected;
@@ -3633,6 +3496,9 @@ window.rotateSelectedElement = function () {
       var inputRot = document.getElementById('input-rotation');
       if (inputRot) inputRot.value = el.rotation;
       pushHistory();
+      try {
+        window.parent.postMessage({ type: 'sc-element-selected', elementId: el.id, element: JSON.parse(JSON.stringify(el)) }, '*');
+      } catch (e) {}
     }
   }
 };
@@ -3682,7 +3548,17 @@ function removeSelected() {
 
   // Deselect immediately so nothing else can interact with this element
   state.selectedId = null;
-  closePropPanel();
+  updateStatusBar();
+  try {
+    window.parent.postMessage(
+      {
+        type: 'sc-element-selected',
+        elementId: null,
+        element: null,
+      },
+      '*'
+    );
+  } catch (e) {}
 
   const finalize = () => {
     state.elements = state.elements.filter((e) => e.id !== id);
@@ -3690,6 +3566,7 @@ function removeSelected() {
     renderAll();
     pushHistory();
     updateDropHint();
+    if (typeof saveProject === 'function') saveProject();
   };
 
   if (dom) {

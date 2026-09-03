@@ -2815,6 +2815,7 @@ if (typeof _origAddItemToStage === 'function') {
       if (el) {
         _haptic();
         if (typeof selectElement === 'function') selectElement(el.id);
+        _show(e.clientX, e.clientY, el);
       }
     });
 
@@ -2838,6 +2839,7 @@ if (typeof _origAddItemToStage === 'function') {
             e.preventDefault();
             _haptic();
             if (typeof selectElement === 'function') selectElement(el.id);
+            _show(_lpTouch.x, _lpTouch.y, el);
           }
           _lpTimer = null;
         }, LP_DELAY);
@@ -3730,7 +3732,6 @@ function _buildChainView(container) {
 // Deselect when clicking outside the stage canvas (but not UI panels that interact with selection)
 (function () {
   const _keepIds = [
-    'properties-panel',
     'sc-ctx',
     'sc-tools-fab',
     'sc-el-presets-panel',

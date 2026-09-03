@@ -25,7 +25,9 @@ const COLOR_SWATCHES = [
   { hex: '#F59E0B', name: 'Amber' },
   { hex: '#EC4899', name: 'Rose' },
   { hex: '#8B5CF6', name: 'Purple' },
+  { hex: '#FF3B30', name: 'Red' },
   { hex: '#FFFFFF', name: 'White' },
+  { hex: '#000000', name: 'Black' },
 ];
 
 export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = ({
@@ -529,6 +531,26 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                   />
                 );
               })}
+              <label
+                className="relative w-4 h-4 rounded-full flex-shrink-0 cursor-pointer overflow-hidden flex items-center justify-center transition-all active:scale-90"
+                style={{
+                  background:
+                    'conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000)',
+                  outline: COLOR_SWATCHES.some((s) => s.hex.toUpperCase() === currentColor)
+                    ? 'none'
+                    : '2px solid #ec4899',
+                  outlineOffset: '1.5px',
+                }}
+                title="Custom Color"
+              >
+                <input
+                  type="color"
+                  data-testid="specs-color-custom"
+                  value={element.color || '#6B97FF'}
+                  onChange={(e) => onUpdateElement({ color: e.target.value })}
+                  className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                />
+              </label>
             </div>
           </div>
 

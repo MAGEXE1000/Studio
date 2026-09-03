@@ -211,6 +211,7 @@ export const StageBridge = {
     if (typeof win.pushHistory === 'function') win.pushHistory();
     if (typeof win.markAutosaveDirty === 'function') win.markAutosaveDirty();
     if (typeof win.renderConnections === 'function') win.renderConnections();
+    if (typeof win.saveProject === 'function') win.saveProject();
   },
 
   duplicateSelected(iframe: HTMLIFrameElement | null): void {

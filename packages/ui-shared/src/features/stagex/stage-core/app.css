@@ -423,11 +423,7 @@ html[data-theme='light'] .el-resize-bar button:hover {
 html[data-theme='light'] .el-resize-bar .el-scale-display {
   color: #09090b !important;
 }
-html[data-theme='light'] .el-specs-bar-btn {
-  color: #be185d !important;
-  background: rgba(236, 72, 153, 0.12) !important;
-  border-color: rgba(236, 72, 153, 0.35) !important;
-}
+
 .draggable-item {
   user-select: none;
   transition:

@@ -569,55 +569,9 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         )}
       </div>
 
-      {/* Mobile Floating Action Controls & Specs */}
+      {/* Mobile Floating Action Controls */}
       {!isWebDesktop && (
         <>
-          {/* Selected Element Specs Pill Button */}
-          {selectedElement && !fabOpen && !specsOpen && !liveMode && (
-            <button
-              data-testid="stagex-specs-btn"
-              onClick={() => setSpecsOpen(true)}
-              className="absolute z-30 flex items-center gap-2 h-10 px-3.5 rounded-full cursor-pointer active:scale-95 transition-all"
-              style={{
-                bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: isAmoled
-                  ? 'rgba(10, 10, 14, 0.90)'
-                  : isLight
-                    ? 'rgba(255, 255, 255, 0.92)'
-                    : 'rgba(20, 20, 26, 0.88)',
-                border: isAmoled
-                  ? '1px solid rgba(255, 255, 255, 0.14)'
-                  : isLight
-                    ? '1px solid rgba(0, 0, 0, 0.08)'
-                    : '1px solid rgba(255, 255, 255, 0.12)',
-                boxShadow: isLight
-                  ? '0 4px 16px rgba(0, 0, 0, 0.12)'
-                  : '0 4px 20px rgba(0, 0, 0, 0.50)',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-              }}
-              aria-label="Edit Specs"
-              title="Edit Specs"
-            >
-              <span
-                className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                style={{ background: selectedElement.color || '#6B97FF' }}
-              />
-              <span
-                className="text-[12px] font-bold max-w-[120px] truncate"
-                style={{ color: isLight ? '#09090b' : '#ffffff' }}
-              >
-                {selectedElement.label || selectedElement.name}
-              </span>
-              <span className="text-[11px] font-bold text-pink-400 uppercase tracking-wider flex items-center gap-1">
-                Specs
-                <span className="material-symbols-outlined text-[15px]">tune</span>
-              </span>
-            </button>
-          )}
-
           {/* Normal Mode Controls: Rotate & Add FAB (hidden in liveMode, when drawer is open, and when specs is open) */}
           {!liveMode && !fabOpen && !specsOpen && (
             <>
@@ -736,27 +690,75 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
             isAmoled={isAmoled}
             accent={accent}
           />
-
-          {/* Compact Floating Specs Editor */}
-          <StageElementSpecsEditor
-            isOpen={specsOpen && !!selectedElement}
-            element={selectedElement}
-            onClose={() => setSpecsOpen(false)}
-            onUpdateElement={handleUpdateElement}
-            onDuplicate={handleDuplicateElement}
-            onDelete={handleDeleteElement}
-            onToggleLock={handleToggleLock}
-            onTogglePin={handleTogglePin}
-            onSavePreset={handleSavePreset}
-            onAddMicNearby={handleAddMicNearby}
-            onAssignChannel={handleAssignChannel}
-            bandMembers={bandMembers}
-            isLight={isLight}
-            isAmoled={isAmoled}
-            accent={accent}
-          />
         </>
       )}
+
+      {/* Selected Element Specs Pill Button */}
+      {selectedElement && !fabOpen && !specsOpen && !liveMode && (
+        <button
+          data-testid="stagex-specs-btn"
+          onClick={() => setSpecsOpen(true)}
+          className="absolute z-30 flex items-center gap-2 h-10 px-3.5 rounded-full cursor-pointer active:scale-95 transition-all"
+          style={{
+            bottom: isWebDesktop
+              ? '24px'
+              : 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: isAmoled
+              ? 'rgba(10, 10, 14, 0.90)'
+              : isLight
+                ? 'rgba(255, 255, 255, 0.92)'
+                : 'rgba(20, 20, 26, 0.88)',
+            border: isAmoled
+              ? '1px solid rgba(255, 255, 255, 0.14)'
+              : isLight
+                ? '1px solid rgba(0, 0, 0, 0.08)'
+                : '1px solid rgba(255, 255, 255, 0.12)',
+            boxShadow: isLight
+              ? '0 4px 16px rgba(0, 0, 0, 0.12)'
+              : '0 4px 20px rgba(0, 0, 0, 0.50)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+          }}
+          aria-label="Edit Specs"
+          title="Edit Specs"
+        >
+          <span
+            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+            style={{ background: selectedElement.color || '#6B97FF' }}
+          />
+          <span
+            className="text-[12px] font-bold max-w-[120px] truncate"
+            style={{ color: isLight ? '#09090b' : '#ffffff' }}
+          >
+            {selectedElement.label || selectedElement.name}
+          </span>
+          <span className="text-[11px] font-bold text-pink-400 uppercase tracking-wider flex items-center gap-1">
+            Specs
+            <span className="material-symbols-outlined text-[15px]">tune</span>
+          </span>
+        </button>
+      )}
+
+      {/* Compact Floating Specs Editor */}
+      <StageElementSpecsEditor
+        isOpen={specsOpen && !!selectedElement}
+        element={selectedElement}
+        onClose={() => setSpecsOpen(false)}
+        onUpdateElement={handleUpdateElement}
+        onDuplicate={handleDuplicateElement}
+        onDelete={handleDeleteElement}
+        onToggleLock={handleToggleLock}
+        onTogglePin={handleTogglePin}
+        onSavePreset={handleSavePreset}
+        onAddMicNearby={handleAddMicNearby}
+        onAssignChannel={handleAssignChannel}
+        bandMembers={bandMembers}
+        isLight={isLight}
+        isAmoled={isAmoled}
+        accent={accent}
+      />
 
       {/* Export PDF Dialog */}
       <ExportPdfDialog

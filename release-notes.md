@@ -1,13 +1,14 @@
-# Version 4.5.53
+# Version 4.5.54
 
-Release Date: 2026-09-02
+Release Date: 2026-09-03
 
 ### Added
 
-- Stagex Stage Plot Shape Integration: Added a dedicated, persisted Stage Plot Shape segmented preference under the Canvas category allowing seamless switching between canonical wide Rectangle and true 1:1 Square plotting geometries.
-- Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance.
+- Stagex PDF Toolbar & Technical Rider Workflow Reconnection: Reconnected the Stagex top toolbar PDF action directly to the complete Technical Rider review and export workflow.
+- Complete Production Technical Rider Document: Upgraded Technical Rider into a full document view featuring live stage elements with coordinates, audio input channel patch table (with transducer types, +48V phantom power, and IEM mixes), technical requirements, technical notes, contact & venue details, band roster, and gear inventory.
+- Direct PDF Rider Export Engine: Added topbar Export action in the Technical Rider view connected to the PDF generator and native Android sharing sheet.
 
 ### Improved
 
-- Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.
-- Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports.
+- Stagex Header & Title Normalization: Normalized Stagex page title hierarchy, removed redundant subtitles, unified Setup/Preferences headers with canonical floating headers, and redesigned scene chips with high-contrast active states.
+- Seamless Navigation & State Preservation: Back navigation from the Technical Rider cleanly returns to the Stage canvas without losing active scene or placed stage elements.

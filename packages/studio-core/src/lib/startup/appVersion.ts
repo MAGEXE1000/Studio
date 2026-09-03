@@ -98,15 +98,16 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Stagex Stage Plot Shape Integration: Added a dedicated, persisted Stage Plot Shape segmented preference under the Canvas category allowing seamless switching between canonical wide Rectangle and true 1:1 Square plotting geometries.',
-      'Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance.',
+      'Stagex PDF Toolbar & Technical Rider Workflow Reconnection: Reconnected the Stagex top toolbar PDF action directly to the complete Technical Rider review and export workflow.',
+      'Complete Production Technical Rider Document: Upgraded Technical Rider into a full document view featuring live stage elements with coordinates, audio input channel patch table (with transducer types, +48V phantom power, and IEM mixes), technical requirements, technical notes, contact & venue details, band roster, and gear inventory.',
+      'Direct PDF Rider Export Engine: Added topbar Export action in the Technical Rider view connected to the PDF generator and native Android sharing sheet.',
     ],
   },
   {
     heading: 'Improved',
     items: [
-      'Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.',
-      'Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports.',
+      'Stagex Header & Title Normalization: Normalized Stagex page title hierarchy, removed redundant subtitles, unified Setup/Preferences headers with canonical floating headers, and redesigned scene chips with high-contrast active states.',
+      'Seamless Navigation & State Preservation: Back navigation from the Technical Rider cleanly returns to the Stage canvas without losing active scene or placed stage elements.',
     ],
   },
 ];
@@ -118,6 +119,17 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.54',
+    date: '2026-09-03',
+    highlights: [
+      'Stagex PDF Toolbar & Technical Rider Workflow Reconnection: Reconnected the Stagex top toolbar PDF action directly to the complete Technical Rider review and export workflow.',
+      'Complete Production Technical Rider Document: Upgraded Technical Rider into a full document view featuring live stage elements with coordinates, audio input channel patch table (with transducer types, +48V phantom power, and IEM mixes), technical requirements, technical notes, contact & venue details, band roster, and gear inventory.',
+      'Direct PDF Rider Export Engine: Added topbar Export action in the Technical Rider view connected to the PDF generator and native Android sharing sheet.',
+      'Stagex Header & Title Normalization: Normalized Stagex page title hierarchy, removed redundant subtitles, unified Setup/Preferences headers with canonical floating headers, and redesigned scene chips with high-contrast active states.',
+      'Seamless Navigation & State Preservation: Back navigation from the Technical Rider cleanly returns to the Stage canvas without losing active scene or placed stage elements.',
+    ],
+  },
   {
     version: '4.5.53',
     date: '2026-09-02',
@@ -209,18 +221,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Interactive Chord Preview Section: Integrated rich multi-instrument visualizers supporting instant toggles across Guitar (interactive fretboard diagram with note names/intervals and left-handed mode), Bass (4/5-string diagram), and Piano (2-octave keyboard), with strum audio playback and related chord suggestions.',
       'Harmonic Categories Grid: Expanded the category browser to 31 distinct harmonic flavors with signature 3-string mini recesses, root note quick filter pills, and a smooth expand/collapse toggle.',
       'Universal Theme Parity: Full adaptive styling across Dark, Light, and AMOLED modes with zero hardcoded styling regressions.',
-    ],
-  },
-  {
-    version: '4.5.44',
-    date: '2026-08-26',
-    highlights: [
-      'Android Updater Changelog Correlation: Resolved long-standing static update dialog changelog display across releases. Implemented dynamic per-version release notes extraction in `studio-core` and wired `UpdateIndicator` to display release notes specific to the version being offered.',
-      'Navigation Icon Mapping: Eliminated remaining `AnimatedNavigationIcon` unmapped warnings for `profile`, `user`, `account`, `drumex`, `stagex`, and `disc` by standardizing normalization routes and comprehensive `FILLED_VARIANTS_SUPPORT` coverage.',
-      'Navigation Re-Render Optimization: Memoized animation context and tab icons in `NavigationAnimationProvider` and `AnimatedNavigationIcon`, eliminating redundant re-renders and false transition triggers during tab changes.',
-      'Component Resolution Cache: Implemented module-level $O(1)$ component lookup caching in `AnimatedIcon`, removing per-render string parsing and Lucide reflection overhead.',
-      'Livex Tab Animation Parity: Standardized tab-change animations to a unified 200ms cubic-bezier transition across all five Livex applications.',
-      'Unified Subsection Top Bar: Finalized and unified the shared top bar structure across Chordex, Drumex, Stagex, Groovex, and Vocalex.',
     ],
   },
 ];

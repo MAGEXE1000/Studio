@@ -47,6 +47,10 @@ function SidebarHoverSync({ hoverShowSidebar }: { hoverShowSidebar: boolean }) {
   return null;
 }
 
+if (typeof window !== 'undefined') {
+  (window as any).NavigationDispatcher = NavigationDispatcher;
+}
+
 export default function App() {
   const [route, setRoute] = useState(() => {
     if (typeof window === 'undefined') return '/';

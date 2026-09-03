@@ -110,7 +110,7 @@ export function SettingRow({
   );
 }
 
-export function SegmentedControl<T extends string>({
+export function SegmentedControl<T extends string | number>({
   value,
   options,
   onChange,
@@ -119,7 +119,7 @@ export function SegmentedControl<T extends string>({
   layoutId = 'segmented-control-active',
 }: {
   value: T;
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; testId?: string }[];
   onChange: (v: T) => void;
   accentFrom?: string;
   accentTo?: string;
@@ -141,7 +141,8 @@ export function SegmentedControl<T extends string>({
         const active = value === opt.value;
         return (
           <motion.button
-            key={opt.value}
+            key={String(opt.value)}
+            data-testid={opt.testId}
             whileTap={{ scale: 0.94 }}
             onClick={() => onChange(opt.value)}
             className="relative outline-none cursor-pointer"

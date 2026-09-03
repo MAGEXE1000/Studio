@@ -701,16 +701,23 @@ select option {
 #sc-scenes-bar {
   display: flex !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 2px 16px 8px 16px !important;
+  justify-content: center !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+  padding: 0 8px !important;
   background: transparent !important;
   box-sizing: border-box !important;
-  overflow-x: auto !important;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
   scrollbar-width: none !important;
   -webkit-overflow-scrolling: touch !important;
-  width: 100% !important;
-  max-width: 100% !important;
+  width: auto !important;
+  max-width: min(100%, 100vw - 24px) !important;
   user-select: none !important;
+  margin: 0 auto 12px auto !important;
+  flex-shrink: 0 !important;
+  z-index: 30 !important;
 }
 #sc-scenes-bar::-webkit-scrollbar {
   display: none !important;
@@ -736,9 +743,9 @@ html[data-theme='light'] .sc-scene-label {
 .sc-scene-btn {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 5px !important;
+  gap: 4px !important;
   height: 28px !important;
-  padding: 0 10px !important;
+  padding: 0 8px !important;
   border-radius: 9999px !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 11px !important;
@@ -747,8 +754,9 @@ html[data-theme='light'] .sc-scene-label {
   border: 1px solid rgba(255, 255, 255, 0.10) !important;
   background: rgba(255, 255, 255, 0.05) !important;
   color: #a1a1aa !important;
-  flex-shrink: 0 !important;
-  max-width: 140px !important;
+  flex-shrink: 1 !important;
+  min-width: 0 !important;
+  max-width: 110px !important;
   transition: all 150ms ease !important;
   box-sizing: border-box !important;
   user-select: none !important;
@@ -796,7 +804,8 @@ html[data-theme='light'] .sc-scene-btn.active {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  max-width: 85px !important;
+  max-width: 70px !important;
+  min-width: 0 !important;
 }
 
 .sc-scene-del-btn,
@@ -1172,7 +1181,7 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
     background: transparent !important;
   }
 
-  /* Stage viewport: responsive layout centering the stage plot */
+  /* Stage viewport: responsive layout positioning scenes bar directly above stage plot with consistent spacing */
   #stage-viewport {
     display: flex !important;
     flex-direction: column !important;
@@ -1181,33 +1190,36 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
     width: 100% !important;
     height: 100% !important;
     box-sizing: border-box !important;
-    padding-top: 0px !important;
+    padding-top: 12px !important;
     padding-bottom: calc(var(--content-bottom-pad, 88px) + env(safe-area-inset-bottom, 0px)) !important;
     padding-left: calc(max(12px, env(safe-area-inset-left, 0px))) !important;
     padding-right: calc(max(12px, env(safe-area-inset-right, 0px))) !important;
     overflow: hidden !important;
   }
 
-  /* Scenes bar sits directly at top below the seamless header */
+  /* Scenes bar sits directly above the stage canvas */
   #sc-scenes-bar {
     flex-shrink: 0 !important;
-    width: 100% !important;
+    width: auto !important;
     max-width: min(
       1080px,
-      calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+      calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
     ) !important;
     margin-top: 0px !important;
-    margin-bottom: 0px !important;
-    padding: 0 4px 6px 4px !important;
+    margin-bottom: 12px !important;
+    padding: 0 4px !important;
     background: transparent !important;
     box-sizing: border-box !important;
     z-index: 30 !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden !important;
   }
 
   /* Responsive canvas centered vertically and horizontally */
   #stage-canvas {
-    margin-top: auto !important;
-    margin-bottom: auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     aspect-ratio: 16 / 9 !important;
     width: 100% !important;
     max-width: min(
@@ -1223,6 +1235,8 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
   /* Square stage plot mode */
   body[data-stage-shape='square'] #stage-canvas,
   [data-stage-shape='square'] #stage-canvas {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     aspect-ratio: 1 / 1 !important;
     width: min(
       calc(100vw - 36px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
@@ -1234,9 +1248,6 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
       calc(100vh - 240px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
       420px
     ) !important;
-    max-width: none !important;
-    margin-top: auto !important;
-    margin-bottom: auto !important;
   }
 
   /* DOWNSTAGE label: keep on one line, clean tracking */
@@ -4612,12 +4623,15 @@ html[data-theme='light'] .presets-empty {
     padding-left: calc(max(6px, env(safe-area-inset-left))) !important;
     padding-bottom: calc(max(4px, env(safe-area-inset-bottom))) !important;
     padding-right: calc(max(64px, env(safe-area-inset-right))) !important;
+    justify-content: center !important;
   }
 
   /* ── Plot canvas: use nearly the full viewport height for a bigger plot ──
      Portrait formula is (100vh - 40px); landscape viewports are short so we
      drop the subtracted margin to 16px, giving a much larger 16:9 canvas. */
   #stage-canvas {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     max-width: min(
       1080px,
       calc(100vw - 12px - env(safe-area-inset-left) - env(safe-area-inset-right)),
@@ -4631,6 +4645,9 @@ html[data-theme='light'] .presets-empty {
       calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)),
       calc((100vh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 16 / 9)
     ) !important;
+    margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    justify-content: center !important;
   }
 
   /* ── Left toolbar: centered vertically and respecting safe-area-inset-left ── */
@@ -5102,12 +5119,18 @@ html[data-theme='light'] #sc-cp-alpha-track {
     padding-left: calc(max(6px, env(safe-area-inset-left, 0px))) !important;
     padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 0px))) !important;
     padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
+    justify-content: center !important;
   }
   #sc-scenes-bar {
     max-width: calc(100vw - 80px) !important;
     padding-bottom: 2px !important;
+    margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    justify-content: center !important;
   }
   #stage-canvas {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     max-width: min(
       1080px,
       calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),

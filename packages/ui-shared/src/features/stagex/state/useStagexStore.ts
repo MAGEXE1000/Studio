@@ -190,10 +190,10 @@ function writeProjectStorage(updates: Record<string, any>) {
       schemaVersion: 9,
       elements: current.elements || [],
       connections: current.connections || [],
-      scenes: current.scenes || [
-        { id: 's1', name: 'Scene 1', elements: [], connections: [], nextId: 1 },
-      ],
-      currentSceneIdx: current.currentSceneIdx || 0,
+      scenes: Array.isArray(current.scenes)
+        ? current.scenes
+        : [{ id: 's1', name: 'Scene 1', elements: [], connections: [], nextId: 1 }],
+      currentSceneIdx: typeof current.currentSceneIdx === 'number' ? current.currentSceneIdx : 0,
       ...current,
       ...updates,
       lastModified: new Date().toISOString(),
@@ -236,9 +236,12 @@ export const useStagexStore = create<StagexStoreState>((set, get) => ({
   // Live stage context
   projectName: initialProj.name || initialProj.projectName || 'Main Stage',
   elements:
-    initialProj.scenes?.[initialProj.currentSceneIdx || 0]?.elements || initialProj.elements || [],
-  scenes: initialProj.scenes || [],
-  currentSceneIdx: initialProj.currentSceneIdx || 0,
+    (Array.isArray(initialProj.scenes) && initialProj.currentSceneIdx >= 0
+      ? initialProj.scenes[initialProj.currentSceneIdx]?.elements
+      : initialProj.elements) || [],
+  scenes: Array.isArray(initialProj.scenes) ? initialProj.scenes : [],
+  currentSceneIdx:
+    typeof initialProj.currentSceneIdx === 'number' ? initialProj.currentSceneIdx : 0,
   fromToolbarPdf: false,
   setFromToolbarPdf: (fromToolbarPdf) => set({ fromToolbarPdf }),
 
@@ -367,13 +370,16 @@ export const useStagexStore = create<StagexStoreState>((set, get) => ({
   reloadFromStorage: () => {
     const proj = readProjectStorage();
     const settings = readSettingsStorage();
-    const currentScene = proj.scenes?.[proj.currentSceneIdx || 0];
+    const currentScene =
+      Array.isArray(proj.scenes) && proj.currentSceneIdx >= 0
+        ? proj.scenes[proj.currentSceneIdx]
+        : undefined;
     const elements = (currentScene && currentScene.elements) || proj.elements || [];
     set({
       projectName: proj.name || proj.projectName || 'Main Stage',
       elements,
-      scenes: proj.scenes || [],
-      currentSceneIdx: proj.currentSceneIdx || 0,
+      scenes: Array.isArray(proj.scenes) ? proj.scenes : [],
+      currentSceneIdx: typeof proj.currentSceneIdx === 'number' ? proj.currentSceneIdx : 0,
       riderNeeds: proj.riderNeeds || DEFAULT_RIDER_NEEDS,
       riderChannels: proj.riderChannels || [],
       riderMixes: proj.riderMixes || [],

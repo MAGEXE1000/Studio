@@ -6568,21 +6568,59 @@ let _confirmCb = null;
 function showConfirm(message, onOk, options = {}) {
   _confirmCb = onOk;
   const title = options.title || (state.lang === 'es' ? 'Confirmar' : 'Confirm');
-  window.parent.postMessage(
-    {
-      type: 'stage-core:confirm',
-      message: message,
-      title: title,
-      isDestructive: options.isDestructive || false,
-    },
-    '*'
-  );
+  const okText = options.okText || (state.lang === 'es' ? 'Aceptar' : 'OK');
+  const cancelText = options.cancelText || (state.lang === 'es' ? 'Cancelar' : 'Cancel');
+
+  const el = document.getElementById('confirm-modal');
+  if (el) {
+    const titleEl = document.getElementById('confirm-title');
+    const msgEl = document.getElementById('confirm-message');
+    const okBtn = document.getElementById('confirm-ok-btn');
+    const cancelBtn = document.getElementById('confirm-cancel-btn');
+    if (titleEl) titleEl.textContent = title;
+    if (msgEl) msgEl.textContent = message;
+    if (okBtn) {
+      okBtn.textContent = okText;
+      okBtn.style.background = options.isDestructive ? '#ef4444' : 'var(--accent, #3b82f6)';
+    }
+    if (cancelBtn) cancelBtn.textContent = cancelText;
+    el.style.display = 'flex';
+  } else {
+    let ok = false;
+    try {
+      ok = window.confirm(message);
+    } catch {
+      ok = true;
+    }
+    doConfirm(ok);
+  }
+
+  // Also notify parent if listening
+  try {
+    window.parent.postMessage(
+      {
+        type: 'stage-core:confirm',
+        message: message,
+        title: title,
+        isDestructive: options.isDestructive || false,
+      },
+      '*'
+    );
+  } catch (e) {}
 }
 
 function doConfirm(ok) {
-  if (ok && typeof _confirmCb === 'function') _confirmCb();
-  _confirmCb = null;
+  const el = document.getElementById('confirm-modal');
+  if (el) el.style.display = 'none';
+  if (ok && typeof _confirmCb === 'function') {
+    const cb = _confirmCb;
+    _confirmCb = null;
+    cb();
+  } else {
+    _confirmCb = null;
+  }
 }
+window.doConfirm = doConfirm;
 
 window.addEventListener('message', function (e) {
   if (e.data && e.data.type === 'stage-core:confirm-response') {
@@ -6703,7 +6741,7 @@ function loadPreset(id) {
     }, 1);
     // Restore scenes if the preset has them (schemaVersion >= 9). Otherwise
     // wrap the loaded plot into Scene 1 so the multi-scene UI still works.
-    if (p.schemaVersion >= 9 && Array.isArray(p.scenes) && p.scenes.length > 0) {
+    if (p.schemaVersion >= 9 && Array.isArray(p.scenes)) {
       state.scenes = p.scenes.slice(0, SCENES_MAX).map((s, i) => ({
         id: s.id || 's' + (i + 1),
         name:
@@ -6714,16 +6752,22 @@ function loadPreset(id) {
         connections: Array.isArray(s.connections) ? JSON.parse(JSON.stringify(s.connections)) : [],
         nextId: typeof s.nextId === 'number' ? s.nextId : 1,
       }));
-      state.currentSceneIdx =
-        typeof p.currentSceneIdx === 'number' &&
-        p.currentSceneIdx >= 0 &&
-        p.currentSceneIdx < state.scenes.length
-          ? p.currentSceneIdx
-          : 0;
-      const cur = state.scenes[state.currentSceneIdx];
-      state.elements = JSON.parse(JSON.stringify(cur.elements));
-      state.connections = JSON.parse(JSON.stringify(cur.connections));
-      state.nextId = cur.nextId || state.nextId;
+      if (state.scenes.length === 0) {
+        state.currentSceneIdx = -1;
+        state.elements = [];
+        state.connections = [];
+      } else {
+        state.currentSceneIdx =
+          typeof p.currentSceneIdx === 'number' &&
+          p.currentSceneIdx >= 0 &&
+          p.currentSceneIdx < state.scenes.length
+            ? p.currentSceneIdx
+            : 0;
+        const cur = state.scenes[state.currentSceneIdx];
+        state.elements = JSON.parse(JSON.stringify(cur.elements || []));
+        state.connections = JSON.parse(JSON.stringify(cur.connections || []));
+        state.nextId = cur.nextId || state.nextId;
+      }
     } else {
       state.scenes = [
         {
@@ -7702,7 +7746,7 @@ function renderMobileScenesList() {
   let html = '';
   state.scenes.forEach((s, idx) => {
     const isActive = idx === state.currentSceneIdx;
-    const canDelete = state.scenes.length > 1;
+    const canDelete = true;
     html += `
       <div class="sc-scene-sheet-row ${isActive ? 'active' : ''}" onclick="switchScene(${idx})">
         <input type="text" class="sc-scene-sheet-name-input" value="${s.name}" 
@@ -7769,56 +7813,53 @@ function showPrompt(title, defaultText, onOk) {
   if (el) {
     _promptCb = onOk;
     const titleEl = document.getElementById('prompt-title');
-    if (titleEl) titleEl.textContent = title;
     const inputEl = document.getElementById('prompt-input');
+    if (titleEl) titleEl.textContent = title;
     if (inputEl) {
       inputEl.value = defaultText || '';
-      el.style.display = 'flex';
       setTimeout(() => {
-        try { inputEl.focus(); inputEl.select(); } catch (e) {}
+        inputEl.focus();
+        inputEl.select();
       }, 50);
     }
+    el.style.display = 'flex';
   } else {
-    const nv = window.prompt(title, defaultText);
-    if (nv != null && typeof onOk === 'function') onOk(nv);
+    const res = window.prompt(title, defaultText || '');
+    if (res !== null) onOk(res);
   }
 }
 
 function doPrompt(val) {
   const el = document.getElementById('prompt-modal');
   if (el) el.style.display = 'none';
-  if (_promptCb && val !== null) {
-    const cb = _promptCb;
-    _promptCb = null;
-    cb(val);
-  } else {
-    _promptCb = null;
+  if (val !== null && typeof _promptCb === 'function') {
+    _promptCb(val);
   }
+  _promptCb = null;
 }
+window.doPrompt = doPrompt;
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      const el = document.getElementById('prompt-modal');
-      if (el && el.style.display !== 'none') {
-        doPrompt(null);
-      }
-    } else if (e.key === 'Enter') {
-      const el = document.getElementById('prompt-modal');
-      if (el && el.style.display !== 'none') {
-        const inputEl = document.getElementById('prompt-input');
-        if (inputEl) {
-          doPrompt(inputEl.value);
-        }
-      }
+// Close prompt modal on Escape key
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape') {
+    const el = document.getElementById('prompt-modal');
+    if (el && el.style.display !== 'none') {
+      doPrompt(null);
     }
-  });
-}
+  }
+  if (e.key === 'Enter') {
+    const el = document.getElementById('prompt-modal');
+    if (el && el.style.display !== 'none') {
+      const inp = document.getElementById('prompt-input');
+      doPrompt(inp ? inp.value : '');
+    }
+  }
+});
 
 function duplicateScene(idx) {
   _ensureScenes();
   if (state.scenes.length >= SCENES_MAX) {
-    showToast(state.lang === 'es' ? 'Máximo 8 escenas' : 'Max 8 scenes');
+    showToast(state.lang === 'es' ? 'Máximo 3 escenas' : 'Max 3 scenes');
     return;
   }
   _persistCurrentScene();
@@ -7857,29 +7898,26 @@ function renderScenesBar() {
         oncontextmenu="event.preventDefault();renameScenePrompt(${i});return false;"
         class="sc-scene-chip ${active ? 'active' : ''}">
         <span class="sc-scene-name">${s.name}</span>
-        ${
-          state.scenes.length > 1
-            ? `<button type="button" onclick="event.stopPropagation();removeScene(${i})" class="sc-scene-del-btn" title="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}" aria-label="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}">
-                 <span class="material-symbols-outlined" style="font-size:13px;line-height:1;">close</span>
-               </button>`
-            : ''
-        }
+        <button type="button" onclick="event.stopPropagation();removeScene(${i})" class="sc-scene-del-btn" title="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}" aria-label="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}">
+          <span class="material-symbols-outlined" style="font-size:13px;line-height:1;">close</span>
+        </button>
       </div>`;
     })
     .join('');
 
   const addHtml =
     state.scenes.length < SCENES_MAX
-      ? `<button type="button" onclick="addScene()" title="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" aria-label="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" class="sc-scene-add-btn">
-         <span class="material-symbols-outlined" style="font-size:15px;line-height:1;">add</span>
-       </button>`
+      ? state.scenes.length === 0
+        ? `<button type="button" onclick="addScene()" title="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" aria-label="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" class="sc-scene-chip sc-scene-btn" style="padding: 0 12px; gap: 6px; font-weight: 600;">
+             <span class="material-symbols-outlined" style="font-size:16px;line-height:1;">add</span>
+             <span>${state.lang === 'es' ? 'Añadir Escena' : 'Add Scene'}</span>
+           </button>`
+        : `<button type="button" onclick="addScene()" title="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" aria-label="${state.lang === 'es' ? 'Añadir escena' : 'Add scene'}" class="sc-scene-add-btn">
+             <span class="material-symbols-outlined" style="font-size:15px;line-height:1;">add</span>
+           </button>`
       : '';
 
-  bar.innerHTML = DOMPurify.sanitize(
-    `<span class="sc-scene-label">${state.lang === 'es' ? 'Escenas' : 'Scenes'}</span>` +
-      tabsHtml +
-      addHtml
-  );
+  bar.innerHTML = DOMPurify.sanitize(tabsHtml + addHtml);
   initScenesBarTouchHandler();
   requestAnimationFrame(positionScenesBar);
 }
@@ -7958,7 +7996,7 @@ function initScenesBarTouchHandler() {
     };
 
     const barRect = bar.getBoundingClientRect();
-    const sceneButtons = Array.from(bar.querySelectorAll('.sc-scene-btn')).map((b) => {
+    const sceneButtons = Array.from(bar.querySelectorAll('.sc-scene-btn, .sc-scene-chip')).map((b) => {
       const r = b.getBoundingClientRect();
       return { left: r.left, top: r.top, width: r.width, height: r.height };
     });
@@ -7969,7 +8007,7 @@ function initScenesBarTouchHandler() {
           return { left: r.left, top: r.top, width: r.width, height: r.height };
         })()
       : null;
-    const deleteButtons = Array.from(bar.querySelectorAll('.sc-scene-close')).map((b) => {
+    const deleteButtons = Array.from(bar.querySelectorAll('.sc-scene-close, .sc-scene-del-btn')).map((b) => {
       const r = b.getBoundingClientRect();
       return { left: r.left, top: r.top, width: r.width, height: r.height };
     });
@@ -8001,7 +8039,9 @@ function initScenesBarTouchHandler() {
       const touch = e.touches[0];
       if (!touch) return;
 
-      const btn = touch.target.closest('.sc-scene-btn, .sc-scene-add-btn, .sc-scene-close');
+      const btn = touch.target.closest(
+        '.sc-scene-btn, .sc-scene-chip, .sc-scene-add-btn, .sc-scene-close, .sc-scene-del-btn'
+      );
       if (!btn) return;
 
       // Highlight last-tapped
@@ -8063,7 +8103,9 @@ function initScenesBarTouchHandler() {
         return;
       }
 
-      const btn = touch.target.closest('.sc-scene-btn, .sc-scene-add-btn, .sc-scene-close');
+      const btn = touch.target.closest(
+        '.sc-scene-btn, .sc-scene-chip, .sc-scene-add-btn, .sc-scene-close, .sc-scene-del-btn'
+      );
       if (!btn || btn !== touchStartData.target) {
         touchStartData = null;
         return;
@@ -8099,17 +8141,17 @@ function initScenesBarTouchHandler() {
       if (isValidTap) {
         e.preventDefault();
 
-        if (btn.classList.contains('sc-scene-close')) {
-          const parentBtn = btn.closest('.sc-scene-btn');
+        if (btn.classList.contains('sc-scene-close') || btn.classList.contains('sc-scene-del-btn')) {
+          const parentBtn = btn.closest('.sc-scene-btn, .sc-scene-chip');
           if (parentBtn) {
-            const allBtns = Array.from(bar.querySelectorAll('.sc-scene-btn'));
+            const allBtns = Array.from(bar.querySelectorAll('.sc-scene-btn, .sc-scene-chip'));
             const idx = allBtns.indexOf(parentBtn);
             if (idx !== -1) {
               removeScene(idx);
             }
           }
-        } else if (btn.classList.contains('sc-scene-btn')) {
-          const allBtns = Array.from(bar.querySelectorAll('.sc-scene-btn'));
+        } else if (btn.classList.contains('sc-scene-btn') || btn.classList.contains('sc-scene-chip')) {
+          const allBtns = Array.from(bar.querySelectorAll('.sc-scene-btn, .sc-scene-chip'));
           const idx = allBtns.indexOf(btn);
           if (idx !== -1) {
             switchScene(idx);
@@ -8184,6 +8226,7 @@ function renameScenePrompt(idx) {
 window.switchScene = switchScene;
 window.addScene = addScene;
 window.removeScene = removeScene;
+window.removeSceneDirect = (idx) => removeScene(idx, true);
 window.renameScenePrompt = renameScenePrompt;
 window.scOpenMobileScenes = scOpenMobileScenes;
 window.closeScenesSheet = closeScenesSheet;
@@ -8336,20 +8379,16 @@ function _doAutosave() {
 // ══════════════════════════════════════════════════════════
 //  SCENES — stage-plot scenes per project (horizontal scrollable)
 // ══════════════════════════════════════════════════════════
-const SCENES_MAX = 8;
+const SCENES_MAX = 3;
 
 function _ensureScenes() {
-  if (!Array.isArray(state.scenes) || state.scenes.length === 0) {
-    state.scenes = [
-      {
-        id: 's1',
-        name: 'Scene 1',
-        elements: JSON.parse(JSON.stringify(state.elements || [])),
-        connections: JSON.parse(JSON.stringify(state.connections || [])),
-        nextId: state.nextId || 1,
-      },
-    ];
-    state.currentSceneIdx = 0;
+  if (!Array.isArray(state.scenes)) {
+    state.scenes = [];
+    state.currentSceneIdx = -1;
+  }
+  if (state.scenes.length === 0) {
+    state.currentSceneIdx = -1;
+    return;
   }
   if (
     typeof state.currentSceneIdx !== 'number' ||
@@ -8363,24 +8402,37 @@ function _ensureScenes() {
 function _persistCurrentScene() {
   _ensureScenes();
   const idx = state.currentSceneIdx;
+  if (idx < 0 || idx >= state.scenes.length || !state.scenes[idx]) return;
   state.scenes[idx] = {
     id: state.scenes[idx].id,
     name: state.scenes[idx].name,
-    elements: JSON.parse(JSON.stringify(state.elements)),
-    connections: JSON.parse(JSON.stringify(state.connections)),
+    elements: JSON.parse(JSON.stringify(state.elements || [])),
+    connections: JSON.parse(JSON.stringify(state.connections || [])),
     nextId: state.nextId,
   };
 }
 
 function _loadScene(idx) {
   _ensureScenes();
-  if (idx < 0 || idx >= state.scenes.length) return;
+  if (idx < 0 || idx >= state.scenes.length) {
+    if (state.scenes.length === 0) {
+      state.elements = [];
+      state.connections = [];
+      state.currentSceneIdx = -1;
+      state.selectedId = null;
+      state.history = [];
+      state.historyIndex = -1;
+    }
+    return;
+  }
   const sc = state.scenes[idx];
   state.elements = JSON.parse(JSON.stringify(sc.elements || []));
   state.connections = JSON.parse(JSON.stringify(sc.connections || []));
   state.nextId = sc.nextId || 1;
   state.currentSceneIdx = idx;
   state.selectedId = null;
+  state.history = [];
+  state.historyIndex = -1;
 }
 
 function switchScene(idx) {
@@ -8407,10 +8459,12 @@ function switchScene(idx) {
 function addScene() {
   _ensureScenes();
   if (state.scenes.length >= SCENES_MAX) {
-    showToast(state.lang === 'es' ? 'Máximo 8 escenas' : 'Max 8 scenes');
+    showToast(state.lang === 'es' ? 'Máximo 3 escenas' : 'Max 3 scenes');
     return;
   }
-  _persistCurrentScene();
+  if (state.currentSceneIdx >= 0 && state.scenes[state.currentSceneIdx]) {
+    _persistCurrentScene();
+  }
   const nextIdx = state.scenes.length + 1;
   state.scenes.push({
     id: 's' + Date.now(),
@@ -8430,11 +8484,45 @@ function addScene() {
   saveProject();
 }
 
-function removeScene(idx) {
+function removeScene(idx, skipConfirm = false) {
   _ensureScenes();
-  if (state.scenes.length <= 1) return; // keep at least one
   if (idx < 0 || idx >= state.scenes.length) return;
   const sceneName = state.scenes[idx].name;
+
+  const performDelete = () => {
+    const wasActive = idx === state.currentSceneIdx;
+    if (!wasActive && state.currentSceneIdx >= 0 && state.scenes[state.currentSceneIdx]) {
+      _persistCurrentScene();
+    }
+    state.scenes.splice(idx, 1);
+
+    if (state.scenes.length === 0) {
+      state.currentSceneIdx = -1;
+      state.elements = [];
+      state.connections = [];
+      state.selectedId = null;
+      state.history = [];
+      state.historyIndex = -1;
+    } else {
+      let target = state.currentSceneIdx;
+      if (wasActive) {
+        // If active was deleted, point to previous or new 0th scene
+        target = Math.max(0, Math.min(idx, state.scenes.length - 1));
+      } else if (idx < state.currentSceneIdx) {
+        target = state.currentSceneIdx - 1;
+      }
+      state.currentSceneIdx = -1; // force load
+      _loadScene(target);
+    }
+    renderAll();
+    renderScenesBar();
+    saveProject();
+  };
+
+  if (skipConfirm) {
+    performDelete();
+    return;
+  }
 
   const title = state.lang === 'es' ? '¿Eliminar escena?' : 'Delete scene?';
   const body =
@@ -8446,22 +8534,7 @@ function removeScene(idx) {
 
   showConfirm(
     body,
-    () => {
-      const wasActive = idx === state.currentSceneIdx;
-      if (!wasActive) _persistCurrentScene();
-      state.scenes.splice(idx, 1);
-      state.scenes.forEach((s, i) => {
-        if (/^Scene\s+\d+$/.test(s.name)) s.name = 'Scene ' + (i + 1);
-      });
-      let target = state.currentSceneIdx;
-      if (wasActive) target = Math.max(0, idx - 1);
-      else if (idx < state.currentSceneIdx) target = state.currentSceneIdx - 1;
-      state.currentSceneIdx = -1; // force load
-      switchScene(target);
-      renderAll();
-      renderScenesBar();
-      saveProject();
-    },
+    performDelete,
     { title: title, okText: deleteBtnText, cancelText: cancelBtnText, isDestructive: true }
   );
 }
@@ -8535,7 +8608,7 @@ function loadSaved() {
     // ── Scenes (schemaVersion 9+) ─────────────────────────────
     // Older saves had no scenes array — wrap the loaded
     // elements/connections into Scene 1 for backwards compat.
-    if (d.schemaVersion >= 9 && Array.isArray(d.scenes) && d.scenes.length > 0) {
+    if (d.schemaVersion >= 9 && Array.isArray(d.scenes)) {
       state.scenes = d.scenes.slice(0, SCENES_MAX).map((s, i) => ({
         id: s.id || 's' + (i + 1),
         name:
@@ -8546,17 +8619,23 @@ function loadSaved() {
         connections: Array.isArray(s.connections) ? JSON.parse(JSON.stringify(s.connections)) : [],
         nextId: typeof s.nextId === 'number' ? s.nextId : 1,
       }));
-      state.currentSceneIdx =
-        typeof d.currentSceneIdx === 'number' &&
-        d.currentSceneIdx >= 0 &&
-        d.currentSceneIdx < state.scenes.length
-          ? d.currentSceneIdx
-          : 0;
-      // Mirror the active scene back into the live state
-      const cur = state.scenes[state.currentSceneIdx];
-      state.elements = JSON.parse(JSON.stringify(cur.elements));
-      state.connections = JSON.parse(JSON.stringify(cur.connections));
-      state.nextId = cur.nextId || state.nextId;
+      if (state.scenes.length === 0) {
+        state.currentSceneIdx = -1;
+        state.elements = [];
+        state.connections = [];
+      } else {
+        state.currentSceneIdx =
+          typeof d.currentSceneIdx === 'number' &&
+          d.currentSceneIdx >= 0 &&
+          d.currentSceneIdx < state.scenes.length
+            ? d.currentSceneIdx
+            : 0;
+        // Mirror the active scene back into the live state
+        const cur = state.scenes[state.currentSceneIdx];
+        state.elements = JSON.parse(JSON.stringify(cur.elements || []));
+        state.connections = JSON.parse(JSON.stringify(cur.connections || []));
+        state.nextId = cur.nextId || state.nextId;
+      }
     } else {
       // Migrate: treat the existing plot as Scene 1
       state.scenes = [
@@ -10913,7 +10992,7 @@ function _applyCloudData(d) {
   // ── Scenes (schemaVersion 9+) ─────────────────────────────────────────
   // Wrap legacy cloud payloads (schemaVersion < 9) into Scene 1 so users
   // who upgrade with existing cloud data don't lose their plot.
-  if (d.schemaVersion >= 9 && Array.isArray(d.scenes) && d.scenes.length > 0) {
+  if (d.schemaVersion >= 9 && Array.isArray(d.scenes)) {
     state.scenes = d.scenes.slice(0, SCENES_MAX).map((s, i) => ({
       id: s.id || 's' + (i + 1),
       name:
@@ -10924,15 +11003,21 @@ function _applyCloudData(d) {
       connections: Array.isArray(s.connections) ? JSON.parse(JSON.stringify(s.connections)) : [],
       nextId: typeof s.nextId === 'number' ? s.nextId : 1,
     }));
-    state.currentSceneIdx =
-      typeof d.currentSceneIdx === 'number' &&
-      d.currentSceneIdx >= 0 &&
-      d.currentSceneIdx < state.scenes.length
-        ? d.currentSceneIdx
-        : 0;
-    const cur = state.scenes[state.currentSceneIdx];
-    state.elements = JSON.parse(JSON.stringify(cur.elements));
-    state.connections = JSON.parse(JSON.stringify(cur.connections));
+    if (state.scenes.length === 0) {
+      state.currentSceneIdx = -1;
+      state.elements = [];
+      state.connections = [];
+    } else {
+      state.currentSceneIdx =
+        typeof d.currentSceneIdx === 'number' &&
+        d.currentSceneIdx >= 0 &&
+        d.currentSceneIdx < state.scenes.length
+          ? d.currentSceneIdx
+          : 0;
+      const cur = state.scenes[state.currentSceneIdx];
+      state.elements = JSON.parse(JSON.stringify(cur.elements || []));
+      state.connections = JSON.parse(JSON.stringify(cur.connections || []));
+    }
   } else {
     state.scenes = [
       {

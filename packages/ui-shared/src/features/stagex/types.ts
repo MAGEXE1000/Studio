@@ -26,4 +26,5 @@ export type StageWin = Window & {
   openCustomElementModal?: () => void;
   __getSceneInfo?: () => { count: number; currentIdx: number; names: string[] };
   setStageShape?: (shape: 'rectangular' | 'square') => void;
+  resetView?: () => void;
 };

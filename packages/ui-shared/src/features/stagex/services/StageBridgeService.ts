@@ -101,6 +101,11 @@ export const StageBridge = {
     win?.setStageShape?.(shape);
   },
 
+  resetView(iframe: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe);
+    win?.resetView?.();
+  },
+
   activateMeasure(iframe: HTMLIFrameElement | null): void {
     const win = this.getWin(iframe);
     win?.scActivateMeasure?.();

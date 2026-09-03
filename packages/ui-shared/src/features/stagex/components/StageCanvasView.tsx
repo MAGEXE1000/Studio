@@ -393,6 +393,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       injectAmoled(iframeRef.current, isAmoled);
       StageBridge.updateCanvasBg(iframeRef.current, stageBg);
       StageBridge.setStageShape(iframeRef.current, stageShape);
+      callIframe('resetView');
       try {
         const win = iframeRef.current.contentWindow as any;
         if (typeof win?._renderStageLayout === 'function') {
@@ -401,6 +402,10 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       } catch {}
     }
   };
+
+  useEffect(() => {
+    callIframe('resetView');
+  }, [callIframe]);
 
   useEffect(() => {
     if (!iframeLoading && iframeRef.current) {
@@ -457,43 +462,63 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                     onClick={() => callIframe('scActivateMeasure')}
                     title={tr.stagex?.toolMeasure || 'Measure'}
                     aria-label={tr.stagex?.toolMeasure || 'Measure'}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                   >
-                    <span className="material-symbols-outlined text-[17px]">straighten</span>
+                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                      straighten
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="stagex-reset-view-btn"
+                    onClick={() => callIframe('resetView')}
+                    title={tr.stagex?.resetView || 'Reset View'}
+                    aria-label={tr.stagex?.resetView || 'Reset View'}
+                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                      center_focus_strong
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={openRiderWorkflow}
                     title={tr.stagex?.techRider || 'Technical Rider / PDF'}
                     aria-label={tr.stagex?.techRider || 'Technical Rider / PDF'}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                   >
-                    <span className="material-symbols-outlined text-[17px]">picture_as_pdf</span>
+                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                      picture_as_pdf
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => callIframe('openPresetsPanel')}
                     title="Presets"
                     aria-label="Presets"
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                   >
-                    <span className="material-symbols-outlined text-[17px]">bookmark</span>
+                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                      bookmark
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => callIframe('openTimelinePanel')}
                     title={tr.stagex?.toolHistory || 'History'}
                     aria-label={tr.stagex?.toolHistory || 'History'}
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                   >
-                    <span className="material-symbols-outlined text-[17px]">history</span>
+                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                      history
+                    </span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setCollabModalOpen(true)}
                     title="Collaboration"
                     aria-label="Collaboration"
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
+                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
                     style={{
                       color:
                         collabState === 'connected'
@@ -504,7 +529,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                       background: collabState === 'connected' ? 'rgba(16,185,129,0.15)' : undefined,
                     }}
                   >
-                    <span className="material-symbols-outlined text-[17px]">
+                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
                       {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
                     </span>
                   </button>

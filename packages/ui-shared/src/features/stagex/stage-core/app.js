@@ -4455,6 +4455,7 @@ function applyZoom() {
   const py = state.panY || 0;
   stageCanvas.style.transform = `translate(${px}px, ${py}px) scale(${z})`;
   stageCanvas.style.transformOrigin = 'center center';
+  positionScenesBar();
   updateStatusBar();
   const selectedDom = document.querySelector('.stage-element.selected');
   if (selectedDom) {
@@ -8028,7 +8029,17 @@ window.toggleHitboxDebug = function (enabled) {
   }
 };
 
-function positionScenesBar() {}
+function positionScenesBar() {
+  const bar = document.getElementById('sc-scenes-bar');
+  const canvas = document.getElementById('stage-canvas');
+  if (!bar || !canvas) return;
+  const z = state.zoom || 1;
+  const px = state.panX || 0;
+  const py = state.panY || 0;
+  const h = canvas.offsetHeight || 0;
+  const deltaTop = py - (h * (z - 1)) / 2;
+  bar.style.transform = `translate(${px}px, ${deltaTop}px)`;
+}
 
 function renameScenePrompt(idx) {
   _ensureScenes();
@@ -8276,6 +8287,7 @@ function switchScene(idx) {
   pushHistory(); // seed new scene's history with current snapshot
   saveProject();
 }
+window.switchScene = switchScene;
 
 function addScene() {
   _ensureScenes();

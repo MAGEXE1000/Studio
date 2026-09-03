@@ -57,6 +57,16 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
             <Button
               size="sm"
               variant="secondary"
+              onClick={() => callIframe('resetView')}
+              icon={
+                <span className="material-symbols-outlined text-[15px]">center_focus_strong</span>
+              }
+            >
+              {tr.stagex?.resetView || 'Reset View'}
+            </Button>
+            <Button
+              size="sm"
+              variant="secondary"
               onClick={() => callIframe('openTimelinePanel')}
               icon={<span className="material-symbols-outlined text-[15px]">history</span>}
             >

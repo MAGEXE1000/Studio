@@ -6,7 +6,6 @@ import {
   NavigationDispatcher,
   useSettingsStore,
   useSessionStore,
-  useBackHandler,
   resolveAccent,
   registerDebugProvider,
   unregisterDebugProvider,
@@ -20,10 +19,11 @@ import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem'
 import { StageCanvasView } from '../components/StageCanvasView';
 import { StageSetupContainer } from '../components/setup/StageSetupContainer';
 import { StagePreferencesView } from '../components/preferences/StagePreferencesView';
+import { StageExportPdfView } from '../components/export/StageExportPdfView';
 import { useStagexStore } from '../state/useStagexStore';
 
-export type StagexPrimaryView = 'Editor' | 'Setup' | 'Preferences';
-const VIEW_ORDER: readonly StagexPrimaryView[] = ['Editor', 'Setup', 'Preferences'];
+export type StagexPrimaryView = 'Editor' | 'Setup' | 'Preferences' | 'Export';
+const VIEW_ORDER: readonly StagexPrimaryView[] = ['Editor', 'Setup', 'Preferences', 'Export'];
 
 export default function StagexPanel() {
   const isWebDesktop = useIsWebDesktop();
@@ -96,15 +96,17 @@ export default function StagexPanel() {
   // Mobile live mode state
   const [liveMode, setLiveMode] = useState(false);
 
-  // Hide global navigation when live mode is active
+  // Hide global navigation when live mode is active or when viewing Export
   useEffect(() => {
     if (isWebDesktop) return;
-    setNavHidden(liveMode);
-  }, [liveMode, isWebDesktop]);
+    setNavHidden(liveMode || curView === 'Export');
+  }, [liveMode, curView, isWebDesktop]);
 
   // Register developer diagnostics provider
   const curViewRef = useRef(curView);
-  curViewRef.current = curView;
+  useEffect(() => {
+    curViewRef.current = curView;
+  }, [curView]);
   useEffect(() => {
     registerDebugProvider({
       id: 'stagex',
@@ -195,6 +197,17 @@ export default function StagexPanel() {
                           <StagePreferencesView isLight={isLight} isAmoled={isAmoled} />
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Export / Technical Rider Native View */}
+                  {viewId === 'Export' && (
+                    <div className="w-full h-full">
+                      <StageExportPdfView
+                        onBack={() => navigate('Editor')}
+                        isLight={isLight}
+                        isAmoled={isAmoled}
+                      />
                     </div>
                   )}
                 </div>

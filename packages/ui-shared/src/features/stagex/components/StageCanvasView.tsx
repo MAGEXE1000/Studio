@@ -326,9 +326,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       callIframe('saveProject');
     }
     useStagexStore.getState().reloadFromStorage();
-    useStagexStore.getState().setFromToolbarPdf(true);
-    useStagexStore.getState().setSetupSubView('rider');
-    onNavigateView?.('Setup');
+    onNavigateView?.('Export');
   }, [callIframe, onNavigateView]);
 
   const openPdfSheet = useCallback(() => {

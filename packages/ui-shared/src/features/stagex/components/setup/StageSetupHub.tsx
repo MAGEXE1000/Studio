@@ -11,16 +11,9 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
   onSelectSubView,
   isLight = false,
 }) => {
-  const { riderChannels, setlist, gear, members } = useStagexStore();
+  const { setlist, gear, members } = useStagexStore();
 
   const cards = [
-    {
-      id: 'rider' as StagexSubView,
-      title: 'Rider',
-      desc: 'Channel list, mic inputs & tech requirements',
-      icon: 'alt_route',
-      badge: `${riderChannels.length} Channels`,
-    },
     {
       id: 'setlist' as StagexSubView,
       title: 'Setlist',

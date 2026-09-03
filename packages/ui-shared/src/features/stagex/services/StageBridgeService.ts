@@ -68,13 +68,24 @@ export function injectAmoled(iframe: HTMLIFrameElement, amoled: boolean) {
   } catch {}
 }
 
+let _activeIframe: HTMLIFrameElement | null = null;
+
 /**
  * StageBridge: Strongly-typed, contract-based bridge between React and the isolated canvas engine.
  */
 export const StageBridge = {
-  getWin(iframe: HTMLIFrameElement | null): StageWin | null {
+  registerIframe(iframe: HTMLIFrameElement | null): void {
+    _activeIframe = iframe;
+  },
+
+  getActiveIframe(): HTMLIFrameElement | null {
+    return _activeIframe;
+  },
+
+  getWin(iframe?: HTMLIFrameElement | null): StageWin | null {
     try {
-      return (iframe?.contentWindow as StageWin) || null;
+      const target = iframe !== undefined ? iframe : _activeIframe;
+      return (target?.contentWindow as StageWin) || null;
     } catch {
       return null;
     }

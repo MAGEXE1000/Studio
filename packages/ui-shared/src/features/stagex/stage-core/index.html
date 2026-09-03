@@ -7638,5 +7638,1290 @@
       </div>
     </div>
 
+
+══════════ -->
+    <div
+      id="view-Export"
+      class="view-page"
+      style="
+        margin-left: 0;
+        padding-top: 0;
+        height: 100vh;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        position: relative;
+        box-sizing: border-box;
+      "
+    >
+      <!-- Hidden anchor for exp-opts-btn — actions live in outer Stagex React header now -->
+      <button
+        id="exp-opts-btn"
+        onclick="toggleExportOptions()"
+        style="display: none"
+        aria-hidden="true"
+      ></button>
+
+      <!-- Sections options drawer (slides down from outer header) -->
+      <div
+        id="exp-options-drawer"
+        style="
+          flex-shrink: 0;
+          overflow: hidden;
+          max-height: 0;
+          transition: max-height 0.28s ease;
+          background: linear-gradient(135deg, var(--accent-08) 0%, transparent 70%), transparent;
+        "
+      >
+        <div style="padding: 10px 14px 14px">
+          <p
+            data-i18n="includeSections"
+            style="
+              font-family: 'Manrope', sans-serif;
+              font-size: 7px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.3em;
+              color: #282828;
+              margin: 0 0 10px;
+            "
+          >
+            Include Sections
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 0">
+            <button
+              onclick="
+                toggleExpChip('exp-stage-section', 'chip-stage');
+                syncDrawerRow('exp-stage-section', 'drw-tog-stage');
+              "
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 9px 0;
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                cursor: pointer;
+                text-align: left;
+              "
+            >
+              <span
+                data-i18n="stagePlot"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #adaaaa;
+                "
+                >Stage Plot</span
+              >
+              <span
+                class="material-symbols-outlined"
+                id="drw-tog-stage"
+                style="font-size: 22px; color: var(--accent); transition: color 0.15s"
+                >toggle_on</span
+              >
+            </button>
+            <button
+              onclick="
+                toggleExpChip('exp-input-section', 'chip-input');
+                syncDrawerRow('exp-input-section', 'drw-tog-input');
+              "
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 9px 0;
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                cursor: pointer;
+                text-align: left;
+              "
+            >
+              <span
+                data-i18n="inputList"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #adaaaa;
+                "
+                >Input List</span
+              >
+              <span
+                class="material-symbols-outlined"
+                id="drw-tog-input"
+                style="font-size: 22px; color: var(--accent); transition: color 0.15s"
+                >toggle_on</span
+              >
+            </button>
+            <button
+              onclick="
+                toggleExpChip('exp-notes-section', 'chip-notes');
+                syncDrawerRow('exp-notes-section', 'drw-tog-notes');
+              "
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 9px 0;
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                cursor: pointer;
+                text-align: left;
+              "
+            >
+              <span
+                data-i18n="techNotes"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #adaaaa;
+                "
+                >Technical Notes</span
+              >
+              <span
+                class="material-symbols-outlined"
+                id="drw-tog-notes"
+                style="font-size: 22px; color: var(--accent); transition: color 0.15s"
+                >toggle_on</span
+              >
+            </button>
+            <button
+              onclick="
+                toggleExpChip('exp-gear-section', 'chip-gear');
+                syncDrawerRow('exp-gear-section', 'drw-tog-gear');
+              "
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 9px 0;
+                background: transparent;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                cursor: pointer;
+                text-align: left;
+              "
+            >
+              <span
+                data-i18n="gearShort"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #adaaaa;
+                "
+                >Gear / Load-In</span
+              >
+              <span
+                class="material-symbols-outlined"
+                id="drw-tog-gear"
+                style="font-size: 22px; color: var(--accent); transition: color 0.15s"
+                >toggle_on</span
+              >
+            </button>
+            <button
+              onclick="
+                toggleExpChip('exp-lighting-section', 'chip-lighting');
+                syncDrawerRow('exp-lighting-section', 'drw-tog-lighting');
+              "
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                padding: 9px 0;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                text-align: left;
+              "
+            >
+              <span
+                data-i18n="lightingRider"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 12px;
+                  font-weight: 600;
+                  color: #adaaaa;
+                "
+                >Lighting Rider</span
+              >
+              <span
+                class="material-symbols-outlined"
+                id="drw-tog-lighting"
+                style="font-size: 22px; color: #3a3a3a; transition: color 0.15s"
+                >toggle_off</span
+              >
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Full-width scrollable document preview -->
+      <div
+        id="export-preview-scroll"
+        style="flex: 1; min-height: 0; overflow-y: auto; background: transparent; padding: 0 0 24px"
+      >
+        <div
+          id="export-document"
+          style="width: 100%; font-family: 'Inter', sans-serif; color: #fff"
+        >
+          <!-- ── COVER ──────────────────────────────────────────── -->
+          <div
+            id="exp-cover"
+            class="export-section"
+            style="
+              position: relative;
+              background: transparent;
+              overflow: hidden;
+              margin-bottom: 0;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <!-- Hero content -->
+            <div style="position: relative; padding: 26px 20px 18px">
+              <p
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 8px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.32em;
+                  color: var(--accent);
+                  margin: 0 0 10px;
+                "
+              >
+                <span data-i18n="coverLabel">Technical Rider Export</span>
+              </p>
+              <h1
+                id="exp-project-name"
+                contenteditable="true"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 44px;
+                  font-weight: 900;
+                  line-height: 0.9;
+                  text-transform: uppercase;
+                  letter-spacing: -0.03em;
+                  color: #fff;
+                  margin: 0 0 7px;
+                  outline: none;
+                  cursor: text;
+                "
+                title="Click to edit"
+              >
+                MAIN STAGE
+              </h1>
+              <p
+                id="exp-subtitle"
+                contenteditable="true"
+                style="
+                  font-family: 'Inter';
+                  font-size: 12px;
+                  color: rgba(255, 255, 255, 0.38);
+                  margin: 0 0 18px;
+                  outline: none;
+                  cursor: text;
+                "
+                title="Click to edit"
+              >
+                Main Stage · World Tour 2026
+              </p>
+              <!-- Metadata chips -->
+              <div style="display: flex; gap: 6px; flex-wrap: wrap">
+                <div
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    height: 22px;
+                    padding: 0 9px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
+                    border-radius: 3px;
+                  "
+                >
+                  <span
+                    data-i18n="elements"
+                    style="
+                      font-family: 'Manrope', sans-serif;
+                      font-size: 8px;
+                      font-weight: 700;
+                      text-transform: uppercase;
+                      letter-spacing: 0.14em;
+                      color: #333;
+                    "
+                    >Elements</span
+                  >
+                  <span
+                    style="
+                      font-family: 'Manrope', sans-serif;
+                      font-size: 9px;
+                      font-weight: 800;
+                      color: var(--accent);
+                    "
+                    id="exp-el-count"
+                    >0</span
+                  >
+                </div>
+                <div
+                  id="exp-version-box"
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 5px;
+                    height: 22px;
+                    padding: 0 9px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
+                    border-radius: 3px;
+                  "
+                >
+                  <span
+                    data-i18n="verLabel"
+                    style="
+                      font-family: 'Manrope', sans-serif;
+                      font-size: 8px;
+                      font-weight: 700;
+                      text-transform: uppercase;
+                      letter-spacing: 0.14em;
+                      color: #333;
+                    "
+                    >Ver</span
+                  >
+                  <span
+                    style="
+                      font-family: 'Manrope', sans-serif;
+                      font-size: 9px;
+                      font-weight: 700;
+                      color: #484847;
+                    "
+                    id="exp-version"
+                    >v1</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: inline-flex;
+                    align-items: center;
+                    height: 22px;
+                    padding: 0 9px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.09);
+                    border-radius: 3px;
+                  "
+                >
+                  <span
+                    style="
+                      font-family: 'Manrope', sans-serif;
+                      font-size: 9px;
+                      font-weight: 700;
+                      color: #484847;
+                    "
+                    id="exp-date"
+                  ></span>
+                </div>
+              </div>
+            </div>
+            <!-- Metadata footer strip -->
+            <div
+              style="
+                position: relative;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                border-top: 1px solid rgba(255, 255, 255, 0.06);
+              "
+            >
+              <div style="padding: 10px 20px; border-right: 1px solid rgba(255, 255, 255, 0.06)">
+                <p
+                  style="
+                    font-size: 7px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.24em;
+                    color: #222;
+                    margin: 0 0 3px;
+                  "
+                >
+                  <span data-i18n="docId">Document ID</span>
+                </p>
+                <p
+                  style="
+                    font-family: 'Manrope', sans-serif;
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #3a3a3a;
+                    margin: 0;
+                    letter-spacing: 0.06em;
+                  "
+                  id="exp-doc-id"
+                >
+                  STAGE-CORE
+                </p>
+              </div>
+              <div id="exp-last-updated-box" style="padding: 10px 20px">
+                <p
+                  data-i18n="lastUpdatedLabel"
+                  style="
+                    font-size: 7px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.24em;
+                    color: #222;
+                    margin: 0 0 3px;
+                  "
+                >
+                  Last Updated
+                </p>
+                <p
+                  style="
+                    font-family: 'Manrope', sans-serif;
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: #3a3a3a;
+                    margin: 0;
+                  "
+                  id="exp-last-updated"
+                >
+                  —
+                </p>
+              </div>
+            </div>
+            <!-- Stale warning -->
+            <div
+              id="exp-stale-warning"
+              data-i18n="staleWarning"
+              style="
+                display: none;
+                padding: 7px 20px;
+                background: rgba(255, 193, 7, 0.05);
+                border-top: 1px solid rgba(255, 193, 7, 0.18);
+                font-family: 'Manrope', sans-serif;
+                font-size: 8px;
+                font-weight: 700;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                color: #ffc107;
+              "
+            >
+              ⚠ Plot may be outdated — last updated more than 30 days ago
+            </div>
+          </div>
+
+          <!-- ── 01 // STAGE PLOT ──────────────────────────────── -->
+          <div
+            id="exp-stage-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 14px;
+              "
+            >
+              <h2
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 18px;
+                  font-weight: 900;
+                  text-transform: uppercase;
+                  letter-spacing: -0.01em;
+                  color: #fff;
+                  margin: 0;
+                  display: flex;
+                  align-items: baseline;
+                  gap: 6px;
+                "
+              >
+                <span
+                  style="
+                    font-size: 9px;
+                    font-weight: 800;
+                    letter-spacing: 0.24em;
+                    color: var(--accent);
+                    line-height: 1;
+                  "
+                  >01</span
+                >
+                <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+                <span data-i18n="stagePlot">Stage Plot</span>
+              </h2>
+              <span
+                style="
+                  font-size: 8px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.2em;
+                  color: #2e2e2e;
+                "
+                data-i18n="scaleLabel"
+                >Scale: 1:50</span
+              >
+            </div>
+            <div
+              id="exp-canvas-wrap"
+              style="
+                position: relative;
+                width: 100%;
+                height: 174px;
+                background: #0c0c0c;
+                border: 1px solid rgba(72, 72, 71, 0.18);
+                overflow: hidden;
+                background-image:
+                  linear-gradient(rgba(72, 72, 71, 0.07) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(72, 72, 71, 0.07) 1px, transparent 1px);
+                background-size: 24px 24px;
+              "
+            >
+              <div id="exp-canvas-elements" style="position: absolute; inset: 0"></div>
+              <div
+                style="
+                  position: absolute;
+                  bottom: 0;
+                  left: 0;
+                  right: 0;
+                  height: 2px;
+                  background: var(--accent-40);
+                "
+              ></div>
+              <div
+                data-i18n="downstageLabel"
+                style="
+                  position: absolute;
+                  bottom: 5px;
+                  left: 50%;
+                  transform: translateX(-50%);
+                  font-family: 'Space Grotesk', sans-serif;
+                  font-size: 7px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.32em;
+                  color: var(--accent-60);
+                "
+              >
+                DOWNSTAGE
+              </div>
+            </div>
+            <div
+              id="exp-canvas-empty"
+              style="display: none; text-align: center; padding: 28px 0; color: #282828"
+            >
+              <p
+                data-i18n="noElements"
+                style="
+                  font-size: 10px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.2em;
+                  margin: 0;
+                "
+              >
+                No elements placed on stage
+              </p>
+            </div>
+          </div>
+
+          <!-- ── 02 // INPUT LIST ──────────────────────────────── -->
+          <div
+            id="exp-input-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <h2
+              style="
+                font-family: 'Manrope', sans-serif;
+                font-size: 18px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: -0.01em;
+                color: #fff;
+                margin: 0 0 14px;
+                display: flex;
+                align-items: baseline;
+                gap: 6px;
+              "
+            >
+              <span
+                style="
+                  font-size: 9px;
+                  font-weight: 800;
+                  letter-spacing: 0.24em;
+                  color: var(--accent);
+                  line-height: 1;
+                "
+                >02</span
+              >
+              <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+              <span data-i18n="inputList">Input List</span>
+            </h2>
+            <div style="overflow-x: auto">
+              <table
+                id="exp-input-table"
+                style="
+                  width: 100%;
+                  border-collapse: collapse;
+                  font-family: 'Inter';
+                  font-size: 12px;
+                "
+              >
+                <thead>
+                  <tr
+                    style="background: #0a0a0a; border-bottom: 1px solid rgba(255, 255, 255, 0.06)"
+                  >
+                    <th
+                      style="
+                        padding: 8px 10px;
+                        text-align: left;
+                        font-size: 8px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.18em;
+                        color: #3a3a3a;
+                        white-space: nowrap;
+                      "
+                      data-i18n="colCh"
+                    >
+                      CH#
+                    </th>
+                    <th
+                      style="
+                        padding: 8px 10px;
+                        text-align: left;
+                        font-size: 8px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.18em;
+                        color: #3a3a3a;
+                      "
+                      data-i18n="colInstrument"
+                    >
+                      Instrument
+                    </th>
+                    <th
+                      style="
+                        padding: 8px 10px;
+                        text-align: left;
+                        font-size: 8px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.18em;
+                        color: #3a3a3a;
+                      "
+                      data-i18n="colPerformer"
+                    >
+                      Performer
+                    </th>
+                    <th
+                      style="
+                        padding: 8px 10px;
+                        text-align: left;
+                        font-size: 8px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.18em;
+                        color: #3a3a3a;
+                      "
+                      data-i18n="colMicDI"
+                    >
+                      Mic / DI
+                    </th>
+                    <th
+                      style="
+                        padding: 8px 10px;
+                        text-align: left;
+                        font-size: 8px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.18em;
+                        color: #3a3a3a;
+                      "
+                      data-i18n="colSource"
+                    >
+                      Source
+                    </th>
+                    <th
+                      style="
+                        padding: 8px 10px;
+                        text-align: left;
+                        font-size: 8px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.18em;
+                        color: #3a3a3a;
+                      "
+                      data-i18n="colNotes"
+                    >
+                      Notes
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="exp-input-tbody"></tbody>
+              </table>
+            </div>
+            <div
+              id="exp-input-empty"
+              style="
+                display: none;
+                padding: 22px 0;
+                text-align: center;
+                color: #282828;
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.2em;
+              "
+              data-i18n="inputEmpty"
+            >
+              Add elements to populate this list
+            </div>
+          </div>
+
+          <!-- ── 03 // BAND MEMBERS ────────────────────────────── -->
+          <div
+            id="exp-members-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+              display: none;
+            "
+          >
+            <h2
+              style="
+                font-family: 'Manrope', sans-serif;
+                font-size: 18px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: -0.01em;
+                color: #fff;
+                margin: 0 0 14px;
+                display: flex;
+                align-items: baseline;
+                gap: 6px;
+              "
+            >
+              <span
+                style="
+                  font-size: 9px;
+                  font-weight: 800;
+                  letter-spacing: 0.24em;
+                  color: var(--accent);
+                  line-height: 1;
+                "
+                >03</span
+              >
+              <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+              <span data-i18n="bandMembers">Band Members</span>
+            </h2>
+            <div id="exp-members-body"></div>
+          </div>
+
+          <!-- ── 04 // CONNECTIVITY ────────────────────────────── -->
+          <div
+            id="exp-connectivity-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <h2
+              style="
+                font-family: 'Manrope', sans-serif;
+                font-size: 18px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: -0.01em;
+                color: #fff;
+                margin: 0 0 14px;
+                display: flex;
+                align-items: baseline;
+                gap: 6px;
+              "
+            >
+              <span
+                style="
+                  font-size: 9px;
+                  font-weight: 800;
+                  letter-spacing: 0.24em;
+                  color: var(--accent);
+                  line-height: 1;
+                "
+                >04</span
+              >
+              <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+              <span data-i18n="connectivity">Connectivity</span>
+            </h2>
+            <div id="exp-connectivity-body"></div>
+          </div>
+
+          <!-- ── 05 // SETLIST ─────────────────────────────────── -->
+          <div
+            id="exp-setlist-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <h2
+              style="
+                font-family: 'Manrope', sans-serif;
+                font-size: 18px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: -0.01em;
+                color: #fff;
+                margin: 0 0 14px;
+                display: flex;
+                align-items: baseline;
+                gap: 6px;
+              "
+            >
+              <span
+                style="
+                  font-size: 9px;
+                  font-weight: 800;
+                  letter-spacing: 0.24em;
+                  color: var(--accent);
+                  line-height: 1;
+                "
+                >05</span
+              >
+              <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+              <span data-i18n="setlist">Setlist</span>
+            </h2>
+            <div
+              id="exp-setlist-items"
+              style="font-family: 'Manrope', sans-serif; font-size: 13px"
+            ></div>
+          </div>
+
+          <!-- ── LIGHTING RIDER (toggled) ───────────────────────── -->
+          <div
+            id="exp-lighting-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+              display: none;
+            "
+          >
+            <h2
+              style="
+                font-family: 'Manrope', sans-serif;
+                font-size: 18px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: -0.01em;
+                color: #fff;
+                margin: 0 0 14px;
+                display: flex;
+                align-items: baseline;
+                gap: 6px;
+              "
+            >
+              <span
+                style="
+                  font-size: 9px;
+                  font-weight: 800;
+                  letter-spacing: 0.24em;
+                  color: var(--accent);
+                  line-height: 1;
+                "
+                >LR</span
+              >
+              <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+              <span data-i18n="lightingRider">Lighting Rider</span>
+            </h2>
+            <div
+              style="
+                padding: 14px 16px;
+                background: #0a0a0a;
+                border-left: 2px solid rgba(72, 72, 71, 0.2);
+              "
+            >
+              <p
+                data-i18n="placeholderLabel"
+                style="
+                  font-size: 8px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.2em;
+                  color: #282828;
+                  margin: 0 0 6px;
+                "
+              >
+                Placeholder
+              </p>
+              <p
+                data-i18n="lightingPlaceholderText"
+                style="font-size: 12px; color: #3a3a3a; line-height: 1.6; margin: 0"
+              >
+                Lighting rider module is part of a future development roadmap. Attach a separate
+                lighting specification document as needed.
+              </p>
+            </div>
+          </div>
+
+          <!-- ── 06 // TECHNICAL NOTES ─────────────────────────── -->
+          <div
+            id="exp-notes-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                margin-bottom: 12px;
+              "
+            >
+              <h2
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 18px;
+                  font-weight: 900;
+                  text-transform: uppercase;
+                  letter-spacing: -0.01em;
+                  color: #fff;
+                  margin: 0;
+                  display: flex;
+                  align-items: baseline;
+                  gap: 6px;
+                "
+              >
+                <span
+                  style="
+                    font-size: 9px;
+                    font-weight: 800;
+                    letter-spacing: 0.24em;
+                    color: var(--accent);
+                    line-height: 1;
+                  "
+                  >06</span
+                >
+                <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+                <span data-i18n="techNotes">Technical Notes</span>
+              </h2>
+              <span
+                style="
+                  font-size: 8px;
+                  color: #282828;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.1em;
+                "
+                data-i18n="clickEdit"
+                >Tap to edit</span
+              >
+            </div>
+            <div
+              id="exp-notes-text"
+              contenteditable="true"
+              oninput="saveExportNotes()"
+              style="
+                font-size: 12px;
+                line-height: 1.9;
+                color: #767575;
+                outline: none;
+                min-height: 80px;
+                cursor: text;
+                padding: 16px 18px;
+                background: #0a0a0a;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                word-break: break-word;
+                overflow-wrap: break-word;
+                white-space: pre-wrap;
+              "
+              placeholder="Enter technical notes..."
+            >
+              Artist provides all instruments, IEM transmitters, and playback rack. Venue must
+              provide all microphones, stands, and XLR cabling as per the input list. PA system must
+              be capable of 105dB continuous at FOH without distortion. Front-fills are mandatory
+              for the first 3 rows. All wireless systems must be frequency-coordinated prior to
+              load-in.
+            </div>
+          </div>
+
+          <!-- ── 07 // GEAR / LOAD-IN ──────────────────────────── -->
+          <div
+            id="exp-gear-section"
+            class="export-section"
+            style="
+              background: transparent;
+              margin-bottom: 0;
+              padding: 20px 20px;
+              border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <h2
+              style="
+                font-family: 'Manrope', sans-serif;
+                font-size: 18px;
+                font-weight: 900;
+                text-transform: uppercase;
+                letter-spacing: -0.01em;
+                color: #fff;
+                margin: 0 0 14px;
+                display: flex;
+                align-items: baseline;
+                gap: 6px;
+              "
+            >
+              <span
+                style="
+                  font-size: 9px;
+                  font-weight: 800;
+                  letter-spacing: 0.24em;
+                  color: var(--accent);
+                  line-height: 1;
+                "
+                >07</span
+              >
+              <span style="color: rgba(255, 255, 255, 0.12); font-size: 13px">//</span>
+              <span data-i18n="gear">Gear / Load-In</span>
+            </h2>
+            <div
+              id="exp-gear-empty"
+              style="
+                display: none;
+                padding: 20px 0;
+                font-family: 'Manrope', sans-serif;
+                font-size: 9px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.2em;
+                color: #282828;
+                text-align: center;
+              "
+              data-i18n="noGear"
+            >
+              No gear items — visit the Gear tab to build your list.
+            </div>
+            <div id="exp-gear-content">
+              <table
+                style="
+                  width: 100%;
+                  border-collapse: collapse;
+                  font-family: 'Inter', Arial, sans-serif;
+                "
+              >
+                <thead>
+                  <tr
+                    style="background: #0a0a0a; border-bottom: 1px solid rgba(255, 255, 255, 0.06)"
+                  >
+                    <th
+                      style="
+                        padding: 7px 10px;
+                        font-size: 7px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.2em;
+                        color: #3a3a3a;
+                        text-align: left;
+                      "
+                      data-i18n="colItem"
+                    >
+                      Item
+                    </th>
+                    <th
+                      style="
+                        padding: 7px 10px;
+                        font-size: 7px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.2em;
+                        color: #282828;
+                        text-align: left;
+                      "
+                      data-i18n="colCategory"
+                    >
+                      Category
+                    </th>
+                    <th
+                      style="
+                        padding: 7px 10px;
+                        font-size: 7px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.2em;
+                        color: #282828;
+                        text-align: center;
+                      "
+                      data-i18n="colQty"
+                    >
+                      Qty
+                    </th>
+                    <th
+                      style="
+                        padding: 7px 10px;
+                        font-size: 7px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.2em;
+                        color: #282828;
+                        text-align: left;
+                      "
+                      data-i18n="colNotes"
+                    >
+                      Notes
+                    </th>
+                    <th
+                      style="
+                        padding: 7px 10px;
+                        font-size: 7px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.2em;
+                        color: #282828;
+                        text-align: center;
+                      "
+                    >
+                      ✓
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="exp-gear-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── FOOTER ─────────────────────────────────────────── -->
+          <div
+            id="exp-footer"
+            style="
+              padding: 12px 20px;
+              background: transparent;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 0;
+              border-top: 1px solid rgba(128, 128, 128, 0.08);
+            "
+          >
+            <div>
+              <p
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 10px;
+                  font-weight: 900;
+                  text-transform: uppercase;
+                  letter-spacing: 0.06em;
+                  color: #767575;
+                  margin: 0 0 1px;
+                "
+              >
+                Stagex
+              </p>
+              <p
+                style="
+                  font-size: 8px;
+                  color: #222;
+                  margin: 0;
+                  text-transform: uppercase;
+                  letter-spacing: 0.1em;
+                "
+                data-i18n="footerSub"
+              >
+                Professional Stage Plot &amp; Rider
+              </p>
+            </div>
+            <div style="text-align: right">
+              <div
+                id="exp-footer-date"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 8px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.12em;
+                  color: #282828;
+                "
+              ></div>
+              <div
+                id="exp-footer-last-updated"
+                style="
+                  font-family: 'Manrope', sans-serif;
+                  font-size: 8px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.12em;
+                  color: #222;
+                  margin-top: 2px;
+                "
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden state holders (chip IDs kept for toggleExpChip compatibility) -->
+      <div id="export-options-panel" style="display: none">
+        <input type="checkbox" id="chk-stage" checked />
+        <input type="checkbox" id="chk-input" checked />
+        <input type="checkbox" id="chk-lighting" />
+        <input type="checkbox" id="chk-notes" checked />
+        <button
+          id="exp-show-lu-toggle"
+          class="toggle-switch on"
+          onclick="toggleShowLastUpdated()"
+        ></button>
+        <input
+          id="exp-version-input"
+          type="number"
+          min="1"
+          step="1"
+          value="1"
+          oninput="setPlotVersion(this.value)"
+          onchange="setPlotVersion(this.value)"
+        />
+        <span id="exp-element-status"></span>
+        <button id="chip-stage" class="exp-chip exp-chip--on"></button>
+        <button id="chip-input" class="exp-chip exp-chip--on"></button>
+        <button id="chip-notes" class="exp-chip exp-chip--on"></button>
+        <button id="chip-gear" class="exp-chip exp-chip--on"></button>
+        <button id="chip-lighting" class="exp-chip"></button>
+        <button id="exp-gen-pdf-btn"></button>
+      </div>
+    </div>
+
 </body>
 </html>

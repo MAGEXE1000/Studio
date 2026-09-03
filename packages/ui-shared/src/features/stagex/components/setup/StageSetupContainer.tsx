@@ -7,7 +7,7 @@ import { StageRiderView } from './StageRiderView';
 import { StageSetlistView } from './StageSetlistView';
 import { StageGearView } from './StageGearView';
 import { StageMembersView } from './StageMembersView';
-import { type StagexSubView } from '../../state/useStagexStore';
+import { useStagexStore, type StagexSubView } from '../../state/useStagexStore';
 
 export interface StageSetupContainerProps {
   initialSubView?: StagexSubView | 'hub';
@@ -20,26 +20,60 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
   onBackToStage,
   isLight = false,
 }) => {
-  const [activeSubView, setActiveSubView] = useState<StagexSubView | 'hub'>(initialSubView);
+  const storeSubView = useStagexStore((s) => s.setupSubView);
+  const setStoreSubView = useStagexStore((s) => s.setSetupSubView);
+  const fromToolbarPdf = useStagexStore((s) => s.fromToolbarPdf);
+  const setFromToolbarPdf = useStagexStore((s) => s.setFromToolbarPdf);
+
+  const [activeSubView, setActiveSubView] = useState<StagexSubView | 'hub'>(
+    storeSubView || initialSubView
+  );
   const t = useT();
   const tr = t as any;
 
-  // Sync initialSubView changes
+  // Sync initialSubView or storeSubView changes
   useEffect(() => {
-    if (initialSubView) setActiveSubView(initialSubView);
-  }, [initialSubView]);
+    if (storeSubView) {
+      setActiveSubView(storeSubView);
+    } else if (initialSubView) {
+      setActiveSubView(initialSubView);
+    }
+  }, [storeSubView, initialSubView]);
+
+  const handleSubViewChange = (sv: StagexSubView | 'hub') => {
+    setActiveSubView(sv);
+    setStoreSubView(sv);
+  };
+
+  const handleBackFromRider = () => {
+    if (fromToolbarPdf && onBackToStage) {
+      setFromToolbarPdf(false);
+      setStoreSubView('hub');
+      setActiveSubView('hub');
+      onBackToStage();
+    } else {
+      handleSubViewChange('hub');
+    }
+  };
 
   // Handle hardware / system back navigation
   useBackHandler(
     'nested',
     () => {
       if (activeSubView !== 'hub') {
-        setActiveSubView('hub');
+        if (activeSubView === 'rider' && fromToolbarPdf && onBackToStage) {
+          setFromToolbarPdf(false);
+          setStoreSubView('hub');
+          setActiveSubView('hub');
+          onBackToStage();
+          return true;
+        }
+        handleSubViewChange('hub');
         return true;
       }
       return false;
     },
-    [activeSubView]
+    [activeSubView, fromToolbarPdf, onBackToStage]
   );
 
   const subViewTitles: Record<StagexSubView | 'hub', string> = {
@@ -58,7 +92,7 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
       )}
 
       {/* Content Area with Canonical StudioPageTransition */}
-      <div className="flex-1 relative w-full h-full overflow-hidden">
+      <div className="w-full flex-1 relative overflow-hidden">
         <StudioPageTransition
           pageKey={activeSubView}
           variant={activeSubView === 'hub' ? 'tab' : 'drilldown'}
@@ -71,31 +105,31 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
                   'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)',
               }}
             >
-              <StageSetupHub onSelectSubView={(sv) => setActiveSubView(sv)} isLight={isLight} />
+              <StageSetupHub onSelectSubView={handleSubViewChange} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'rider' && (
             <div className="w-full h-full">
-              <StageRiderView onBack={() => setActiveSubView('hub')} isLight={isLight} />
+              <StageRiderView onBack={handleBackFromRider} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'setlist' && (
             <div className="w-full h-full">
-              <StageSetlistView onBack={() => setActiveSubView('hub')} isLight={isLight} />
+              <StageSetlistView onBack={() => handleSubViewChange('hub')} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'gear' && (
             <div className="w-full h-full">
-              <StageGearView onBack={() => setActiveSubView('hub')} isLight={isLight} />
+              <StageGearView onBack={() => handleSubViewChange('hub')} isLight={isLight} />
             </div>
           )}
 
           {activeSubView === 'members' && (
             <div className="w-full h-full">
-              <StageMembersView onBack={() => setActiveSubView('hub')} isLight={isLight} />
+              <StageMembersView onBack={() => handleSubViewChange('hub')} isLight={isLight} />
             </div>
           )}
         </StudioPageTransition>

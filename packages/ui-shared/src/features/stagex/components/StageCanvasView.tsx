@@ -321,6 +321,16 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     };
   }, []);
 
+  const openRiderWorkflow = useCallback(() => {
+    if (iframeRef.current) {
+      callIframe('saveProject');
+    }
+    useStagexStore.getState().reloadFromStorage();
+    useStagexStore.getState().setFromToolbarPdf(true);
+    useStagexStore.getState().setSetupSubView('rider');
+    onNavigateView?.('Setup');
+  }, [callIframe, onNavigateView]);
+
   const openPdfSheet = useCallback(() => {
     const defaultName = `StagePlot-${new Date().toISOString().slice(0, 10)}`;
     setPdfFileName(defaultName);
@@ -355,6 +365,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     setIframeLoading(false);
     if (iframeRef.current) {
       registerStageIframe(iframeRef.current);
+      StageBridge.registerIframe(iframeRef.current);
       injectTheme(iframeRef.current, isLight ? 'light' : 'dark');
       injectAmoled(iframeRef.current, isAmoled);
       StageBridge.updateCanvasBg(iframeRef.current, stageBg);
@@ -386,7 +397,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
           isLight={isLight}
           tr={tr}
           callIframe={callIframe}
-          transitionToView={(v) => onNavigateView?.(v)}
+          transitionToView={(v) => (v === 'Export' ? openRiderWorkflow() : onNavigateView?.(v))}
           openPdfSheet={openPdfSheet}
           collabState={collabState}
           onOpenCollab={() => setCollabModalOpen(true)}
@@ -429,9 +440,9 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={openPdfSheet}
-                    title={tr.stagex?.toolExport || 'Export PDF'}
-                    aria-label={tr.stagex?.toolExport || 'Export PDF'}
+                    onClick={openRiderWorkflow}
+                    title={tr.stagex?.techRider || 'Technical Rider / PDF'}
+                    aria-label={tr.stagex?.techRider || 'Technical Rider / PDF'}
                     className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                   >
                     <span className="material-symbols-outlined text-[17px]">picture_as_pdf</span>

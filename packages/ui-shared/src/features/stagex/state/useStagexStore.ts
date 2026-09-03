@@ -131,6 +131,14 @@ interface StagexStoreState {
   preferences: StagexPreferences;
   updatePreferences: (updates: Partial<StagexPreferences>) => void;
 
+  // Live stage context (synced from project storage)
+  projectName: string;
+  elements: any[];
+  scenes: any[];
+  currentSceneIdx: number;
+  fromToolbarPdf: boolean;
+  setFromToolbarPdf: (fromToolbarPdf: boolean) => void;
+
   // Synchronization helpers
   reloadFromStorage: () => void;
 }
@@ -224,6 +232,15 @@ const initialSettings = readSettingsStorage();
 export const useStagexStore = create<StagexStoreState>((set, get) => ({
   setupSubView: 'hub',
   setSetupSubView: (setupSubView) => set({ setupSubView }),
+
+  // Live stage context
+  projectName: initialProj.name || initialProj.projectName || 'Main Stage',
+  elements:
+    initialProj.scenes?.[initialProj.currentSceneIdx || 0]?.elements || initialProj.elements || [],
+  scenes: initialProj.scenes || [],
+  currentSceneIdx: initialProj.currentSceneIdx || 0,
+  fromToolbarPdf: false,
+  setFromToolbarPdf: (fromToolbarPdf) => set({ fromToolbarPdf }),
 
   // Rider
   riderNeeds: initialProj.riderNeeds || DEFAULT_RIDER_NEEDS,
@@ -350,7 +367,13 @@ export const useStagexStore = create<StagexStoreState>((set, get) => ({
   reloadFromStorage: () => {
     const proj = readProjectStorage();
     const settings = readSettingsStorage();
+    const currentScene = proj.scenes?.[proj.currentSceneIdx || 0];
+    const elements = (currentScene && currentScene.elements) || proj.elements || [];
     set({
+      projectName: proj.name || proj.projectName || 'Main Stage',
+      elements,
+      scenes: proj.scenes || [],
+      currentSceneIdx: proj.currentSceneIdx || 0,
       riderNeeds: proj.riderNeeds || DEFAULT_RIDER_NEEDS,
       riderChannels: proj.riderChannels || [],
       riderMixes: proj.riderMixes || [],

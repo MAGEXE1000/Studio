@@ -275,8 +275,8 @@ export function SharedFloatingHeader({
           ref={titleRef}
           style={{
             position: 'absolute',
-            left: 52,
-            right: 52,
+            left: hideBack ? 16 : 52,
+            right: toolbarActions ? 104 : 52,
             top: 0,
             bottom: 0,
             display: 'flex',

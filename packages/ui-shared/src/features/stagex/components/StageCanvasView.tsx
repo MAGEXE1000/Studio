@@ -20,7 +20,7 @@ import { StageElementDrawer } from './StageElementDrawer';
 import { StageElementSpecsEditor } from './StageElementSpecsEditor';
 import { ExportPdfDialog } from './dialogs/ExportPdfDialog';
 import { StageCollabDialog } from './dialogs/StageCollabDialog';
-import { StageBridge } from '../services/StageBridgeService';
+import { StageBridge, injectTheme, injectAmoled } from '../services/StageBridgeService';
 import { useStagexStore } from '../state/useStagexStore';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
@@ -260,10 +260,19 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     return StageBridge.getBandMembers(iframeRef.current);
   }, [iframeRef.current, specsOpen]);
 
-  // Update canvas background on theme changes
+  // Update canvas background and theme attributes on theme changes
   useEffect(() => {
+    if (!iframeRef.current) return;
+    injectTheme(iframeRef.current, isLight ? 'light' : 'dark');
+    injectAmoled(iframeRef.current, isAmoled);
     StageBridge.updateCanvasBg(iframeRef.current, stageBg);
-  }, [stageBg]);
+    try {
+      const win = iframeRef.current.contentWindow as any;
+      if (typeof win?._renderStageLayout === 'function') {
+        win._renderStageLayout();
+      }
+    } catch {}
+  }, [stageBg, isLight, isAmoled]);
 
   // Load custom elements
   const loadCustomElements = useCallback(() => {
@@ -344,9 +353,19 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   // Handle iframe load
   const handleIframeLoad = () => {
     setIframeLoading(false);
-    registerStageIframe(iframeRef.current);
-    StageBridge.updateCanvasBg(iframeRef.current, stageBg);
-    StageBridge.setStageShape(iframeRef.current, stageShape);
+    if (iframeRef.current) {
+      registerStageIframe(iframeRef.current);
+      injectTheme(iframeRef.current, isLight ? 'light' : 'dark');
+      injectAmoled(iframeRef.current, isAmoled);
+      StageBridge.updateCanvasBg(iframeRef.current, stageBg);
+      StageBridge.setStageShape(iframeRef.current, stageShape);
+      try {
+        const win = iframeRef.current.contentWindow as any;
+        if (typeof win?._renderStageLayout === 'function') {
+          win._renderStageLayout();
+        }
+      } catch {}
+    }
   };
 
   useEffect(() => {

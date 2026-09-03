@@ -3521,14 +3521,19 @@
       }
       html[data-theme='light'] #stage-canvas {
         background-color: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.08) !important;
+        border: 1px solid rgba(0, 0, 0, 0.16) !important;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
         border-radius: 12px !important;
       }
 
       /* ── Light mode: stage canvas uses dark grid lines and a visible border ── */
       html[data-theme='light'] .stage-grid {
-        background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px) !important;
+        background-image: radial-gradient(rgba(0, 0, 0, 0.20) 1.5px, transparent 1.5px) !important;
         background-size: 40px 40px !important;
+      }
+      html[data-theme='light'] [data-i18n="downstageLabel"] {
+        color: #1d4ed8 !important;
+        font-weight: 800 !important;
       }
       html[data-theme='light'] .stage-grid.grid-off {
         background-image: none !important;

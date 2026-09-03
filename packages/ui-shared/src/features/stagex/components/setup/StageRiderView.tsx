@@ -98,6 +98,20 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({ onBack, isLight:
         style={{ backgroundColor: cardBg, borderColor: cardBorder }}
       >
         <div className="py-6 flex flex-col items-center justify-center text-center">
+          <div
+            className="w-12 h-12 rounded-[16px] flex items-center justify-center mb-3 border shadow-sm"
+            style={{
+              backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+              borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)',
+            }}
+          >
+            <span
+              className="material-symbols-outlined text-[24px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
+              alt_route
+            </span>
+          </div>
           <h4
             className="text-xs font-black uppercase tracking-wider mb-1.5"
             style={{ color: textPrimary, letterSpacing: '0.08em' }}
@@ -206,11 +220,14 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({ onBack, isLight:
                     onClick={() => setNewType(type)}
                     className="px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer"
                     style={{
-                      backgroundColor: newType === type ? TYPE_CONFIG[type].color : 'transparent',
-                      color: newType === type ? '#000000' : textSecondary,
+                      backgroundColor:
+                        newType === type ? (isLight ? '#09090b' : '#ffffff') : 'transparent',
+                      color: newType === type ? (isLight ? '#ffffff' : '#09090b') : textSecondary,
                       border: `1px solid ${
                         newType === type
-                          ? TYPE_CONFIG[type].color
+                          ? isLight
+                            ? '#09090b'
+                            : '#ffffff'
                           : isLight
                             ? 'rgba(0,0,0,0.08)'
                             : 'rgba(255,255,255,0.08)'

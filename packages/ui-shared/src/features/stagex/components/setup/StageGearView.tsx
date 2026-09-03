@@ -247,7 +247,10 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                 borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
               }}
             >
-              <span className="material-symbols-outlined text-[24px]" style={{ color: '#f59e0b' }}>
+              <span
+                className="material-symbols-outlined text-[24px]"
+                style={{ color: isLight ? '#09090b' : '#ffffff' }}
+              >
                 inventory_2
               </span>
             </div>
@@ -319,11 +322,13 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                     className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold transition-all active:scale-95 cursor-pointer shrink-0"
                     style={{
                       backgroundColor: isCatActive
-                        ? cat.color
+                        ? isLight
+                          ? '#09090b'
+                          : '#ffffff'
                         : isLight
                           ? 'rgba(0, 0, 0, 0.04)'
                           : 'rgba(255, 255, 255, 0.05)',
-                      color: isCatActive ? '#000000' : textSecondary,
+                      color: isCatActive ? (isLight ? '#ffffff' : '#09090b') : textSecondary,
                     }}
                   >
                     <span>{cat.label}</span>
@@ -343,7 +348,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                   <div className="flex items-center gap-2 px-1">
                     <span
                       className="material-symbols-outlined text-[16px]"
-                      style={{ color: cat.color }}
+                      style={{ color: isLight ? '#09090b' : '#ffffff' }}
                     >
                       {cat.icon}
                     </span>
@@ -490,7 +495,10 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                 {gear.length}
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#38bdf8' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               inventory_2
             </span>
           </div>
@@ -517,7 +525,10 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                 {packedCount}
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#10b981' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               check_circle
             </span>
           </div>
@@ -544,7 +555,10 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                 {remainingCount}
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#38bdf8' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               assignment
             </span>
           </div>
@@ -566,12 +580,15 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
               </span>
               <p
                 className="text-[20px] font-black tracking-tight mt-0.5"
-                style={{ color: '#f59e0b', fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
               >
                 {totalUnits}
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#f59e0b' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               layers
             </span>
           </div>

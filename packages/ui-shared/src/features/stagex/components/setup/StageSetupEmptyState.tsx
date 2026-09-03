@@ -17,13 +17,16 @@ export const StageSetupEmptyState: React.FC<StageSetupEmptyStateProps> = ({
   description,
   actionLabel,
   onAction,
-  iconColor = '#ec4899',
+  iconColor,
   isLight: isLightProp,
 }) => {
   const settings = useSettingsStore((s) => s.settings);
   const activeVis = settings.perApp?.stagex;
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+
+  const defaultIconColor = isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff';
+  const effectiveIconColor = iconColor || defaultIconColor;
 
   return (
     <div
@@ -42,7 +45,10 @@ export const StageSetupEmptyState: React.FC<StageSetupEmptyStateProps> = ({
           borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.08)',
         }}
       >
-        <span className="material-symbols-outlined text-[24px]" style={{ color: iconColor }}>
+        <span
+          className="material-symbols-outlined text-[24px]"
+          style={{ color: effectiveIconColor }}
+        >
           {icon}
         </span>
       </div>

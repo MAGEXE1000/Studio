@@ -271,7 +271,10 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                 borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
               }}
             >
-              <span className="material-symbols-outlined text-[24px]" style={{ color: '#10b981' }}>
+              <span
+                className="material-symbols-outlined text-[24px]"
+                style={{ color: isLight ? '#09090b' : '#ffffff' }}
+              >
                 badge
               </span>
             </div>
@@ -399,7 +402,10 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                 {members.length} / 8
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#ec4899' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               group
             </span>
           </div>
@@ -421,12 +427,15 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               </span>
               <p
                 className="text-[20px] font-black tracking-tight mt-0.5"
-                style={{ color: '#10b981', fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
               >
                 {performersCount}
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#10b981' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               music_note
             </span>
           </div>
@@ -453,7 +462,10 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                 {crewCount}
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#38bdf8' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               engineering
             </span>
           </div>
@@ -475,12 +487,15 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               </span>
               <p
                 className="text-[20px] font-black tracking-tight mt-0.5"
-                style={{ color: '#a855f7', fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
               >
                 {Math.max(0, 8 - members.length)}
               </p>
             </div>
-            <span className="material-symbols-outlined text-[20px]" style={{ color: '#a855f7' }}>
+            <span
+              className="material-symbols-outlined text-[20px]"
+              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+            >
               event_seat
             </span>
           </div>

@@ -86,16 +86,20 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 cursor-pointer shadow-sm"
             style={{
               backgroundColor: isAdding
-                ? '#a855f7'
+                ? isLight
+                  ? '#09090b'
+                  : '#ffffff'
                 : isLight
                   ? 'rgba(0, 0, 0, 0.04)'
                   : 'rgba(255, 255, 255, 0.06)',
               borderColor: isAdding
-                ? '#a855f7'
+                ? isLight
+                  ? '#09090b'
+                  : '#ffffff'
                 : isLight
                   ? 'rgba(0, 0, 0, 0.08)'
                   : 'rgba(255, 255, 255, 0.10)',
-              color: isAdding ? '#ffffff' : textPrimary,
+              color: isAdding ? (isLight ? '#ffffff' : '#09090b') : textPrimary,
             }}
             title={isAdding ? 'Cancel' : 'Add Track'}
             aria-label={isAdding ? 'Cancel' : 'Add Track'}
@@ -271,7 +275,10 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
               }}
             >
-              <span className="material-symbols-outlined text-[24px]" style={{ color: '#a855f7' }}>
+              <span
+                className="material-symbols-outlined text-[24px]"
+                style={{ color: isLight ? '#09090b' : '#ffffff' }}
+              >
                 queue_music
               </span>
             </div>

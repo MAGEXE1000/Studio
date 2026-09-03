@@ -92,10 +92,11 @@
   --stage-layout-label-hover: rgba(255, 255, 255, 0.45);
 }
 html[data-theme='light'] {
-  --stage-layout-stroke: rgba(0, 0, 0, 0.1);
-  --stage-layout-stroke-dim: rgba(0, 0, 0, 0.04);
-  --stage-layout-label: rgba(0, 0, 0, 0.24);
-  --stage-layout-label-hover: rgba(0, 0, 0, 0.45);
+  --stage-layout-stroke: rgba(0, 0, 0, 0.30);
+  --stage-layout-stroke-dim: rgba(0, 0, 0, 0.16);
+  --stage-layout-label: rgba(0, 0, 0, 0.60);
+  --stage-layout-label-hover: rgba(0, 0, 0, 0.85);
+  --sc-downstage-color: #1d4ed8;
 }
 html[data-amoled='1'] {
   --stage-layout-stroke: rgba(255, 255, 255, 0.14);
@@ -109,7 +110,16 @@ html[data-amoled='1'] {
   background-size: 40px 40px;
 }
 html[data-theme='light'] .stage-grid {
-  background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1.5px, transparent 1.5px);
+  background-image: radial-gradient(rgba(0, 0, 0, 0.20) 1.5px, transparent 1.5px);
+}
+html[data-theme='light'] #stage-canvas {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.16) !important;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.04);
+}
+html[data-theme='light'] [data-i18n="downstageLabel"] {
+  color: var(--sc-downstage-color, #1d4ed8) !important;
+  font-weight: 800 !important;
 }
 .stage-grid.grid-off {
   background-image: none;
@@ -392,20 +402,31 @@ html[data-amoled='1'] .sc-help-card {
   line-height: 1;
   padding: 1px 0;
 }
+html[data-theme='light'] .stage-element .el-label {
+  color: #18181b;
+}
+html[data-theme='light'] .stage-element.selected .el-label {
+  color: var(--el-color, #1d4ed8);
+}
 html[data-theme='light'] .el-resize-bar {
-  background: var(--studio-surface-elevated, rgba(255, 255, 255, 0.95));
-  border: 1px solid var(--studio-border, rgba(0, 0, 0, 0.1));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
 }
 html[data-theme='light'] .el-resize-bar button {
-  color: rgba(0, 0, 0, 0.6);
+  color: #09090b !important;
 }
 html[data-theme='light'] .el-resize-bar button:hover {
   background: rgba(0, 0, 0, 0.05);
   color: var(--accent);
 }
 html[data-theme='light'] .el-resize-bar .el-scale-display {
-  color: rgba(0, 0, 0, 0.45);
+  color: #09090b !important;
+}
+html[data-theme='light'] .el-specs-bar-btn {
+  color: #be185d !important;
+  background: rgba(236, 72, 153, 0.12) !important;
+  border-color: rgba(236, 72, 153, 0.35) !important;
 }
 .draggable-item {
   user-select: none;

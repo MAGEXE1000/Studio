@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
 import { useStagexStore, type StagexSubView } from '../../state/useStagexStore';
 
@@ -11,116 +11,122 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
   onSelectSubView,
   isLight = false,
 }) => {
-  const { riderNeeds, riderChannels, setlist, gear, members } = useStagexStore();
-
-  const totalDuration = useMemo(() => {
-    let totalSecs = 0;
-    for (const song of setlist) {
-      if (!song.duration) continue;
-      const parts = song.duration.split(':').map((p) => parseInt(p, 10));
-      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-        totalSecs += parts[0] * 60 + parts[1];
-      }
-    }
-    const mins = Math.floor(totalSecs / 60);
-    const secs = totalSecs % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  }, [setlist]);
+  const { riderChannels, setlist, gear, members } = useStagexStore();
 
   const cards = [
     {
       id: 'rider' as StagexSubView,
-      title: 'Technical Rider',
-      desc: 'Hospitality, sound & power specs for production',
-      icon: 'description',
-      iconBg: 'rgba(59, 130, 246, 0.15)',
-      iconColor: '#60a5fa',
-      stat: `${riderNeeds.length + riderChannels.length} items`,
+      title: 'Rider',
+      desc: 'Channel list, mic inputs & tech requirements',
+      icon: 'alt_route',
+      badge: `${riderChannels.length} Channels`,
     },
     {
       id: 'setlist' as StagexSubView,
       title: 'Setlist',
-      desc: 'Show order, cues, BPM & calculated timings',
-      icon: 'queue_music',
-      iconBg: 'rgba(168, 85, 247, 0.15)',
-      iconColor: '#c084fc',
-      stat: `${setlist.length} songs ${setlist.length > 0 ? `• ${totalDuration}` : ''}`,
+      desc: 'Song order, timing & performance flow',
+      icon: 'format_list_numbered',
+      badge: `${setlist.length} Songs`,
     },
     {
       id: 'gear' as StagexSubView,
-      title: 'Gear Inventory',
-      desc: 'Instruments, amps, microphones & DI boxes',
-      icon: 'inventory_2',
-      iconBg: 'rgba(234, 179, 8, 0.15)',
-      iconColor: '#facc15',
-      stat: `${gear.length} pieces`,
+      title: 'Gear',
+      desc: 'Instruments, amps & load-in checklist',
+      icon: 'tune',
+      badge: `${gear.length} Items`,
     },
     {
       id: 'members' as StagexSubView,
-      title: 'Band & Crew',
-      desc: 'Performer roles, color badges & contacts',
-      icon: 'groups',
-      iconBg: 'rgba(34, 197, 94, 0.15)',
-      iconColor: '#4ade80',
-      stat: `${members.length}/8 members`,
+      title: 'Members',
+      desc: 'Band and crew information',
+      icon: 'badge',
+      badge: members.length > 0 ? `${members.length} Members` : '0 Members',
     },
   ];
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-2 pb-32">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+    <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-4 pb-32">
+      <div className="flex flex-col gap-4">
         {cards.map((card) => (
           <motion.button
             key={card.id}
             data-testid={`setup-card-${card.id}`}
             onClick={() => onSelectSubView(card.id)}
-            whileTap={{ scale: 0.985 }}
-            whileHover={{ y: -2 }}
-            className="flex flex-col text-left p-5 rounded-[18px] border transition-all duration-200"
+            whileTap={{ scale: 0.988 }}
+            whileHover={{ y: -1 }}
+            className="w-full text-left p-5 sm:p-6 rounded-[22px] border transition-all duration-200 cursor-pointer"
             style={{
-              backgroundColor: 'var(--c-bg-card, rgba(20, 20, 24, 0.65))',
-              borderColor: 'var(--c-border, rgba(255, 255, 255, 0.08))',
-              backdropFilter: 'blur(12px)',
+              backgroundColor: isLight ? '#ffffff' : 'var(--c-bg-card, #0a0a0c)',
+              borderColor: isLight
+                ? 'rgba(0, 0, 0, 0.08)'
+                : 'var(--c-border, rgba(255, 255, 255, 0.08))',
             }}
           >
-            <div className="flex items-center justify-between w-full mb-3">
+            {/* Top row: Icon container at upper-left & Chevron at upper-right */}
+            <div className="flex items-center justify-between w-full">
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center"
-                style={{ backgroundColor: card.iconBg }}
+                className="w-12 h-12 rounded-[16px] flex items-center justify-center border"
+                style={{
+                  backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+                  borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+                }}
               >
                 <span
-                  className="material-symbols-outlined"
-                  style={{ color: card.iconColor, fontSize: 22 }}
+                  className="material-symbols-outlined text-[24px]"
+                  style={{
+                    color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+                  }}
                 >
                   {card.icon}
                 </span>
               </div>
               <span
-                className="px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide"
+                className="material-symbols-outlined text-[22px]"
                 style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
+                  color: isLight ? '#a1a1aa' : 'rgba(255, 255, 255, 0.35)',
                 }}
               >
-                {card.stat}
+                chevron_right
               </span>
             </div>
 
-            <h3
-              className="text-base font-bold tracking-tight mb-1"
-              style={{
-                color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
-                fontFamily: 'Manrope, sans-serif',
-              }}
-            >
-              {card.title}
-            </h3>
-            <p
-              className="text-xs font-medium leading-relaxed"
-              style={{ color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa' }}
-            >
-              {card.desc}
-            </p>
+            {/* Middle row: Large Section Title & Muted Description */}
+            <div className="mt-5 mb-5">
+              <h3
+                className="text-[20px] font-bold tracking-tight"
+                style={{
+                  color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
+                  fontFamily: 'Manrope, sans-serif',
+                  lineHeight: 1.25,
+                  margin: 0,
+                }}
+              >
+                {card.title}
+              </h3>
+              <p
+                className="text-[13px] font-normal leading-relaxed mt-1"
+                style={{
+                  color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
+                  margin: '4px 0 0 0',
+                }}
+              >
+                {card.desc}
+              </p>
+            </div>
+
+            {/* Bottom row: Item Count / Status Badge */}
+            <div className="flex items-center">
+              <span
+                className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide border"
+                style={{
+                  backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+                  borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
+                  color: isLight ? 'var(--c-text-secondary, #71717a)' : '#d4d4d8',
+                }}
+              >
+                {card.badge}
+              </span>
+            </div>
           </motion.button>
         ))}
       </div>

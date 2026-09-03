@@ -73,7 +73,7 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
                 margin: 0,
               }}
             >
-              {tr.stagex?.setup || 'Setup & Options'}
+              {tr.stagex?.setupTitle || 'Setup'}
             </h1>
             <p
               style={{
@@ -84,9 +84,14 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
                 margin: '2px 0 0 0',
               }}
             >
-              {tr.stagex?.setupSubtitle ||
-                'Configure stage plot equipment, setlist, and crew specs.'}
+              {tr.stagex?.setupSubtitle || 'Your show documents & band info'}
             </p>
+            <div
+              className="w-full h-px mt-4"
+              style={{
+                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.06)',
+              }}
+            />
           </div>
         </div>
       ) : (

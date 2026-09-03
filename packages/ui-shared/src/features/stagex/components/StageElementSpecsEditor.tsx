@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useBackHandler } from '@workspace/studio-core';
 import { useStagexStore } from '../state/useStagexStore';
 import { STAGEX_ICON_MAP } from '../constants';
@@ -71,9 +72,13 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
   isAmoled,
 }) => {
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [moreFieldsExpanded, setMoreFieldsExpanded] = useState(false);
   const [activePicker, setActivePicker] = useState<SpecsPickerType | null>(null);
+
+  const actionsBtnRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   // Read existing domain sources of truth
   const storeMembers = useStagexStore((s) => s.members);
@@ -81,17 +86,94 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
   const riderMixes = useStagexStore((s) => s.riderMixes);
   const allElements = useStagexStore((s) => s.elements);
 
-  // Android hardware back handler: dismiss active picker first, then specs editor
+  // Calculate Actions menu coordinates with viewport collision guards
+  const updateMenuPosition = useCallback(() => {
+    if (!actionsBtnRef.current) return;
+    const btnRect = actionsBtnRef.current.getBoundingClientRect();
+    const menuWidth = 184;
+    const menuHeight = menuRef.current ? menuRef.current.offsetHeight : 268;
+    const padding = 8;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Horizontal: align right edge with button, clamp within viewport
+    let left = btnRect.right - menuWidth;
+    if (left + menuWidth > viewportWidth - padding) {
+      left = viewportWidth - menuWidth - padding;
+    }
+    if (left < padding) {
+      left = padding;
+    }
+
+    // Vertical: determine available room below vs above button
+    const spaceBelow = viewportHeight - btnRect.bottom - padding;
+    const spaceAbove = btnRect.top - padding;
+
+    let top: number;
+    if (spaceBelow >= menuHeight) {
+      // Room below -> open downward
+      top = btnRect.bottom + 6;
+    } else if (spaceAbove >= menuHeight) {
+      // Insufficient room below, but room above -> reposition upward
+      top = btnRect.top - menuHeight - 6;
+    } else if (spaceAbove > spaceBelow) {
+      // Clamped to top of screen if more room above
+      top = Math.max(padding, btnRect.top - menuHeight - 6);
+    } else {
+      // More room below
+      top = Math.min(viewportHeight - menuHeight - padding, btnRect.bottom + 6);
+    }
+
+    setMenuPosition({ top, left });
+  }, []);
+
+  // Update position when menu opens or on viewport change
+  useEffect(() => {
+    if (!actionsMenuOpen) return;
+    updateMenuPosition();
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', updateMenuPosition, true);
+    return () => {
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', updateMenuPosition, true);
+    };
+  }, [actionsMenuOpen, updateMenuPosition]);
+
+  // Recalculate once menuRef renders to apply exact measured height
+  useEffect(() => {
+    if (actionsMenuOpen && menuRef.current) {
+      updateMenuPosition();
+    }
+  }, [actionsMenuOpen, updateMenuPosition]);
+
+  // Reset menu states if Specs dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setActionsMenuOpen(false);
+      setShowDeleteConfirm(false);
+      setActivePicker(null);
+    }
+  }, [isOpen]);
+
+  // Android hardware back handler: dismiss Actions menu first, then active picker, then specs editor
   useBackHandler(
     'overlay',
     () => {
+      if (actionsMenuOpen) {
+        setActionsMenuOpen(false);
+        return true;
+      }
       if (activePicker) {
         setActivePicker(null);
         return true;
       }
+      if (showDeleteConfirm) {
+        setShowDeleteConfirm(false);
+        return true;
+      }
       return false;
     },
-    [activePicker]
+    [actionsMenuOpen, activePicker, showDeleteConfirm]
   );
 
   // Icon preview helper
@@ -516,9 +598,15 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
               <div className="relative flex items-center gap-1.5 flex-shrink-0">
                 {/* Secondary Actions Button */}
                 <button
+                  ref={actionsBtnRef}
                   type="button"
                   data-testid="specs-actions-menu-btn"
-                  onClick={() => setActionsMenuOpen((prev) => !prev)}
+                  onClick={() => {
+                    if (!actionsMenuOpen) {
+                      updateMenuPosition();
+                    }
+                    setActionsMenuOpen((prev) => !prev);
+                  }}
                   className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold cursor-pointer active:scale-95 transition-all"
                   style={{
                     background: actionsMenuOpen
@@ -557,136 +645,6 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                 >
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>
-
-                {/* Secondary Actions Overflow Popover */}
-                {actionsMenuOpen && (
-                  <div
-                    data-testid="specs-actions-popup"
-                    className="absolute right-0 top-full mt-1.5 w-44 rounded-2xl py-1 z-50 shadow-2xl flex flex-col"
-                    style={{
-                      background: isAmoled ? '#121216' : isLight ? '#ffffff' : '#1e1e26',
-                      border: isLight
-                        ? '1px solid rgba(0, 0, 0, 0.12)'
-                        : '1px solid rgba(255, 255, 255, 0.12)',
-                      backdropFilter: 'blur(20px)',
-                    }}
-                  >
-                    <button
-                      type="button"
-                      data-testid="action-duplicate"
-                      onClick={() => {
-                        setActionsMenuOpen(false);
-                        onDuplicate();
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
-                      style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
-                    >
-                      <span className="material-symbols-outlined text-[15px] text-zinc-400">
-                        content_copy
-                      </span>
-                      <span>Duplicate</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      data-testid="action-add-mic"
-                      onClick={() => {
-                        setActionsMenuOpen(false);
-                        onAddMicNearby();
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
-                      style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
-                    >
-                      <span className="material-symbols-outlined text-[15px] text-zinc-400">
-                        mic
-                      </span>
-                      <span>Add Mic Nearby</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      data-testid="action-assign-channel"
-                      onClick={() => {
-                        setActionsMenuOpen(false);
-                        onAssignChannel();
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
-                      style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
-                    >
-                      <span className="material-symbols-outlined text-[15px] text-zinc-400">
-                        tune
-                      </span>
-                      <span>Assign Channel</span>
-                    </button>
-
-                    <div className="h-px bg-white/5 my-1" />
-
-                    <button
-                      type="button"
-                      data-testid="action-toggle-lock"
-                      onClick={() => {
-                        setActionsMenuOpen(false);
-                        onToggleLock();
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
-                      style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
-                    >
-                      <span className="material-symbols-outlined text-[15px] text-zinc-400">
-                        {element.locked ? 'lock_open' : 'lock'}
-                      </span>
-                      <span>{element.locked ? 'Unlock' : 'Lock'}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      data-testid="action-toggle-pin"
-                      onClick={() => {
-                        setActionsMenuOpen(false);
-                        onTogglePin();
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
-                      style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
-                    >
-                      <span className="material-symbols-outlined text-[15px] text-zinc-400">
-                        push_pin
-                      </span>
-                      <span>{element.pinned ? 'Unpin Element' : 'Pin Element'}</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      data-testid="action-save-preset"
-                      onClick={() => {
-                        setActionsMenuOpen(false);
-                        onSavePreset();
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
-                      style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
-                    >
-                      <span className="material-symbols-outlined text-[15px] text-zinc-400">
-                        bookmark
-                      </span>
-                      <span>Save as Preset</span>
-                    </button>
-
-                    <div className="h-px bg-white/5 my-1" />
-
-                    <button
-                      type="button"
-                      data-testid="action-delete"
-                      onClick={() => {
-                        setActionsMenuOpen(false);
-                        setShowDeleteConfirm(true);
-                      }}
-                      className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left text-red-400 hover:bg-red-500/10 active:bg-red-500/20 cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[15px] text-red-400">
-                        delete
-                      </span>
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -1068,6 +1026,153 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
           </>
         )}
       </div>
+
+      {/* Portaled Actions Popover Menu */}
+      {actionsMenuOpen &&
+        menuPosition &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <>
+            {/* Backdrop to capture outside taps and close menu */}
+            <div
+              data-testid="specs-actions-backdrop"
+              className="fixed inset-0 z-[9998]"
+              onClick={() => setActionsMenuOpen(false)}
+              aria-hidden="true"
+            />
+            {/* Actions Popover Surface */}
+            <div
+              ref={menuRef}
+              data-testid="specs-actions-popup"
+              role="menu"
+              aria-label="Element Actions"
+              className="fixed z-[9999] w-[184px] rounded-2xl py-1 shadow-2xl flex flex-col pointer-events-auto"
+              style={{
+                top: `${menuPosition.top}px`,
+                left: `${menuPosition.left}px`,
+                background: isAmoled ? '#121216' : isLight ? '#ffffff' : '#1e1e26',
+                border: isLight
+                  ? '1px solid rgba(0, 0, 0, 0.12)'
+                  : '1px solid rgba(255, 255, 255, 0.12)',
+                boxShadow: isLight
+                  ? '0 12px 32px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08)'
+                  : '0 16px 40px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.45)',
+                backdropFilter: 'blur(20px)',
+                WebkitBackdropFilter: 'blur(20px)',
+              }}
+            >
+              <button
+                type="button"
+                data-testid="action-duplicate"
+                onClick={() => {
+                  setActionsMenuOpen(false);
+                  onDuplicate();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
+                style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
+              >
+                <span className="material-symbols-outlined text-[15px] text-zinc-400">
+                  content_copy
+                </span>
+                <span>Duplicate</span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="action-add-mic"
+                onClick={() => {
+                  setActionsMenuOpen(false);
+                  onAddMicNearby();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
+                style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
+              >
+                <span className="material-symbols-outlined text-[15px] text-zinc-400">mic</span>
+                <span>Add Mic Nearby</span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="action-assign-channel"
+                onClick={() => {
+                  setActionsMenuOpen(false);
+                  onAssignChannel();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
+                style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
+              >
+                <span className="material-symbols-outlined text-[15px] text-zinc-400">tune</span>
+                <span>Assign Channel</span>
+              </button>
+
+              <div className="h-px bg-white/5 my-1" />
+
+              <button
+                type="button"
+                data-testid="action-toggle-lock"
+                onClick={() => {
+                  setActionsMenuOpen(false);
+                  onToggleLock();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
+                style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
+              >
+                <span className="material-symbols-outlined text-[15px] text-zinc-400">
+                  {element?.locked ? 'lock_open' : 'lock'}
+                </span>
+                <span>{element?.locked ? 'Unlock' : 'Lock'}</span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="action-toggle-pin"
+                onClick={() => {
+                  setActionsMenuOpen(false);
+                  onTogglePin();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
+                style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
+              >
+                <span className="material-symbols-outlined text-[15px] text-zinc-400">
+                  push_pin
+                </span>
+                <span>{element?.pinned ? 'Unpin Element' : 'Pin Element'}</span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="action-save-preset"
+                onClick={() => {
+                  setActionsMenuOpen(false);
+                  onSavePreset();
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left hover:bg-white/10 active:bg-white/15 cursor-pointer"
+                style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
+              >
+                <span className="material-symbols-outlined text-[15px] text-zinc-400">
+                  bookmark
+                </span>
+                <span>Save as Preset</span>
+              </button>
+
+              <div className="h-px bg-white/5 my-1" />
+
+              <button
+                type="button"
+                data-testid="action-delete"
+                onClick={() => {
+                  setActionsMenuOpen(false);
+                  setShowDeleteConfirm(true);
+                }}
+                className="flex items-center gap-2 px-3 py-1.5 text-[11px] font-medium text-left text-red-400 hover:bg-red-500/10 active:bg-red-500/20 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[15px] text-red-400">delete</span>
+                <span>Delete</span>
+              </button>
+            </div>
+          </>,
+          document.body
+        )}
     </>
   );
 };

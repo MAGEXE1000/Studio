@@ -132,12 +132,19 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
           aria-label={isAdding ? 'Cancel' : 'Add Item'}
           data-testid="btn-toggle-add-gear"
         >
-          <span
-            className="material-symbols-outlined text-[20px] leading-none transition-transform duration-200"
+          <svg
+            className="w-5 h-5 transition-transform duration-200"
             style={{ transform: isAdding ? 'rotate(45deg)' : 'rotate(0deg)' }}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            add
-          </span>
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
         </button>
       }
     >
@@ -170,8 +177,20 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                   onClick={() => setIsAdding(false)}
                   className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
                   style={{ color: textSecondary }}
+                  aria-label="Close"
                 >
-                  <span className="material-symbols-outlined text-[16px]">close</span>
+                  <svg
+                    className="w-4 h-4"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
               </div>
 
@@ -343,12 +362,19 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
           >
             {/* Search Input */}
             <div className="relative mb-3.5">
-              <span
-                className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 select-none pointer-events-none"
-                style={{ fontSize: 18, color: textSecondary }}
+              <svg
+                className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 select-none pointer-events-none"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ color: textSecondary }}
               >
-                search
-              </span>
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
               <input
                 type="text"
                 placeholder="Search gear by name, model or spec..."
@@ -420,12 +446,10 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                   return (
                     <div key={cat.key} className="flex flex-col gap-2">
                       <div className="flex items-center gap-2 px-1">
-                        <span
-                          className="material-symbols-outlined text-[16px]"
-                          style={{ color: cat.color }}
-                        >
-                          {cat.icon}
-                        </span>
+                        <div
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: cat.color }}
+                        />
                         <h4
                           className="text-[11px] font-bold uppercase tracking-wider"
                           style={{ color: textSecondary }}
@@ -468,9 +492,19 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                                   data-testid={`btn-toggle-pack-${item.id}`}
                                 >
                                   {item.packed && (
-                                    <span className="material-symbols-outlined text-[14px] text-white font-bold">
-                                      check
-                                    </span>
+                                    <>
+                                      <svg
+                                        className="w-3.5 h-3.5 text-white stroke-[3]"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      >
+                                        <polyline points="20 6 9 17 4 12" />
+                                      </svg>
+                                      <span className="sr-only">check</span>
+                                    </>
                                   )}
                                 </button>
 
@@ -525,9 +559,18 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
                                 title="Delete Gear Item"
                                 data-testid={`btn-delete-gear-${item.id}`}
                               >
-                                <span className="material-symbols-outlined text-[17px]">
-                                  delete
-                                </span>
+                                <svg
+                                  className="w-4 h-4"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="1.8"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <polyline points="3 6 5 6 21 6" />
+                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
                               </button>
                             </motion.div>
                           ))}

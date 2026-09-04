@@ -2,9 +2,14 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { useStagexStore } from '../../state/useStagexStore';
-import { useBackHandler, useSettingsStore } from '@workspace/studio-core';
+import {
+  useBackHandler,
+  useSettingsStore,
+  useSessionStore,
+  NavigationDispatcher,
+} from '@workspace/studio-core';
 import { SharedFloatingHeader } from '../../../../shared/layout/StudioLayoutSystem';
-import { STAGEX_ICON_MAP } from '../../constants';
+import { STAGEX_ICON_MAP, localizeElementName } from '../../constants';
 import {
   projectProductionDocumentData,
   DEFAULT_PRODUCTION_DOCUMENT_SECTIONS,
@@ -22,10 +27,14 @@ export interface StageExportPdfViewProps {
 }
 
 if (typeof window !== 'undefined') {
+  (window as any).NavigationDispatcher = NavigationDispatcher;
+  (window as any).useSessionStore = useSessionStore;
   (window as any).__stagexTestApi = {
     generateProductionDocumentPdf,
     projectProductionDocumentData,
     useStagexStore,
+    useSessionStore,
+    NavigationDispatcher,
   };
 }
 
@@ -744,7 +753,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div
                   data-testid="stage-plot-preview-container"
                   className={`relative w-full border rounded-xl overflow-hidden stage-blueprint-grid p-2.5 flex flex-col justify-between select-none ${
-                    data.isSquare ? 'aspect-square max-h-[420px]' : 'aspect-[16/9] max-h-[360px]'
+                    data.isSquare ? 'aspect-square max-h-[420px]' : 'aspect-[4/3] max-h-[360px]'
                   }`}
                   style={{
                     backgroundColor: blueprintBg,
@@ -816,7 +825,14 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                       const rotation = el.rotation || 0;
                       const scale = (el.scale || 100) / 100;
                       const color = el.color || '#7aafff';
-                      const labelText = (el.label || el.name || '').toUpperCase();
+                      const chNum = el.channelId
+                        ? String(el.channelId).replace(/^CH-?/i, '').padStart(2, '0')
+                        : String(idx + 1).padStart(2, '0');
+                      const labelText = localizeElementName(
+                        el.label || el.name,
+                        el.type,
+                        isSpanish ? 'es' : 'en'
+                      ).toUpperCase();
                       const iconKey = el.icon || 'mic';
                       const mappedIcon = STAGEX_ICON_MAP[iconKey];
 
@@ -831,7 +847,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                             transform: `translate(-50%, -50%) scale(${scale})`,
                           }}
                         >
-                          {/* Rotated Icon Wrapper */}
+                          {/* Rotated Icon Wrapper with Channel Badge */}
                           <div
                             className="relative flex items-center justify-center"
                             style={{
@@ -872,6 +888,21 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                                     : 'music_note'}
                               </span>
                             )}
+
+                            {/* Small Channel Identifier Badge */}
+                            <span
+                              data-testid={`preview-element-ch-${idx + 1}`}
+                              className="absolute -top-1.5 -right-2 px-1 py-0.5 rounded text-[7.5px] font-mono font-extrabold leading-none select-none z-20 pointer-events-none"
+                              style={{
+                                backgroundColor: '#2563eb',
+                                color: '#ffffff',
+                                border: '1px solid rgba(255, 255, 255, 0.4)',
+                                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.4)',
+                                letterSpacing: '-0.02em',
+                              }}
+                            >
+                              {chNum}
+                            </span>
                           </div>
 
                           {/* Standardized Canonical Label */}
@@ -936,6 +967,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               </div>
 
               <div
+                data-purpose="input-patch-sheet"
                 className="border rounded-lg overflow-hidden divide-y select-none"
                 style={{ borderColor: borderCol }}
               >
@@ -972,7 +1004,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                         {ch.ch}
                       </div>
                       <div className="col-span-3 font-bold truncate" style={{ color: textPrimary }}>
-                        {ch.source}
+                        {localizeElementName(
+                          ch.source,
+                          undefined,
+                          isSpanish ? 'es' : 'en'
+                        ).toUpperCase()}
                       </div>
                       <div
                         className="col-span-2 text-[11px] truncate font-medium"
@@ -1337,7 +1373,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                           <span className="text-[10px]" style={{ color: textDim }}>
                             {member.role || (isSpanish ? 'Miembro de Banda' : 'Band Member')} ·{' '}
                             {member.assignedElements.length > 0
-                              ? `${isSpanish ? 'Asignado: ' : 'Assigned: '}${member.assignedElements.join(', ')}`
+                              ? `${isSpanish ? 'Asignado: ' : 'Assigned: '}${member.assignedElements
+                                  .map((ae) =>
+                                    localizeElementName(ae, undefined, isSpanish ? 'es' : 'en')
+                                  )
+                                  .join(', ')}`
                               : isSpanish
                                 ? 'Sin asignar'
                                 : 'Unassigned'}

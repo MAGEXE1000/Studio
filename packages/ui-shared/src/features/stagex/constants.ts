@@ -183,3 +183,149 @@ export const getSimplifiedView = (view: string): string => {
   if (view === 'Export') return 'Export';
   return 'Setup';
 };
+
+export const ELEMENT_TRANSLATIONS_ES: Record<string, string> = {
+  // Mics
+  sm58: 'Micrófono Dinámico SM58',
+  'dynamic mic': 'Micrófono Dinámico',
+  condenser: 'Micrófono de Condensador',
+  'condenser mic': 'Micrófono de Condensador',
+  'amp mic': 'Micrófono de Instrumento',
+  'instrument mic': 'Micrófono de Instrumento',
+  wireless: 'Micrófono Inalámbrico',
+  'wireless mic': 'Micrófono Inalámbrico',
+  boundary: 'Micrófono PZM de Superficie',
+  'pzm mic': 'Micrófono PZM de Superficie',
+  'drum clip': 'Micrófono Clip de Batería',
+  'instrument clip': 'Micrófono Clip de Batería',
+  'mic stand': 'Pedestal de Micrófono',
+
+  // Drums & Percussion
+  'drum kit': 'Batería Acústica',
+  'acoustic drums': 'Batería Acústica',
+  'e-drums': 'Batería Electrónica',
+  'electronic drums': 'Batería Electrónica',
+  percussion: 'Percusión',
+  cajon: 'Cajón Peruano / Flamenco',
+
+  // Instruments
+  'elec guitar': 'Guitarra Eléctrica',
+  'electric guitar': 'Guitarra Eléctrica',
+  'acou guitar': 'Guitarra Acústica',
+  'acoustic guitar': 'Guitarra Acústica',
+  'bass guitar': 'Bajo Eléctrico',
+  keyboard: 'Teclado',
+  'keyboard di': 'Teclado DI',
+  synth: 'Sintetizador',
+  synthesizer: 'Sintetizador',
+  'brass / horn': 'Sección de Vientos',
+  'brass instrument': 'Sección de Vientos',
+  strings: 'Instrumentos de Cuerda',
+  'string instrument': 'Instrumentos de Cuerda',
+  shaker: 'Shaker / Percusión Menor',
+  tambourine: 'Pandereta',
+
+  // Amps & Cabs
+  'guitar amp': 'Amplificador de Guitarra',
+  'guitar amplifier': 'Amplificador de Guitarra',
+  'bass amp': 'Amplificador de Bajo',
+  'bass amplifier': 'Amplificador de Bajo',
+  'amp cab': 'Gabinete de Guitarra',
+  'guitar cabinet': 'Gabinete de Guitarra',
+  'bass cab': 'Gabinete de Bajo',
+  'bass cabinet': 'Gabinete de Bajo',
+
+  // Audio / Monitors
+  wedge: 'Monitor de Piso (Wedge)',
+  'floor wedge': 'Monitor de Piso (Wedge)',
+  'floor pa': 'PA de Piso Activo',
+  'powered floor pa': 'PA de Piso Activo',
+  'stage sub': 'Subwoofer de Escenario',
+  'stage sub-woofer': 'Subwoofer de Escenario',
+  'iem pack': 'Receptor In-Ear (IEM)',
+  'in-ear monitor': 'Receptor In-Ear (IEM)',
+  'drum fill': 'Monitor Drum Fill',
+  'drum fill monitor': 'Monitor Drum Fill',
+  'drum sub': 'Subwoofer de Batería',
+  'drum sub monitor': 'Subwoofer de Batería',
+  'side fill': 'Monitor Side Fill',
+  'main pa l': 'PA Principal L (FOH)',
+  'main pa r': 'PA Principal R (FOH)',
+  'main pa left': 'PA Principal L (FOH)',
+  'main pa right': 'PA Principal R (FOH)',
+  'delay tower': 'Torre de Delay',
+  'delay speaker tower': 'Torre de Delay',
+  'front fill': 'Altavoz Front Fill',
+  'front fill speaker': 'Altavoz Front Fill',
+  'headphone amp': 'Amplificador de Audífonos',
+  'headphone amplifier': 'Amplificador de Audífonos',
+
+  // Utilities
+  mixer: 'Mezcladora de Escenario',
+  'stage mixer': 'Mezcladora de Escenario',
+  'power distro': 'Distribución Eléctrica (Distro)',
+  'stage box': 'Cajetín de Escenario (Stage Box)',
+  'patch bay': 'Patchbay de Conexiones',
+  router: 'Router de Red / Control',
+  'network router': 'Router de Red / Control',
+  splitter: 'Splitter de Señal',
+  'audio splitter': 'Splitter de Señal',
+  'foh console': 'Consola FOH (Sala)',
+  'foh mixing console': 'Consola FOH (Sala)',
+  'mon console': 'Consola de Monitores',
+  'monitor console': 'Consola de Monitores',
+  'amp rack': 'Rack de Potencias',
+  'amplifier rack': 'Rack de Potencias',
+  'effects rack': 'Rack de Efectos',
+  'wireless rack': 'Rack de Inalámbricos',
+  laptop: 'Computadora / Laptop',
+  'laptop / computer': 'Computadora / Laptop',
+  intercom: 'Sistema de Intercomunicación',
+  'intercom system': 'Sistema de Intercomunicación',
+  'di box': 'Caja Directa (DI)',
+  'loop station': 'Estación de Loops',
+  playback: 'Reproductor de Playback',
+  'playback device': 'Reproductor de Playback',
+  outlet: 'Toma de Corriente',
+  'power outlet': 'Toma de Corriente',
+
+  // People
+  performer: 'Intérprete',
+  person: 'Intérprete',
+  vocalist: 'Vocalista',
+  guitarist: 'Guitarrista',
+  bassist: 'Bajista',
+  drummer: 'Baterista',
+  keyboardist: 'Tecladista',
+  saxophonist: 'Saxofonista',
+  tech: 'Técnico de Escenario',
+};
+
+/**
+ * Localizes element label or type into natural Spanish terminology if lang is 'es'.
+ * If the user specified a custom name not matching standard library element names,
+ * user-entered data remains preserved.
+ */
+export function localizeElementName(
+  label: string | undefined,
+  type?: string | undefined,
+  lang: 'en' | 'es' = 'en'
+): string {
+  const effective = (label || type || '').trim();
+  if (!effective) return lang === 'es' ? 'Elemento' : 'Element';
+  if (lang !== 'es') return effective;
+
+  const lower = effective.toLowerCase();
+  if (ELEMENT_TRANSLATIONS_ES[lower]) {
+    return ELEMENT_TRANSLATIONS_ES[lower];
+  }
+
+  if (type) {
+    const typeLower = type.trim().toLowerCase();
+    if (ELEMENT_TRANSLATIONS_ES[typeLower]) {
+      return ELEMENT_TRANSLATIONS_ES[typeLower];
+    }
+  }
+
+  return effective;
+}

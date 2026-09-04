@@ -5,6 +5,7 @@ import type {
   ProductionDocumentSectionsConfig,
 } from './projectProductionDocumentData';
 import { DEFAULT_PRODUCTION_DOCUMENT_SECTIONS } from './projectProductionDocumentData';
+import { STAGEX_ICON_MAP, localizeElementName } from '../constants';
 
 export type PdfThemeMode = 'light' | 'dark' | 'amoled';
 
@@ -127,79 +128,221 @@ function parseHexColor(
   return [fallback[0], fallback[1], fallback[2]];
 }
 
+// In-memory cache for rasterized PNG data URLs to guarantee fast, reliable PDF generation
+const assetPngCache = new Map<string, string>();
+
+async function resolveAssetPngDataUrl(src: string): Promise<string | null> {
+  if (!src) return null;
+  if (assetPngCache.has(src)) return assetPngCache.get(src)!;
+  if (src.startsWith('data:image/png') || src.startsWith('data:image/jpeg')) {
+    assetPngCache.set(src, src);
+    return src;
+  }
+
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            const size = Math.max(img.naturalWidth || 96, img.naturalHeight || 96, 96);
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              reject(new Error('No canvas 2D context'));
+              return;
+            }
+            ctx.drawImage(img, 0, 0, size, size);
+            const out = canvas.toDataURL('image/png');
+            resolve(out);
+          } catch (e) {
+            reject(e);
+          }
+        };
+        img.onerror = (err) => reject(err);
+        img.src = src;
+      });
+      assetPngCache.set(src, dataUrl);
+      return dataUrl;
+    } catch (err) {
+      console.warn('Could not rasterize asset for PDF:', src, err);
+      return null;
+    }
+  }
+  return null;
+}
+
 /**
- * Generates a clean, professional, multi-page vector PDF production document
+ * Generates a clean, professional, single long-format vector PDF production document
  * from the canonical Stagex ProductionDocumentData contract, fully respecting
- * the active Studio theme (Light, Dark, AMOLED).
+ * the active Studio theme (Light, Dark, AMOLED) and bilingual localization.
+ *
+ * Requirements guaranteed:
+ * - Exactly ONE physical page (A4 width 210mm, dynamic calculated height, no multi-page breaks).
+ * - Exact Stage Plot geometry (32:24 / 4:3 rectangular or 1:1 square).
+ * - Actual graphical element representations with small unobtrusive channel identifier badges.
+ * - Bilingual live-production Spanish terminology.
+ * - Perfect 1:1 synchronization with stage elements and input channels.
  */
 export async function generateProductionDocumentPdf(
   data: ProductionDocumentData,
   options: GeneratePdfOptions = {}
 ): Promise<GeneratePdfResult> {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
-
-  const PAGE_WIDTH = 210;
-  const PAGE_HEIGHT = 297;
+  const PAGE_WIDTH = 210; // Standard A4 width (mm)
   const MARGIN_LEFT = 14;
   const MARGIN_RIGHT = 14;
   const MARGIN_TOP = 16;
   const MARGIN_BOTTOM = 16;
   const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT; // 182mm
 
-  // Active theme palette
+  // Active theme palette & localization
   const T = resolvePdfTheme(options.theme);
   const isEs = options.lang === 'es';
 
-  // Paint full background of a page with the theme's background color
-  const fillPageBackground = () => {
-    doc.setFillColor(T.bgPage[0], T.bgPage[1], T.bgPage[2]);
-    doc.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, 'F');
+  const sections: ProductionDocumentSectionsConfig = {
+    ...DEFAULT_PRODUCTION_DOCUMENT_SECTIONS,
+    ...(options.sections || {}),
   };
 
-  // Fill initial page 1
-  fillPageBackground();
+  const activeSectionsCount = Object.values(sections).filter(Boolean).length;
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 1. PRE-LOAD ELEMENT GRAPHICAL ASSETS
+  // ═══════════════════════════════════════════════════════════════════
+  const elementImages = await Promise.all(
+    (data.elements || []).map(async (el) => {
+      const iconKey = el.icon || el.type || 'mic';
+      const src = el.imageData || STAGEX_ICON_MAP[iconKey] || STAGEX_ICON_MAP['mic'];
+      const dataUrl = src ? await resolveAssetPngDataUrl(src) : null;
+      return { id: el.id, dataUrl };
+    })
+  );
+  const elementImageMap = new Map<string, string | null>();
+  elementImages.forEach((item) => {
+    elementImageMap.set(item.id, item.dataUrl);
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 2. DYNAMIC SINGLE-PAGE HEIGHT CALCULATION
+  // ═══════════════════════════════════════════════════════════════════
+  let totalContentHeight = 0;
+
+  // Cover & Header:
+  // Pill (8.5mm) + Project Title (7.5mm) + Subtitle (6.0mm) + Spacing (3.0mm) = 25mm
+  let headerH = 25.0;
+  const hasLogistics = Boolean(data.venue || data.contactName || data.contactPhone);
+  if (hasLogistics) {
+    headerH += 18.0;
+  }
+  totalContentHeight += headerH;
+
+  // Section 1: Stage Plot (preserving 32:24 / 4:3 or 1:1 true logical aspect ratio)
+  const plotBoxH = data.isSquare ? CONTENT_WIDTH : Math.round(CONTENT_WIDTH * (24 / 32) * 10) / 10; // 182mm or 136.5mm
+  if (sections.stagePlot) {
+    totalContentHeight += 10.0 + plotBoxH + 8.0;
+  }
+
+  // Section 2: Input Channels & Patch List
+  if (sections.inputPatch) {
+    const patchRowsH = data.channels.length === 0 ? 12.0 : data.channels.length * 6.0;
+    totalContentHeight += 10.0 + 6.0 + patchRowsH + 6.0;
+  }
+
+  // Section 3: Technical Requirements (Rider)
+  let extraSpecs: string[] = [];
+  if (sections.technicalRequirements) {
+    extraSpecs = [
+      ...data.requirements.foh.slice(1),
+      ...data.requirements.monitor.slice(1),
+      ...data.requirements.power.slice(1),
+      ...(data.requirements.hospitality || []),
+      ...(data.requirements.custom || []),
+    ];
+    let extraH = 0;
+    if (extraSpecs.length > 0) {
+      extraH = 6.0 + Math.min(extraSpecs.length, 4) * 4.0;
+    }
+    totalContentHeight += 10.0 + 22.0 + extraH + 6.0;
+  }
+
+  // Section 4: Production & Technical Notes
+  let notesLines: string[] = [];
+  let notesBoxH = 16.0;
+  if (sections.technicalNotes) {
+    const notesText =
+      data.notes ||
+      (isEs
+        ? 'No se proporcionaron notas de producción personalizadas.'
+        : 'No custom production notes provided.');
+    const approxCharsPerLine = Math.floor((CONTENT_WIDTH - 8) / 1.7);
+    const words = notesText.split(' ');
+    let curLine = '';
+    notesLines = [];
+    words.forEach((w) => {
+      if ((curLine + ' ' + w).length > approxCharsPerLine) {
+        notesLines.push(curLine.trim());
+        curLine = w;
+      } else {
+        curLine = curLine ? `${curLine} ${w}` : w;
+      }
+    });
+    if (curLine) notesLines.push(curLine.trim());
+    notesBoxH = Math.max(16.0, notesLines.length * 4.2 + 6.0);
+    totalContentHeight += 10.0 + notesBoxH + 6.0;
+  }
+
+  // Section 5: Setlist Running Order
+  if (sections.setlist) {
+    const setlistRowsH = data.setlist.length === 0 ? 12.0 : 5.5 + data.setlist.length * 5.5;
+    totalContentHeight += 10.0 + setlistRowsH + 6.0;
+  }
+
+  // Section 6: Gear / Load-In Checklist
+  if (sections.gear) {
+    const gearRowsH = data.gear.length === 0 ? 12.0 : 5.5 + data.gear.length * 5.5;
+    totalContentHeight += 10.0 + gearRowsH + 6.0;
+  }
+
+  // Section 7: Band & Crew Roster
+  if (sections.bandCrew) {
+    const memberRowsH = data.members.length === 0 ? 12.0 : 5.5 + data.members.length * 5.5;
+    totalContentHeight += 10.0 + memberRowsH + 6.0;
+  }
+
+  // Fallback if all sections disabled
+  if (activeSectionsCount === 0) {
+    totalContentHeight += 24.0;
+  }
+
+  // Footer: 14mm
+  totalContentHeight += 14.0;
+
+  // Single Page Total Height (dynamic, exact, continuous)
+  const PAGE_HEIGHT = Math.max(120, Math.round(MARGIN_TOP + totalContentHeight + MARGIN_BOTTOM));
+
+  // Initialize jsPDF with EXACT single-page long-format dimensions
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: [PAGE_WIDTH, PAGE_HEIGHT],
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 3. PAGE BACKGROUND & DRAWING HELPERS
+  // ═══════════════════════════════════════════════════════════════════
+  // Paint full background with the active theme color (Pure Black #000000 for AMOLED)
+  doc.setFillColor(T.bgPage[0], T.bgPage[1], T.bgPage[2]);
+  doc.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, 'F');
 
   let currentY = MARGIN_TOP;
 
-  // Running Header Helper (pages 2+)
-  const drawRunningHeader = (pageNumber: number) => {
-    if (pageNumber <= 1) return;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
-    doc.text(
-      isEs ? 'DOCUMENTO DE PRODUCCIÓN STAGEX' : 'STAGEX PRODUCTION DOCUMENT',
-      MARGIN_LEFT,
-      10
-    );
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
-    const rightText = `${data.projectName.toUpperCase()} · ${data.sceneName.toUpperCase()}`;
-    doc.text(rightText, PAGE_WIDTH - MARGIN_RIGHT, 10, { align: 'right' });
-
-    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
-    doc.setLineWidth(0.25);
-    doc.line(MARGIN_LEFT, 12, PAGE_WIDTH - MARGIN_RIGHT, 12);
-  };
-
-  // Section Header Drawer with Page Break Check
-  const ensureSpace = (heightNeeded: number): void => {
-    if (currentY + heightNeeded > PAGE_HEIGHT - MARGIN_BOTTOM) {
-      doc.addPage();
-      fillPageBackground();
-      currentY = MARGIN_TOP + 4;
-      drawRunningHeader(doc.getNumberOfPages());
-    }
-  };
+  let sectionCounter = 1;
+  const getNextSectionNumber = (): string => String(sectionCounter++).padStart(2, '0');
 
   const drawSectionTitle = (num: string, title: string, subtitle?: string) => {
-    ensureSpace(12);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
     doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
@@ -224,18 +367,9 @@ export async function generateProductionDocumentPdf(
     currentY += 7;
   };
 
-  const sections: ProductionDocumentSectionsConfig = {
-    ...DEFAULT_PRODUCTION_DOCUMENT_SECTIONS,
-    ...(options.sections || {}),
-  };
-
-  let sectionCounter = 1;
-  const getNextSectionNumber = (): string => String(sectionCounter++).padStart(2, '0');
-
   // ═══════════════════════════════════════════════════════════════════
-  // PAGE 1: COVER, LOGISTICS, STAGE PLOT & SECTIONS
+  // 4. COVER, LOGISTICS & IDENTITY
   // ═══════════════════════════════════════════════════════════════════
-
   // Document Type Pill
   const pillText = isEs ? 'DOCUMENTO DE PRODUCCIÓN EN VIVO' : 'LIVE STAGE PRODUCTION DOCUMENT';
   const pillW = isEs ? 64 : 58;
@@ -265,7 +399,6 @@ export async function generateProductionDocumentPdf(
   currentY += 6;
 
   // Production Logistics Card (Venue, Contact, Phone/Email)
-  const hasLogistics = Boolean(data.venue || data.contactName || data.contactPhone);
   if (hasLogistics) {
     doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
     doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
@@ -307,16 +440,15 @@ export async function generateProductionDocumentPdf(
     currentY += 18;
   }
 
-  // ── SECTION: STAGE PLOT DIAGRAM (VECTOR VISUAL) ──────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // 5. SECTION: STAGE PLOT DIAGRAM (CANONICAL GRAPHICAL ASSETS + 4:3 GEOMETRY)
+  // ═══════════════════════════════════════════════════════════════════
   if (sections.stagePlot) {
     drawSectionTitle(
       getNextSectionNumber(),
       isEs ? 'Plano de Escenario' : 'Stage Plot',
       isEs ? `Escala 1:50 · ${data.stageDimensions}` : `Scale 1:50 · ${data.stageDimensions}`
     );
-
-    const plotBoxH = data.isSquare ? 62 : 54;
-    ensureSpace(plotBoxH + 4);
 
     // Stage Boundary Outer Box
     doc.setFillColor(T.bgBlueprint[0], T.bgBlueprint[1], T.bgBlueprint[2]);
@@ -339,12 +471,10 @@ export async function generateProductionDocumentPdf(
     doc.setFontSize(6);
     doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     doc.text(
-      isEs ? '▲ FONDO DE ESCENARIO / BACKLINE' : '▲ UPSTAGE / BACKLINE WALL',
+      isEs ? '▲ FONDO DE ESCENARIO / PARED BACKLINE' : '▲ UPSTAGE / BACKLINE WALL',
       MARGIN_LEFT + CONTENT_WIDTH / 2,
       currentY + 4,
-      {
-        align: 'center',
-      }
+      { align: 'center' }
     );
     doc.setFontSize(5.5);
     doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
@@ -371,6 +501,12 @@ export async function generateProductionDocumentPdf(
     const elements = data.elements || [];
     const connections = data.connections || [];
 
+    const innerPadX = 8;
+    const innerPadTop = 7;
+    const innerPadBottom = 6;
+    const innerW = CONTENT_WIDTH - innerPadX * 2;
+    const innerH = plotBoxH - (innerPadTop + innerPadBottom);
+
     // Draw active connections
     if (connections.length > 0 && elements.length > 0) {
       connections.forEach((conn: any) => {
@@ -379,16 +515,20 @@ export async function generateProductionDocumentPdf(
         if (!fromEl || !toEl) return;
         const fromX =
           MARGIN_LEFT +
-          10 +
-          Math.max(0, Math.min(1, fromEl.x / (data.refW || 650))) * (CONTENT_WIDTH - 20);
+          innerPadX +
+          Math.max(0.04, Math.min(0.96, fromEl.x / (data.refW || 650))) * innerW;
         const fromY =
-          currentY + 9 + Math.max(0, Math.min(1, fromEl.y / (data.refH || 420))) * (plotBoxH - 18);
+          currentY +
+          innerPadTop +
+          Math.max(0.06, Math.min(0.92, fromEl.y / (data.refH || 420))) * innerH;
         const toX =
           MARGIN_LEFT +
-          10 +
-          Math.max(0, Math.min(1, toEl.x / (data.refW || 650))) * (CONTENT_WIDTH - 20);
+          innerPadX +
+          Math.max(0.04, Math.min(0.96, toEl.x / (data.refW || 650))) * innerW;
         const toY =
-          currentY + 9 + Math.max(0, Math.min(1, toEl.y / (data.refH || 420))) * (plotBoxH - 18);
+          currentY +
+          innerPadTop +
+          Math.max(0.06, Math.min(0.92, toEl.y / (data.refH || 420))) * innerH;
 
         const connColor = parseHexColor(conn.color, T.blue);
         doc.setDrawColor(connColor[0], connColor[1], connColor[2]);
@@ -403,7 +543,7 @@ export async function generateProductionDocumentPdf(
       });
     }
 
-    // Draw Elements on Stage Plot
+    // Draw Elements on Stage Plot (Graphical Assets + Channel Number Badges)
     if (elements.length === 0) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
@@ -414,38 +554,89 @@ export async function generateProductionDocumentPdf(
           : 'No stage elements placed in active scene',
         MARGIN_LEFT + CONTENT_WIDTH / 2,
         currentY + plotBoxH / 2,
-        {
-          align: 'center',
-        }
+        { align: 'center' }
       );
     } else {
       elements.forEach((el, idx) => {
         const rawPctX = el.x / (data.refW || 650);
         const rawPctY = el.y / (data.refH || 420);
-        const elX = MARGIN_LEFT + 10 + Math.max(0, Math.min(1, rawPctX)) * (CONTENT_WIDTH - 20);
-        const elY = currentY + 9 + Math.max(0, Math.min(1, rawPctY)) * (plotBoxH - 18);
+        const elX = MARGIN_LEFT + innerPadX + Math.max(0.04, Math.min(0.96, rawPctX)) * innerW;
+        const elY = currentY + innerPadTop + Math.max(0.06, Math.min(0.92, rawPctY)) * innerH;
 
         const elColor = parseHexColor(el.color, T.blue);
+        const imgDataUrl = elementImageMap.get(el.id);
+        const iconSize = 9.5; // 9.5mm standard size
 
-        // Element badge circle
-        doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
-        doc.setDrawColor(elColor[0], elColor[1], elColor[2]);
-        doc.setLineWidth(0.35);
-        doc.circle(elX, elY, 3.2, 'FD');
+        if (imgDataUrl) {
+          try {
+            doc.addImage(
+              imgDataUrl,
+              'PNG',
+              elX - iconSize / 2,
+              elY - iconSize / 2,
+              iconSize,
+              iconSize,
+              undefined,
+              'FAST'
+            );
+          } catch (imgErr) {
+            console.warn('doc.addImage fallback for', el.id, imgErr);
+            doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+            doc.setDrawColor(elColor[0], elColor[1], elColor[2]);
+            doc.setLineWidth(0.35);
+            doc.roundedRect(
+              elX - iconSize / 2,
+              elY - iconSize / 2,
+              iconSize,
+              iconSize,
+              1.2,
+              1.2,
+              'FD'
+            );
+          }
+        } else {
+          // Fallback if asset is missing
+          doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+          doc.setDrawColor(elColor[0], elColor[1], elColor[2]);
+          doc.setLineWidth(0.35);
+          doc.roundedRect(
+            elX - iconSize / 2,
+            elY - iconSize / 2,
+            iconSize,
+            iconSize,
+            1.2,
+            1.2,
+            'FD'
+          );
+        }
 
-        // Element index number
+        // Small, Unobtrusive Channel Identifier Badge (Top-Right Corner of Graphic)
+        const chNum = el.channelId
+          ? String(el.channelId).replace(/^CH-?/i, '').padStart(2, '0')
+          : String(idx + 1).padStart(2, '0');
+        const badgeW = 4.4;
+        const badgeH = 2.9;
+        const badgeX = elX + iconSize / 2 - 2.2;
+        const badgeY = elY - iconSize / 2 - 1.2;
+
+        doc.setFillColor(T.blue[0], T.blue[1], T.blue[2]);
+        doc.roundedRect(badgeX, badgeY, badgeW, badgeH, 0.6, 0.6, 'F');
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(5.5);
-        doc.setTextColor(elColor[0], elColor[1], elColor[2]);
-        doc.text(String(idx + 1), elX, elY + 1.2, { align: 'center' });
+        doc.setFontSize(5);
+        doc.setTextColor(255, 255, 255);
+        doc.text(chNum, badgeX + badgeW / 2, badgeY + 2.05, { align: 'center' });
 
-        // Label below element - Density-adapted typography
-        const rawLabel = (el.label || el.name || el.type || `CH ${idx + 1}`).toUpperCase();
-        const labelStr = rawLabel.length > 13 ? `${rawLabel.slice(0, 12)}…` : rawLabel;
+        // Label below element - Natural Live-Production Spanish & Density-adapted
+        const rawLabel = localizeElementName(
+          el.label || el.name,
+          el.type,
+          isEs ? 'es' : 'en'
+        ).toUpperCase();
+        const labelStr = rawLabel.length > 14 ? `${rawLabel.slice(0, 13)}…` : rawLabel;
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(4.8);
         doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
-        const labelY = Math.min(currentY + plotBoxH - 3.5, elY + 4.8);
+        const labelY = Math.min(currentY + plotBoxH - 2.5, elY + iconSize / 2 + 3.2);
         doc.text(labelStr, elX, labelY, { align: 'center' });
       });
     }
@@ -458,16 +649,15 @@ export async function generateProductionDocumentPdf(
       isEs ? '▼ FRENTE DE ESCENARIO / AUDIENCIA (LÍNEA FOH)' : '▼ DOWNSTAGE / AUDIENCE (FOH LINE)',
       MARGIN_LEFT + CONTENT_WIDTH / 2,
       currentY + plotBoxH - 2,
-      {
-        align: 'center',
-      }
+      { align: 'center' }
     );
     currentY += plotBoxH + 6;
   }
 
-  // ── SECTION: INPUT CHANNELS & PATCH LIST ─────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // 6. SECTION: INPUT CHANNELS & PATCH LIST (1:1 SYNCHRONIZED)
+  // ═══════════════════════════════════════════════════════════════════
   if (sections.inputPatch) {
-    ensureSpace(28);
     drawSectionTitle(
       getNextSectionNumber(),
       isEs ? 'Lista de Canales y Patch' : 'Input Channel & Patch List',
@@ -518,18 +708,11 @@ export async function generateProductionDocumentPdf(
         isEs ? 'No hay canales de entrada configurados' : 'No input channels configured',
         MARGIN_LEFT + CONTENT_WIDTH / 2,
         currentY + 6,
-        {
-          align: 'center',
-        }
+        { align: 'center' }
       );
       currentY += 12;
     } else {
       data.channels.forEach((ch, idx) => {
-        ensureSpace(7);
-        if (currentY === MARGIN_TOP + 4) {
-          drawTableHeader();
-        }
-
         // Zebra striping
         if (idx % 2 === 1) {
           doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
@@ -541,17 +724,22 @@ export async function generateProductionDocumentPdf(
         doc.line(MARGIN_LEFT, currentY + 6, PAGE_WIDTH - MARGIN_RIGHT, currentY + 6);
 
         let x = MARGIN_LEFT + 2;
-        // CH
+        // CH#
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
         doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
         doc.text(ch.ch, x, currentY + 4.2);
 
-        // Instrument
+        // Instrument / Source (Bilingual Live-Production Spanish Translation)
         x += colChW;
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
-        doc.text(ch.source.slice(0, 24), x, currentY + 4.2);
+        const localizedSource = localizeElementName(
+          ch.source,
+          undefined,
+          isEs ? 'es' : 'en'
+        ).toUpperCase();
+        doc.text(localizedSource.slice(0, 24), x, currentY + 4.2);
 
         // Performer
         x += colInstW;
@@ -565,7 +753,7 @@ export async function generateProductionDocumentPdf(
         doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text((ch.mic || '—').slice(0, 24), x, currentY + 4.2);
 
-        // 48V Phantom
+        // 48V Phantom Power
         x += colMicW;
         if (ch.phantom) {
           doc.setFont('helvetica', 'bold');
@@ -579,7 +767,7 @@ export async function generateProductionDocumentPdf(
           doc.text('—', x + col48vW / 2 - 2, currentY + 4.2, { align: 'center' });
         }
 
-        // Notes
+        // Notes / Mix
         x += col48vW;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
@@ -592,7 +780,9 @@ export async function generateProductionDocumentPdf(
     }
   }
 
-  // ── SECTION: TECHNICAL REQUIREMENTS (RIDER) ──────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // 7. SECTION: TECHNICAL REQUIREMENTS (RIDER)
+  // ═══════════════════════════════════════════════════════════════════
   if (sections.technicalRequirements) {
     drawSectionTitle(
       getNextSectionNumber(),
@@ -603,7 +793,6 @@ export async function generateProductionDocumentPdf(
     );
 
     const reqCardW = (CONTENT_WIDTH - 6) / 3;
-    ensureSpace(24);
 
     // Card 1: FOH Audio Protocol
     doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
@@ -648,7 +837,7 @@ export async function generateProductionDocumentPdf(
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
     doc.setTextColor(T.green[0], T.green[1], T.green[2]);
-    doc.text(isEs ? 'REQUERIMIENTO DE ENERGÍA' : 'POWER REQUIREMENT', card3X + 4, currentY + 4.5);
+    doc.text(isEs ? 'REQUERIMIENTO ELÉCTRICO' : 'POWER REQUIREMENT', card3X + 4, currentY + 4.5);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
@@ -657,12 +846,7 @@ export async function generateProductionDocumentPdf(
     currentY += 24;
 
     // Additional hospitality or custom specs if present
-    const extraSpecs = [
-      ...(data.requirements.hospitality || []),
-      ...(data.requirements.custom || []),
-    ];
     if (extraSpecs.length > 0) {
-      ensureSpace(14);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7);
       doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
@@ -686,23 +870,15 @@ export async function generateProductionDocumentPdf(
     }
   }
 
-  // ── SECTION: PRODUCTION & TECHNICAL NOTES ─────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // 8. SECTION: PRODUCTION & TECHNICAL NOTES
+  // ═══════════════════════════════════════════════════════════════════
   if (sections.technicalNotes) {
-    ensureSpace(24);
     drawSectionTitle(
       getNextSectionNumber(),
       isEs ? 'Notas Técnicas y de Producción' : 'Production & Technical Notes'
     );
 
-    const notesText =
-      data.notes ||
-      (isEs
-        ? 'No se proporcionaron notas de producción personalizadas.'
-        : 'No custom production notes provided.');
-    const notesLines = doc.splitTextToSize(notesText, CONTENT_WIDTH - 8);
-    const notesBoxH = Math.max(16, notesLines.length * 4.2 + 6);
-
-    ensureSpace(notesBoxH + 4);
     doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
     doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.25);
@@ -715,9 +891,10 @@ export async function generateProductionDocumentPdf(
     currentY += notesBoxH + 6;
   }
 
-  // ── SECTION: SETLIST RUNNING ORDER ────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // 9. SECTION: SETLIST RUNNING ORDER
+  // ═══════════════════════════════════════════════════════════════════
   if (sections.setlist) {
-    ensureSpace(24);
     drawSectionTitle(
       getNextSectionNumber(),
       isEs ? 'Orden del Setlist' : 'Setlist Running Order',
@@ -738,13 +915,10 @@ export async function generateProductionDocumentPdf(
         isEs ? 'No se han agregado canciones al setlist' : 'No songs added to setlist',
         MARGIN_LEFT + CONTENT_WIDTH / 2,
         currentY + 6,
-        {
-          align: 'center',
-        }
+        { align: 'center' }
       );
       currentY += 12;
     } else {
-      // Setlist Header
       doc.setFillColor(T.bgHeader[0], T.bgHeader[1], T.bgHeader[2]);
       doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
       doc.setFont('helvetica', 'bold');
@@ -762,7 +936,6 @@ export async function generateProductionDocumentPdf(
       currentY += 5.5;
 
       data.setlist.forEach((s, idx) => {
-        ensureSpace(6);
         if (idx % 2 === 1) {
           doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
           doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
@@ -804,9 +977,10 @@ export async function generateProductionDocumentPdf(
     }
   }
 
-  // ── SECTION: GEAR / LOAD-IN CHECKLIST ─────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // 10. SECTION: GEAR / LOAD-IN CHECKLIST
+  // ═══════════════════════════════════════════════════════════════════
   if (sections.gear) {
-    ensureSpace(24);
     drawSectionTitle(
       getNextSectionNumber(),
       isEs ? 'Equipamiento y Carga' : 'Gear / Load-In Checklist',
@@ -825,9 +999,7 @@ export async function generateProductionDocumentPdf(
           : 'No gear items added to inventory',
         MARGIN_LEFT + CONTENT_WIDTH / 2,
         currentY + 6,
-        {
-          align: 'center',
-        }
+        { align: 'center' }
       );
       currentY += 12;
     } else {
@@ -846,7 +1018,6 @@ export async function generateProductionDocumentPdf(
       currentY += 5.5;
 
       data.gear.forEach((item, idx) => {
-        ensureSpace(6);
         if (idx % 2 === 1) {
           doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
           doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
@@ -875,9 +1046,7 @@ export async function generateProductionDocumentPdf(
             isEs ? 'VERIFICADO / EMPACADO' : 'VERIFIED / PACKED',
             PAGE_WIDTH - MARGIN_RIGHT - 2,
             currentY + 3.8,
-            {
-              align: 'right',
-            }
+            { align: 'right' }
           );
         } else {
           doc.setFont('helvetica', 'normal');
@@ -893,9 +1062,10 @@ export async function generateProductionDocumentPdf(
     }
   }
 
-  // ── SECTION: BAND & CREW ROSTER ───────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════════
+  // 11. SECTION: BAND & CREW ROSTER
+  // ═══════════════════════════════════════════════════════════════════
   if (sections.bandCrew) {
-    ensureSpace(24);
     drawSectionTitle(
       getNextSectionNumber(),
       isEs ? 'Banda y Equipo Técnico' : 'Band & Crew Roster',
@@ -912,9 +1082,7 @@ export async function generateProductionDocumentPdf(
         isEs ? 'No hay miembros en la lista' : 'No members added to roster',
         MARGIN_LEFT + CONTENT_WIDTH / 2,
         currentY + 6,
-        {
-          align: 'center',
-        }
+        { align: 'center' }
       );
       currentY += 12;
     } else {
@@ -937,7 +1105,6 @@ export async function generateProductionDocumentPdf(
       currentY += 5.5;
 
       data.members.forEach((m, idx) => {
-        ensureSpace(6);
         if (idx % 2 === 1) {
           doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
           doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
@@ -961,7 +1128,9 @@ export async function generateProductionDocumentPdf(
 
         const assignText =
           m.assignedElements.length > 0
-            ? m.assignedElements.join(', ')
+            ? m.assignedElements
+                .map((ae) => localizeElementName(ae, undefined, isEs ? 'es' : 'en'))
+                .join(', ')
             : isEs
               ? 'Sin asignar'
               : 'Unassigned';
@@ -988,7 +1157,6 @@ export async function generateProductionDocumentPdf(
 
   // Fallback if all sections are disabled
   if (sectionCounter === 1) {
-    ensureSpace(24);
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(9);
     doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
@@ -1004,51 +1172,40 @@ export async function generateProductionDocumentPdf(
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // RUNNING FOOTERS & TOTAL PAGES CALCULATION
+  // 12. DOCUMENT FOOTER (EXACTLY 1 PHYSICAL PAGE)
   // ═══════════════════════════════════════════════════════════════════
-  const totalPages = doc.getNumberOfPages();
-  for (let p = 1; p <= totalPages; p++) {
-    doc.setPage(p);
-    // Foot line
-    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
-    doc.setLineWidth(0.25);
-    doc.line(MARGIN_LEFT, PAGE_HEIGHT - 12, PAGE_WIDTH - MARGIN_RIGHT, PAGE_HEIGHT - 12);
+  const footerY = PAGE_HEIGHT - 12;
+  doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
+  doc.setLineWidth(0.25);
+  doc.line(MARGIN_LEFT, footerY, PAGE_WIDTH - MARGIN_RIGHT, footerY);
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
-    doc.text(
-      isEs ? 'DOCUMENTO DE PRODUCCIÓN STAGEX' : 'STAGEX PRODUCTION DOCUMENT',
-      MARGIN_LEFT,
-      PAGE_HEIGHT - 8
-    );
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
+  doc.text(
+    isEs ? 'DOCUMENTO DE PRODUCCIÓN STAGEX' : 'STAGEX PRODUCTION DOCUMENT',
+    MARGIN_LEFT,
+    PAGE_HEIGHT - 8
+  );
 
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.5);
-    doc.text(
-      isEs
-        ? `ÚLTIMA ACTUALIZACIÓN: ${data.date} ${data.time}`
-        : `LAST UPDATED: ${data.date} ${data.time}`,
-      MARGIN_LEFT + CONTENT_WIDTH / 2,
-      PAGE_HEIGHT - 8,
-      {
-        align: 'center',
-      }
-    );
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.text(
+    isEs
+      ? `ÚLTIMA ACTUALIZACIÓN: ${data.date} ${data.time}`
+      : `LAST UPDATED: ${data.date} ${data.time}`,
+    MARGIN_LEFT + CONTENT_WIDTH / 2,
+    PAGE_HEIGHT - 8,
+    { align: 'center' }
+  );
 
-    doc.setFont('helvetica', 'bold');
-    doc.text(
-      isEs ? `PÁGINA ${p} DE ${totalPages}` : `PAGE ${p} OF ${totalPages}`,
-      PAGE_WIDTH - MARGIN_RIGHT,
-      PAGE_HEIGHT - 8,
-      {
-        align: 'right',
-      }
-    );
-  }
+  doc.setFont('helvetica', 'bold');
+  doc.text(isEs ? 'PÁGINA 1 DE 1' : 'PAGE 1 OF 1', PAGE_WIDTH - MARGIN_RIGHT, PAGE_HEIGHT - 8, {
+    align: 'right',
+  });
 
   // ═══════════════════════════════════════════════════════════════════
-  // EXPORT / SAVE / SHARE HANDLING (CROSS-PLATFORM)
+  // 13. EXPORT / SAVE / SHARE HANDLING (CROSS-PLATFORM)
   // ═══════════════════════════════════════════════════════════════════
   const rawFileName =
     options.fileName?.trim() || `${data.projectName.replace(/\s+/g, '_')}_Production_Document`;
@@ -1056,6 +1213,8 @@ export async function generateProductionDocumentPdf(
   const finalFileName = sanitizedName.toLowerCase().endsWith('.pdf')
     ? sanitizedName
     : `${sanitizedName}.pdf`;
+
+  const totalPages = doc.getNumberOfPages(); // Strictly 1
 
   if (Capacitor.isNativePlatform()) {
     try {

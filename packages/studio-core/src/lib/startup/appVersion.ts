@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.56';
-export const NATIVE_VERSION_CODE = 40556;
-export const WEB_VERSION = '4.5.56';
+export const NATIVE_VERSION = '4.5.57';
+export const NATIVE_VERSION_CODE = 40557;
+export const WEB_VERSION = '4.5.57';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '1300f6a8';
+export const APP_COMMIT_SHA = '0a836047';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/3/2026, 8:18:47 PM CST';
+export const APP_BUILD_TIMESTAMP = '9/3/2026, 10:35:18 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first

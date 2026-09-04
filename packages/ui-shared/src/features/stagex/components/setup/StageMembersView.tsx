@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useMemo, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useStagexStore } from '../../state/useStagexStore';
 import { StageSetupDetailLayout } from './StageSetupDetailLayout';
 import { useSettingsStore } from '@workspace/studio-core';
@@ -20,6 +20,16 @@ const MEMBER_COLORS = [
   '#6366f1', // indigo
 ];
 
+const QUICK_ROLES = [
+  'Lead Vocals',
+  'Guitar',
+  'Bass',
+  'Drums',
+  'Keys',
+  'FOH Engineer',
+  'Stage Tech',
+];
+
 export const StageMembersView: React.FC<StageMembersViewProps> = ({
   onBack,
   isLight: isLightProp,
@@ -29,55 +39,93 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
 
-  const { members, addMember, removeMember } = useStagexStore();
-  const [isAdding, setIsAdding] = useState(false);
+  const { members, addMember, removeMember, elements, preferences } = useStagexStore();
+  const isAmoled = preferences?.amoled || false;
+  const prefersReducedMotion = useReducedMotion();
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Form State
   const [name, setName] = useState('');
-  const [role, setRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState('Lead Vocals');
+  const [customRole, setCustomRole] = useState('');
   const [color, setColor] = useState(MEMBER_COLORS[0]);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
+  const [showExtraDetails, setShowExtraDetails] = useState(false);
 
   const isAtLimit = members.length >= 8;
 
-  const performersCount = useMemo(() => {
-    const crewKeywords = ['foh', 'sound', 'tech', 'engineer', 'manager', 'crew', 'light', 'video'];
-    return members.filter((m) => {
-      const r = m.role.toLowerCase();
-      return !crewKeywords.some((k) => r.includes(k));
-    }).length;
-  }, [members]);
+  // Real Reactive Metrics (2x2 Structure)
+  const assignedMembersCount = useMemo(() => {
+    return members.filter((m) => elements && elements.some((el: any) => el.memberId === m.id))
+      .length;
+  }, [members, elements]);
 
-  const crewCount = useMemo(() => {
-    return members.length - performersCount;
-  }, [members, performersCount]);
+  const unassignedMembersCount = useMemo(() => {
+    return Math.max(0, members.length - assignedMembersCount);
+  }, [members.length, assignedMembersCount]);
+
+  const stageElementsCount = useMemo(() => {
+    return elements ? elements.length : 0;
+  }, [elements]);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !role.trim() || isAtLimit) return;
+    if (!name.trim() || isAtLimit) return;
+
+    const resolvedRole = customRole.trim() || selectedRole || 'Band Member';
     const ok = addMember({
       name: name.trim(),
-      role: role.trim(),
+      role: resolvedRole,
       color,
       phone: phone.trim() || undefined,
       email: email.trim() || undefined,
       notes: notes.trim() || undefined,
     });
+
     if (ok) {
       setName('');
-      setRole('');
+      setCustomRole('');
       setPhone('');
       setEmail('');
       setNotes('');
+      setShowExtraDetails(false);
+      // Auto-cycle color for next entry
       setColor(MEMBER_COLORS[(members.length + 1) % MEMBER_COLORS.length]);
-      setIsAdding(false);
+      inputRef.current?.focus();
     }
   };
 
-  const cardBg = isLight ? '#ffffff' : 'var(--c-bg-card, #0d0d11)';
-  const cardBorder = isLight ? 'rgba(0, 0, 0, 0.08)' : 'var(--c-border, rgba(255, 255, 255, 0.08))';
-  const textPrimary = isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff';
-  const textSecondary = isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa';
+  const handleFocusInput = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  // Theme Design Tokens
+  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #0d0d11)';
+  const cardBorder = isLight
+    ? '#eaecef'
+    : isAmoled
+      ? 'rgba(255, 255, 255, 0.12)'
+      : 'var(--c-border, rgba(255, 255, 255, 0.08))';
+  const inputBg = isLight
+    ? 'rgba(246, 246, 247, 0.8)'
+    : isAmoled
+      ? 'rgba(255, 255, 255, 0.04)'
+      : 'rgba(255, 255, 255, 0.05)';
+  const inputBorder = isLight
+    ? 'rgba(0, 0, 0, 0.08)'
+    : isAmoled
+      ? 'rgba(255, 255, 255, 0.12)'
+      : 'rgba(255, 255, 255, 0.08)';
+
+  const textPrimary = isLight ? '#09090b' : '#ffffff';
+  const textSecondary = isLight ? '#71717a' : '#a1a1aa';
+  const textMuted = isLight ? '#a1a1aa' : '#71717a';
 
   return (
     <StageSetupDetailLayout
@@ -87,419 +135,521 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
       toolbarActions={
         <button
           type="button"
-          onClick={() => !isAtLimit && setIsAdding((prev) => !prev)}
+          onClick={handleFocusInput}
           disabled={isAtLimit}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all active:scale-95 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+          className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
           style={{
-            backgroundColor: isAdding
-              ? '#10b981'
-              : isLight
-                ? 'rgba(0, 0, 0, 0.04)'
-                : 'rgba(255, 255, 255, 0.06)',
-            borderColor: isAdding
-              ? '#10b981'
-              : isLight
-                ? 'rgba(0, 0, 0, 0.08)'
-                : 'rgba(255, 255, 255, 0.10)',
-            color: isAdding ? '#000000' : textPrimary,
+            backgroundColor: isLight ? '#000000' : '#ffffff',
+            color: isLight ? '#ffffff' : '#000000',
           }}
-          title={isAtLimit ? 'Capacity reached' : isAdding ? 'Cancel' : 'Add Member'}
-          aria-label={isAdding ? 'Cancel' : 'Add Member'}
+          title={isAtLimit ? 'Capacity reached' : 'Add Member'}
+          aria-label="Add Member"
+          data-testid="btn-quick-add-member"
         >
-          <span
-            className="material-symbols-outlined text-[16px] transition-transform duration-200"
-            style={{ transform: isAdding ? 'rotate(45deg)' : 'rotate(0deg)' }}
+          <svg
+            className="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            add
-          </span>
-          <span className="hidden min-[380px]:inline">{isAdding ? 'Cancel' : 'Add Member'}</span>
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
         </button>
       }
     >
-      {/* Capacity Warning Banner */}
-      {isAtLimit && (
-        <div
-          className="p-3.5 rounded-[16px] border text-xs mb-4 flex items-center gap-2.5 shadow-sm"
-          style={{
-            backgroundColor: 'rgba(239, 68, 68, 0.10)',
-            borderColor: 'rgba(239, 68, 68, 0.25)',
-            color: '#f87171',
-          }}
-        >
-          <span className="material-symbols-outlined text-[18px]">info</span>
-          <span className="font-semibold">
-            Maximum roster capacity reached (8 / 8 members). Remove a member to add another.
-          </span>
-        </div>
-      )}
-
-      {/* 1. Main Band & Crew Card */}
-      <div
-        className="p-5 rounded-[20px] border mb-4 shadow-sm"
-        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
-      >
-        {/* Inline Add Member Form */}
-        <AnimatePresence>
-          {isAdding && !isAtLimit && (
-            <motion.form
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              onSubmit={handleAdd}
-              className="p-4 rounded-[16px] border mb-5 overflow-hidden flex flex-col gap-3"
-              style={{
-                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
-                borderColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)',
-              }}
+      <div className="space-y-4 pb-8">
+        {/* ── CAPACITY WARNING BANNER (8-MEMBER TIER LIMIT) ────────── */}
+        {isAtLimit && (
+          <div
+            className="p-3.5 rounded-[18px] border text-xs flex items-center gap-2.5 shadow-sm"
+            style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              borderColor: 'rgba(239, 68, 68, 0.22)',
+              color: '#ef4444',
+            }}
+            data-testid="banner-capacity-warning"
+          >
+            <svg
+              className="w-4 h-4 shrink-0"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="Member Name *"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="px-3.5 py-2 rounded-xl text-xs border focus:outline-none"
-                  style={{
-                    backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
-                    borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: textPrimary,
-                  }}
-                  autoFocus
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Role (e.g. Lead Vocals, FOH Engineer) *"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="px-3.5 py-2 rounded-xl text-xs border focus:outline-none"
-                  style={{
-                    backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
-                    borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: textPrimary,
-                  }}
-                  required
-                />
-              </div>
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span className="font-semibold leading-relaxed">
+              Maximum member limit reached for this tier (8 members).
+            </span>
+          </div>
+        )}
 
-              {/* Color Picker */}
-              <div className="flex items-center gap-2 py-1">
-                <span
-                  className="text-[10.5px] font-bold uppercase tracking-wider mr-1"
-                  style={{ color: textSecondary }}
-                >
-                  Badge Color:
-                </span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {MEMBER_COLORS.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => setColor(c)}
-                      className="w-6 h-6 rounded-full border-2 transition-transform cursor-pointer"
+        {/* ── 1. LIGHTWEIGHT EMPTY STATE (STITCH PARITY) ────────────── */}
+        {members.length === 0 && (
+          <section className="text-center py-6 px-4" data-testid="band-crew-empty-state">
+            <h2
+              className="text-sm font-bold tracking-[0.2em] uppercase mb-2 font-sans"
+              style={{ color: textSecondary }}
+            >
+              NO MEMBERS YET
+            </h2>
+            <p className="text-[15px] font-medium" style={{ color: textMuted }}>
+              Enter a name and tap Add to get started.
+            </p>
+          </section>
+        )}
+
+        {/* ── 2. MEMBER LIST / CURRENT ROSTER (STITCH PARITY) ───────── */}
+        {members.length > 0 && (
+          <section className="flex flex-col space-y-2.5" data-testid="member-roster-section">
+            <div className="flex items-center justify-between px-1">
+              <span
+                className="text-[11px] font-bold tracking-wider uppercase font-sans"
+                style={{ color: textSecondary }}
+              >
+                Current Roster
+              </span>
+              <span
+                className="text-xs font-semibold font-mono"
+                style={{ color: textSecondary }}
+                data-testid="roster-badge"
+              >
+                {members.length} / 8
+              </span>
+            </div>
+
+            <div className="space-y-2" data-testid="member-cards-container">
+              <AnimatePresence initial={false}>
+                {members.map((member) => {
+                  const initials = member.name
+                    .trim()
+                    .split(/\s+/)
+                    .map((p) => p[0])
+                    .slice(0, 2)
+                    .join('')
+                    .toUpperCase();
+
+                  const assignedElements = elements
+                    ? elements.filter((el: any) => el.memberId === member.id)
+                    : [];
+                  const isAssigned = assignedElements.length > 0;
+                  const assignedLabels = assignedElements
+                    .map((e: any) => e.label || e.name || 'Stage Element')
+                    .join(', ');
+
+                  return (
+                    <motion.div
+                      key={member.id}
+                      data-testid={`member-item-${member.id}`}
+                      layout={!prefersReducedMotion}
+                      initial={prefersReducedMotion ? undefined : { opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96 }}
+                      transition={{ duration: 0.18 }}
+                      className="rounded-2xl p-3.5 border shadow-card flex items-center justify-between transition-colors"
                       style={{
-                        backgroundColor: c,
-                        borderColor: color === c ? '#ffffff' : 'transparent',
-                        transform: color === c ? 'scale(1.2)' : 'scale(1)',
-                        boxShadow: color === c ? '0 0 8px rgba(255,255,255,0.4)' : 'none',
+                        backgroundColor: cardBg,
+                        borderColor: cardBorder,
                       }}
-                    />
-                  ))}
-                </div>
-              </div>
+                    >
+                      <div className="flex items-center space-x-3 min-w-0 pr-2">
+                        {/* Avatar */}
+                        <div
+                          className="w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
+                          style={{
+                            backgroundColor: member.color
+                              ? `${member.color}20`
+                              : isLight
+                                ? '#f4f4f5'
+                                : '#1f1f23',
+                            borderColor: member.color || cardBorder,
+                            color: member.color || textPrimary,
+                          }}
+                        >
+                          {initials || '?'}
+                        </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <input
-                  type="text"
-                  placeholder="Phone (optional)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="px-3.5 py-2 rounded-xl text-xs border focus:outline-none"
-                  style={{
-                    backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
-                    borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: textPrimary,
-                  }}
-                />
-                <input
-                  type="email"
-                  placeholder="Email (optional)"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="px-3.5 py-2 rounded-xl text-xs border focus:outline-none"
-                  style={{
-                    backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
-                    borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: textPrimary,
-                  }}
-                />
-                <input
-                  type="text"
-                  placeholder="Stage Assignment / Notes"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="px-3.5 py-2 rounded-xl text-xs border focus:outline-none"
-                  style={{
-                    backgroundColor: isLight ? '#ffffff' : 'rgba(0, 0, 0, 0.45)',
-                    borderColor: isLight ? 'rgba(0, 0, 0, 0.12)' : 'rgba(255, 255, 255, 0.12)',
-                    color: textPrimary,
-                  }}
-                />
-              </div>
+                        {/* Info */}
+                        <div className="min-w-0">
+                          <p
+                            className="font-bold text-sm leading-tight truncate"
+                            style={{ color: textPrimary }}
+                          >
+                            {member.name}
+                          </p>
+                          <p
+                            className="text-[11px] font-medium truncate mt-0.5"
+                            style={{
+                              color: isAssigned ? (isLight ? '#2563eb' : '#60a5fa') : textMuted,
+                            }}
+                          >
+                            {isAssigned
+                              ? `Assigned: ${assignedLabels}`
+                              : member.role
+                                ? `${member.role} • Unassigned`
+                                : 'Unassigned position'}
+                          </p>
+                          {(member.phone || member.email) && (
+                            <p
+                              className="text-[10px] truncate mt-0.5"
+                              style={{ color: textSecondary }}
+                            >
+                              {[member.phone, member.email].filter(Boolean).join(' • ')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => removeMember(member.id)}
+                        className="w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95 hover:bg-red-500/10 hover:text-red-500"
+                        style={{ color: textSecondary }}
+                        title="Remove member"
+                        aria-label={`Remove ${member.name}`}
+                        data-testid={`btn-remove-member-${member.id}`}
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </section>
+        )}
+
+        {/* ── 3. ADD MEMBER CARD (STITCH PARITY) ────────────────────── */}
+        <section
+          className="rounded-3xl p-6 border shadow-card"
+          style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+          data-testid="add-member-card"
+        >
+          <h3
+            className="text-xs font-bold tracking-wider uppercase mb-3.5 font-sans"
+            style={{ color: textSecondary }}
+          >
+            ADD MEMBER
+          </h3>
+
+          <form onSubmit={handleAdd} className="space-y-3">
+            {/* Rounded Text Input with Integrated Add Button */}
+            <div className="relative flex items-center">
+              <input
+                ref={inputRef}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter a name..."
+                autoComplete="off"
+                disabled={isAtLimit}
+                className="w-full h-14 pl-4 pr-24 py-3 text-[15px] font-medium rounded-2xl border transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: inputBg,
+                  borderColor: inputBorder,
+                  color: textPrimary,
+                }}
+                data-testid="input-member-name"
+              />
 
               <button
                 type="submit"
-                disabled={!name.trim() || !role.trim()}
-                className="mt-1 self-end px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-40 cursor-pointer"
+                disabled={!name.trim() || isAtLimit}
+                className="absolute right-2 h-10 px-4 rounded-xl font-semibold text-xs tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 style={{
                   backgroundColor: isLight ? '#09090b' : '#ffffff',
                   color: isLight ? '#ffffff' : '#09090b',
                 }}
+                id="btn-add-member"
+                data-testid="btn-add-member"
               >
-                Add Member
-              </button>
-            </motion.form>
-          )}
-        </AnimatePresence>
-
-        {members.length === 0 ? (
-          <div className="py-8 flex flex-col items-center justify-center text-center">
-            <div
-              className="w-12 h-12 rounded-[16px] flex items-center justify-center mb-3 border"
-              style={{
-                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
-                borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
-              }}
-            >
-              <span
-                className="material-symbols-outlined text-[24px]"
-                style={{ color: isLight ? '#09090b' : '#ffffff' }}
-              >
-                badge
-              </span>
-            </div>
-            <h4
-              className="text-xs font-black uppercase tracking-wider mb-1"
-              style={{ color: textPrimary, letterSpacing: '0.08em' }}
-            >
-              No Band or Crew Yet
-            </h4>
-            <p
-              className="text-[12px] max-w-xs leading-relaxed mb-4"
-              style={{ color: textSecondary }}
-            >
-              Add performers, audio engineers, and stage crew
-            </p>
-
-            <button
-              type="button"
-              onClick={() => !isAtLimit && setIsAdding(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm"
-              style={{
-                backgroundColor: isLight ? '#09090b' : '#ffffff',
-                color: isLight ? '#ffffff' : '#09090b',
-              }}
-            >
-              <span className="material-symbols-outlined text-[15px]">add</span>
-              <span>Add Member</span>
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {members.map((member) => {
-              const initials = member.name
-                .split(' ')
-                .map((p) => p[0])
-                .slice(0, 2)
-                .join('')
-                .toUpperCase();
-
-              return (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between p-3.5 rounded-[16px] border transition-all"
-                  style={{
-                    backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.02)',
-                    borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.05)',
-                  }}
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
-                  <div className="flex items-center gap-3 min-w-0 pr-2">
-                    <div
-                      className="w-10 h-10 rounded-[12px] flex items-center justify-center text-xs font-black text-white shrink-0 shadow-sm"
-                      style={{ backgroundColor: member.color || '#3b82f6' }}
-                    >
-                      {initials}
-                    </div>
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                <span>Add</span>
+              </button>
+            </div>
 
-                    <div className="min-w-0">
-                      <p
-                        className="text-xs font-bold truncate"
-                        style={{ color: isLight ? '#18181b' : '#f4f4f5' }}
-                      >
-                        {member.name}
-                      </p>
-                      <span
-                        className="inline-block px-1.5 py-0.2 rounded text-[9.5px] font-bold mt-0.5 truncate"
-                        style={{
-                          backgroundColor: `${member.color || '#3b82f6'}20`,
-                          color: member.color || '#3b82f6',
-                        }}
-                      >
-                        {member.role}
-                      </span>
-                      {(member.phone || member.email) && (
-                        <p className="text-[10px] truncate mt-0.5" style={{ color: textSecondary }}>
-                          {member.phone || member.email}
-                        </p>
-                      )}
-                    </div>
+            {/* Quick Role Selector Tags */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+              {QUICK_ROLES.map((r) => {
+                const isSelected = selectedRole === r && !customRole;
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => {
+                      setSelectedRole(r);
+                      setCustomRole('');
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border active:scale-95"
+                    style={{
+                      backgroundColor: isSelected
+                        ? isLight
+                          ? '#09090b'
+                          : '#ffffff'
+                        : isLight
+                          ? 'rgba(0, 0, 0, 0.03)'
+                          : 'rgba(255, 255, 255, 0.04)',
+                      borderColor: isSelected ? (isLight ? '#09090b' : '#ffffff') : inputBorder,
+                      color: isSelected ? (isLight ? '#ffffff' : '#09090b') : textSecondary,
+                    }}
+                    data-testid={`role-tag-${r.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
+
+              {/* Extra Details Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowExtraDetails((prev) => !prev)}
+                className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border active:scale-95 flex items-center gap-1"
+                style={{
+                  backgroundColor: showExtraDetails
+                    ? isLight
+                      ? 'rgba(0, 0, 0, 0.06)'
+                      : 'rgba(255, 255, 255, 0.08)'
+                    : 'transparent',
+                  borderColor: inputBorder,
+                  color: textSecondary,
+                }}
+                data-testid="btn-toggle-extra-details"
+              >
+                <span>{showExtraDetails ? 'Fewer details' : '+ Details'}</span>
+              </button>
+            </div>
+
+            {/* Optional Extended Details Drawer */}
+            <AnimatePresence>
+              {showExtraDetails && (
+                <motion.div
+                  initial={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, height: 0 }}
+                  className="space-y-3 pt-2 overflow-hidden"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <input
+                      type="text"
+                      value={customRole}
+                      onChange={(e) => setCustomRole(e.target.value)}
+                      placeholder="Custom Role (overrides tags)"
+                      className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
+                      style={{
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
+                        color: textPrimary,
+                      }}
+                      data-testid="input-custom-role"
+                    />
+                    <input
+                      type="text"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Phone (optional)"
+                      className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
+                      style={{
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
+                        color: textPrimary,
+                      }}
+                      data-testid="input-member-phone"
+                    />
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeMember(member.id)}
-                    className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors shrink-0 cursor-pointer"
-                    style={{ color: textSecondary }}
-                    title="Remove Member"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email (optional)"
+                      className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
+                      style={{
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
+                        color: textPrimary,
+                      }}
+                      data-testid="input-member-email"
+                    />
+                    <input
+                      type="text"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Notes / Position specs"
+                      className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
+                      style={{
+                        backgroundColor: inputBg,
+                        borderColor: inputBorder,
+                        color: textPrimary,
+                      }}
+                      data-testid="input-member-notes"
+                    />
+                  </div>
 
-      {/* 2. 2x2 Metric Grid Card */}
-      <div
-        className="p-5 rounded-[20px] border shadow-sm"
-        style={{ backgroundColor: cardBg, borderColor: cardBorder }}
-      >
-        <div className="grid grid-cols-2 gap-4">
-          {/* Roster Capacity */}
-          <div
-            className="flex items-center justify-between p-3 rounded-[16px] border"
-            style={{
-              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
-            }}
+                  {/* Color Picker */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <span
+                      className="text-[10.5px] font-bold uppercase tracking-wider"
+                      style={{ color: textSecondary }}
+                    >
+                      Avatar Accent:
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {MEMBER_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setColor(c)}
+                          className="w-5 h-5 rounded-full border-2 transition-transform cursor-pointer"
+                          style={{
+                            backgroundColor: c,
+                            borderColor:
+                              color === c ? (isLight ? '#09090b' : '#ffffff') : 'transparent',
+                            transform: color === c ? 'scale(1.2)' : 'scale(1)',
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </form>
+        </section>
+
+        {/* ── 4. 2x2 METRICS GRID (STITCH PARITY) ────────────────────── */}
+        <section className="grid grid-cols-2 gap-3.5" data-testid="metrics-grid">
+          {/* MEMBERS */}
+          <article
+            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            data-testid="metric-card-members"
           >
-            <div>
+            <span
+              className="text-xs font-bold tracking-wider uppercase font-sans"
+              style={{ color: textSecondary }}
+            >
+              MEMBERS
+            </span>
+            <div className="flex items-baseline mt-3">
               <span
-                className="text-[10px] font-bold uppercase tracking-wider block"
+                className="text-3xl font-extrabold tracking-tight leading-none font-sans"
+                style={{ color: textPrimary }}
+                id="metric-members-count"
+                data-testid="metric-members-count"
+              >
+                {members.length}
+              </span>
+              <span
+                className="text-xl font-bold leading-none ml-0.5 font-sans"
                 style={{ color: textSecondary }}
               >
-                Roster Capacity
+                /8
               </span>
-              <p
-                className="text-[20px] font-black tracking-tight mt-0.5"
-                style={{
-                  color: isAtLimit ? '#f87171' : textPrimary,
-                  fontFamily: 'Manrope, sans-serif',
-                }}
-              >
-                {members.length} / 8
-              </p>
             </div>
-            <span
-              className="material-symbols-outlined text-[20px]"
-              style={{ color: isLight ? '#09090b' : '#ffffff' }}
-            >
-              group
-            </span>
-          </div>
+          </article>
 
-          {/* Performers */}
-          <div
-            className="flex items-center justify-between p-3 rounded-[16px] border"
-            style={{
-              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
-            }}
+          {/* ASSIGNED */}
+          <article
+            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            data-testid="metric-card-assigned"
           >
-            <div>
-              <span
-                className="text-[10px] font-bold uppercase tracking-wider block"
-                style={{ color: textSecondary }}
-              >
-                Performers
-              </span>
-              <p
-                className="text-[20px] font-black tracking-tight mt-0.5"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
-              >
-                {performersCount}
-              </p>
-            </div>
             <span
-              className="material-symbols-outlined text-[20px]"
-              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+              className="text-xs font-bold tracking-wider uppercase font-sans"
+              style={{ color: textSecondary }}
             >
-              music_note
+              ASSIGNED
             </span>
-          </div>
+            <div className="mt-3">
+              <span
+                className="text-3xl font-extrabold tracking-tight leading-none font-sans"
+                style={{ color: textPrimary }}
+                id="metric-assigned-count"
+                data-testid="metric-assigned-count"
+              >
+                {assignedMembersCount}
+              </span>
+            </div>
+          </article>
 
-          {/* Crew & Tech */}
-          <div
-            className="flex items-center justify-between p-3 rounded-[16px] border"
-            style={{
-              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
-            }}
+          {/* STAGE ELEMENTS */}
+          <article
+            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            data-testid="metric-card-stage-elements"
           >
-            <div>
-              <span
-                className="text-[10px] font-bold uppercase tracking-wider block"
-                style={{ color: textSecondary }}
-              >
-                Crew & Tech
-              </span>
-              <p
-                className="text-[20px] font-black tracking-tight mt-0.5"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
-              >
-                {crewCount}
-              </p>
-            </div>
             <span
-              className="material-symbols-outlined text-[20px]"
-              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+              className="text-xs font-bold tracking-wider uppercase font-sans"
+              style={{ color: textSecondary }}
             >
-              engineering
+              STAGE ELEMENTS
             </span>
-          </div>
+            <div className="mt-3">
+              <span
+                className="text-3xl font-extrabold tracking-tight leading-none font-sans"
+                style={{ color: textPrimary }}
+                id="metric-elements-count"
+                data-testid="metric-elements-count"
+              >
+                {stageElementsCount}
+              </span>
+            </div>
+          </article>
 
-          {/* Spots Available */}
-          <div
-            className="flex items-center justify-between p-3 rounded-[16px] border"
-            style={{
-              backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-              borderColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',
-            }}
+          {/* UNASSIGNED */}
+          <article
+            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
+            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            data-testid="metric-card-unassigned"
           >
-            <div>
-              <span
-                className="text-[10px] font-bold uppercase tracking-wider block"
-                style={{ color: textSecondary }}
-              >
-                Spots Available
-              </span>
-              <p
-                className="text-[20px] font-black tracking-tight mt-0.5"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
-              >
-                {Math.max(0, 8 - members.length)}
-              </p>
-            </div>
             <span
-              className="material-symbols-outlined text-[20px]"
-              style={{ color: isLight ? '#09090b' : '#ffffff' }}
+              className="text-xs font-bold tracking-wider uppercase font-sans"
+              style={{ color: textSecondary }}
             >
-              event_seat
+              UNASSIGNED
             </span>
-          </div>
-        </div>
+            <div className="mt-3">
+              <span
+                className="text-3xl font-extrabold tracking-tight leading-none font-sans"
+                style={{ color: textPrimary }}
+                id="metric-unassigned-count"
+                data-testid="metric-unassigned-count"
+              >
+                {unassignedMembersCount}
+              </span>
+            </div>
+          </article>
+        </section>
       </div>
     </StageSetupDetailLayout>
   );

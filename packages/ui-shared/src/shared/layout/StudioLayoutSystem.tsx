@@ -157,6 +157,8 @@ export interface SharedFloatingHeaderProps {
   headerBgRef?: React.RefObject<HTMLDivElement | null>;
   titleRef?: React.RefObject<HTMLDivElement | null>;
   headerProgress?: any;
+  titleTestId?: string;
+  backBtnTestId?: string;
 }
 
 export function SharedFloatingHeader({
@@ -167,6 +169,8 @@ export function SharedFloatingHeader({
   headerBgRef,
   titleRef,
   headerProgress,
+  titleTestId,
+  backBtnTestId,
 }: SharedFloatingHeaderProps) {
   // Read current theme to apply warm tinted translucency
   const settings = useSettingsStore((s) => s.settings);
@@ -228,7 +232,7 @@ export function SharedFloatingHeader({
         {onBack && !hideBack ? (
           <motion.button
             type="button"
-            data-testid="shared-floating-header-back-btn"
+            data-testid={backBtnTestId || 'shared-floating-header-back-btn'}
             onClick={onBack}
             aria-label="Go back"
             whileTap={{ scale: 0.9 }}
@@ -292,6 +296,10 @@ export function SharedFloatingHeader({
           }}
         >
           <span
+            data-testid={
+              titleTestId ||
+              (title === 'Production Document' ? 'production-document-title' : undefined)
+            }
             style={{
               fontSize: '16px',
               fontWeight: 750,

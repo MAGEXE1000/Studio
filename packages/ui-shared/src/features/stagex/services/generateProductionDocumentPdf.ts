@@ -1,10 +1,15 @@
 import { jsPDF } from 'jspdf';
 import { Capacitor } from '@capacitor/core';
-import type { ProductionDocumentData } from './projectProductionDocumentData';
+import type {
+  ProductionDocumentData,
+  ProductionDocumentSectionsConfig,
+} from './projectProductionDocumentData';
+import { DEFAULT_PRODUCTION_DOCUMENT_SECTIONS } from './projectProductionDocumentData';
 
 export interface GeneratePdfOptions {
   fileName?: string;
   share?: boolean;
+  sections?: ProductionDocumentSectionsConfig;
 }
 
 export interface GeneratePdfResult {
@@ -12,6 +17,7 @@ export interface GeneratePdfResult {
   pageCount: number;
   blob?: Blob;
   uri?: string;
+  success?: boolean;
 }
 
 /**
@@ -104,8 +110,16 @@ export async function generateProductionDocumentPdf(
     currentY += 7;
   };
 
+  const sections: ProductionDocumentSectionsConfig = {
+    ...DEFAULT_PRODUCTION_DOCUMENT_SECTIONS,
+    ...(options.sections || {}),
+  };
+
+  let sectionCounter = 1;
+  const getNextSectionNumber = (): string => String(sectionCounter++).padStart(2, '0');
+
   // ═══════════════════════════════════════════════════════════════════
-  // PAGE 1: COVER, LOGISTICS, STAGE PLOT & REQUIREMENTS
+  // PAGE 1: COVER, LOGISTICS, STAGE PLOT & SECTIONS
   // ═══════════════════════════════════════════════════════════════════
 
   // Document Type Pill
@@ -168,542 +182,572 @@ export async function generateProductionDocumentPdf(
     currentY += 18;
   }
 
-  // ── SECTION 1: STAGE PLOT DIAGRAM (VECTOR VISUAL) ────────────────
-  drawSectionTitle('01', 'Stage Plot', `Scale 1:50 · ${data.stageDimensions}`);
+  // ── SECTION: STAGE PLOT DIAGRAM (VECTOR VISUAL) ──────────────────
+  if (sections.stagePlot) {
+    drawSectionTitle(getNextSectionNumber(), 'Stage Plot', `Scale 1:50 · ${data.stageDimensions}`);
 
-  const plotBoxH = data.isSquare ? 58 : 52;
-  ensureSpace(plotBoxH + 4);
+    const plotBoxH = data.isSquare ? 58 : 52;
+    ensureSpace(plotBoxH + 4);
 
-  // Stage Boundary Outer Box
-  doc.setFillColor(248, 249, 250);
-  doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-  doc.setLineWidth(0.3);
-  doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, plotBoxH, 2, 2, 'FD');
+    // Stage Boundary Outer Box
+    doc.setFillColor(248, 249, 250);
+    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, plotBoxH, 2, 2, 'FD');
 
-  // Upstage marker bar
-  doc.setFillColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-  doc.rect(MARGIN_LEFT + 2, currentY + 1, CONTENT_WIDTH - 4, 0.4, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6);
-  doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-  doc.text('▲ UPSTAGE / BACKLINE', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 4, {
-    align: 'center',
-  });
-  doc.text('STAGE LEFT (SL)', MARGIN_LEFT + 4, currentY + 4);
-  doc.text('STAGE RIGHT (SR)', PAGE_WIDTH - MARGIN_RIGHT - 4, currentY + 4, { align: 'right' });
-
-  // Centerline guide
-  doc.setDrawColor(235, 238, 242);
-  doc.setLineWidth(0.2);
-  doc.setLineDashPattern([1.5, 1.5], 0);
-  doc.line(
-    MARGIN_LEFT + CONTENT_WIDTH / 2,
-    currentY + 5,
-    MARGIN_LEFT + CONTENT_WIDTH / 2,
-    currentY + plotBoxH - 5
-  );
-  doc.setLineDashPattern([], 0); // Reset dash
-
-  // Draw Elements on Stage Plot
-  const elements = data.elements || [];
-  if (elements.length === 0) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
+    // Upstage marker bar
+    doc.setFillColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.rect(MARGIN_LEFT + 2, currentY + 1, CONTENT_WIDTH - 4, 0.4, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
     doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-    doc.text(
-      'No stage elements placed in active scene',
+    doc.text('▲ UPSTAGE / BACKLINE', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 4, {
+      align: 'center',
+    });
+    doc.text('STAGE LEFT (SL)', MARGIN_LEFT + 4, currentY + 4);
+    doc.text('STAGE RIGHT (SR)', PAGE_WIDTH - MARGIN_RIGHT - 4, currentY + 4, { align: 'right' });
+
+    // Centerline guide
+    doc.setDrawColor(235, 238, 242);
+    doc.setLineWidth(0.2);
+    doc.setLineDashPattern([1.5, 1.5], 0);
+    doc.line(
       MARGIN_LEFT + CONTENT_WIDTH / 2,
-      currentY + plotBoxH / 2,
+      currentY + 5,
+      MARGIN_LEFT + CONTENT_WIDTH / 2,
+      currentY + plotBoxH - 5
+    );
+    doc.setLineDashPattern([], 0); // Reset dash
+
+    // Draw Elements on Stage Plot
+    const elements = data.elements || [];
+    if (elements.length === 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.text(
+        'No stage elements placed in active scene',
+        MARGIN_LEFT + CONTENT_WIDTH / 2,
+        currentY + plotBoxH / 2,
+        {
+          align: 'center',
+        }
+      );
+    } else {
+      elements.forEach((el, idx) => {
+        const rawPctX = el.x / (data.refW || 650);
+        const rawPctY = el.y / (data.refH || 420);
+        const elX = MARGIN_LEFT + 8 + Math.max(0, Math.min(1, rawPctX)) * (CONTENT_WIDTH - 16);
+        const elY = currentY + 8 + Math.max(0, Math.min(1, rawPctY)) * (plotBoxH - 16);
+
+        // Element badge
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+        doc.setLineWidth(0.3);
+        doc.circle(elX, elY, 3, 'FD');
+
+        // Element index number
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(5.5);
+        doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+        doc.text(String(idx + 1), elX, elY + 1.2, { align: 'center' });
+
+        // Label below element
+        const labelStr = (el.label || el.name || el.type || `Input ${idx + 1}`).toUpperCase();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(5);
+        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.text(labelStr.slice(0, 15), elX, elY + 4.8, { align: 'center' });
+      });
+    }
+
+    // Downstage marker bar
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.text(
+      '▼ DOWNSTAGE / AUDIENCE (FOH LINE)',
+      MARGIN_LEFT + CONTENT_WIDTH / 2,
+      currentY + plotBoxH - 2,
       {
         align: 'center',
       }
     );
-  } else {
-    elements.forEach((el, idx) => {
-      const rawPctX = el.x / (data.refW || 650);
-      const rawPctY = el.y / (data.refH || 420);
-      const elX = MARGIN_LEFT + 8 + Math.max(0, Math.min(1, rawPctX)) * (CONTENT_WIDTH - 16);
-      const elY = currentY + 8 + Math.max(0, Math.min(1, rawPctY)) * (plotBoxH - 16);
-
-      // Element badge
-      doc.setFillColor(255, 255, 255);
-      doc.setDrawColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
-      doc.setLineWidth(0.3);
-      doc.circle(elX, elY, 3, 'FD');
-
-      // Element index number
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5.5);
-      doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
-      doc.text(String(idx + 1), elX, elY + 1.2, { align: 'center' });
-
-      // Label below element
-      const labelStr = (el.label || el.name || el.type || `Input ${idx + 1}`).toUpperCase();
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5);
-      doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
-      doc.text(labelStr.slice(0, 15), elX, elY + 4.8, { align: 'center' });
-    });
+    currentY += plotBoxH + 6;
   }
 
-  // Downstage marker bar
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6);
-  doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
-  doc.text(
-    '▼ DOWNSTAGE / AUDIENCE (FOH LINE)',
-    MARGIN_LEFT + CONTENT_WIDTH / 2,
-    currentY + plotBoxH - 2,
-    {
-      align: 'center',
-    }
-  );
-  currentY += plotBoxH + 6;
+  // ── SECTION: INPUT CHANNELS & PATCH LIST ─────────────────────────
+  if (sections.inputPatch) {
+    ensureSpace(28);
+    drawSectionTitle(
+      getNextSectionNumber(),
+      'Input Channel & Patch List',
+      `${data.channels.length} Active Channels`
+    );
 
-  // ── SECTION 2: TECHNICAL REQUIREMENTS (RIDER) ────────────────────
-  drawSectionTitle('02', 'Technical Requirements', `${data.totalRequirementsCount} Specifications`);
+    // Table Columns Setup
+    const colChW = 12;
+    const colInstW = 46;
+    const colPerfW = 38;
+    const colMicW = 44;
+    const col48vW = 14;
+    const colNotesW = CONTENT_WIDTH - (colChW + colInstW + colPerfW + colMicW + col48vW); // 28mm
 
-  const reqCardW = (CONTENT_WIDTH - 6) / 3;
-  ensureSpace(24);
-
-  // Card 1: FOH Audio Protocol
-  doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-  doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-  doc.roundedRect(MARGIN_LEFT, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
-  doc.setFillColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
-  doc.rect(MARGIN_LEFT, currentY, 1.5, 20, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
-  doc.text('FOH PROTOCOL', MARGIN_LEFT + 4, currentY + 4.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
-  const fohLines = doc.splitTextToSize(
-    data.requirements.foh[0] || 'Dante 96kHz / 32ch minimum',
-    reqCardW - 6
-  );
-  doc.text(fohLines.slice(0, 3), MARGIN_LEFT + 4, currentY + 9);
-
-  // Card 2: Monitor / IEM
-  const card2X = MARGIN_LEFT + reqCardW + 3;
-  doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-  doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-  doc.roundedRect(card2X, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
-  doc.setFillColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
-  doc.rect(card2X, currentY, 1.5, 20, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
-  doc.text('MONITOR / IEM', card2X + 4, currentY + 4.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
-  const monLines = doc.splitTextToSize(
-    data.requirements.monitor[0] || 'Min 4 discrete stereo IEM mixes',
-    reqCardW - 6
-  );
-  doc.text(monLines.slice(0, 3), card2X + 4, currentY + 9);
-
-  // Card 3: Power Distribution
-  const card3X = card2X + reqCardW + 3;
-  doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-  doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-  doc.roundedRect(card3X, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
-  doc.setFillColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
-  doc.rect(card3X, currentY, 1.5, 20, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
-  doc.text('POWER REQUIREMENT', card3X + 4, currentY + 4.5);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
-  const powerLines = doc.splitTextToSize(
-    data.requirements.power[0] || '2× 20A isolated circuits Stage Left',
-    reqCardW - 6
-  );
-  doc.text(powerLines.slice(0, 3), card3X + 4, currentY + 9);
-  currentY += 24;
-
-  // Additional hospitality or custom specs if present
-  const extraSpecs = [...data.requirements.hospitality, ...data.requirements.custom];
-  if (extraSpecs.length > 0) {
-    ensureSpace(14);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-    doc.text('ADDITIONAL PRODUCTION SPECIFICATIONS:', MARGIN_LEFT, currentY);
-    currentY += 4;
-
-    extraSpecs.slice(0, 4).forEach((spec) => {
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
-      doc.text(`•  ${spec}`, MARGIN_LEFT + 2, currentY);
-      currentY += 4;
-    });
-    currentY += 2;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // SECTION 3: INPUT CHANNELS & PATCH LIST
-  // ═══════════════════════════════════════════════════════════════════
-  ensureSpace(28);
-  drawSectionTitle('03', 'Input Channel & Patch List', `${data.channels.length} Active Channels`);
-
-  // Table Columns Setup
-  const colChW = 12;
-  const colInstW = 46;
-  const colPerfW = 38;
-  const colMicW = 44;
-  const col48vW = 14;
-  const colNotesW = CONTENT_WIDTH - (colChW + colInstW + colPerfW + colMicW + col48vW); // 28mm
-
-  const drawTableHeader = () => {
-    doc.setFillColor(243, 244, 246);
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-    doc.setLineWidth(0.2);
-    doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 6, 'FD');
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-
-    let x = MARGIN_LEFT + 2;
-    doc.text('CH#', x, currentY + 4);
-    x += colChW;
-    doc.text('INSTRUMENT / SOURCE', x, currentY + 4);
-    x += colInstW;
-    doc.text('PERFORMER', x, currentY + 4);
-    x += colPerfW;
-    doc.text('TRANSDUCER / MIC / DI', x, currentY + 4);
-    x += colMicW;
-    doc.text('48V', x + col48vW / 2 - 2, currentY + 4, { align: 'center' });
-    x += col48vW;
-    doc.text('NOTES / MIX', x, currentY + 4);
-
-    currentY += 6;
-  };
-
-  drawTableHeader();
-
-  if (data.channels.length === 0) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-    doc.text('No input channels configured', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
-      align: 'center',
-    });
-    currentY += 12;
-  } else {
-    data.channels.forEach((ch, idx) => {
-      ensureSpace(7);
-      if (currentY === MARGIN_TOP + 4) {
-        drawTableHeader();
-      }
-
-      // Zebra striping
-      if (idx % 2 === 1) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 6, 'F');
-      }
-
+    const drawTableHeader = () => {
+      doc.setFillColor(243, 244, 246);
       doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-      doc.setLineWidth(0.1);
-      doc.line(MARGIN_LEFT, currentY + 6, PAGE_WIDTH - MARGIN_RIGHT, currentY + 6);
+      doc.setLineWidth(0.2);
+      doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 6, 'FD');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
 
       let x = MARGIN_LEFT + 2;
-      // CH
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-      doc.text(ch.ch, x, currentY + 4.2);
-
-      // Instrument
+      doc.text('CH#', x, currentY + 4);
       x += colChW;
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
-      doc.text(ch.source.slice(0, 24), x, currentY + 4.2);
-
-      // Performer
+      doc.text('INSTRUMENT / SOURCE', x, currentY + 4);
       x += colInstW;
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
-      doc.text(ch.performer.slice(0, 20), x, currentY + 4.2);
-
-      // Mic / DI
+      doc.text('PERFORMER', x, currentY + 4);
       x += colPerfW;
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-      doc.text(ch.mic.slice(0, 24), x, currentY + 4.2);
-
-      // 48V Phantom
+      doc.text('TRANSDUCER / MIC / DI', x, currentY + 4);
       x += colMicW;
-      if (ch.phantom) {
+      doc.text('48V', x + col48vW / 2 - 2, currentY + 4, { align: 'center' });
+      x += col48vW;
+      doc.text('NOTES / MIX', x, currentY + 4);
+
+      currentY += 6;
+    };
+
+    drawTableHeader();
+
+    if (data.channels.length === 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.text('No input channels configured', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
+        align: 'center',
+      });
+      currentY += 12;
+    } else {
+      data.channels.forEach((ch, idx) => {
+        ensureSpace(7);
+        if (currentY === MARGIN_TOP + 4) {
+          drawTableHeader();
+        }
+
+        // Zebra striping
+        if (idx % 2 === 1) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 6, 'F');
+        }
+
+        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setLineWidth(0.1);
+        doc.line(MARGIN_LEFT, currentY + 6, PAGE_WIDTH - MARGIN_RIGHT, currentY + 6);
+
+        let x = MARGIN_LEFT + 2;
+        // CH
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(6);
-        doc.setTextColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
-        doc.text('+48V', x + col48vW / 2 - 2, currentY + 4.2, { align: 'center' });
-      } else {
+        doc.setFontSize(7.5);
+        doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+        doc.text(ch.ch, x, currentY + 4.2);
+
+        // Instrument
+        x += colChW;
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.text(ch.source.slice(0, 24), x, currentY + 4.2);
+
+        // Performer
+        x += colInstW;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.text(ch.performer.slice(0, 20), x, currentY + 4.2);
+
+        // Mic / DI
+        x += colPerfW;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.text(ch.mic.slice(0, 24), x, currentY + 4.2);
+
+        // 48V Phantom
+        x += colMicW;
+        if (ch.phantom) {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(6);
+          doc.setTextColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
+          doc.text('+48V', x + col48vW / 2 - 2, currentY + 4.2, { align: 'center' });
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(7);
+          doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+          doc.text('—', x + col48vW / 2 - 2, currentY + 4.2, { align: 'center' });
+        }
+
+        // Notes
+        x += col48vW;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
         doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-        doc.text('—', x + col48vW / 2 - 2, currentY + 4.2, { align: 'center' });
-      }
+        doc.text(ch.notes.slice(0, 18), x, currentY + 4.2);
 
-      // Notes
-      x += col48vW;
-      doc.setFont('helvetica', 'normal');
+        currentY += 6;
+      });
+      currentY += 5;
+    }
+  }
+
+  // ── SECTION: TECHNICAL REQUIREMENTS (RIDER) ──────────────────────
+  if (sections.technicalRequirements) {
+    drawSectionTitle(
+      getNextSectionNumber(),
+      'Technical Requirements',
+      `${data.totalRequirementsCount} Specifications`
+    );
+
+    const reqCardW = (CONTENT_WIDTH - 6) / 3;
+    ensureSpace(24);
+
+    // Card 1: FOH Audio Protocol
+    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
+    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.roundedRect(MARGIN_LEFT, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
+    doc.setFillColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.rect(MARGIN_LEFT, currentY, 1.5, 20, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.text('FOH PROTOCOL', MARGIN_LEFT + 4, currentY + 4.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+    const fohLines = doc.splitTextToSize(
+      data.requirements.foh[0] || 'Dante 96kHz / 32ch minimum',
+      reqCardW - 6
+    );
+    doc.text(fohLines.slice(0, 3), MARGIN_LEFT + 4, currentY + 9);
+
+    // Card 2: Monitor / IEM
+    const card2X = MARGIN_LEFT + reqCardW + 3;
+    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
+    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.roundedRect(card2X, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
+    doc.setFillColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
+    doc.rect(card2X, currentY, 1.5, 20, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
+    doc.text('MONITOR / IEM', card2X + 4, currentY + 4.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+    const monLines = doc.splitTextToSize(
+      data.requirements.monitor[0] || 'Min 4 discrete stereo IEM mixes',
+      reqCardW - 6
+    );
+    doc.text(monLines.slice(0, 3), card2X + 4, currentY + 9);
+
+    // Card 3: Power Distribution
+    const card3X = card2X + reqCardW + 3;
+    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
+    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.roundedRect(card3X, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
+    doc.setFillColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
+    doc.rect(card3X, currentY, 1.5, 20, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
+    doc.text('POWER REQUIREMENT', card3X + 4, currentY + 4.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+    const powerLines = doc.splitTextToSize(
+      data.requirements.power[0] || '2× 20A isolated circuits Stage Left',
+      reqCardW - 6
+    );
+    doc.text(powerLines.slice(0, 3), card3X + 4, currentY + 9);
+    currentY += 24;
+
+    // Additional hospitality or custom specs if present
+    const extraSpecs = [
+      ...(data.requirements.hospitality || []),
+      ...(data.requirements.custom || []),
+    ];
+    if (extraSpecs.length > 0) {
+      ensureSpace(14);
+      doc.setFont('helvetica', 'bold');
       doc.setFontSize(7);
       doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-      doc.text(ch.notes.slice(0, 18), x, currentY + 4.2);
+      doc.text('ADDITIONAL PRODUCTION SPECIFICATIONS:', MARGIN_LEFT, currentY);
+      currentY += 4;
 
-      currentY += 6;
-    });
-    currentY += 5;
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // SECTION 4: PRODUCTION & TECHNICAL NOTES
-  // ═══════════════════════════════════════════════════════════════════
-  ensureSpace(24);
-  drawSectionTitle('04', 'Production & Technical Notes');
-
-  const notesLines = doc.splitTextToSize(data.notes, CONTENT_WIDTH - 8);
-  const notesBoxH = Math.max(16, notesLines.length * 4.2 + 6);
-
-  ensureSpace(notesBoxH + 4);
-  doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-  doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-  doc.setLineWidth(0.25);
-  doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, notesBoxH, 1.5, 1.5, 'FD');
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
-  doc.text(notesLines, MARGIN_LEFT + 4, currentY + 5.5);
-  currentY += notesBoxH + 6;
-
-  // ═══════════════════════════════════════════════════════════════════
-  // SECTION 5: SETLIST RUNNING ORDER
-  // ═══════════════════════════════════════════════════════════════════
-  ensureSpace(24);
-  drawSectionTitle(
-    '05',
-    'Setlist Running Order',
-    data.setlist.length > 0
-      ? `${data.setlist.length} Songs · Total ${data.totalSetlistMinutes} Min`
-      : '0 Songs'
-  );
-
-  if (data.setlist.length === 0) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-    doc.text('No songs added to setlist', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
-      align: 'center',
-    });
-    currentY += 12;
-  } else {
-    // Setlist Header
-    doc.setFillColor(243, 244, 246);
-    doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-
-    doc.text('#', MARGIN_LEFT + 2, currentY + 3.8);
-    doc.text('TRACK TITLE', MARGIN_LEFT + 12, currentY + 3.8);
-    doc.text('ARTIST / NOTE', MARGIN_LEFT + 80, currentY + 3.8);
-    doc.text('KEY', MARGIN_LEFT + 125, currentY + 3.8);
-    doc.text('TEMPO', MARGIN_LEFT + 145, currentY + 3.8);
-    doc.text('TIME', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
-    currentY += 5.5;
-
-    data.setlist.forEach((s, idx) => {
-      ensureSpace(6);
-      if (idx % 2 === 1) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
-      }
-      doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-      doc.setLineWidth(0.1);
-      doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-      doc.text(String(idx + 1).padStart(2, '0'), MARGIN_LEFT + 2, currentY + 3.8);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
-      doc.text(s.title.slice(0, 36), MARGIN_LEFT + 12, currentY + 3.8);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-      doc.text((s.artist || s.notes || '—').slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
-      doc.text(s.key || 'C', MARGIN_LEFT + 125, currentY + 3.8);
-
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-      doc.text(`${s.bpm || 120} BPM`, MARGIN_LEFT + 145, currentY + 3.8);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
-      doc.text(s.duration || '04:00', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
-        align: 'right',
+      extraSpecs.slice(0, 4).forEach((spec) => {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.text(`•  ${spec}`, MARGIN_LEFT + 2, currentY);
+        currentY += 4;
       });
-
-      currentY += 5.5;
-    });
-    currentY += 5;
+      currentY += 2;
+    }
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // SECTION 6: GEAR / LOAD-IN CHECKLIST
-  // ═══════════════════════════════════════════════════════════════════
-  ensureSpace(24);
-  drawSectionTitle(
-    '06',
-    'Gear / Load-In Checklist',
-    `${data.totalGearItems} Items · ${data.totalGearUnits} Total Units (${data.packedGearUnits} Packed)`
-  );
+  // ── SECTION: PRODUCTION & TECHNICAL NOTES ─────────────────────────
+  if (sections.technicalNotes) {
+    ensureSpace(24);
+    drawSectionTitle(getNextSectionNumber(), 'Production & Technical Notes');
 
-  if (data.gear.length === 0) {
+    const notesLines = doc.splitTextToSize(data.notes, CONTENT_WIDTH - 8);
+    const notesBoxH = Math.max(16, notesLines.length * 4.2 + 6);
+
+    ensureSpace(notesBoxH + 4);
+    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
+    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, notesBoxH, 1.5, 1.5, 'FD');
+
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-    doc.text('No gear items added to inventory', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
-      align: 'center',
-    });
-    currentY += 12;
-  } else {
-    doc.setFillColor(243, 244, 246);
-    doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+    doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+    doc.text(notesLines, MARGIN_LEFT + 4, currentY + 5.5);
+    currentY += notesBoxH + 6;
+  }
 
-    doc.text('ITEM NAME', MARGIN_LEFT + 2, currentY + 3.8);
-    doc.text('CATEGORY', MARGIN_LEFT + 80, currentY + 3.8);
-    doc.text('QTY', MARGIN_LEFT + 130, currentY + 3.8);
-    doc.text('STATUS', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
-    currentY += 5.5;
+  // ── SECTION: SETLIST RUNNING ORDER ────────────────────────────────
+  if (sections.setlist) {
+    ensureSpace(24);
+    drawSectionTitle(
+      getNextSectionNumber(),
+      'Setlist Running Order',
+      data.setlist.length > 0
+        ? `${data.setlist.length} Songs · Total ${data.totalSetlistMinutes} Min`
+        : '0 Songs'
+    );
 
-    data.gear.forEach((item, idx) => {
-      ensureSpace(6);
-      if (idx % 2 === 1) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
-      }
-      doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-      doc.setLineWidth(0.1);
-      doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
-      doc.text(item.name.slice(0, 38), MARGIN_LEFT + 2, currentY + 3.8);
-
+    if (data.setlist.length === 0) {
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-      doc.text((item.category || 'General').slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
-
+      doc.setFontSize(8);
+      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.text('No songs added to setlist', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
+        align: 'center',
+      });
+      currentY += 12;
+    } else {
+      // Setlist Header
+      doc.setFillColor(243, 244, 246);
+      doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
-      doc.text(`${item.qty || 1}x`, MARGIN_LEFT + 130, currentY + 3.8);
+      doc.setFontSize(6.5);
+      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
 
-      if (item.packed) {
+      doc.text('#', MARGIN_LEFT + 2, currentY + 3.8);
+      doc.text('TRACK TITLE', MARGIN_LEFT + 12, currentY + 3.8);
+      doc.text('ARTIST / NOTE', MARGIN_LEFT + 80, currentY + 3.8);
+      doc.text('KEY', MARGIN_LEFT + 125, currentY + 3.8);
+      doc.text('TEMPO', MARGIN_LEFT + 145, currentY + 3.8);
+      doc.text('TIME', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
+      currentY += 5.5;
+
+      data.setlist.forEach((s, idx) => {
+        ensureSpace(6);
+        if (idx % 2 === 1) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
+        }
+        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setLineWidth(0.1);
+        doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
+
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
-        doc.text('VERIFIED / PACKED', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
+        doc.setFontSize(7.5);
+        doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+        doc.text(String(idx + 1).padStart(2, '0'), MARGIN_LEFT + 2, currentY + 3.8);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.text(s.title.slice(0, 36), MARGIN_LEFT + 12, currentY + 3.8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.text((s.artist || s.notes || '—').slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+        doc.text(s.key || 'C', MARGIN_LEFT + 125, currentY + 3.8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.text(`${s.bpm || 120} BPM`, MARGIN_LEFT + 145, currentY + 3.8);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.text(s.duration || '04:00', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
           align: 'right',
         });
-      } else {
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-        doc.text('REQUIRED', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
-      }
 
-      currentY += 5.5;
-    });
-    currentY += 5;
+        currentY += 5.5;
+      });
+      currentY += 5;
+    }
   }
 
-  // ═══════════════════════════════════════════════════════════════════
-  // SECTION 7: BAND & CREW ROSTER
-  // ═══════════════════════════════════════════════════════════════════
-  ensureSpace(24);
-  drawSectionTitle(
-    '07',
-    'Band & Crew Roster',
-    `${data.totalMembers} Members (${data.assignedMembersCount} Assigned)`
-  );
+  // ── SECTION: GEAR / LOAD-IN CHECKLIST ─────────────────────────────
+  if (sections.gear) {
+    ensureSpace(24);
+    drawSectionTitle(
+      getNextSectionNumber(),
+      'Gear / Load-In Checklist',
+      `${data.totalGearItems} Items · ${data.totalGearUnits} Total Units (${data.packedGearUnits} Packed)`
+    );
 
-  if (data.members.length === 0) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-    doc.text('No members added to roster', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
-      align: 'center',
-    });
-    currentY += 12;
-  } else {
-    doc.setFillColor(243, 244, 246);
-    doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6.5);
-    doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-
-    doc.text('NAME', MARGIN_LEFT + 2, currentY + 3.8);
-    doc.text('ROLE / POSITION', MARGIN_LEFT + 50, currentY + 3.8);
-    doc.text('STAGE ELEMENT ASSIGNMENTS', MARGIN_LEFT + 100, currentY + 3.8);
-    doc.text('CONTACT', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
-    currentY += 5.5;
-
-    data.members.forEach((m, idx) => {
-      ensureSpace(6);
-      if (idx % 2 === 1) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
-      }
-      doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-      doc.setLineWidth(0.1);
-      doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
-
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
-      doc.text(m.name.slice(0, 24), MARGIN_LEFT + 2, currentY + 3.8);
-
+    if (data.gear.length === 0) {
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-      doc.text((m.role || 'Member').slice(0, 24), MARGIN_LEFT + 50, currentY + 3.8);
-
-      const assignText =
-        m.assignedElements.length > 0 ? m.assignedElements.join(', ') : 'Unassigned';
-      doc.setFont('helvetica', m.assignedElements.length > 0 ? 'bold' : 'normal');
-      doc.setTextColor(
-        m.assignedElements.length > 0 ? C_BLUE[0] : C_MUTED[0],
-        m.assignedElements.length > 0 ? C_BLUE[1] : C_MUTED[1],
-        m.assignedElements.length > 0 ? C_BLUE[2] : C_MUTED[2]
-      );
-      doc.text(assignText.slice(0, 30), MARGIN_LEFT + 100, currentY + 3.8);
-
-      const contactStr = [m.phone, m.email].filter(Boolean).join(' · ');
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
-      doc.text((contactStr || '—').slice(0, 20), PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
-        align: 'right',
+      doc.setFontSize(8);
+      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.text('No gear items added to inventory', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
+        align: 'center',
       });
+      currentY += 12;
+    } else {
+      doc.setFillColor(243, 244, 246);
+      doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
 
+      doc.text('ITEM NAME', MARGIN_LEFT + 2, currentY + 3.8);
+      doc.text('CATEGORY', MARGIN_LEFT + 80, currentY + 3.8);
+      doc.text('QTY', MARGIN_LEFT + 130, currentY + 3.8);
+      doc.text('STATUS', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
       currentY += 5.5;
-    });
-    currentY += 5;
+
+      data.gear.forEach((item, idx) => {
+        ensureSpace(6);
+        if (idx % 2 === 1) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
+        }
+        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setLineWidth(0.1);
+        doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.text(item.name.slice(0, 38), MARGIN_LEFT + 2, currentY + 3.8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.text((item.category || 'General').slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.text(`${item.qty || 1}x`, MARGIN_LEFT + 130, currentY + 3.8);
+
+        if (item.packed) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
+          doc.text('VERIFIED / PACKED', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
+            align: 'right',
+          });
+        } else {
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+          doc.text('REQUIRED', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
+        }
+
+        currentY += 5.5;
+      });
+      currentY += 5;
+    }
+  }
+
+  // ── SECTION: BAND & CREW ROSTER ───────────────────────────────────
+  if (sections.bandCrew) {
+    ensureSpace(24);
+    drawSectionTitle(
+      getNextSectionNumber(),
+      'Band & Crew Roster',
+      `${data.totalMembers} Members (${data.assignedMembersCount} Assigned)`
+    );
+
+    if (data.members.length === 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.text('No members added to roster', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
+        align: 'center',
+      });
+      currentY += 12;
+    } else {
+      doc.setFillColor(243, 244, 246);
+      doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(6.5);
+      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+
+      doc.text('NAME', MARGIN_LEFT + 2, currentY + 3.8);
+      doc.text('ROLE / POSITION', MARGIN_LEFT + 50, currentY + 3.8);
+      doc.text('STAGE ELEMENT ASSIGNMENTS', MARGIN_LEFT + 100, currentY + 3.8);
+      doc.text('CONTACT', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
+      currentY += 5.5;
+
+      data.members.forEach((m, idx) => {
+        ensureSpace(6);
+        if (idx % 2 === 1) {
+          doc.setFillColor(250, 250, 250);
+          doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
+        }
+        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setLineWidth(0.1);
+        doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.text(m.name.slice(0, 24), MARGIN_LEFT + 2, currentY + 3.8);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.text((m.role || 'Member').slice(0, 24), MARGIN_LEFT + 50, currentY + 3.8);
+
+        const assignText =
+          m.assignedElements.length > 0 ? m.assignedElements.join(', ') : 'Unassigned';
+        doc.setFont('helvetica', m.assignedElements.length > 0 ? 'bold' : 'normal');
+        doc.setTextColor(
+          m.assignedElements.length > 0 ? C_BLUE[0] : C_MUTED[0],
+          m.assignedElements.length > 0 ? C_BLUE[1] : C_MUTED[1],
+          m.assignedElements.length > 0 ? C_BLUE[2] : C_MUTED[2]
+        );
+        doc.text(assignText.slice(0, 30), MARGIN_LEFT + 100, currentY + 3.8);
+
+        const contactStr = [m.phone, m.email].filter(Boolean).join(' · ');
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.text((contactStr || '—').slice(0, 20), PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
+          align: 'right',
+        });
+
+        currentY += 5.5;
+      });
+      currentY += 5;
+    }
+  }
+
+  // Fallback if all sections are disabled
+  if (sectionCounter === 1) {
+    ensureSpace(24);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+    doc.text(
+      'No document sections selected in export configuration.',
+      MARGIN_LEFT + CONTENT_WIDTH / 2,
+      currentY + 12,
+      { align: 'center' }
+    );
+    currentY += 24;
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -744,21 +788,24 @@ export async function generateProductionDocumentPdf(
   // ═══════════════════════════════════════════════════════════════════
   const rawFileName =
     options.fileName?.trim() || `${data.projectName.replace(/\s+/g, '_')}_Production_Document`;
-  const finalFileName = rawFileName.toLowerCase().endsWith('.pdf')
-    ? rawFileName
-    : `${rawFileName}.pdf`;
+  const sanitizedName = rawFileName.replace(/[\\/:*?"<>|]/g, '').trim() || 'Production_Document';
+  const finalFileName = sanitizedName.toLowerCase().endsWith('.pdf')
+    ? sanitizedName
+    : `${sanitizedName}.pdf`;
 
   if (Capacitor.isNativePlatform()) {
     try {
       const { Filesystem, Directory } = await import('@capacitor/filesystem');
       const base64Data = doc.output('datauristring').split(',')[1];
-      const writeResult = await Filesystem.writeFile({
-        path: finalFileName,
-        data: base64Data,
-        directory: Directory.Cache,
-      });
 
       if (options.share) {
+        const writeResult = await Filesystem.writeFile({
+          path: finalFileName,
+          data: base64Data,
+          directory: Directory.Cache,
+          recursive: true,
+        });
+
         const { Share } = await import('@capacitor/share');
         await Share.share({
           title: data.projectName,
@@ -766,19 +813,65 @@ export async function generateProductionDocumentPdf(
           url: writeResult.uri,
           dialogTitle: 'Share Production Document',
         });
-      }
 
-      return {
-        fileName: finalFileName,
-        pageCount: totalPages,
-        uri: writeResult.uri,
-      };
+        return {
+          fileName: finalFileName,
+          pageCount: totalPages,
+          uri: writeResult.uri,
+          success: true,
+        };
+      } else {
+        // Save to Android public Downloads directory
+        let savedUri = '';
+        try {
+          const writeResult = await Filesystem.writeFile({
+            path: `Download/${finalFileName}`,
+            data: base64Data,
+            directory: Directory.ExternalStorage,
+            recursive: true,
+          });
+          savedUri = writeResult.uri;
+        } catch (extErr) {
+          console.warn(
+            'Saving to ExternalStorage/Download failed, falling back to Documents:',
+            extErr
+          );
+          try {
+            const writeResult = await Filesystem.writeFile({
+              path: finalFileName,
+              data: base64Data,
+              directory: Directory.Documents,
+              recursive: true,
+            });
+            savedUri = writeResult.uri;
+          } catch (docErr) {
+            console.warn('Saving to Documents failed, falling back to External:', docErr);
+            const writeResult = await Filesystem.writeFile({
+              path: finalFileName,
+              data: base64Data,
+              directory: Directory.External,
+              recursive: true,
+            });
+            savedUri = writeResult.uri;
+          }
+        }
+
+        return {
+          fileName: finalFileName,
+          pageCount: totalPages,
+          uri: savedUri,
+          success: true,
+        };
+      }
     } catch (nativeErr) {
-      console.warn('Capacitor native filesystem save failed, falling back to download:', nativeErr);
+      console.warn(
+        'Capacitor native filesystem save/share failed, falling back to web download:',
+        nativeErr
+      );
     }
   }
 
-  // Web Browser Download
+  // Web Browser Download / Share Fallback
   const pdfBlob = doc.output('blob');
   if (typeof window !== 'undefined' && options.share && navigator.share && navigator.canShare) {
     try {
@@ -793,6 +886,7 @@ export async function generateProductionDocumentPdf(
           fileName: finalFileName,
           pageCount: totalPages,
           blob: pdfBlob,
+          success: true,
         };
       }
     } catch (shareErr) {
@@ -806,5 +900,6 @@ export async function generateProductionDocumentPdf(
     fileName: finalFileName,
     pageCount: totalPages,
     blob: pdfBlob,
+    success: true,
   };
 }

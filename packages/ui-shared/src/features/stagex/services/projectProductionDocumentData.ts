@@ -19,6 +19,26 @@ export interface ProductionDocumentMember extends BandMember {
   assignedElements: string[];
 }
 
+export interface ProductionDocumentSectionsConfig {
+  stagePlot: boolean;
+  inputPatch: boolean;
+  technicalRequirements: boolean;
+  technicalNotes: boolean;
+  setlist: boolean;
+  gear: boolean;
+  bandCrew: boolean;
+}
+
+export const DEFAULT_PRODUCTION_DOCUMENT_SECTIONS: ProductionDocumentSectionsConfig = {
+  stagePlot: true,
+  inputPatch: true,
+  technicalRequirements: true,
+  technicalNotes: true,
+  setlist: true,
+  gear: true,
+  bandCrew: true,
+};
+
 export interface ProductionDocumentData {
   // Document Identity
   projectName: string;

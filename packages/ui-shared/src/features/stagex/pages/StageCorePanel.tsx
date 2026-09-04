@@ -180,7 +180,7 @@ export default function StagexPanel() {
                     </div>
                   )}
 
-                  {/* Export / Technical Rider Native View */}
+                  {/* Export / Production Document Native View */}
                   {viewId === 'Export' && (
                     <div className="w-full h-full">
                       <StageExportPdfView

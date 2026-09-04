@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useStagexStore } from '../../state/useStagexStore';
-import { StageBridge } from '../../services/StageBridgeService';
 import { ExportPdfDialog } from '../dialogs/ExportPdfDialog';
 import { useBackHandler } from '@workspace/studio-core';
 import { STAGEX_ICON_MAP } from '../../constants';
+import { projectProductionDocumentData } from '../../services/projectProductionDocumentData';
+import { generateProductionDocumentPdf } from '../../services/generateProductionDocumentPdf';
 
 export interface StageExportPdfViewProps {
   onBack: () => void;
@@ -16,26 +17,10 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
   isLight = false,
   isAmoled = false,
 }) => {
-  const {
-    projectName,
-    elements,
-    scenes,
-    currentSceneIdx,
-    riderChannels,
-    riderNeeds,
-    riderConfig,
-    setlist,
-    gear,
-    members,
-    preferences,
-  } = useStagexStore();
+  const store = useStagexStore();
 
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isExportBusy, setIsExportBusy] = useState(false);
-  const [pdfFileName, setPdfFileName] = useState(
-    () =>
-      `${(projectName || 'Main_Stage').replace(/\s+/g, '_')}_Rider_${new Date().toISOString().slice(0, 10)}`
-  );
   const [pdfSceneChoice, setPdfSceneChoice] = useState<'current' | 'all' | number>('current');
 
   // Reload latest storage data on mount to ensure fresh state
@@ -53,168 +38,46 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     [onBack]
   );
 
-  // Authoritative live state from canvas iframe (if mounted)
-  const liveWin = StageBridge.getWin();
-  const liveState = liveWin?.state;
+  // Compute canonical document data projection
+  const data = useMemo(() => {
+    return projectProductionDocumentData(store, pdfSceneChoice);
+  }, [store, pdfSceneChoice]);
 
-  const activeSceneIdx =
-    typeof liveState?.currentSceneIdx === 'number'
-      ? liveState.currentSceneIdx
-      : typeof currentSceneIdx === 'number'
-        ? currentSceneIdx
-        : 0;
-
-  const activeScenes = liveState?.scenes && liveState.scenes.length > 0 ? liveState.scenes : scenes;
-
-  const currentScene = activeScenes[activeSceneIdx] ||
-    scenes[currentSceneIdx] || { name: 'Main Stage' };
-  const activeSceneName = currentScene.name || `Scene ${activeSceneIdx + 1}`;
-
-  // Current elements: liveState.elements if matching active scene, otherwise scene's elements
-  const currentElements: any[] = useMemo(() => {
-    if (liveState?.elements && liveState.currentSceneIdx === activeSceneIdx) {
-      return liveState.elements;
-    }
-    if (currentScene && Array.isArray(currentScene.elements)) {
-      return currentScene.elements;
-    }
-    return elements || [];
-  }, [liveState?.elements, liveState?.currentSceneIdx, activeSceneIdx, currentScene, elements]);
-
-  // Current connections
-  const currentConnections: any[] = useMemo(() => {
-    if (liveState?.connections && liveState.currentSceneIdx === activeSceneIdx) {
-      return liveState.connections;
-    }
-    if (currentScene && Array.isArray(currentScene.connections)) {
-      return currentScene.connections;
-    }
-    return [];
-  }, [liveState?.connections, liveState?.currentSceneIdx, activeSceneIdx, currentScene]);
-
-  // Canvas dimensions for 1:1 relative mapping
-  const isSquare = preferences.stageShape === 'square';
-  const refW =
-    liveState?.canvasW && liveState.canvasW > 0 ? liveState.canvasW : isSquare ? 500 : 650;
-  const refH =
-    liveState?.canvasH && liveState.canvasH > 0 ? liveState.canvasH : isSquare ? 500 : 420;
-
-  const sceneInfo = useMemo(
-    () => ({
-      count: activeScenes.length || 1,
-      currentIdx: activeSceneIdx,
-      names: activeScenes.map((s: any, i: number) => s.name || `Scene ${i + 1}`),
-    }),
-    [activeScenes, activeSceneIdx]
+  const [pdfFileName, setPdfFileName] = useState(
+    () =>
+      `${(data.projectName || 'Main_Stage').replace(/\s+/g, '_')}_Production_Document_${new Date().toISOString().slice(0, 10)}`
   );
 
-  const stageDimensions = isSquare ? "28' × 28'" : "32' × 24'";
-  const fohProtocol =
-    riderNeeds.find((n) => n.type === 'foh')?.value || 'Dante Primary/Secondary @ 96kHz';
-  const monitorProtocol =
-    riderNeeds.find((n) => n.type === 'monitor')?.value || 'Minimum 4 discrete stereo IEM mixes';
-  const powerProtocol =
-    riderNeeds.find((n) => n.type === 'power')?.value || '2× 20A circuits, distro Stage Left';
-  const updatedDate = useMemo(() => {
-    return new Date().toLocaleDateString('en-US', {
-      month: 'short',
-      day: '2-digit',
-      year: 'numeric',
-    });
-  }, []);
+  // Scene info for export dialog
+  const sceneInfo = useMemo(
+    () => ({
+      count: data.totalScenes || 1,
+      currentIdx: data.sceneIdx || 0,
+      names:
+        store.scenes && store.scenes.length > 0
+          ? store.scenes.map((s, i) => s.name || `Scene ${i + 1}`)
+          : [data.sceneName],
+    }),
+    [data.totalScenes, data.sceneIdx, data.sceneName, store.scenes]
+  );
 
-  const timeString = useMemo(() => {
-    return new Date().toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-  }, []);
-
-  // Patch List derivation
-  const patchList = useMemo(() => {
-    if (riderChannels && riderChannels.length > 0) {
-      return riderChannels.map((c, i) => ({
-        ch: String(c.ch || i + 1).padStart(2, '0'),
-        input: c.source || `Channel ${i + 1}`,
-        performer: members[i % (members.length || 1)]?.name || 'Band',
-        micDi: c.mic || 'Direct / Mic',
-        phantom: Boolean(c.phantom),
-        notes: c.notes || c.stand || 'FOH Mix',
-      }));
-    }
-    if (!currentElements || currentElements.length === 0) {
-      return [];
-    }
-    return currentElements.map((el, idx) => {
-      const typeStr = (el.type || '').toLowerCase();
-      const labelStr = (el.label || el.name || '').toLowerCase();
-      const isMic = typeStr.includes('mic') || labelStr.includes('vocal');
-      const isAmp =
-        typeStr.includes('amp') || labelStr.includes('guitar') || labelStr.includes('bass');
-      const isKey =
-        typeStr.includes('key') || labelStr.includes('synth') || labelStr.includes('piano');
-      const isDrum = typeStr.includes('drum');
-
-      let micDi = 'Direct Line / DI';
-      if (isMic) micDi = labelStr.includes('lead') ? 'Axient KSM9 (Wireless)' : 'Shure Beta 58A';
-      else if (isDrum) micDi = labelStr.includes('kick') ? 'Shure Beta 91A' : 'Audix DP7 Pack';
-      else if (isAmp)
-        micDi = labelStr.includes('bass') ? 'Radial J48 Active DI' : 'Sennheiser e609';
-      else if (isKey) micDi = 'Radial ProD2 Stereo';
-
-      const performerName =
-        el.performer ||
-        members[idx % (members.length || 1)]?.name ||
-        (isMic ? 'Lead Vocalist' : isDrum ? 'Drummer' : isAmp ? 'Guitar/Bass' : 'Keys / Synth');
-
-      return {
-        ch: String(idx + 1).padStart(2, '0'),
-        input: (el.label || el.name || `Input ${idx + 1}`).toUpperCase(),
-        performer: performerName,
-        micDi: el.transducer || micDi,
-        phantom: Boolean(el.phantom || isKey || micDi.includes('91A') || micDi.includes('J48')),
-        notes:
-          el.mix ||
-          (isMic ? 'Wireless RF' : isDrum ? 'Bound. mic' : isAmp ? 'Pre-EQ drop' : 'Ch Pair'),
-      };
-    });
-  }, [riderChannels, currentElements, members]);
-
-  // Setlist Total Duration
-  const totalSetlistMinutes = useMemo(() => {
-    if (!setlist || setlist.length === 0) return 0;
-    return setlist.reduce((acc, s) => {
-      const dur = s.duration || '04:00';
-      const parts = dur.split(':').map((p) => parseInt(p, 10) || 0);
-      const mins = parts.length === 2 ? parts[0] + parts[1] / 60 : 4;
-      return acc + mins;
-    }, 0);
-  }, [setlist]);
-
-  // PDF Export Trigger
-  const handleExportClick = () => {
-    setIsExportDialogOpen(true);
-  };
-
+  // PDF Export Execution
   const executeExport = useCallback(
     async (share: boolean) => {
       setIsExportBusy(true);
       try {
-        const activeIframe = StageBridge.getActiveIframe();
-        const finalName = (pdfFileName.trim() || 'StagePlot') + '.pdf';
-        await StageBridge.exportPdf(activeIframe, {
-          name: finalName,
-          includeBackdrop: true,
+        await generateProductionDocumentPdf(data, {
+          fileName: pdfFileName,
+          share,
         });
         setIsExportDialogOpen(false);
       } catch (err) {
-        console.error('Export to PDF failed', err);
+        console.error('Failed to generate production document PDF:', err);
       } finally {
         setIsExportBusy(false);
       }
     },
-    [pdfFileName]
+    [data, pdfFileName]
   );
 
   // Dynamic Theme Colors
@@ -280,7 +143,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           <div className="flex items-center justify-start">
             <button
               type="button"
-              data-testid="export-pdf-back-btn"
+              data-testid="production-document-back-btn"
               onClick={onBack}
               aria-label="Go Back"
               className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-90"
@@ -307,14 +170,14 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           {/* Center: Mathematically Centered Title Across Entire Top Bar */}
           <div className="flex items-center justify-center whitespace-nowrap px-2">
             <span
-              data-testid="export-pdf-title"
+              data-testid="production-document-title"
               className="text-[14px] font-bold tracking-tight select-none"
               style={{
                 color: isLight ? '#09090b' : '#ffffff',
                 fontFamily: "'Inter', sans-serif",
               }}
             >
-              Export to PDF
+              Production Document
             </span>
           </div>
 
@@ -341,11 +204,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             {/* Export / Share Control */}
             <button
               type="button"
-              data-testid="export-pdf-action-btn"
-              onClick={handleExportClick}
+              data-testid="stage-export-btn"
+              onClick={() => setIsExportDialogOpen(true)}
               disabled={isExportBusy}
-              aria-label="Export / Share"
-              title="Export / Share"
+              aria-label="Export Production Document"
+              title="Export Production Document"
               className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-90"
               style={{
                 background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
@@ -378,11 +241,19 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           paddingBottom: 'calc(max(env(safe-area-inset-bottom, 0px), 24px) + 64px)',
         }}
       >
-        {/* ── RIDER IDENTITY SECTION ─────────────────────────────── */}
-        <section className="space-y-3 pt-2" data-purpose="rider-identity">
+        {/* ── PRODUCTION IDENTITY SECTION ──────────────────────────── */}
+        <section className="space-y-3 pt-2" data-purpose="production-identity">
           <div className="space-y-1.5">
-            <div className="text-[10px] font-mono font-bold tracking-wider text-blue-500 uppercase">
-              Technical Rider Export
+            <div className="flex items-center justify-between">
+              <div className="text-[10px] font-mono font-bold tracking-wider text-blue-500 uppercase">
+                Live Stage Production Document
+              </div>
+              <span
+                data-testid="production-document-id"
+                className="text-[9px] font-mono font-bold px-2 py-0.5 rounded border border-blue-500/20 bg-blue-500/10 text-blue-500 uppercase tracking-widest"
+              >
+                {data.documentId}
+              </span>
             </div>
 
             <h1
@@ -390,11 +261,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               className="text-3xl font-black tracking-tight uppercase"
               style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
             >
-              {projectName || 'MAIN STAGE'}
+              {data.projectName || 'MAIN STAGE'}
             </h1>
 
             <p className="text-[13px] font-medium text-zinc-500 tracking-tight">
-              {projectName || 'Main Stage'} · {activeSceneName}
+              {data.projectName} · {data.sceneName}
             </p>
           </div>
 
@@ -403,15 +274,15 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             style={{ color: textDim }}
           >
             <span className="uppercase" style={{ color: textPrimary }}>
-              ELEMENTS {currentElements.length}
+              ELEMENTS {data.elements.length}
             </span>
             <span>•</span>
-            <span className="uppercase">VER V1</span>
+            <span className="uppercase">CHANNELS {data.channels.length}</span>
             <span>•</span>
-            <span className="uppercase">{updatedDate}</span>
+            <span className="uppercase">{data.date}</span>
           </div>
 
-          {/* Metadata Grid Strip */}
+          {/* Metadata Grid Strip (Venue & Contact) */}
           <div
             className="grid grid-cols-2 border-t border-b mt-4 select-none"
             style={{ borderColor: borderCol }}
@@ -421,18 +292,20 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               style={{ borderColor: borderCol }}
             >
               <span className="text-[8px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-400">
-                Document ID
+                Venue / Stage
               </span>
-              <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200">
-                STAGE-CORE
+              <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200 truncate">
+                {data.venue || 'Production Stage'}
               </span>
             </div>
             <div className="py-2.5 pl-4 flex flex-col gap-0.5">
               <span className="text-[8px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-400">
-                Last Updated
+                Production Contact
               </span>
-              <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200">
-                {updatedDate.toUpperCase()} - {timeString}
+              <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200 truncate">
+                {data.contactName
+                  ? `${data.contactName} (${data.contactPhone || 'FOH'})`
+                  : 'Stage Director'}
               </span>
             </div>
           </div>
@@ -454,17 +327,17 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               className="text-[10px] font-mono tracking-tight font-semibold"
               style={{ color: textDim }}
             >
-              SCALE: 1:50 · {stageDimensions}
+              SCALE: 1:50 · {data.stageDimensions}
             </span>
           </div>
 
           {/* Literal Stage Plot Canvas Container */}
-          {currentElements.length === 0 ? (
+          {data.elements.length === 0 ? (
             <div
               data-testid="stage-plot-empty"
               className="w-full flex items-center justify-center rounded-lg border border-dashed select-none"
               style={{
-                height: isSquare ? '280px' : '200px',
+                height: data.isSquare ? '280px' : '200px',
                 backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
                 borderColor: borderCol,
               }}
@@ -480,7 +353,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             <div
               data-testid="stage-plot-preview-container"
               className={`relative w-full border rounded-xl overflow-hidden stage-blueprint-grid p-2.5 flex flex-col justify-between select-none ${
-                isSquare ? 'aspect-square max-h-[420px]' : 'aspect-[16/9] max-h-[360px]'
+                data.isSquare ? 'aspect-square max-h-[420px]' : 'aspect-[16/9] max-h-[360px]'
               }`}
               style={{
                 backgroundColor: blueprintBg,
@@ -508,16 +381,16 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               {/* Elements Plot Plane */}
               <div className="relative flex-1 w-full h-full overflow-hidden my-1">
                 {/* Active Connection Lines */}
-                {currentConnections.length > 0 && (
+                {data.connections.length > 0 && (
                   <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
-                    {currentConnections.map((conn: any, cIdx: number) => {
-                      const fromEl = currentElements.find((e: any) => e.id === conn.fromId);
-                      const toEl = currentElements.find((e: any) => e.id === conn.toId);
+                    {data.connections.map((conn: any, cIdx: number) => {
+                      const fromEl = data.elements.find((e: any) => e.id === conn.fromId);
+                      const toEl = data.elements.find((e: any) => e.id === conn.toId);
                       if (!fromEl || !toEl) return null;
-                      const x1 = Math.min(94, Math.max(6, (fromEl.x / refW) * 100));
-                      const y1 = Math.min(94, Math.max(6, (fromEl.y / refH) * 100));
-                      const x2 = Math.min(94, Math.max(6, (toEl.x / refW) * 100));
-                      const y2 = Math.min(94, Math.max(6, (toEl.y / refH) * 100));
+                      const x1 = Math.min(94, Math.max(6, (fromEl.x / data.refW) * 100));
+                      const y1 = Math.min(94, Math.max(6, (fromEl.y / data.refH) * 100));
+                      const x2 = Math.min(94, Math.max(6, (toEl.x / data.refW) * 100));
+                      const y2 = Math.min(94, Math.max(6, (toEl.y / data.refH) * 100));
                       return (
                         <line
                           key={conn.id || cIdx}
@@ -542,9 +415,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 )}
 
                 {/* Literal Elements Rendered from State */}
-                {currentElements.map((el: any, idx: number) => {
-                  const rawPctX = (el.x / refW) * 100;
-                  const rawPctY = (el.y / refH) * 100;
+                {data.elements.map((el: any, idx: number) => {
+                  const rawPctX = (el.x / data.refW) * 100;
+                  const rawPctY = (el.y / data.refH) * 100;
                   const pctX = Math.min(94, Math.max(6, rawPctX));
                   const pctY = Math.min(94, Math.max(6, rawPctY));
                   const rotation = el.rotation || 0;
@@ -603,44 +476,6 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                                 : 'music_note'}
                           </span>
                         )}
-
-                        {/* Micro Lock Badge */}
-                        {el.locked && (
-                          <div
-                            className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
-                            style={{
-                              background: isLight
-                                ? 'rgba(255, 255, 255, 0.95)'
-                                : 'rgba(20, 20, 24, 0.9)',
-                              border: '1px solid rgba(245, 158, 11, 0.7)',
-                              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                              color: '#f59e0b',
-                            }}
-                          >
-                            <svg width="7" height="7" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
-                            </svg>
-                          </div>
-                        )}
-
-                        {/* Micro Pin Badge */}
-                        {el.pinned && (
-                          <div
-                            className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
-                            style={{
-                              background: isLight
-                                ? 'rgba(255, 255, 255, 0.95)'
-                                : 'rgba(20, 20, 24, 0.9)',
-                              border: '1px solid rgba(236, 72, 153, 0.7)',
-                              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                              color: '#ec4899',
-                            }}
-                          >
-                            <svg width="7" height="7" viewBox="0 0 24 24" fill="currentColor">
-                              <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1 1 1-1v-6h5v-2l-2-2z" />
-                            </svg>
-                          </div>
-                        )}
                       </div>
 
                       {/* Standardized Canonical Label */}
@@ -683,14 +518,14 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
                 <span className="text-blue-500 font-mono text-[11px] mr-1.5">02 //</span>
-                Input List
+                Input Channel &amp; Patch List
               </h2>
             </div>
             <span
               className="text-[10px] font-mono tracking-tight font-semibold"
               style={{ color: textDim }}
             >
-              {patchList.length} Active Channels
+              {data.channels.length} Active Channels
             </span>
           </div>
 
@@ -715,8 +550,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             </div>
 
             {/* Channels Rows */}
-            {patchList.length > 0 ? (
-              patchList.map((ch, idx) => (
+            {data.channels.length > 0 ? (
+              data.channels.map((ch, idx) => (
                 <div
                   key={idx}
                   className="grid grid-cols-12 py-2 px-3 items-center text-[11.5px] font-normal tracking-tight"
@@ -731,7 +566,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     {ch.ch}
                   </div>
                   <div className="col-span-3 font-bold truncate" style={{ color: textPrimary }}>
-                    {ch.input}
+                    {ch.source}
                   </div>
                   <div
                     className="col-span-2 text-[11px] truncate font-medium"
@@ -743,7 +578,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     className="col-span-3 font-mono text-[11px] truncate"
                     style={{ color: textSecondary }}
                   >
-                    {ch.micDi}
+                    {ch.mic}
                   </div>
                   <div className="col-span-1 flex justify-center">
                     {ch.phantom ? (
@@ -769,13 +604,13 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               ))
             ) : (
               <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
-                Add elements in the editor to populate this list
+                No channels configured — add stage elements or patch channels to populate
               </div>
             )}
           </div>
         </section>
 
-        {/* ── 04 // CONNECTIVITY ─────────────────────────────────── */}
+        {/* ── 03 // TECHNICAL REQUIREMENTS ───────────────────────── */}
         <section className="space-y-3" data-purpose="connectivity-protocols">
           <div className="flex items-baseline justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -783,17 +618,16 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 className="text-[14px] font-extrabold tracking-tight uppercase"
                 style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
-                <span className="text-blue-500 font-mono text-[11px] mr-1.5">04 //</span>
-                Connectivity
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">03 //</span>
+                Technical Requirements
               </h2>
             </div>
+            <span className="text-[10px] font-mono font-semibold" style={{ color: textDim }}>
+              {data.totalRequirementsCount} Specs
+            </span>
           </div>
 
-          <div className="text-[9.5px] font-mono uppercase tracking-wider font-semibold text-blue-500 mb-2">
-            Technical Requirements
-          </div>
-
-          <div className="grid grid-cols-1 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             {/* FOH Protocol Card */}
             <div
               className="p-3.5 rounded-lg border flex flex-col gap-1"
@@ -807,8 +641,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-blue-500">
                 FOH Protocol
               </div>
-              <div className="text-[13px] font-bold text-zinc-900 dark:text-white">
-                {fohProtocol}
+              <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
+                {data.requirements.foh[0] || 'Dante 96kHz'}
               </div>
             </div>
 
@@ -825,8 +659,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-orange-500">
                 Monitor / IEM
               </div>
-              <div className="text-[13px] font-bold text-zinc-900 dark:text-white">
-                {monitorProtocol}
+              <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
+                {data.requirements.monitor[0] || 'Stereo IEM Mixes'}
               </div>
             </div>
 
@@ -843,14 +677,40 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-emerald-500">
                 Power Requirements
               </div>
-              <div className="text-[13px] font-bold text-zinc-900 dark:text-white">
-                {powerProtocol}
+              <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
+                {data.requirements.power[0] || '2× 20A Circuits'}
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── 05 // SETLIST ──────────────────────────────────────── */}
+        {/* ── 04 // PRODUCTION & TECHNICAL NOTES ─────────────────── */}
+        <section className="space-y-3" data-purpose="technical-notes">
+          <div className="flex items-baseline justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <h2
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+              >
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">04 //</span>
+                Production &amp; Technical Notes
+              </h2>
+            </div>
+          </div>
+
+          <div
+            className="p-4 rounded-lg border text-[12px] leading-relaxed select-none"
+            style={{
+              backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
+              borderColor: borderCol,
+              color: textSecondary,
+            }}
+          >
+            {data.notes}
+          </div>
+        </section>
+
+        {/* ── 05 // SETLIST RUNNING ORDER ────────────────────────── */}
         <section className="space-y-3" data-purpose="setlist-running-order">
           <div className="flex items-baseline justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -859,15 +719,15 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
                 <span className="text-blue-500 font-mono text-[11px] mr-1.5">05 //</span>
-                Setlist
+                Setlist Running Order
               </h2>
             </div>
-            {setlist && setlist.length > 0 && (
+            {data.setlist.length > 0 && (
               <span
                 className="text-[10px] font-mono tracking-tight font-semibold"
                 style={{ color: textDim }}
               >
-                TOTAL {Math.round(totalSetlistMinutes)} MIN
+                TOTAL {data.totalSetlistMinutes} MIN
               </span>
             )}
           </div>
@@ -876,8 +736,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             className="border rounded-lg overflow-hidden divide-y select-none"
             style={{ borderColor: borderCol }}
           >
-            {setlist && setlist.length > 0 ? (
-              setlist.map((song, idx) => (
+            {data.setlist.length > 0 ? (
+              data.setlist.map((song, idx) => (
                 <div
                   key={song.id || idx}
                   className="py-2.5 px-3 flex items-center justify-between text-[12px]"
@@ -890,9 +750,16 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="font-bold" style={{ color: textPrimary }}>
                       {song.title}
                     </span>
+                    {song.artist && (
+                      <span className="text-[11px]" style={{ color: textDim }}>
+                        · {song.artist}
+                      </span>
+                    )}
                   </div>
                   <span className="font-mono text-[11px]" style={{ color: textDim }}>
-                    {song.bpm || 120} BPM · {song.key || 'C'} · {song.duration || '04:00'}
+                    {song.key ? `${song.key} · ` : ''}
+                    {song.bpm ? `${song.bpm} BPM · ` : ''}
+                    {song.duration || '04:00'}
                   </span>
                 </div>
               ))
@@ -904,37 +771,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           </div>
         </section>
 
-        {/* ── 06 // TECHNICAL NOTES ──────────────────────────────── */}
-        <section className="space-y-3" data-purpose="technical-notes">
-          <div className="flex items-baseline justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <h2
-                className="text-[14px] font-extrabold tracking-tight uppercase"
-                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
-              >
-                <span className="text-blue-500 font-mono text-[11px] mr-1.5">06 //</span>
-                Technical Notes
-              </h2>
-            </div>
-            <span className="text-[9px] font-mono uppercase tracking-wider font-semibold text-zinc-400">
-              Click to Edit
-            </span>
-          </div>
-
-          <div
-            className="p-4 rounded-lg border text-[12px] leading-relaxed select-none"
-            style={{
-              backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
-              borderColor: borderCol,
-              color: textSecondary,
-            }}
-          >
-            {riderConfig?.notes ||
-              'Artist provides all instruments, IEM transmitters, and playback rack. Venue must provide all microphones, stands, and XLR cabling as per the input list. PA system must be capable of 105dB continuous at FOH without distortion. Front-fills are mandatory for the first 3 rows. All wireless systems must be frequency-coordinated prior to load-in.'}
-          </div>
-        </section>
-
-        {/* ── 07 // GEAR / LOAD-IN CHECKLIST ─────────────────────── */}
+        {/* ── 06 // GEAR / LOAD-IN CHECKLIST ─────────────────────── */}
         <section className="space-y-3" data-purpose="load-in-checklist">
           <div className="flex items-baseline justify-between mb-1">
             <div className="flex items-center gap-2">
@@ -942,18 +779,21 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 className="text-[14px] font-extrabold tracking-tight uppercase"
                 style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
-                <span className="text-blue-500 font-mono text-[11px] mr-1.5">07 //</span>
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">06 //</span>
                 Gear / Load-In Checklist
               </h2>
             </div>
+            <span className="text-[10px] font-mono font-semibold" style={{ color: textDim }}>
+              {data.totalGearUnits} Units ({data.packedGearUnits} Packed)
+            </span>
           </div>
 
           <div
             className="border rounded-lg overflow-hidden divide-y select-none"
             style={{ borderColor: borderCol }}
           >
-            {gear && gear.length > 0 ? (
-              gear.map((item, idx) => (
+            {data.gear.length > 0 ? (
+              data.gear.map((item, idx) => (
                 <div
                   key={item.id || idx}
                   className="py-2.5 px-3 flex items-center justify-between text-[12px]"
@@ -965,6 +805,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     </span>
                     <span className="font-bold" style={{ color: textPrimary }}>
                       {item.name}
+                    </span>
+                    <span className="text-[11px]" style={{ color: textDim }}>
+                      ({item.category || 'General'}) · {item.qty || 1}x
                     </span>
                   </div>
                   <span
@@ -986,6 +829,73 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           </div>
         </section>
 
+        {/* ── 07 // BAND & CREW ROSTER ───────────────────────────── */}
+        <section className="space-y-3" data-purpose="band-crew-roster">
+          <div className="flex items-baseline justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <h2
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+              >
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">07 //</span>
+                Band &amp; Crew Roster
+              </h2>
+            </div>
+            <span className="text-[10px] font-mono font-semibold" style={{ color: textDim }}>
+              {data.totalMembers} Members ({data.assignedMembersCount} Assigned)
+            </span>
+          </div>
+
+          <div
+            className="border rounded-lg overflow-hidden divide-y select-none"
+            style={{ borderColor: borderCol }}
+          >
+            {data.members.length > 0 ? (
+              data.members.map((member, idx) => (
+                <div
+                  key={member.id || idx}
+                  className="py-2.5 px-3 flex items-center justify-between text-[12px]"
+                  style={{ borderTopColor: borderSubtle }}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[10px] border shrink-0"
+                      style={{
+                        backgroundColor: member.color ? `${member.color}20` : 'rgba(0,0,0,0.05)',
+                        borderColor: member.color || borderCol,
+                        color: member.color || textPrimary,
+                      }}
+                    >
+                      {member.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <span className="font-bold block" style={{ color: textPrimary }}>
+                        {member.name}
+                      </span>
+                      <span className="text-[10px]" style={{ color: textDim }}>
+                        {member.role || 'Band Member'} ·{' '}
+                        {member.assignedElements.length > 0
+                          ? `Assigned: ${member.assignedElements.join(', ')}`
+                          : 'Unassigned'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {(member.phone || member.email) && (
+                    <span className="text-[10px] font-mono" style={{ color: textDim }}>
+                      {[member.phone, member.email].filter(Boolean).join(' · ')}
+                    </span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
+                No members added — visit the Band &amp; Crew tab to build your roster.
+              </div>
+            )}
+          </div>
+        </section>
+
         {/* ── DOCUMENT FOOTER ────────────────────────────────────── */}
         <footer
           className="pt-6 pb-4 border-t text-[10px] font-mono flex justify-between items-center select-none"
@@ -997,13 +907,13 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           <div>
             <span className="font-bold text-zinc-800 dark:text-zinc-200">STAGEX</span>
             <p className="text-[8.5px] uppercase tracking-wider mt-0.5 text-zinc-400">
-              Professional Stage Plot &amp; Technical Rider Editor
+              Professional Stage Plot &amp; Production Document Editor
             </p>
           </div>
           <div className="text-right">
-            <span>{updatedDate.toUpperCase()}</span>
+            <span>{data.date.toUpperCase()}</span>
             <p className="text-[8.5px] uppercase tracking-wider mt-0.5 text-zinc-400">
-              Last Updated: {updatedDate.toUpperCase()} - {timeString}
+              Last Updated: {data.date.toUpperCase()} - {data.time}
             </p>
           </div>
         </footer>
@@ -1013,7 +923,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
       <ExportPdfDialog
         open={isExportDialogOpen}
         onClose={() => setIsExportDialogOpen(false)}
-        title="Export to PDF"
+        title="Export Production Document"
         nameLabel="Document Name"
         fileName={pdfFileName}
         setFileName={setPdfFileName}

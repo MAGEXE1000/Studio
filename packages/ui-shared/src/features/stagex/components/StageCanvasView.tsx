@@ -338,7 +338,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     };
   }, []);
 
-  const openRiderWorkflow = useCallback(() => {
+  const openProductionDocumentWorkflow = useCallback(() => {
     if (iframeRef.current) {
       callIframe('saveProject');
     }
@@ -417,7 +417,9 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
           isLight={isLight}
           tr={tr}
           callIframe={callIframe}
-          transitionToView={(v) => (v === 'Export' ? openRiderWorkflow() : onNavigateView?.(v))}
+          transitionToView={(v) =>
+            v === 'Export' ? openProductionDocumentWorkflow() : onNavigateView?.(v)
+          }
           openPdfSheet={openPdfSheet}
           collabState={collabState}
           onOpenCollab={() => setCollabModalOpen(true)}
@@ -474,9 +476,10 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={openRiderWorkflow}
-                    title={tr.stagex?.techRider || 'Technical Rider / PDF'}
-                    aria-label={tr.stagex?.techRider || 'Technical Rider / PDF'}
+                    data-testid="stagex-export-doc-btn"
+                    onClick={openProductionDocumentWorkflow}
+                    title={tr.stagex?.productionDoc || 'Production Document (PDF)'}
+                    aria-label={tr.stagex?.productionDoc || 'Production Document (PDF)'}
                     className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
                   >
                     <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">

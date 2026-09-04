@@ -395,3 +395,7 @@ export const useStagexStore = create<StagexStoreState>((set, get) => ({
     });
   },
 }));
+
+if (typeof window !== 'undefined') {
+  (window as any).useStagexStore = useStagexStore;
+}

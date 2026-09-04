@@ -36,8 +36,11 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
         {curView !== 'Editor' && (
           <>
             <div className={`h-4 w-[1px] ${isLight ? 'bg-zinc-200' : 'bg-zinc-800'}`} />
-            <span className="text-[8.5px] text-zinc-500 font-extrabold uppercase tracking-widest">
-              {curView === 'Export' ? 'Rider Export' : 'Setup & Options'}
+            <span
+              data-testid="stagex-toolbar-curview"
+              className="text-[8.5px] text-zinc-500 font-extrabold uppercase tracking-widest"
+            >
+              {curView === 'Export' ? 'Production Document' : 'Setup & Options'}
             </span>
           </>
         )}
@@ -85,10 +88,12 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
           <Button
             size="sm"
             variant="secondary"
+            data-testid="stagex-export-doc-btn"
             onClick={() => transitionToView('Export')}
             icon={<span className="material-symbols-outlined text-[15px]">picture_as_pdf</span>}
+            title={tr.stagex?.productionDoc || 'Production Document (PDF)'}
           >
-            Export Rider
+            {tr.stagex?.productionDocShort || 'Production Document'}
           </Button>
           {onOpenCollab && (
             <Button

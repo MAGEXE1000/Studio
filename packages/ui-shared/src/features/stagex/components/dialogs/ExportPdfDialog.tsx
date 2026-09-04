@@ -148,6 +148,7 @@ export const ExportPdfDialog: React.FC<ExportPdfDialogProps> = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
           <Button
             variant="primary"
+            data-testid="export-pdf-dialog-save-btn"
             onClick={() => onSave()}
             disabled={busy || !fileName.trim()}
             style={{ width: '100%' }}

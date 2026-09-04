@@ -7,9 +7,19 @@ import {
   seedAudioAssets,
   NATIVE_VERSION,
   initDevToolsFramework,
+  NavigationDispatcher,
+  useSettingsStore,
+  useNavigationStore,
 } from '@workspace/studio-core';
 import { Capacitor } from '@capacitor/core';
 import './index.css';
+
+// @ts-ignore
+window.NavigationDispatcher = NavigationDispatcher;
+// @ts-ignore
+window.useSettingsStore = useSettingsStore;
+// @ts-ignore
+window.useNavigationStore = useNavigationStore;
 const LazyEmergencyOverlay = lazy(() => import('./EmergencyDebugOverlay'));
 
 function EmergencyDebugOverlayWrapper() {
@@ -64,7 +74,9 @@ setTimeout(() => {
   void seedAudioAssets();
 }, 8000);
 
-const UpdateIndicator = lazy(() => import('@workspace/ui-shared/src/features/updater/components/UpdateIndicator'));
+const UpdateIndicator = lazy(
+  () => import('@workspace/ui-shared/src/features/updater/components/UpdateIndicator')
+);
 
 function GlobalOverlays() {
   const [ready, setReady] = useState(false);
@@ -138,8 +150,7 @@ setTimeout(() => {
           void reg.unregister();
         });
       })
-      .catch((err) => {
-      });
+      .catch((err) => {});
   }
 
   // Clear Web Cache Storage on native platform version change.
@@ -156,8 +167,7 @@ setTimeout(() => {
           .then(() => {
             localStorage.setItem(LAST_NATIVE_VERSION_KEY, NATIVE_VERSION);
           })
-          .catch((err) => {
-          });
+          .catch((err) => {});
       } else {
         localStorage.setItem(LAST_NATIVE_VERSION_KEY, NATIVE_VERSION);
       }

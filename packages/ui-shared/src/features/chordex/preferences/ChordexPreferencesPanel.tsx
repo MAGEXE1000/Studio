@@ -53,6 +53,7 @@ export default function ChordexPreferencesPanel() {
   ];
 
   const isWebDesktop = useIsWebDesktop();
+  const isSpanish = (settings.language ?? 'en') === 'es';
 
   if (isWebDesktop) {
     return (
@@ -61,12 +62,24 @@ export default function ChordexPreferencesPanel() {
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar space-y-6 px-6 pb-6">
           {/* ── INSTRUMENT ── */}
-          <SettingSection title="Global Instrument">
+          <SettingSection title={isSpanish ? 'Instrumento Global' : 'Global Instrument'}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
               {Object.values(INSTRUMENT_REGISTRY).map((inst: InstrumentConfig) => {
                 const currentInst = settings.instrument || 'guitar';
                 const isActive = currentInst === inst.id;
                 const isSoon = inst.status === 'coming_soon';
+                const instName = (t.settings.instruments as any)?.[inst.id]?.label || inst.name;
+                const instDesc = (t.settings.instruments as any)?.[inst.id]?.desc || inst.subtitle;
+                const instBadge =
+                  inst.badge === 'NEW'
+                    ? isSpanish
+                      ? 'NUEVO'
+                      : 'NEW'
+                    : inst.badge === 'SOON'
+                      ? isSpanish
+                        ? 'PRONTO'
+                        : 'SOON'
+                      : inst.badge;
 
                 return (
                   <div
@@ -118,9 +131,9 @@ export default function ChordexPreferencesPanel() {
                               color: isActive ? '#f59e0b' : 'var(--c-text-primary)',
                             }}
                           >
-                            {inst.name}
+                            {instName}
                           </span>
-                          {inst.badge && (
+                          {instBadge && (
                             <span
                               style={{
                                 fontSize: 9,
@@ -132,12 +145,12 @@ export default function ChordexPreferencesPanel() {
                                 color: inst.badge === 'NEW' ? '#000' : '#a1a1aa',
                               }}
                             >
-                              {inst.badge}
+                              {instBadge}
                             </span>
                           )}
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--c-text-muted)', marginTop: 2 }}>
-                          {inst.subtitle}
+                          {instDesc}
                         </div>
                       </div>
                     </div>
@@ -154,8 +167,12 @@ export default function ChordexPreferencesPanel() {
           {/* ── TUNING ── */}
           <SettingSection title={t.settings.sections.tuning}>
             <SettingRow
-              label="Instrument Tuning"
-              desc="Change the guitar/bass fretboard tuning system"
+              label={isSpanish ? 'Afinación del Instrumento' : 'Instrument Tuning'}
+              desc={
+                isSpanish
+                  ? 'Cambia el sistema de afinación del mástil para guitarra/bajo'
+                  : 'Change the guitar/bass fretboard tuning system'
+              }
             >
               <select
                 value={settings.tuning}
@@ -383,12 +400,27 @@ export default function ChordexPreferencesPanel() {
 
         <div className="px-6">
           {/* ── INSTRUMENT ── */}
-          <SectionHeader icon="music_note" title="Global Instrument" />
+          <SectionHeader
+            icon="music_note"
+            title={isSpanish ? 'Instrumento Global' : 'Global Instrument'}
+          />
           <div style={cardStyle} className="mb-6">
             {Object.values(INSTRUMENT_REGISTRY).map((inst: InstrumentConfig, idx: number) => {
               const currentInst = settings.instrument || 'guitar';
               const isActive = currentInst === inst.id;
               const isSoon = inst.status === 'coming_soon';
+              const instName = (t.settings.instruments as any)?.[inst.id]?.label || inst.name;
+              const instDesc = (t.settings.instruments as any)?.[inst.id]?.desc || inst.subtitle;
+              const instBadge =
+                inst.badge === 'NEW'
+                  ? isSpanish
+                    ? 'NUEVO'
+                    : 'NEW'
+                  : inst.badge === 'SOON'
+                    ? isSpanish
+                      ? 'PRONTO'
+                      : 'SOON'
+                    : inst.badge;
 
               return (
                 <button
@@ -444,9 +476,9 @@ export default function ChordexPreferencesPanel() {
                             fontFamily: 'Manrope',
                           }}
                         >
-                          {inst.name}
+                          {instName}
                         </span>
-                        {inst.badge && (
+                        {instBadge && (
                           <span
                             style={{
                               fontSize: 9,
@@ -458,7 +490,7 @@ export default function ChordexPreferencesPanel() {
                               color: inst.badge === 'NEW' ? '#000' : '#a1a1aa',
                             }}
                           >
-                            {inst.badge}
+                            {instBadge}
                           </span>
                         )}
                       </div>
@@ -469,7 +501,7 @@ export default function ChordexPreferencesPanel() {
                           marginTop: 2,
                         }}
                       >
-                        {inst.subtitle}
+                        {instDesc}
                       </div>
                     </div>
                   </div>

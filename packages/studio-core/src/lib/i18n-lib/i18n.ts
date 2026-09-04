@@ -17,13 +17,6 @@ export function detectDeviceLanguage(): Language {
         ? navigator.language.toLowerCase()
         : 'en';
     if (raw.startsWith('es')) return 'es';
-    if (raw.startsWith('de')) return 'de';
-    if (raw.startsWith('fr')) return 'fr';
-    if (raw.startsWith('zh')) return 'zh';
-    if (raw.startsWith('pt')) return 'pt';
-    if (raw.startsWith('it')) return 'it';
-    if (raw.startsWith('ja')) return 'ja';
-    if (raw.startsWith('ko')) return 'ko';
   } catch {
     /* noop */
   }
@@ -36,6 +29,7 @@ export type Translations = Omit<
   typeof en,
   'library' | 'songs' | 'customBuilder' | 'hub' | 'vocalex' | 'groovex'
 > & {
+  navigation?: typeof en.nav;
   library: Omit<
     typeof en.library,
     'results' | 'noResults' | 'chordCount' | 'songCount' | 'keyOf' | 'bpmShort' | 'loadMore'

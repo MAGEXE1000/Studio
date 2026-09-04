@@ -23,38 +23,66 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
 
-  const title = tr.stagex?.setupTitle || tr.stagex?.setup || 'Setup';
-  const subtitle =
-    tr.stagex?.setupSubtitle || 'Show production documents, technical rider & setlists';
+  const isSpanish = tr.nav?.stagexStage === 'Escenario';
 
+  const title = tr.stagex?.setupTitle || (isSpanish ? 'Configuración' : 'Setup');
+  const subtitle =
+    tr.stagex?.setupSubtitle ||
+    (isSpanish
+      ? 'Documentos de producción, rider técnico y listas de canciones'
+      : 'Show production documents, technical rider & setlists');
+
+  const totalRiderItems = riderNeeds.length + riderChannels.length;
   const cards = [
     {
       id: 'rider' as StagexSubView,
-      title: 'Technical Rider',
-      desc: 'Hospitality, sound & power specs for production',
+      title: tr.stagex?.techRiderTitle || (isSpanish ? 'Rider Técnico' : 'Technical Rider'),
+      desc:
+        tr.stagex?.techRiderDesc ||
+        (isSpanish
+          ? 'Especificaciones de sonido, energía y hospitalidad para producción'
+          : 'Hospitality, sound & power specs for production'),
       icon: 'description',
-      badge: `${riderNeeds.length + riderChannels.length} Items`,
+      badge: isSpanish
+        ? `${totalRiderItems} ${totalRiderItems === 1 ? 'elemento' : 'elementos'}`
+        : `${totalRiderItems} ${totalRiderItems === 1 ? 'Item' : 'Items'}`,
     },
     {
       id: 'setlist' as StagexSubView,
-      title: 'Setlist',
-      desc: 'Song order, timing & performance flow',
+      title: tr.stagex?.setlistTitle || (isSpanish ? 'Setlist' : 'Setlist'),
+      desc:
+        tr.stagex?.setlistDesc ||
+        (isSpanish
+          ? 'Orden de canciones, tiempos y dinámica del show'
+          : 'Song order, timing & performance flow'),
       icon: 'format_list_numbered',
-      badge: `${setlist.length} Songs`,
+      badge: isSpanish
+        ? `${setlist.length} ${setlist.length === 1 ? 'canción' : 'canciones'}`
+        : `${setlist.length} ${setlist.length === 1 ? 'Song' : 'Songs'}`,
     },
     {
       id: 'gear' as StagexSubView,
-      title: 'Gear',
-      desc: 'Instruments, amps & load-in checklist',
+      title: tr.stagex?.gearTitle || (isSpanish ? 'Equipamiento' : 'Gear'),
+      desc:
+        tr.stagex?.gearDesc ||
+        (isSpanish
+          ? 'Instrumentos, amplificadores y lista de carga'
+          : 'Instruments, amps & load-in checklist'),
       icon: 'tune',
-      badge: `${gear.length} Items`,
+      badge: isSpanish
+        ? `${gear.length} ${gear.length === 1 ? 'elemento' : 'elementos'}`
+        : `${gear.length} ${gear.length === 1 ? 'Item' : 'Items'}`,
     },
     {
       id: 'members' as StagexSubView,
-      title: 'Band & Crew',
-      desc: 'Band and crew information',
+      title: tr.stagex?.bandCrewTitle || (isSpanish ? 'Banda y Equipo' : 'Band & Crew'),
+      desc:
+        tr.stagex?.bandCrewDesc ||
+        (isSpanish ? 'Información de integrantes y equipo técnico' : 'Band and crew information'),
       icon: 'badge',
-      badge: members.length > 0 ? `${members.length} Members` : '0 Members',
+      badge: isSpanish
+        ? `${members.length} ${members.length === 1 ? 'miembro' : 'miembros'}`
+        : `${members.length} ${members.length === 1 ? 'Member' : 'Members'}`,
     },
   ];
 

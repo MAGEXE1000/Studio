@@ -1,4 +1,10 @@
-import { tolgee, initDevToolsFramework, NavigationDispatcher } from '@workspace/studio-core';
+import {
+  tolgee,
+  initDevToolsFramework,
+  NavigationDispatcher,
+  useSettingsStore,
+  useNavigationStore,
+} from '@workspace/studio-core';
 
 // Initialize DevTools
 initDevToolsFramework();
@@ -11,6 +17,10 @@ import './index.css';
 
 // @ts-ignore
 window.NavigationDispatcher = NavigationDispatcher;
+// @ts-ignore
+window.useSettingsStore = useSettingsStore;
+// @ts-ignore
+window.useNavigationStore = useNavigationStore;
 
 createRoot(document.getElementById('root')!).render(
   <TolgeeProvider tolgee={tolgee} fallback={null}>
@@ -26,6 +36,5 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         void reg.unregister();
       });
     })
-    .catch((err) => {
-    });
+    .catch((err) => {});
 }

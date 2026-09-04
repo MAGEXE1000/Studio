@@ -15,6 +15,7 @@ import {
   useBottomNavigationStore,
   useBackHandler,
   StartupCoordinator,
+  useT,
 } from '@workspace/studio-core';
 import {
   StudioLogo,
@@ -215,6 +216,8 @@ export function SharedNavigationBar({
 }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const startupComplete = useStartupComplete();
+  const t = useT();
+  const isSpanish = (t as any).nav?.profile === 'Perfil';
 
   const storeLocked = useBottomNavigationStore((s) => s.isLocked);
   const isEffectiveLocked = Boolean(isLocked || storeLocked);
@@ -802,7 +805,7 @@ export function SharedNavigationBar({
                   fontFamily: 'var(--font-headline)',
                 }}
               >
-                {user?.displayName || 'Guest User'}
+                {user?.displayName || (isSpanish ? 'Usuario Invitado' : 'Guest User')}
               </span>
               <span
                 style={{
@@ -848,7 +851,7 @@ export function SharedNavigationBar({
               >
                 person
               </span>
-              View Profile
+              {isSpanish ? 'Ver perfil' : 'View Profile'}
             </button>
 
             <button
@@ -877,7 +880,7 @@ export function SharedNavigationBar({
               >
                 settings
               </span>
-              Settings
+              {(t as any).nav?.settings || (isSpanish ? 'Ajustes' : 'Settings')}
             </button>
           </div>
         </motion.div>

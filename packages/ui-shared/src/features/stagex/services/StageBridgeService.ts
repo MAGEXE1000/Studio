@@ -356,4 +356,14 @@ export const StageBridge = {
     const raw = win.state.bandMembers || win.state.members || [];
     return Array.isArray(raw) ? raw : [];
   },
+
+  setLang(iframe: HTMLIFrameElement | null, lang: string): void {
+    const targetLang = lang === 'es' ? 'es' : 'en';
+    const win = this.getWin(iframe) as any;
+    if (typeof win?.setLang === 'function') {
+      win.setLang(targetLang);
+    } else if (iframe?.contentWindow) {
+      iframe.contentWindow.postMessage({ type: 'sc-set-lang', lang: targetLang }, '*');
+    }
+  },
 };

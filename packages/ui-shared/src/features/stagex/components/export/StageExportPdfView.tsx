@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { useStagexStore } from '../../state/useStagexStore';
-import { useBackHandler } from '@workspace/studio-core';
+import { useBackHandler, useSettingsStore } from '@workspace/studio-core';
 import { SharedFloatingHeader } from '../../../../shared/layout/StudioLayoutSystem';
 import { STAGEX_ICON_MAP } from '../../constants';
 import {
@@ -35,6 +35,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
   isAmoled = false,
 }) => {
   const store = useStagexStore();
+  const language = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const isSpanish = language === 'es';
 
   // Section visibility configuration state
   const [sectionsConfig, setSectionsConfig] = useState<ProductionDocumentSectionsConfig>(
@@ -97,11 +99,12 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
   }, [store, pdfSceneChoice]);
 
   const defaultPdfFileName = useMemo(() => {
-    const rawProject = data.projectName || 'Main_Stage';
+    const rawProject = data.projectName || (isSpanish ? 'Escenario_Principal' : 'Main_Stage');
     const cleanName = rawProject.replace(/[^a-zA-Z0-9_-]/g, '_');
     const dateStr = new Date().toISOString().slice(0, 10);
-    return `${cleanName}_Production_Document_${dateStr}`;
-  }, [data.projectName]);
+    const docSuffix = isSpanish ? 'Documento_Produccion' : 'Production_Document';
+    return `${cleanName}_${docSuffix}_${dateStr}`;
+  }, [data.projectName, isSpanish]);
 
   // Dynamic Section Renumbering for In-App Preview (01 //, 02 //, ...)
   const sectionNumberMap = useMemo(() => {
@@ -159,14 +162,19 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
         share: true,
         sections: sectionsConfig,
         theme: pdfTheme,
+        lang: isSpanish ? 'es' : 'en',
       });
     } catch (err) {
       console.error('Failed to share production document PDF:', err);
-      toast.error('Failed to share Production Document');
+      toast.error(
+        isSpanish
+          ? 'Error al compartir el Documento de Producción'
+          : 'Failed to share Production Document'
+      );
     } finally {
       setIsExportBusy(false);
     }
-  }, [data, defaultPdfFileName, sectionsConfig, pdfTheme]);
+  }, [data, defaultPdfFileName, sectionsConfig, pdfTheme, isSpanish]);
 
   // PDF Export Execution: Save to Downloads
   const handleSaveToDownloads = useCallback(
@@ -178,9 +186,14 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           share: false,
           sections: sectionsConfig,
           theme: pdfTheme,
+          lang: isSpanish ? 'es' : 'en',
         });
         setIsSaveModalOpen(false);
-        toast.success(`Saved to Downloads: ${result.fileName}`);
+        toast.success(
+          isSpanish
+            ? `Guardado en Descargas: ${result.fileName}`
+            : `Saved to Downloads: ${result.fileName}`
+        );
         setSaveSuccessNotification({
           fileName: result.fileName,
           uri: result.uri,
@@ -188,12 +201,16 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
         });
       } catch (err) {
         console.error('Failed to save production document PDF:', err);
-        toast.error('Failed to save Production Document to Downloads');
+        toast.error(
+          isSpanish
+            ? 'Error al guardar el Documento de Producción en Descargas'
+            : 'Failed to save Production Document to Downloads'
+        );
       } finally {
         setIsExportBusy(false);
       }
     },
-    [data, sectionsConfig, pdfTheme]
+    [data, sectionsConfig, pdfTheme, language, isSpanish]
   );
 
   // Dynamic Theme Colors
@@ -233,7 +250,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
       `}</style>
 
       <SharedFloatingHeader
-        title="Production Document"
+        title={isSpanish ? 'Documento de Producción' : 'Production Document'}
         titleTestId="production-document-title"
         backBtnTestId="production-document-back-btn"
         onBack={onBack}
@@ -249,8 +266,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 setIsExportMenuOpen(false);
                 setIsSectionsPopoverOpen((prev) => !prev);
               }}
-              aria-label="Document Sections"
-              title="Document Sections"
+              aria-label={isSpanish ? 'Secciones del Documento' : 'Document Sections'}
+              title={isSpanish ? 'Secciones del Documento' : 'Document Sections'}
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.05 }}
               style={{
@@ -311,8 +328,10 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 setIsExportMenuOpen((prev) => !prev);
               }}
               disabled={isExportBusy}
-              aria-label="Export Production Document"
-              title="Export Production Document"
+              aria-label={
+                isSpanish ? 'Exportar Documento de Producción' : 'Export Production Document'
+              }
+              title={isSpanish ? 'Exportar Documento de Producción' : 'Export Production Document'}
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.05 }}
               style={{
@@ -394,10 +413,12 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   className="text-[10px] font-mono font-bold tracking-wider uppercase"
                   style={{ color: textDim }}
                 >
-                  Export Document
+                  {isSpanish ? 'Exportar Documento' : 'Export Document'}
                 </span>
                 <span className="text-[10px] font-mono text-blue-500 font-bold">
-                  {activeSectionsCount} of 7 Active
+                  {isSpanish
+                    ? `${activeSectionsCount} de 7 Activas`
+                    : `${activeSectionsCount} of 7 Active`}
                 </span>
               </div>
 
@@ -448,10 +469,12 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                       className="text-[13px] font-bold"
                       style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
                     >
-                      Share Document
+                      {isSpanish ? 'Compartir Documento' : 'Share Document'}
                     </div>
                     <div className="text-[10.5px]" style={{ color: textDim }}>
-                      Send PDF via Android share sheet
+                      {isSpanish
+                        ? 'Enviar PDF mediante panel de compartir'
+                        : 'Send PDF via Android share sheet'}
                     </div>
                   </div>
                 </button>
@@ -495,7 +518,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     >
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                       <polyline points="7 10 12 15 17 10" />
-                      <line x1="12" y1="15" x2="12" y2="3" />
+                      <line x1="12" y1="2" x2="12" y2="15" />
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
@@ -503,10 +526,12 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                       className="text-[13px] font-bold"
                       style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
                     >
-                      Save to Downloads
+                      {isSpanish ? 'Guardar en Descargas' : 'Save to Downloads'}
                     </div>
                     <div className="text-[10.5px]" style={{ color: textDim }}>
-                      Directly save PDF to device storage
+                      {isSpanish
+                        ? 'Guardar PDF directamente en el almacenamiento'
+                        : 'Directly save PDF to device storage'}
                     </div>
                   </div>
                 </button>
@@ -557,7 +582,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <div className="text-[10px] font-mono font-bold tracking-wider text-blue-500 uppercase">
-                  Live Stage Production Document
+                  {isSpanish
+                    ? 'Documento de Producción de Escenario en Vivo'
+                    : 'Live Stage Production Document'}
                 </div>
                 <span
                   data-testid="production-document-id"
@@ -572,7 +599,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 className="text-3xl font-black tracking-tight uppercase"
                 style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
-                {data.projectName || 'MAIN STAGE'}
+                {data.projectName || (isSpanish ? 'ESCENARIO PRINCIPAL' : 'MAIN STAGE')}
               </h1>
 
               <p className="text-[13px] font-medium text-zinc-500 tracking-tight">
@@ -585,10 +612,12 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               style={{ color: textDim }}
             >
               <span className="uppercase" style={{ color: textPrimary }}>
-                ELEMENTS {data.elements.length}
+                {isSpanish ? 'ELEMENTOS' : 'ELEMENTS'} {data.elements.length}
               </span>
               <span>•</span>
-              <span className="uppercase">CHANNELS {data.channels.length}</span>
+              <span className="uppercase">
+                {isSpanish ? 'CANALES' : 'CHANNELS'} {data.channels.length}
+              </span>
               <span>•</span>
               <span className="uppercase">{data.date}</span>
             </div>
@@ -603,20 +632,22 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 style={{ borderColor: borderCol }}
               >
                 <span className="text-[8px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-400">
-                  Venue / Stage
+                  {isSpanish ? 'Lugar / Escenario' : 'Venue / Stage'}
                 </span>
                 <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200 truncate">
-                  {data.venue || 'Production Stage'}
+                  {data.venue || (isSpanish ? 'Escenario de Producción' : 'Production Stage')}
                 </span>
               </div>
               <div className="py-2.5 pl-4 flex flex-col gap-0.5">
                 <span className="text-[8px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-400">
-                  Production Contact
+                  {isSpanish ? 'Contacto de Producción' : 'Production Contact'}
                 </span>
                 <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200 truncate">
                   {data.contactName
                     ? `${data.contactName} (${data.contactPhone || 'FOH'})`
-                    : 'Stage Director'}
+                    : isSpanish
+                      ? 'Director de Escenario'
+                      : 'Stage Director'}
                 </span>
               </div>
             </div>
@@ -649,18 +680,19 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 </svg>
               </div>
               <div className="text-sm font-bold" style={{ color: textPrimary }}>
-                No Document Sections Enabled
+                {isSpanish ? 'Ninguna Sección Habilitada' : 'No Document Sections Enabled'}
               </div>
               <p className="text-xs max-w-sm text-zinc-400">
-                Use the Document Sections control in the top bar to enable or disable sections for
-                in-app preview and vector PDF export.
+                {isSpanish
+                  ? 'Usa el control de Secciones del Documento en la barra superior para habilitar o deshabilitar secciones para la vista previa y la exportación de PDF vectorial.'
+                  : 'Use the Document Sections control in the top bar to enable or disable sections for in-app preview and vector PDF export.'}
               </p>
               <button
                 type="button"
                 onClick={() => setIsSectionsPopoverOpen(true)}
                 className="mt-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition-all cursor-pointer"
               >
-                Configure Sections
+                {isSpanish ? 'Configurar Secciones' : 'Configure Sections'}
               </button>
             </div>
           )}
@@ -677,14 +709,14 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.stagePlot} //
                     </span>
-                    Stage Plot
+                    {isSpanish ? 'Plano de Escenario' : 'Stage Plot'}
                   </h2>
                 </div>
                 <span
                   className="text-[10px] font-mono tracking-tight font-semibold"
                   style={{ color: textDim }}
                 >
-                  SCALE: 1:50 · {data.stageDimensions}
+                  {isSpanish ? 'ESCALA: 1:50' : 'SCALE: 1:50'} · {data.stageDimensions}
                 </span>
               </div>
 
@@ -703,7 +735,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     className="text-[10.5px] font-mono font-bold tracking-[0.2em] uppercase"
                     style={{ color: textDim }}
                   >
-                    No elements placed on stage
+                    {isSpanish
+                      ? 'No hay elementos colocados en el escenario'
+                      : 'No elements placed on stage'}
                   </span>
                 </div>
               ) : (
@@ -722,7 +756,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     className="w-full flex items-center justify-between text-[8px] font-mono font-bold tracking-wider uppercase z-10 select-none"
                     style={{ color: textDim }}
                   >
-                    <span>Stage Left (SL)</span>
+                    <span>{isSpanish ? 'Escenario Izquierda (SL)' : 'Stage Left (SL)'}</span>
                     <span
                       className="border-b pb-0.5"
                       style={{
@@ -730,9 +764,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                         color: textPrimary,
                       }}
                     >
-                      ▲ Upstage / Backline Wall
+                      {isSpanish
+                        ? '▲ Fondo de Escenario / Pared Backline'
+                        : '▲ Upstage / Backline Wall'}
                     </span>
-                    <span>Stage Right (SR)</span>
+                    <span>{isSpanish ? 'Escenario Derecha (SR)' : 'Stage Right (SR)'}</span>
                   </div>
 
                   {/* Elements Plot Plane */}
@@ -861,9 +897,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                       color: textDim,
                     }}
                   >
-                    <span>Downstage Edge</span>
-                    <span style={{ color: textPrimary }}>▼ FOH / Audience Line</span>
-                    <span>Centerline (CL)</span>
+                    <span>{isSpanish ? 'Borde de Escenario' : 'Downstage Edge'}</span>
+                    <span style={{ color: textPrimary }}>
+                      {isSpanish ? '▼ FOH / Línea de Audiencia' : '▼ FOH / Audience Line'}
+                    </span>
+                    <span>{isSpanish ? 'Línea Central (CL)' : 'Centerline (CL)'}</span>
                   </div>
                 </div>
               )}
@@ -882,14 +920,18 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.inputPatch} //
                     </span>
-                    Input Channel &amp; Patch List
+                    {isSpanish
+                      ? 'Lista de Canales y Parcheo de Entrada'
+                      : 'Input Channel & Patch List'}
                   </h2>
                 </div>
                 <span
                   className="text-[10px] font-mono tracking-tight font-semibold"
                   style={{ color: textDim }}
                 >
-                  {data.channels.length} Active Channels
+                  {isSpanish
+                    ? `${data.channels.length} Canales Activos`
+                    : `${data.channels.length} Active Channels`}
                 </span>
               </div>
 
@@ -906,11 +948,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   }}
                 >
                   <div className="col-span-1">CH#</div>
-                  <div className="col-span-3">INSTRUMENT</div>
-                  <div className="col-span-2">PERFORMER</div>
+                  <div className="col-span-3">{isSpanish ? 'INSTRUMENTO' : 'INSTRUMENT'}</div>
+                  <div className="col-span-2">{isSpanish ? 'INTÉRPRETE' : 'PERFORMER'}</div>
                   <div className="col-span-3">MIC / DI</div>
                   <div className="col-span-1 text-center">48V</div>
-                  <div className="col-span-2 text-right">NOTES</div>
+                  <div className="col-span-2 text-right">{isSpanish ? 'NOTAS' : 'NOTES'}</div>
                 </div>
 
                 {/* Channels Rows */}
@@ -968,7 +1010,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   ))
                 ) : (
                   <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
-                    No channels configured — add stage elements or patch channels to populate
+                    {isSpanish
+                      ? 'No hay canales configurados — añade elementos al escenario o parchea canales para completarlo'
+                      : 'No channels configured — add stage elements or patch channels to populate'}
                   </div>
                 )}
               </div>
@@ -987,11 +1031,13 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.technicalRequirements} //
                     </span>
-                    Technical Requirements
+                    {isSpanish ? 'Requerimientos Técnicos' : 'Technical Requirements'}
                   </h2>
                 </div>
                 <span className="text-[10px] font-mono font-semibold" style={{ color: textDim }}>
-                  {data.totalRequirementsCount} Specs
+                  {isSpanish
+                    ? `${data.totalRequirementsCount} Especificaciones`
+                    : `${data.totalRequirementsCount} Specs`}
                 </span>
               </div>
 
@@ -1009,7 +1055,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   }}
                 >
                   <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-blue-500">
-                    FOH Protocol
+                    {isSpanish ? 'Protocolo FOH' : 'FOH Protocol'}
                   </div>
                   <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
                     {data.requirements.foh[0] || 'Dante 96kHz'}
@@ -1049,7 +1095,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   }}
                 >
                   <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-emerald-500">
-                    Power Requirements
+                    {isSpanish ? 'Requerimientos de Energía' : 'Power Requirements'}
                   </div>
                   <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
                     {data.requirements.power[0] || '2× 20A Circuits'}
@@ -1071,7 +1117,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.technicalNotes} //
                     </span>
-                    Production &amp; Technical Notes
+                    {isSpanish ? 'Notas de Producción y Técnicas' : 'Production & Technical Notes'}
                   </h2>
                 </div>
               </div>
@@ -1084,7 +1130,10 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   color: textSecondary,
                 }}
               >
-                {data.notes || 'No custom production notes provided.'}
+                {data.notes ||
+                  (isSpanish
+                    ? 'No se proporcionaron notas de producción personalizadas.'
+                    : 'No custom production notes provided.')}
               </div>
             </section>
           )}
@@ -1101,7 +1150,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.setlist} //
                     </span>
-                    Setlist Running Order
+                    {isSpanish ? 'Orden de Canciones del Setlist' : 'Setlist Running Order'}
                   </h2>
                 </div>
                 {data.setlist.length > 0 && (
@@ -1150,7 +1199,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   ))
                 ) : (
                   <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
-                    No songs added to setlist
+                    {isSpanish
+                      ? 'No hay canciones añadidas al setlist'
+                      : 'No songs added to setlist'}
                   </div>
                 )}
               </div>
@@ -1169,11 +1220,13 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.gear} //
                     </span>
-                    Gear / Load-In Checklist
+                    {isSpanish ? 'Equipamiento / Lista de Carga' : 'Gear / Load-In Checklist'}
                   </h2>
                 </div>
                 <span className="text-[10px] font-mono font-semibold" style={{ color: textDim }}>
-                  {data.totalGearUnits} Units ({data.packedGearUnits} Packed)
+                  {isSpanish
+                    ? `${data.totalGearUnits} Unidades (${data.packedGearUnits} Empacadas)`
+                    : `${data.totalGearUnits} Units (${data.packedGearUnits} Packed)`}
                 </span>
               </div>
 
@@ -1199,7 +1252,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                           {item.name}
                         </span>
                         <span className="text-[11px]" style={{ color: textDim }}>
-                          ({item.category || 'General'}) · {item.qty || 1}x
+                          ({item.category || (isSpanish ? 'General' : 'General')}) · {item.qty || 1}
+                          x
                         </span>
                       </div>
                       <span
@@ -1209,13 +1263,21 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                             : 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20'
                         }`}
                       >
-                        {item.packed ? 'Verified' : 'Required'}
+                        {item.packed
+                          ? isSpanish
+                            ? 'Verificado'
+                            : 'Verified'
+                          : isSpanish
+                            ? 'Requerido'
+                            : 'Required'}
                       </span>
                     </div>
                   ))
                 ) : (
                   <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
-                    No gear items added — visit the Gear tab to build your list.
+                    {isSpanish
+                      ? 'No hay elementos de equipamiento añadidos — visita la pestaña Equipamiento para armar tu lista.'
+                      : 'No gear items added — visit the Gear tab to build your list.'}
                   </div>
                 )}
               </div>
@@ -1234,11 +1296,13 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.bandCrew} //
                     </span>
-                    Band &amp; Crew Roster
+                    {isSpanish ? 'Lista de Banda y Equipo' : 'Band & Crew Roster'}
                   </h2>
                 </div>
                 <span className="text-[10px] font-mono font-semibold" style={{ color: textDim }}>
-                  {data.totalMembers} Members ({data.assignedMembersCount} Assigned)
+                  {isSpanish
+                    ? `${data.totalMembers} Miembros (${data.assignedMembersCount} Asignados)`
+                    : `${data.totalMembers} Members (${data.assignedMembersCount} Assigned)`}
                 </span>
               </div>
 
@@ -1271,10 +1335,12 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                             {member.name}
                           </span>
                           <span className="text-[10px]" style={{ color: textDim }}>
-                            {member.role || 'Band Member'} ·{' '}
+                            {member.role || (isSpanish ? 'Miembro de Banda' : 'Band Member')} ·{' '}
                             {member.assignedElements.length > 0
-                              ? `Assigned: ${member.assignedElements.join(', ')}`
-                              : 'Unassigned'}
+                              ? `${isSpanish ? 'Asignado: ' : 'Assigned: '}${member.assignedElements.join(', ')}`
+                              : isSpanish
+                                ? 'Sin asignar'
+                                : 'Unassigned'}
                           </span>
                         </div>
                       </div>
@@ -1288,7 +1354,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   ))
                 ) : (
                   <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
-                    No members added — visit the Band &amp; Crew tab to build your roster.
+                    {isSpanish
+                      ? 'No hay miembros añadidos — visita la pestaña Banda y Equipo para armar tu lista.'
+                      : 'No members added — visit the Band & Crew tab to build your roster.'}
                   </div>
                 )}
               </div>
@@ -1306,13 +1374,16 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             <div>
               <span className="font-bold text-zinc-800 dark:text-zinc-200">STAGEX</span>
               <p className="text-[8.5px] uppercase tracking-wider mt-0.5 text-zinc-400">
-                Professional Stage Plot &amp; Production Document Editor
+                {isSpanish
+                  ? 'Editor Profesional de Planos de Escenario y Documentos de Producción'
+                  : 'Professional Stage Plot & Production Document Editor'}
               </p>
             </div>
             <div className="text-right">
               <span>{data.date.toUpperCase()}</span>
               <p className="text-[8.5px] uppercase tracking-wider mt-0.5 text-zinc-400">
-                Last Updated: {data.date.toUpperCase()} - {data.time}
+                {isSpanish ? 'Última actualización: ' : 'Last Updated: '}
+                {data.date.toUpperCase()} - {data.time}
               </p>
             </div>
           </footer>
@@ -1352,9 +1423,11 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[12.5px] font-bold text-emerald-500 flex items-center gap-1.5">
-                <span>Saved to Downloads</span>
+                <span>{isSpanish ? 'Guardado en Descargas' : 'Saved to Downloads'}</span>
                 <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20">
-                  {saveSuccessNotification.pageCount} Pages
+                  {isSpanish
+                    ? `${saveSuccessNotification.pageCount} Páginas`
+                    : `${saveSuccessNotification.pageCount} Pages`}
                 </span>
               </div>
               <div
@@ -1369,7 +1442,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               onClick={() => setSaveSuccessNotification(null)}
               className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-75 shrink-0"
               style={{ color: textDim }}
-              aria-label="Dismiss notification"
+              aria-label={isSpanish ? 'Descartar notificación' : 'Dismiss notification'}
             >
               <svg
                 width="13"

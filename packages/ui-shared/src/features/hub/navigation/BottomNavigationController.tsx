@@ -95,25 +95,29 @@ export function BottomNavigationController() {
   const getTranslation = useCallback(
     (key: string) => {
       if (!t) return key;
-      if (key === 'songs') return t.navigation?.songs || 'Songs';
-      if (key === 'library') return t.navigation?.library || 'Library';
-      if (key === 'settings') return t.navigation?.settings || 'Preferences';
-      if (key === 'preferences') return t.navigation?.preferences || 'Preferences';
-      if (key === 'chords') return t.navigation?.chords || 'Chords';
-      if (key === 'drumSongs' || key === 'drumBeats') return t.navigation?.drumBeats || 'Beats';
-      if (key === 'drumPatterns') return t.navigation?.drumPatterns || 'Patterns';
-      if (key === 'drumPreferences') return t.navigation?.drumPreferences || 'Preferences';
+      const nav = t.nav || t.navigation || {};
+      if (key === 'songs') return nav.songs || 'Songs';
+      if (key === 'library') return nav.library || 'Library';
+      if (key === 'settings') return nav.settings || 'Preferences';
+      if (key === 'preferences') return nav.preferences || 'Preferences';
+      if (key === 'chords') return nav.chords || 'Chords';
+      if (key === 'drumSongs' || key === 'drumBeats') return nav.drumBeats || 'Beats';
+      if (key === 'drumPatterns') return nav.drumPatterns || 'Patterns';
+      if (key === 'drumPreferences') return nav.drumPreferences || 'Preferences';
       if (key === 'groovexLibrary' || key === 'groovexRhythms')
-        return t.navigation?.groovexRhythms || 'Rhythms';
-      if (key === 'groovexPreferences') return t.navigation?.groovexPreferences || 'Preferences';
-      if (key === 'vocalexCoach') return t.navigation?.vocalexCoach || 'Coach';
-      if (key === 'vocalexRecorder') return t.navigation?.vocalexRecorder || 'Recorder';
-      if (key === 'vocalexTakes') return t.navigation?.vocalexTakes || 'Takes';
-      if (key === 'vocalexPreferences') return t.navigation?.vocalexPreferences || 'Preferences';
-      if (key === 'stagexStage') return t.navigation?.stagexStage || 'Stage';
-      if (key === 'stagexSetup') return t.navigation?.stagexSetup || 'Setup';
-      if (key === 'stagexPreferences') return t.navigation?.stagexPreferences || 'Preferences';
-      return key;
+        return nav.groovexRhythms || 'Rhythms';
+      if (key === 'groovexPreferences') return nav.groovexPreferences || 'Preferences';
+      if (key === 'vocalexCoach') return nav.vocalexCoach || 'Coach';
+      if (key === 'vocalexRecorder') return nav.vocalexRecorder || 'Recorder';
+      if (key === 'vocalexTakes') return nav.vocalexTakes || 'Takes';
+      if (key === 'vocalexPreferences') return nav.vocalexPreferences || 'Preferences';
+      if (key === 'stagexStage') return nav.stagexStage || 'Stage';
+      if (key === 'stagexSetup') return nav.stagexSetup || 'Setup';
+      if (key === 'stagexPreferences') return nav.stagexPreferences || 'Preferences';
+      if (key === 'home') return nav.home || 'Home';
+      if (key === 'profile') return nav.profile || 'Profile';
+      if (key === 'practice') return nav.practice || 'Practice';
+      return nav[key] || key;
     },
     [t]
   );
@@ -344,7 +348,7 @@ export function BottomNavigationController() {
         {
           key: 'profile',
           icon: profileIcon,
-          label: 'Profile',
+          label: getTranslation('profile'),
           isActive: activeTab === 'profile' || activePage === 'profile',
           onClick: () => {
             NavigationDispatcher.push({ app: 'hub', tab: 'profile' });
@@ -353,7 +357,7 @@ export function BottomNavigationController() {
         {
           key: 'home',
           icon: 'home',
-          label: 'Home',
+          label: getTranslation('home'),
           isActive: activeTab === 'home' && activePage !== 'profile',
           onClick: () => {
             NavigationDispatcher.push({ app: 'hub', tab: 'home' });
@@ -362,7 +366,7 @@ export function BottomNavigationController() {
         {
           key: 'settings',
           icon: 'cog',
-          label: 'Settings',
+          label: getTranslation('settings'),
           isActive: activeTab === 'settings' && activePage !== 'profile',
           onClick: () => {
             NavigationDispatcher.push({ app: 'hub', tab: 'settings' });
@@ -388,7 +392,7 @@ export function BottomNavigationController() {
         return {
           key: sec.id,
           icon: iconElement,
-          label: sec.id === 'practice' ? 'Practice' : getTranslation(sec.labelKey),
+          label: sec.id === 'practice' ? getTranslation('practice') : getTranslation(sec.labelKey),
           isActive,
           onClick: () => {
             NavigationDispatcher.push({ app: 'chordex', page: sec.id as any, tab: sec.id as any });

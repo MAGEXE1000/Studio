@@ -4370,8 +4370,8 @@ export function HubSettings({
                       }}
                     >
                       <StudioHeader
-                        title="Settings"
-                        subtitle="Livex System"
+                        title={lang === 'es' ? 'Ajustes' : 'Settings'}
+                        subtitle={lang === 'es' ? 'Sistema Livex' : 'Livex System'}
                         disableHorizontalPadding={true}
                       />
 
@@ -4426,7 +4426,7 @@ export function HubSettings({
                                   letterSpacing: '-0.02em',
                                 }}
                               >
-                                Update available
+                                {lang === 'es' ? 'Actualización disponible' : 'Update available'}
                               </p>
                               <p
                                 style={{
@@ -4437,7 +4437,8 @@ export function HubSettings({
                                   fontFamily: 'Inter, sans-serif',
                                 }}
                               >
-                                Version {updater.remoteVersion}
+                                {lang === 'es' ? 'Versión ' : 'Version '}
+                                {updater.remoteVersion}
                               </p>
                             </div>
                           </div>
@@ -4459,7 +4460,7 @@ export function HubSettings({
                                 boxShadow: `0 4px 14px ${accent.from}35`,
                               }}
                             >
-                              Update
+                              {lang === 'es' ? 'Actualizar' : 'Update'}
                             </motion.button>
                             <motion.button
                               whileTap={{ scale: 0.96 }}
@@ -4482,7 +4483,7 @@ export function HubSettings({
                                 cursor: 'pointer',
                               }}
                             >
-                              Dismiss
+                              {lang === 'es' ? 'Descartar' : 'Dismiss'}
                             </motion.button>
                           </div>
                         </motion.div>
@@ -4502,7 +4503,7 @@ export function HubSettings({
                             fontFamily: 'Inter, sans-serif',
                           }}
                         >
-                          PREFERENCES
+                          {lang === 'es' ? 'PREFERENCIAS' : 'PREFERENCES'}
                         </h3>
                         <div
                           style={{
@@ -4576,7 +4577,7 @@ export function HubSettings({
                                   letterSpacing: '-0.015em',
                                 }}
                               >
-                                Appearance
+                                {lang === 'es' ? 'Apariencia' : 'Appearance'}
                               </span>
                               <span
                                 style={{
@@ -4586,7 +4587,9 @@ export function HubSettings({
                                   opacity: 0.75,
                                 }}
                               >
-                                Theme, dynamic colors, accent
+                                {lang === 'es'
+                                  ? 'Tema, colores dinámicos, acento'
+                                  : 'Theme, dynamic colors, accent'}
                               </span>
                             </div>
                             <div
@@ -4629,7 +4632,7 @@ export function HubSettings({
                             fontFamily: 'Inter, sans-serif',
                           }}
                         >
-                          HELP & SUPPORT
+                          {lang === 'es' ? 'AYUDA Y SOPORTE' : 'HELP & SUPPORT'}
                         </h3>
                         <div
                           style={{
@@ -4702,7 +4705,7 @@ export function HubSettings({
                                   letterSpacing: '-0.015em',
                                 }}
                               >
-                                Help & Support
+                                {lang === 'es' ? 'Ayuda y soporte' : 'Help & Support'}
                               </span>
                               <span
                                 style={{
@@ -4712,7 +4715,9 @@ export function HubSettings({
                                   opacity: 0.75,
                                 }}
                               >
-                                Documentation and FAQ
+                                {lang === 'es'
+                                  ? 'Documentación y preguntas frecuentes'
+                                  : 'Documentation and FAQ'}
                               </span>
                             </div>
                             <div
@@ -4755,7 +4760,7 @@ export function HubSettings({
                             fontFamily: 'Inter, sans-serif',
                           }}
                         >
-                          SYSTEM & ABOUT
+                          {lang === 'es' ? 'SISTEMA Y ACERCA DE' : 'SYSTEM & ABOUT'}
                         </h3>
                         <div
                           style={{

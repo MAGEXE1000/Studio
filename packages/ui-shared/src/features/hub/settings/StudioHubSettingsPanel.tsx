@@ -41,38 +41,47 @@ export default function StudioHubSettingsPanel() {
         }}
       >
         {/* Theme Section */}
-        <SettingSection title="Appearance Theme">
-          <SettingRow label="Theme Mode" desc="Switch between Light, Dark, and AMOLED themes">
+        <SettingSection title={t.settings.rows.appearanceTheme || 'Appearance Theme'}>
+          <SettingRow
+            label={t.settings.rows.themeMode || 'Theme Mode'}
+            desc={t.settings.rows.themeModeDesc || 'Switch between Light, Dark, and AMOLED themes'}
+          >
             <ThemeToggle variant="circle-blur" start="bottom-up" />
           </SettingRow>
         </SettingSection>
 
         {/* Accent Color Section */}
-        <SettingSection title="Accent Color">
+        <SettingSection title={t.settings.rows.accentColor || 'Accent Color'}>
           <AccentColorPicker />
         </SettingSection>
 
         {/* Interface Scaling Section */}
-        <SettingSection title="Interface Scaling">
-          <SettingRow label="Display Density" desc="Adjust screen layout density">
+        <SettingSection title={t.settings.rows.interfaceScaling || 'Interface Scaling'}>
+          <SettingRow
+            label={t.settings.rows.displayDensity || 'Display Density'}
+            desc={t.settings.rows.displayDensityDesc || 'Adjust screen layout density'}
+          >
             <SegmentedControl
               value={settings.displayDensity || 'comfortable'}
               options={[
-                { value: 'compact', label: 'Compact' },
-                { value: 'comfortable', label: 'Standard' },
-                { value: 'spacious', label: 'Spacious' },
+                { value: 'compact', label: t.settings.rows.densityCompact || 'Compact' },
+                { value: 'comfortable', label: t.settings.rows.densityStandard || 'Standard' },
+                { value: 'spacious', label: t.settings.rows.densitySpacious || 'Spacious' },
               ]}
               onChange={(v) => settingsController.updateSettings({ displayDensity: v })}
               layoutId="density-control"
             />
           </SettingRow>
-          <SettingRow label="Text Size" desc="Scale global typography">
+          <SettingRow
+            label={t.settings.rows.textSize || 'Text Size'}
+            desc={t.settings.rows.textSizeDesc || 'Scale global typography'}
+          >
             <SegmentedControl
               value={settings.fontSize || 'medium'}
               options={[
-                { value: 'small', label: 'Small' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'large', label: 'Large' },
+                { value: 'small', label: t.settings.rows.fontSizeSmall || 'Small' },
+                { value: 'medium', label: t.settings.rows.fontSizeMedium || 'Medium' },
+                { value: 'large', label: t.settings.rows.fontSizeLarge || 'Large' },
               ]}
               onChange={(v) => settingsController.updateSettings({ fontSize: v })}
               layoutId="font-size-control"
@@ -81,8 +90,11 @@ export default function StudioHubSettingsPanel() {
         </SettingSection>
 
         {/* Language Section */}
-        <SettingSection title="Language">
-          <SettingRow label="App Language" desc="Change the display language for Studio">
+        <SettingSection title={t.settings.sections.language || 'Language'}>
+          <SettingRow
+            label={t.settings.rows.appLanguage || 'App Language'}
+            desc={t.settings.rows.appLanguageDesc || 'Change the display language for Studio'}
+          >
             <motion.button
               whileTap={{ scale: 0.95 }}
               whileHover={{ scale: 1.02 }}
@@ -117,10 +129,13 @@ export default function StudioHubSettingsPanel() {
         </SettingSection>
 
         {/* Accessibility Section */}
-        <SettingSection title="Accessibility">
+        <SettingSection title={t.settings.rows.accessibility || 'Accessibility'}>
           <SettingRow
-            label="High Contrast"
-            desc="Sharpen text and interface elements for better readability"
+            label={t.settings.rows.highContrast || 'High Contrast'}
+            desc={
+              t.settings.rows.highContrastDesc ||
+              'Sharpen text and interface elements for better readability'
+            }
           >
             <Toggle
               value={settings.highContrast ?? false}
@@ -130,22 +145,37 @@ export default function StudioHubSettingsPanel() {
         </SettingSection>
 
         {/* Performance Section */}
-        <SettingSection title="Performance & Interaction">
-          <SettingRow label="Haptics" desc="Subtle tactile feedback for gestures and controls">
+        <SettingSection
+          title={t.settings.rows.performanceAndInteraction || 'Performance & Interaction'}
+        >
+          <SettingRow
+            label={t.settings.rows.haptics || 'Haptics'}
+            desc={
+              t.settings.rows.hapticsDesc || 'Subtle tactile feedback for gestures and controls'
+            }
+          >
             <Toggle
               value={settings.hapticFeedback ?? true}
               onChange={(v) => settingsController.updateSettings({ hapticFeedback: v })}
             />
           </SettingRow>
-          <SettingRow label="ProMotion" desc="Enable 120Hz smooth scrolling rendering pipeline">
+          <SettingRow
+            label={t.settings.rows.proMotion || 'ProMotion'}
+            desc={
+              t.settings.rows.proMotionDesc || 'Enable 120Hz smooth scrolling rendering pipeline'
+            }
+          >
             <Toggle
               value={settings.highRefreshRate ?? true}
               onChange={(v) => settingsController.updateSettings({ highRefreshRate: v })}
             />
           </SettingRow>
           <SettingRow
-            label="Performance Boost"
-            desc="Optimize system rendering engine for heavy audio/visual tasks"
+            label={t.settings.rows.performanceBoost || 'Performance Boost'}
+            desc={
+              t.settings.rows.performanceBoostDesc ||
+              'Optimize system rendering engine for heavy audio/visual tasks'
+            }
           >
             <Toggle
               value={settings.performanceMode ?? false}

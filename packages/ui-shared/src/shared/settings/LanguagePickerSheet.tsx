@@ -21,6 +21,8 @@ export const SUPPORTED_LANGUAGES = [
   { code: 'ko', label: '한국어' },
 ] as const;
 
+export const AVAILABLE_LANGUAGES = new Set(['en', 'es']);
+
 interface LanguagePickerSheetProps {
   open: boolean;
   onClose: () => void;
@@ -29,19 +31,29 @@ interface LanguagePickerSheetProps {
 export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps) {
   const settings = useSettingsStore((s) => s.settings);
   const acc = resolveAccent(settings.accentColor);
+  const isSpanish = (settings.language ?? 'en') === 'es';
+  const title = isSpanish ? 'Seleccionar idioma' : 'Select Language';
 
   return (
-    <Dialog open={open} onClose={onClose} title="Select Language">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 0' }}>
+    <Dialog open={open} onClose={onClose} title={title}>
+      <div
+        data-testid="language-picker-sheet"
+        style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 0' }}
+      >
         {SUPPORTED_LANGUAGES.map(({ code, label }) => {
           const isSelected = (settings.language ?? 'en') === code;
+          const isAvailable = AVAILABLE_LANGUAGES.has(code);
+
           return (
             <motion.button
               key={code}
-              whileTap={{ scale: 0.98 }}
-              whileHover={{ scale: 1.008 }}
+              data-unavailable={!isAvailable ? 'true' : undefined}
+              disabled={!isAvailable}
+              whileTap={isAvailable ? { scale: 0.98 } : undefined}
+              whileHover={isAvailable ? { scale: 1.008 } : undefined}
               transition={SpringPresets.soft}
               onClick={() => {
+                if (!isAvailable) return;
                 settingsController.updateSettings({ language: code as any });
                 onClose();
               }}
@@ -56,7 +68,8 @@ export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps)
                   ? `linear-gradient(135deg, ${acc.from}20, ${acc.to}10)`
                   : 'rgba(255, 255, 255, 0.02)',
                 color: isSelected ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
-                cursor: 'pointer',
+                cursor: isAvailable ? 'pointer' : 'not-allowed',
+                opacity: isAvailable ? 1 : 0.45,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -96,6 +109,23 @@ export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps)
                     check
                   </span>
                 </div>
+              )}
+              {!isAvailable && (
+                <span
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: 9999,
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    color: 'var(--c-text-secondary)',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {isSpanish ? 'Próximamente' : 'Coming soon'}
+                </span>
               )}
             </motion.button>
           );

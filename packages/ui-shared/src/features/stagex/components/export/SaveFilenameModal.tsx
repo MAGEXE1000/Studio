@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useSettingsStore } from '@workspace/studio-core';
 
 export interface SaveFilenameModalProps {
   open: boolean;
@@ -24,6 +25,8 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
   isLight = false,
   isAmoled = false,
 }) => {
+  const language = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const isSpanish = language === 'es';
   const [fileName, setFileName] = useState(defaultFileName);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -115,13 +118,13 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
             <div className="flex items-start justify-between">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-blue-500">
-                  Save to Downloads
+                  {isSpanish ? 'Guardar en Descargas' : 'Save to Downloads'}
                 </span>
                 <h3
                   className="text-lg font-bold tracking-tight"
                   style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
                 >
-                  Export Production Document
+                  {isSpanish ? 'Exportar Documento de Producción' : 'Export Production Document'}
                 </h3>
               </div>
 
@@ -135,7 +138,7 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                   color: textDim,
                   backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)',
                 }}
-                aria-label="Close dialog"
+                aria-label={isSpanish ? 'Cerrar diálogo' : 'Close dialog'}
               >
                 <svg
                   width="14"
@@ -176,10 +179,16 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                 </svg>
-                <span>Format: Vector PDF (A4 Print-Ready)</span>
+                <span>
+                  {isSpanish
+                    ? 'Formato: PDF Vectorial (Listo para Imprimir A4)'
+                    : 'Format: Vector PDF (A4 Print-Ready)'}
+                </span>
               </div>
               <span className="font-mono text-[11px] font-bold text-blue-500">
-                {activeSectionsCount} of {totalSectionsCount} Sections
+                {isSpanish
+                  ? `${activeSectionsCount} de ${totalSectionsCount} Secciones`
+                  : `${activeSectionsCount} of ${totalSectionsCount} Sections`}
               </span>
             </div>
 
@@ -190,7 +199,7 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                 className="text-[11px] font-bold tracking-wide uppercase"
                 style={{ color: textDim }}
               >
-                Filename
+                {isSpanish ? 'Nombre de archivo' : 'Filename'}
               </label>
 
               <div
@@ -217,7 +226,7 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                   data-testid="save-filename-input"
                   className="flex-1 bg-transparent text-sm font-semibold outline-none border-none p-0"
                   style={{ color: textPrimary }}
-                  placeholder="Document_Name"
+                  placeholder={isSpanish ? 'Nombre_del_documento' : 'Document_Name'}
                 />
                 <span
                   className="text-xs font-mono font-bold px-2 py-0.5 rounded ml-2 select-none"
@@ -230,7 +239,9 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                 </span>
               </div>
               <span className="text-[10px] text-zinc-400 font-mono">
-                Illegal characters (\ / : * ? &quot; &lt; &gt; |) are automatically removed
+                {isSpanish
+                  ? 'Los caracteres no válidos (\\ / : * ? " < > |) se eliminan automáticamente'
+                  : 'Illegal characters (\\ / : * ? " < > |) are automatically removed'}
               </span>
             </div>
 
@@ -247,7 +258,7 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                   backgroundColor: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)',
                 }}
               >
-                Cancel
+                {isSpanish ? 'Cancelar' : 'Cancel'}
               </button>
 
               <button
@@ -281,7 +292,7 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                       />
                     </svg>
-                    <span>Saving...</span>
+                    <span>{isSpanish ? 'Guardando...' : 'Saving...'}</span>
                   </>
                 ) : (
                   <>
@@ -299,7 +310,7 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    <span>Save PDF</span>
+                    <span>{isSpanish ? 'Guardar PDF' : 'Save PDF'}</span>
                   </>
                 )}
               </button>

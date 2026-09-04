@@ -14,6 +14,7 @@ import {
   setNavLocked,
   useBackHandler,
   useBottomNavigationStore,
+  useSettingsStore,
 } from '@workspace/studio-core';
 import { StageToolbar } from './StageToolbar';
 import { StageLibraryPanel } from './StageLibraryPanel';
@@ -398,6 +399,8 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   const preferences = useStagexStore((s) => s.preferences);
   const stageShape = preferences?.stageShape || 'rectangular';
 
+  const currentLang = useSettingsStore((s) => s.settings.language) ?? 'en';
+
   // Handle iframe load
   const handleIframeLoad = () => {
     setIframeLoading(false);
@@ -407,6 +410,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       injectTheme(iframeRef.current, isLight ? 'light' : 'dark');
       injectAmoled(iframeRef.current, isAmoled);
       StageBridge.updateCanvasBg(iframeRef.current, stageBg);
+      StageBridge.setLang(iframeRef.current, currentLang);
       StageBridge.syncAllPreferences(iframeRef.current, preferences);
       callIframe('resetView');
       try {
@@ -427,6 +431,12 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       StageBridge.syncAllPreferences(iframeRef.current, preferences);
     }
   }, [preferences, iframeLoading]);
+
+  useEffect(() => {
+    if (!iframeLoading && iframeRef.current) {
+      StageBridge.setLang(iframeRef.current, currentLang);
+    }
+  }, [currentLang, iframeLoading]);
 
   return (
     <div

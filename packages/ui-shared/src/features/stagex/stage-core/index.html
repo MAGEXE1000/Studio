@@ -5998,7 +5998,6 @@
     <script src="vendor/jspdf.umd.min.js"></script>
     <script src="app.js"></script>
     <script src="features.js"></script>
-
     <script>
       window.addEventListener('message', function (e) {
         if (e.origin !== window.location.origin) return;
@@ -6009,6 +6008,11 @@
           setTimeout(function () {
             if (typeof _rescaleElementsOnResize === 'function') _rescaleElementsOnResize();
           }, 250);
+        }
+        if (e.data && e.data.type === 'sc-set-lang') {
+          if (typeof setLang === 'function') {
+            setLang(e.data.lang);
+          }
         }
       });
 

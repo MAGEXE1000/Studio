@@ -16,8 +16,12 @@ function deepMerge<T>(base: T, override: unknown): T {
     if (ov === undefined) continue;
     const bv = out[k];
     if (
-      bv !== null && typeof bv === 'object' && !Array.isArray(bv) &&
-      ov !== null && typeof ov === 'object' && !Array.isArray(ov)
+      bv !== null &&
+      typeof bv === 'object' &&
+      !Array.isArray(bv) &&
+      ov !== null &&
+      typeof ov === 'object' &&
+      !Array.isArray(ov)
     ) {
       out[k] = deepMerge(bv, ov);
     } else {
@@ -28,8 +32,7 @@ function deepMerge<T>(base: T, override: unknown): T {
 }
 
 function buildTranslations(lang: string): Translations {
-  const enBundle =
-    (i18n.getResourceBundle('en', 'translation') as Record<string, unknown>) ?? {};
+  const enBundle = (i18n.getResourceBundle('en', 'translation') as Record<string, unknown>) ?? {};
   const langBundle =
     lang !== 'en'
       ? ((i18n.getResourceBundle(lang, 'translation') as Record<string, unknown>) ?? {})
@@ -49,9 +52,12 @@ function buildTranslations(lang: string): Translations {
   const colors = (settings.colors as Record<string, unknown>) ?? {};
   const langOpts = (settings.language as Record<string, unknown>) ?? {};
   const about = (settings.about as Record<string, unknown>) ?? {};
+  const nav = (merged.nav as Record<string, unknown>) ?? {};
 
   return {
     ...merged,
+    nav: { ...nav },
+    navigation: { ...nav },
     settings: {
       ...settings,
       sections: { ...sections },
@@ -99,8 +105,7 @@ function buildTranslations(lang: string): Translations {
         ...acct,
         pendingBody: (email: string) =>
           tr('hub.accountSection.pendingBody', { emailPart: email ? `(${email}) ` : '' }),
-        pendingFooter: (days: number) =>
-          tr('hub.accountSection.pendingFooter', { count: days }),
+        pendingFooter: (days: number) => tr('hub.accountSection.pendingFooter', { count: days }),
       },
       studioSettings: {
         ...studioSets,
@@ -118,8 +123,7 @@ function buildTranslations(lang: string): Translations {
     groovex: {
       ...((merged.groovex as Record<string, unknown>) ?? {}),
       sessionsAvailable: (n: number) => tr('groovex.sessionsAvailable', { count: n }),
-      tracksWillBeDownloaded: (n: number) =>
-        tr('groovex.tracksWillBeDownloaded', { count: n }),
+      tracksWillBeDownloaded: (n: number) => tr('groovex.tracksWillBeDownloaded', { count: n }),
       stemsFailed: (n: number) => tr('groovex.stemsFailed', { count: n }),
       mixerTracks: (n: number) => tr('groovex.mixerTracks', { count: n }),
       songUnit: (n: number) => tr('groovex.songUnit', { count: n }),
@@ -128,6 +132,6 @@ function buildTranslations(lang: string): Translations {
 }
 
 export function useT(): Translations {
-  const language = useSettingsStore(s => s.settings.language);
+  const language = useSettingsStore((s) => s.settings.language);
   return useMemo(() => buildTranslations(language), [language]);
 }

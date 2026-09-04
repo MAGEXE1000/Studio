@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.58';
-export const NATIVE_VERSION_CODE = 40558;
-export const WEB_VERSION = '4.5.58';
+export const NATIVE_VERSION = '4.5.59';
+export const NATIVE_VERSION_CODE = 40559;
+export const WEB_VERSION = '4.5.59';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '50f70ff6';
+export const APP_COMMIT_SHA = '98d80f2f';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/4/2026, 6:49:55 AM CST';
+export const APP_BUILD_TIMESTAMP = '9/4/2026, 8:15:26 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,23 +98,15 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Comprehensive Bilingual Localization: Complete English and Spanish (en/es) translation coverage across all Studio tools and Stagex screens, with reactive language selector sheet and persistent locale storage.',
+      'Stagex History Bottom Panel Redesign: Replaced the floating popup modal with an integrated bottom library panel mode, featuring direct jump navigation, dynamic undo/redo badges, state tracking, and responsive desktop/mobile parity.',
+      'Stagex Production Document Single Long-Page PDF Redesign: Implemented continuous single-page vector jsPDF document export with synchronized preview parity across desktop and mobile, standardized typography, high-DPI rasterization for stage plots, and complete technical rider details.',
     ],
   },
   {
-    heading: 'Fixed',
+    heading: 'Improved',
     items: [
-      'Stagex Clean Element Data Defaults: Completely eliminated phantom production data defaults on new stage elements (performer names, microphones, DIs, wireless packs, and boilerplate logistics notes).',
-      'Strict +48V Phantom Power Invariant: Hardened phantom power defaults to false across in-app inspectors, projection adapters, and PDF export sheets, showing canonical em-dash (`—`) when unassigned.',
-      'Stagex Canvas Centering & Menu Anchoring: Fixed canvas vertical positioning, toolbar layout hierarchy, and element menu anchor stability.',
-      'External Link Security Hardening: Enforced `rel="noopener noreferrer"` across all external anchor elements in share dialogs.',
-    ],
-  },
-  {
-    heading: 'Changed',
-    items: [
-      'Theme-Governed Canvas Appearance: Deprecated manual canvas background color selection in Preferences in favor of strict system theme alignment (Light, AMOLED pure black, and Dark).',
-      'Standardized Empty State Placeholders: Projected em-dash (`—`) across all unassigned technical specifications and audio channel mappings.',
+      'Stage Canvas Interaction: Unified StageBridgeService history synchronization between React and vanilla canvas engine, ensuring seamless state rollbacks, forward redo, and immediate visual canvas reconciliation.',
+      'Export Dialog & Document Layout: Standardized multi-section production document geometry with crisp section headers, channel mapping, logistic notes, gear inventory, and band & crew personnel tables.',
     ],
   },
 ];
@@ -126,6 +118,16 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.59',
+    date: '2026-09-04',
+    highlights: [
+      'Stagex History Bottom Panel Redesign: Replaced the floating popup modal with an integrated bottom library panel mode, featuring direct jump navigation, dynamic undo/redo badges, state tracking, and responsive desktop/mobile parity.',
+      'Stagex Production Document Single Long-Page PDF Redesign: Implemented continuous single-page vector jsPDF document export with synchronized preview parity across desktop and mobile, standardized typography, high-DPI rasterization for stage plots, and complete technical rider details.',
+      'Stage Canvas Interaction: Unified StageBridgeService history synchronization between React and vanilla canvas engine, ensuring seamless state rollbacks, forward redo, and immediate visual canvas reconciliation.',
+      'Export Dialog & Document Layout: Standardized multi-section production document geometry with crisp section headers, channel mapping, logistic notes, gear inventory, and band & crew personnel tables.',
+    ],
+  },
   {
     version: '4.5.58',
     date: '2026-09-04',
@@ -218,15 +220,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Canonical Tab Transitions Across Studio Apps: Unified navigation animations onto `StudioPageTransition` with canonical `200ms cubic-bezier(0.22, 1, 0.36, 1)` easing and zero-overshoot motion, eliminating spring bounce across Groovex, Vocalex, and Hub tabs.',
       'Android UI Runtime Performance: Coalesced `BottomNavigationController` DOM mutation sweeps with `requestAnimationFrame` to eliminate layout query storms, decoupled `SongPracticeView` playback timer to eliminate 60 FPS effect teardown churn, and narrowed broad Zustand store subscriptions in `App.tsx`, `StudioHub.tsx`, `UpdateIndicator.tsx`, and `StageCorePanel.tsx` to stop cascaded re-renders.',
       'Stagex Header Architecture Alignment: Aligned Stagex Android header architecture with canonical Studio headers, removed obsolete pill navigation measurements and orphaned timers, and guarded canvas touch telemetry against unnecessary state mutations.',
-    ],
-  },
-  {
-    version: '4.5.49',
-    date: '2026-08-28',
-    highlights: [
-      'Stagex Top Action Controls on Android: Restored upper Stage controls (`SharedFloatingHeader`) on Android editor view, wiring the ruler/measurement tool, PDF export sheet, presets panel, timeline/history, and real-time collaboration modal.',
-      'Appearance Accent Color Picker Layout: Integrated the 2D custom color picker directly and flush inside the Appearance section, eliminating redundant nested card framing, dark vertical clipping rails, and fixed-width popup constraints.',
-      'Appearance Color Picker Drag Performance: Eliminated interaction stutter and frame-dropping during continuous touch dragging via single-measure cached bounding geometry, `requestAnimationFrame` coordinate batching, fine-grained Zustand store selectors, and isolated durable state persistence upon pointer release.',
     ],
   },
 ];

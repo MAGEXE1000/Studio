@@ -2999,12 +2999,13 @@ window.addEventListener('resize', function () {
   }
 });
 try {
-  var _landscapeMql = window.matchMedia('(orientation: landscape) and (max-width: 960px)');
+  var _landscapeMql = window.matchMedia('(orientation: landscape)');
   _landscapeMql.addEventListener('change', function (e) {
     setTimeout(function () {
       _rescaleElementsOnResize();
       if (typeof positionVTools === 'function') positionVTools();
-    }, 200);
+      if (typeof _renderStageLayout === 'function') _renderStageLayout();
+    }, 60);
   });
 } catch (e) {}
 
@@ -3033,12 +3034,13 @@ function _rescaleElementsOnResize() {
   state.canvasW = rect.width;
   state.canvasH = rect.height;
   renderElements();
+  if (typeof _renderStageLayout === 'function') _renderStageLayout();
 }
 // Drag peek - no-op since legacy panel is removed
 function _propPeek(on) {}
 function _isLandscapeMobile() {
   try {
-    return window.matchMedia('(orientation: landscape) and (max-width: 960px)').matches;
+    return document.body.classList.contains('is-landscape') || window.matchMedia('(orientation: landscape)').matches;
   } catch (e) {
     return false;
   }
@@ -10447,6 +10449,15 @@ window.stageGoBack = function () {
   ) {
     switchView('Editor');
     return true;
+  }
+
+  // F. Landscape editing mode lock: consume back event to prevent leaving Editor
+  if (
+    state.currentView === 'Editor' &&
+    (document.body.classList.contains('is-landscape') ||
+      window.matchMedia('(orientation: landscape)').matches)
+  ) {
+    return true; // safely consumed
   }
 
   return false;

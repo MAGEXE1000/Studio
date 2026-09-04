@@ -776,18 +776,26 @@
         padding-right: calc(max(12px, env(safe-area-inset-right, 0px))) !important;
         overflow: hidden !important;
       }
-      @media screen and (orientation: landscape) and (max-width: 960px) {
+      @media screen and (orientation: landscape) {
         #stage-viewport {
-          padding-top: calc(max(6px, env(safe-area-inset-top, 0px))) !important;
+          padding-top: calc(max(4px, env(safe-area-inset-top, 0px))) !important;
           padding-left: calc(max(6px, env(safe-area-inset-left, 0px))) !important;
-          padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 0px))) !important;
+          padding-bottom: calc(max(4px, env(safe-area-inset-bottom, 0px))) !important;
           padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
         }
       }
-      @media screen and (min-width: 961px) {
-        #stage-viewport {
-          padding: 16px !important;
-        }
+      body.is-landscape #stage-viewport,
+      html.is-landscape #stage-viewport {
+        padding-top: calc(max(4px, env(safe-area-inset-top, 0px))) !important;
+        padding-left: calc(max(6px, env(safe-area-inset-left, 0px))) !important;
+        padding-bottom: calc(max(4px, env(safe-area-inset-bottom, 0px))) !important;
+        padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
       }
       /* When the vtools panel is expanded: keep stage viewport stable in place */
       #canvas-container.vtools-open #stage-viewport {
@@ -6007,9 +6015,17 @@
           window.parent.dispatchEvent(new CustomEvent('studio-hub-return'));
         }
         if (e.data && e.data.type === 'sc-landscape') {
+          if (e.data.isLandscape) {
+            document.body.classList.add('is-landscape');
+            document.documentElement.classList.add('is-landscape');
+          } else {
+            document.body.classList.remove('is-landscape');
+            document.documentElement.classList.remove('is-landscape');
+          }
           setTimeout(function () {
             if (typeof _rescaleElementsOnResize === 'function') _rescaleElementsOnResize();
-          }, 250);
+            if (typeof _renderStageLayout === 'function') _renderStageLayout();
+          }, 60);
         }
         if (e.data && e.data.type === 'sc-set-lang') {
           if (typeof setLang === 'function') {
@@ -6047,6 +6063,10 @@
             var dx = e.changedTouches[0].clientX - _swipeX;
             var dy = e.changedTouches[0].clientY - _swipeY;
             if (dx > 55 && Math.abs(dy) < 100 && _swipeX < 44) {
+              if (document.body.classList.contains('is-landscape') || window.matchMedia('(orientation: landscape)').matches) {
+                // In landscape mode, protect from accidental swipe-back exit
+                return;
+              }
               window.stageGoBack();
             }
           },

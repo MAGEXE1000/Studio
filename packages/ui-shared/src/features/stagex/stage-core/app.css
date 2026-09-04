@@ -4437,11 +4437,15 @@ html[data-theme='light'] .presets-empty {
 }
 
 /* ── Landscape: keep at top, allow taller panel ── */
-@media screen and (orientation: landscape) and (max-width: 960px) {
+@media screen and (orientation: landscape) {
   #presets-panel {
     top: 8px !important;
     max-height: calc(100vh - 20px) !important;
   }
+}
+body.is-landscape #presets-panel {
+  top: 8px !important;
+  max-height: calc(100vh - 20px) !important;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -4468,7 +4472,7 @@ html[data-theme='light'] .presets-empty {
   transition: padding 260ms cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-@media screen and (orientation: landscape) and (max-width: 960px) {
+@media screen and (orientation: landscape) {
   #canvas-container {
     background: #000000 !important;
   }
@@ -4600,13 +4604,21 @@ html[data-theme='light'] .presets-empty {
   }
 }
 
-@media screen and (orientation: landscape) and (max-width: 960px) {
+@media screen and (orientation: landscape) {
   html[data-theme='light'] #canvas-container {
     background: #ffffff !important;
   }
   html[data-amoled='1'] #canvas-container {
     background: #000 !important;
   }
+}
+body.is-landscape html[data-theme='light'] #canvas-container,
+html.is-landscape[data-theme='light'] #canvas-container {
+  background: #ffffff !important;
+}
+body.is-landscape html[data-amoled='1'] #canvas-container,
+html.is-landscape[data-amoled='1'] #canvas-container {
+  background: #000 !important;
 }
 
 /* ────────────────────────────────────────────────────────
@@ -4897,7 +4909,7 @@ html[data-theme='light'] #sc-hist-footer button:active:not(:disabled) {
   background: rgba(0, 0, 0, 0.1);
 }
 
-@media screen and (orientation: landscape) and (max-width: 960px) {
+@media screen and (orientation: landscape) {
   #sc-hist-panel {
     top: 8px !important;
     max-height: calc(100vh - 20px) !important;
@@ -4996,13 +5008,16 @@ html[data-theme='light'] #sc-cp-alpha-track {
   bottom: calc(var(--content-bottom-pad, 96px) + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-@media screen and (orientation: landscape) and (max-width: 960px) {
+@media screen and (orientation: landscape) {
   #stage-viewport {
     padding-top: calc(max(4px, env(safe-area-inset-top, 0px))) !important;
     padding-left: calc(max(6px, env(safe-area-inset-left, 0px))) !important;
-    padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 0px))) !important;
+    padding-bottom: calc(max(4px, env(safe-area-inset-bottom, 0px))) !important;
     padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
+    display: flex !important;
     justify-content: center !important;
+    align-items: center !important;
+    overflow: hidden !important;
   }
   #sc-scenes-bar {
     max-width: calc(100vw - 80px) !important;
@@ -5014,22 +5029,65 @@ html[data-theme='light'] #sc-cp-alpha-track {
   #stage-canvas {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+    aspect-ratio: 16 / 9 !important;
+    width: 100% !important;
     max-width: min(
-      1080px,
       calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc((100vh - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+      calc((100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
     ) !important;
+    height: auto !important;
   }
   body[data-stage-shape='square'] #stage-canvas,
   [data-stage-shape='square'] #stage-canvas {
+    aspect-ratio: 1 / 1 !important;
     width: min(
-      calc(100vh - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-      420px
+      calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      900px
     ) !important;
     height: min(
-      calc(100vh - 56px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-      420px
+      calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      900px
     ) !important;
   }
+}
+
+body.is-landscape #stage-viewport,
+html.is-landscape #stage-viewport {
+  padding-top: calc(max(4px, env(safe-area-inset-top, 0px))) !important;
+  padding-left: calc(max(6px, env(safe-area-inset-left, 0px))) !important;
+  padding-bottom: calc(max(4px, env(safe-area-inset-bottom, 0px))) !important;
+  padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  overflow: hidden !important;
+}
+body.is-landscape #stage-canvas,
+html.is-landscape #stage-canvas {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  aspect-ratio: 16 / 9 !important;
+  width: 100% !important;
+  max-width: min(
+    calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    calc((100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+  ) !important;
+  height: auto !important;
+}
+body.is-landscape[data-stage-shape='square'] #stage-canvas,
+html.is-landscape [data-stage-shape='square'] #stage-canvas {
+  aspect-ratio: 1 / 1 !important;
+  width: min(
+    calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    900px
+  ) !important;
+  height: min(
+    calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    900px
+  ) !important;
 }
 

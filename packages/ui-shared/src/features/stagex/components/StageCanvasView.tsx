@@ -18,7 +18,9 @@ import {
 } from '@workspace/studio-core';
 import { StageToolbar } from './StageToolbar';
 import { StageLibraryPanel } from './StageLibraryPanel';
-import { StageElementDrawer } from './StageElementDrawer';
+import { StageBottomPanelSlot } from './StageBottomPanelSlot';
+import { StageElementLibrarySurface } from './StageElementLibrarySurface';
+import { StageHistorySurface } from './StageHistorySurface';
 import { StageElementSpecsEditor } from './StageElementSpecsEditor';
 import { ExportPdfDialog } from './dialogs/ExportPdfDialog';
 import { StageCollabDialog } from './dialogs/StageCollabDialog';
@@ -83,16 +85,47 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   const [specsOpen, setSpecsOpen] = useState(false);
   const [isCanvasDragging, setIsCanvasDragging] = useState(false);
 
-  // Sync orientation changes
+  const userExitedLandscapeRef = useRef(false);
+
+  // Sync orientation changes with isLandscape and inform stage-core
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const mql = window.matchMedia('(orientation: landscape)');
-    const handleMql = (e: MediaQueryListEvent) => {
-      setIsLandscape(e.matches);
+    const handleOrientation = () => {
+      const isWindowLandscape =
+        mql.matches || (window.innerWidth > window.innerHeight && window.innerWidth > 600);
+      if (!isWindowLandscape) {
+        userExitedLandscapeRef.current = false;
+      }
+      const active = isWindowLandscape && !userExitedLandscapeRef.current;
+      setIsLandscape((prev) => {
+        if (prev !== active) {
+          if (iframeRef.current?.contentWindow) {
+            iframeRef.current.contentWindow.postMessage(
+              { type: 'sc-landscape', isLandscape: active },
+              '*'
+            );
+          }
+          return active;
+        }
+        return prev;
+      });
     };
-    setIsLandscape(mql.matches);
-    mql.addEventListener('change', handleMql);
-    return () => mql.removeEventListener('change', handleMql);
+    handleOrientation();
+    if (mql.addEventListener) {
+      mql.addEventListener('change', handleOrientation);
+    } else {
+      (mql as any).addListener?.(handleOrientation);
+    }
+    window.addEventListener('resize', handleOrientation);
+    return () => {
+      if (mql.removeEventListener) {
+        mql.removeEventListener('change', handleOrientation);
+      } else {
+        (mql as any).removeListener?.(handleOrientation);
+      }
+      window.removeEventListener('resize', handleOrientation);
+    };
   }, []);
 
   // Listen for selection and specs events from the canvas engine
@@ -145,23 +178,6 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     setNavHidden(shouldHide);
     useBottomNavigationStore.getState().setLocked(shouldHide);
   }, [isLandscape, liveMode, panelOpen, specsOpen, isCanvasDragging, isWebDesktop]);
-
-  // Dismiss Specs editor or element drawer on Android hardware back button
-  useBackHandler(
-    'overlay',
-    () => {
-      if (specsOpen) {
-        setSpecsOpen(false);
-        return true;
-      }
-      if (panelOpen) {
-        setPanelOpen(false);
-        return true;
-      }
-      return false;
-    },
-    [specsOpen, panelOpen]
-  );
 
   // Clean up orientation lock and navigation state on unmount
   useEffect(() => {
@@ -217,6 +233,50 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       iframe.contentWindow?.postMessage({ type: 'sc-call', fn, arg }, '*');
     }
   }, []);
+
+  // Sync orientation changes with iframe and bottom navigation
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mql = window.matchMedia('(orientation: landscape)');
+    const handleMql = (e: MediaQueryListEvent) => {
+      setIsLandscape(e.matches);
+      callIframe('sc-landscape', { isLandscape: e.matches });
+      const shouldHide = e.matches || liveMode;
+      setNavLocked(shouldHide);
+      setNavHidden(shouldHide);
+      useBottomNavigationStore.getState().setLocked(shouldHide);
+    };
+    setIsLandscape(mql.matches);
+    mql.addEventListener('change', handleMql);
+    return () => mql.removeEventListener('change', handleMql);
+  }, [liveMode, callIframe]);
+
+  // Dismiss Specs editor, bottom panel (drawer/history), or selection on Android hardware back button
+  // In landscape editing mode, intercept back events to safely consume them and prevent accidental exit
+  useBackHandler(
+    'overlay',
+    () => {
+      if (specsOpen) {
+        setSpecsOpen(false);
+        return true;
+      }
+      if (panelOpen) {
+        setPanelOpen(false);
+        return true;
+      }
+      if (selectedElement) {
+        callIframe('deselectAll');
+        setSelectedElement(null);
+        return true;
+      }
+      if (isLandscape) {
+        // Safe lock: In landscape editing mode, consume back event to prevent accidental exit
+        return true;
+      }
+      return false;
+    },
+    [specsOpen, panelOpen, selectedElement, isLandscape, callIframe]
+  );
 
   const refreshHistoryState = useCallback(() => {
     if (!iframeRef.current) return;
@@ -319,19 +379,38 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     [refreshHistoryState]
   );
 
-  const handleToggleRotate = useCallback(async () => {
-    const next = !isLandscape;
-    setIsLandscape(next);
+  const handleExitLandscape = useCallback(async () => {
+    userExitedLandscapeRef.current = true;
+    setIsLandscape(false);
     if (panelOpen) setPanelOpen(false);
     if (specsOpen) setSpecsOpen(false);
-    const shouldHide = next || liveMode;
+    const shouldHide = liveMode;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
+    useBottomNavigationStore.getState().setLocked(shouldHide);
     try {
-      await lockOrientation(next ? 'landscape' : 'portrait');
+      await lockOrientation('portrait');
     } catch {}
-    callIframe('sc-landscape', { isLandscape: next });
-  }, [isLandscape, liveMode, panelOpen, specsOpen, callIframe]);
+    callIframe('sc-landscape', { isLandscape: false });
+  }, [liveMode, panelOpen, specsOpen, callIframe]);
+
+  const handleToggleRotate = useCallback(async () => {
+    if (isLandscape) {
+      await handleExitLandscape();
+    } else {
+      userExitedLandscapeRef.current = false;
+      setIsLandscape(true);
+      if (panelOpen) setPanelOpen(false);
+      if (specsOpen) setSpecsOpen(false);
+      setNavLocked(true);
+      setNavHidden(true);
+      useBottomNavigationStore.getState().setLocked(true);
+      try {
+        await lockOrientation('landscape');
+      } catch {}
+      callIframe('sc-landscape', { isLandscape: true });
+    }
+  }, [isLandscape, handleExitLandscape, panelOpen, specsOpen, callIframe]);
 
   const handleToggleEye = useCallback(() => {
     const next = !liveMode;
@@ -509,6 +588,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   const stageShape = preferences?.stageShape || 'rectangular';
 
   const currentLang = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const isHistoryActive = panelOpen && panelMode === 'history';
 
   // Handle iframe load
   const handleIframeLoad = () => {
@@ -553,8 +633,8 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       className="w-full h-full flex flex-col relative overflow-hidden"
       style={{ background: stageBg }}
     >
-      {/* Desktop Top Toolbar */}
-      {isWebDesktop && (
+      {/* Desktop Top Toolbar (hidden in landscape mode for immersive stage canvas) */}
+      {isWebDesktop && !isLandscape && (
         <StageToolbar
           curView="Editor"
           isLight={isLight}
@@ -570,8 +650,8 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         />
       )}
 
-      {/* Mobile Seamless Floating Actions (Overlaid on canvas) */}
-      {!isWebDesktop && !liveMode && (
+      {/* Seamless Floating Actions (Overlaid on canvas in mobile or landscape mode) */}
+      {(!isWebDesktop || isLandscape) && !liveMode && (
         <div
           className="absolute top-0 left-0 right-0 z-20 pointer-events-none flex items-center justify-end px-4"
           style={{
@@ -596,6 +676,21 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
               boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
             }}
           >
+            {/* 0. Exit Landscape Button (Active in landscape mode) */}
+            {isLandscape && (
+              <button
+                type="button"
+                data-testid="stagex-exit-landscape-btn"
+                onClick={handleExitLandscape}
+                title={currentLang === 'es' ? 'Salir de Modo Horizontal' : 'Exit Landscape'}
+                aria-label={currentLang === 'es' ? 'Salir de Modo Horizontal' : 'Exit Landscape'}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold text-white bg-pink-500 hover:bg-pink-600 active:scale-95 transition-all shadow-md flex-shrink-0 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[15px]">screen_rotation</span>
+                <span className="whitespace-nowrap">{currentLang === 'es' ? 'Salir' : 'Exit'}</span>
+              </button>
+            )}
+
             {/* 1. Ruler */}
             <button
               type="button"
@@ -701,7 +796,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         {/* Canvas Host Container */}
         <div
           className={`flex-1 relative overflow-hidden ${
-            isWebDesktop ? 'm-3 rounded-xl border' : ''
+            isWebDesktop && !isLandscape ? 'm-3 rounded-xl border' : ''
           }`}
           style={{
             borderColor: isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)',
@@ -795,41 +890,55 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                     backdropFilter: 'blur(16px)',
                     WebkitBackdropFilter: 'blur(16px)',
                   }}
-                  aria-label={isLandscape ? 'Switch to Portrait' : 'Switch to Landscape'}
-                  title={isLandscape ? 'Switch to Portrait' : 'Switch to Landscape'}
+                  aria-label={
+                    isLandscape
+                      ? currentLang === 'es'
+                        ? 'Salir de Modo Horizontal'
+                        : 'Exit Landscape'
+                      : 'Switch to Landscape'
+                  }
+                  title={
+                    isLandscape
+                      ? currentLang === 'es'
+                        ? 'Salir de Modo Horizontal'
+                        : 'Exit Landscape'
+                      : 'Switch to Landscape'
+                  }
                 >
                   <span className="material-symbols-outlined text-[22px]">sync</span>
                 </button>
               )}
 
-              {/* Add Element FAB */}
-              <button
-                data-testid="stagex-fab-add"
-                onClick={handleToggleElements}
-                className="absolute rounded-full flex items-center justify-center p-0 cursor-pointer active:scale-95"
-                style={{
-                  zIndex: 50,
-                  bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
-                  right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
-                  width: 44,
-                  height: 44,
-                  background: '#ec4899',
-                  border: 'none',
-                  color: '#ffffff',
-                  boxShadow: '0 4px 14px rgba(236, 72, 153, 0.45)',
-                  transform:
-                    panelOpen && panelMode === 'elements'
-                      ? 'rotate(45deg) scale(1)'
-                      : 'rotate(0deg) scale(1)',
-                  transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)',
-                }}
-                aria-label={
-                  panelOpen && panelMode === 'elements' ? 'Close Elements' : 'Add Element'
-                }
-                title={panelOpen && panelMode === 'elements' ? 'Close Elements' : 'Add Element'}
-              >
-                <span className="material-symbols-outlined text-[24px]">add</span>
-              </button>
+              {/* Add Element FAB (Only rendered when History is NOT active) */}
+              {!isHistoryActive && (
+                <button
+                  data-testid="stagex-fab-add"
+                  onClick={handleToggleElements}
+                  className="absolute rounded-full flex items-center justify-center p-0 cursor-pointer active:scale-95"
+                  style={{
+                    zIndex: 50,
+                    bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
+                    right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
+                    width: 44,
+                    height: 44,
+                    background: '#ec4899',
+                    border: 'none',
+                    color: '#ffffff',
+                    boxShadow: '0 4px 14px rgba(236, 72, 153, 0.45)',
+                    transform:
+                      panelOpen && panelMode === 'elements'
+                        ? 'rotate(45deg) scale(1)'
+                        : 'rotate(0deg) scale(1)',
+                    transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)',
+                  }}
+                  aria-label={
+                    panelOpen && panelMode === 'elements' ? 'Close Elements' : 'Add Element'
+                  }
+                  title={panelOpen && panelMode === 'elements' ? 'Close Elements' : 'Add Element'}
+                >
+                  <span className="material-symbols-outlined text-[24px]">add</span>
+                </button>
+              )}
             </>
           )}
 
@@ -878,25 +987,39 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         </>
       )}
 
-      {/* Unified Bottom Shelf / History Panel (Rendered on both mobile and desktop) */}
-      <StageElementDrawer
+      {/* Canonical Bottom Panel Slot hosting Element Library or History Surface */}
+      <StageBottomPanelSlot
         isOpen={panelOpen && !liveMode}
         onClose={handleClosePanel}
-        onSelectElement={handleAddElement}
         isLight={isLight}
         isAmoled={isAmoled}
-        accent={accent}
-        mode={panelMode}
-        onModeChange={handleModeChange}
-        historyEntries={historyState.entries}
-        currentIndex={historyState.currentIndex}
-        canUndo={historyState.canUndo}
-        canRedo={historyState.canRedo}
-        onUndo={handleUndo}
-        onRedo={handleRedo}
-        onJumpToHistory={handleJumpToHistory}
-        isSpanish={currentLang === 'es'}
-      />
+        ariaLabel={isHistoryActive ? 'Stage History Panel' : 'Stage Element Catalog'}
+        testId="stagex-element-drawer"
+      >
+        {isHistoryActive ? (
+          <StageHistorySurface
+            onClose={handleClosePanel}
+            historyEntries={historyState.entries}
+            currentIndex={historyState.currentIndex}
+            canUndo={historyState.canUndo}
+            canRedo={historyState.canRedo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
+            onJumpToHistory={handleJumpToHistory}
+            isLight={isLight}
+            isAmoled={isAmoled}
+            isSpanish={currentLang === 'es'}
+          />
+        ) : (
+          <StageElementLibrarySurface
+            onClose={handleClosePanel}
+            onSelectElement={handleAddElement}
+            isLight={isLight}
+            isAmoled={isAmoled}
+            accent={accent}
+          />
+        )}
+      </StageBottomPanelSlot>
 
       {/* Selected Element Specs Pill Button */}
       {selectedElement && !panelOpen && !specsOpen && !liveMode && (

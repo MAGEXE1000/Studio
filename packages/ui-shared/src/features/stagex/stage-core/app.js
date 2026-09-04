@@ -1569,6 +1569,7 @@ function pushHistory() {
   state.history.push(snap);
   state.historyIndex++;
   updateHistoryButtons();
+  if (typeof _persistCurrentScene === 'function') _persistCurrentScene();
   markAutosaveDirty();
 }
 function undo() {
@@ -2288,6 +2289,8 @@ function addItemToStage(item) {
   _spawnId = null;
   selectElement(el.id);
   pushHistory();
+  if (typeof _persistCurrentScene === 'function') _persistCurrentScene();
+  if (typeof saveProject === 'function') saveProject();
   updateDropHint();
   _showSmartSuggestion(el);
   closeMobileSidebar();
@@ -8245,6 +8248,8 @@ window.switchView = switchView;
 window.toggleSCDial = toggleSCDial;
 window.toggleGigMode = toggleGigMode;
 window.openPresetsPanel = openPresetsPanel;
+window.saveProject = saveProject;
+window._persistCurrentScene = _persistCurrentScene;
 window.state = state;
 window.addItemToStage = addItemToStage;
 window.selectElement = selectElement;
@@ -8580,6 +8585,8 @@ function saveProject() {
       'stagecoreProject',
       JSON.stringify({
         schemaVersion: 9,
+        name: currentExt.name || currentExt.projectName || state.name || 'Main Stage',
+        projectName: currentExt.projectName || currentExt.name || state.name || 'Main Stage',
         elements: JSON.parse(JSON.stringify(state.elements)),
         connections: JSON.parse(JSON.stringify(state.connections)),
         scenes: JSON.parse(JSON.stringify(state.scenes)),
@@ -8600,6 +8607,21 @@ function saveProject() {
       })
     );
   } catch (e) {}
+  try {
+    if (typeof window !== 'undefined' && window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        {
+          type: 'sc-project-saved',
+          name: currentExt.name || currentExt.projectName || state.name,
+          projectName: currentExt.projectName || currentExt.name || state.name,
+          elements: JSON.parse(JSON.stringify(state.elements || [])),
+          scenes: JSON.parse(JSON.stringify(state.scenes || [])),
+          currentSceneIdx: state.currentSceneIdx,
+        },
+        '*'
+      );
+    }
+  } catch (_) {}
   _sessionSave();
   showToast(T('projectSaved'));
   scheduleCloudAutosave();
@@ -10847,6 +10869,8 @@ function duplicateSelected() {
   renderElements();
   lcIcons();
   selectElement(clone.id);
+  if (typeof _persistCurrentScene === 'function') _persistCurrentScene();
+  if (typeof saveProject === 'function') saveProject();
   showToast('Element duplicated');
   applySettings();
 }

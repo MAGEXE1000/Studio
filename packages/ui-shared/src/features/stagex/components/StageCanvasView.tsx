@@ -96,7 +96,22 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
           const el = StageBridge.getSelectedElement(iframeRef.current);
           if (el) setSelectedElement(el);
         }
-        setSpecsOpen(true);
+      } else if (e.data.type === 'sc-project-saved') {
+        if (Array.isArray(e.data.elements)) {
+          const newName = e.data.name || e.data.projectName;
+          useStagexStore.setState({
+            ...(newName ? { projectName: newName } : {}),
+            elements: e.data.elements,
+            scenes:
+              Array.isArray(e.data.scenes) && e.data.scenes.length > 0
+                ? e.data.scenes
+                : useStagexStore.getState().scenes,
+            currentSceneIdx:
+              typeof e.data.currentSceneIdx === 'number'
+                ? e.data.currentSceneIdx
+                : useStagexStore.getState().currentSceneIdx,
+          });
+        }
       }
     };
     window.addEventListener('message', handleMessage);
@@ -313,6 +328,9 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   // Register stage iframe with core service
   useEffect(() => {
     registerStageIframe(iframeRef.current);
+    if (iframeRef.current) {
+      StageBridge.registerIframe(iframeRef.current);
+    }
     return () => registerStageIframe(null);
   }, []);
 
@@ -338,12 +356,9 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   }, []);
 
   const openProductionDocumentWorkflow = useCallback(() => {
-    if (iframeRef.current) {
-      callIframe('saveProject');
-    }
-    useStagexStore.getState().reloadFromStorage();
+    StageBridge.syncCurrentProjectState(iframeRef.current);
     onNavigateView?.('Export');
-  }, [callIframe, onNavigateView]);
+  }, [onNavigateView]);
 
   const openPdfSheet = useCallback(() => {
     const defaultName = `StagePlot-${new Date().toISOString().slice(0, 10)}`;

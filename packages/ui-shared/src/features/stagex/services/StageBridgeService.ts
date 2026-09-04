@@ -1,4 +1,5 @@
 import type { StageLibraryItem, StageWin } from '../types';
+import { useStagexStore } from '../state/useStagexStore';
 
 export function hexToRgb(hex: string): [number, number, number] {
   return [
@@ -84,11 +85,46 @@ export const StageBridge = {
 
   getWin(iframe?: HTMLIFrameElement | null): StageWin | null {
     try {
-      const target = iframe !== undefined ? iframe : _activeIframe;
+      const target =
+        iframe !== undefined
+          ? iframe
+          : _activeIframe ||
+            (typeof document !== 'undefined'
+              ? document.querySelector<HTMLIFrameElement>('iframe[src*="stage-core"]')
+              : null);
       return (target?.contentWindow as StageWin) || null;
     } catch {
       return null;
     }
+  },
+
+  syncCurrentProjectState(iframe?: HTMLIFrameElement | null): void {
+    try {
+      const win = this.getWin(iframe) as any;
+      if (win) {
+        if (typeof win._persistCurrentScene === 'function') {
+          win._persistCurrentScene();
+        }
+        if (typeof win.saveProject === 'function') {
+          win.saveProject();
+        }
+        const st = win.state;
+        if (st) {
+          const curIdx = typeof st.currentSceneIdx === 'number' ? st.currentSceneIdx : 0;
+          const currentScene = Array.isArray(st.scenes) ? st.scenes[curIdx] : null;
+          const elements = (currentScene && currentScene.elements) || st.elements || [];
+          useStagexStore.setState({
+            elements: JSON.parse(JSON.stringify(elements)),
+            scenes: Array.isArray(st.scenes) ? JSON.parse(JSON.stringify(st.scenes)) : [],
+            currentSceneIdx: curIdx,
+          });
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('[StageBridge] Failed to sync live project state:', err);
+    }
+    useStagexStore.getState().reloadFromStorage();
   },
 
   updateCanvasBg(iframe: HTMLIFrameElement | null, bg: string): void {

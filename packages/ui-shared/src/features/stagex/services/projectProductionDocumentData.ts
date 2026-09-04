@@ -109,6 +109,13 @@ export function projectProductionDocumentData(
   const liveWin = StageBridge.getWin();
   const liveState = liveWin?.state;
 
+  // Ensure live scene in iframe is flushed if available
+  try {
+    if (liveWin && typeof (liveWin as any)._persistCurrentScene === 'function') {
+      (liveWin as any)._persistCurrentScene();
+    }
+  } catch (_) {}
+
   const activeScenes =
     liveState?.scenes && liveState.scenes.length > 0
       ? liveState.scenes
@@ -132,22 +139,65 @@ export function projectProductionDocumentData(
   const currentScene = activeScenes[selectedIdx] || activeScenes[0] || { name: 'Main Stage' };
   const sceneName = currentScene.name || `Scene ${selectedIdx + 1}`;
 
-  // Stage Elements for this scene
+  // Stage Elements for this scene — robust cascade across live iframe, scene, store, and localStorage
   let currentElements: any[] = [];
-  if (liveState?.elements && liveState.currentSceneIdx === selectedIdx) {
+  if (
+    Array.isArray(liveState?.elements) &&
+    liveState.elements.length > 0 &&
+    (liveState.currentSceneIdx === selectedIdx || selectedIdx === 0)
+  ) {
     currentElements = liveState.elements;
-  } else if (currentScene && Array.isArray(currentScene.elements)) {
+  } else if (
+    currentScene &&
+    Array.isArray(currentScene.elements) &&
+    currentScene.elements.length > 0
+  ) {
     currentElements = currentScene.elements;
+  } else if (Array.isArray(store.elements) && store.elements.length > 0) {
+    currentElements = store.elements;
   } else {
-    currentElements = store.elements || [];
+    // Check localStorage fallback
+    try {
+      const raw =
+        typeof localStorage !== 'undefined' ? localStorage.getItem('stagecoreProject') : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const sc = Array.isArray(parsed.scenes) ? parsed.scenes[selectedIdx] : null;
+        currentElements =
+          sc && Array.isArray(sc.elements) && sc.elements.length > 0
+            ? sc.elements
+            : Array.isArray(parsed.elements)
+              ? parsed.elements
+              : [];
+      }
+    } catch (_) {}
+  }
+
+  // If still empty but liveState or store has elements in any scene, retrieve them
+  if (currentElements.length === 0) {
+    if (Array.isArray(liveState?.elements) && liveState.elements.length > 0) {
+      currentElements = liveState.elements;
+    } else if (Array.isArray(store.elements) && store.elements.length > 0) {
+      currentElements = store.elements;
+    }
   }
 
   // Connections
   let currentConnections: any[] = [];
-  if (liveState?.connections && liveState.currentSceneIdx === selectedIdx) {
+  if (liveState?.connections && (liveState.currentSceneIdx === selectedIdx || selectedIdx === 0)) {
     currentConnections = liveState.connections;
   } else if (currentScene && Array.isArray(currentScene.connections)) {
     currentConnections = currentScene.connections;
+  } else {
+    try {
+      const raw =
+        typeof localStorage !== 'undefined' ? localStorage.getItem('stagecoreProject') : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const sc = Array.isArray(parsed.scenes) ? parsed.scenes[selectedIdx] : null;
+        currentConnections = (sc && sc.connections) || parsed.connections || [];
+      }
+    } catch (_) {}
   }
 
   // Canvas Dimensions
@@ -223,26 +273,24 @@ export function projectProductionDocumentData(
   const unassignedMembersCount = Math.max(0, members.length - assignedMembersCount);
 
   // Channels / Patch List
+  // Priority: If currentElements exist on stage, map them 1:1 to channels matching stage elements exactly.
+  // Enrich from store.riderChannels if available.
   let channels: ProductionDocumentChannel[] = [];
-  if (store.riderChannels && store.riderChannels.length > 0) {
-    channels = store.riderChannels.map((c, idx) => ({
-      ch: String(c.ch || idx + 1).padStart(2, '0'),
-      source: (c.source || `Channel ${idx + 1}`).toUpperCase(),
-      performer: members[idx % (members.length || 1)]?.name || 'Band',
-      mic: c.mic || 'Direct / Mic',
-      phantom: Boolean(c.phantom),
-      notes: c.notes || c.stand || 'FOH Mix',
-    }));
-  } else if (currentElements.length > 0) {
+  if (currentElements.length > 0) {
     channels = currentElements.map((el, idx) => {
       const typeStr = (el.type || '').toLowerCase();
       const labelStr = (el.label || el.name || '').toLowerCase();
-      const isMic = typeStr.includes('mic') || labelStr.includes('vocal');
+      const isMic =
+        typeStr.includes('mic') || labelStr.includes('vocal') || labelStr.includes('vox');
       const isAmp =
-        typeStr.includes('amp') || labelStr.includes('guitar') || labelStr.includes('bass');
+        typeStr.includes('amp') ||
+        labelStr.includes('guitar') ||
+        labelStr.includes('bass') ||
+        labelStr.includes('rig');
       const isKey =
         typeStr.includes('key') || labelStr.includes('synth') || labelStr.includes('piano');
-      const isDrum = typeStr.includes('drum');
+      const isDrum =
+        typeStr.includes('drum') || labelStr.includes('percussion') || labelStr.includes('kit');
 
       let mic = 'Direct Line / DI';
       if (isMic) mic = labelStr.includes('lead') ? 'Axient KSM9 (Wireless)' : 'Shure Beta 58A';
@@ -254,21 +302,46 @@ export function projectProductionDocumentData(
       const performerName =
         assignedMember?.name ||
         el.performer ||
-        (isMic ? 'Lead Vocalist' : isDrum ? 'Drummer' : isAmp ? 'Guitar/Bass' : 'Keys / Synth');
+        (isMic
+          ? 'Lead Vocalist'
+          : isDrum
+            ? 'Drummer'
+            : isAmp
+              ? 'Guitar / Bass'
+              : isKey
+                ? 'Keys / Synth'
+                : 'Band');
 
       const isPhantom = Boolean(el.phantom || isKey || mic.includes('91A') || mic.includes('J48'));
+      const chIdStr = el.channelId ? String(el.channelId).replace(/^CH-?/i, '') : String(idx + 1);
+
+      // Check if store.riderChannels has a match
+      const riderCh = (store.riderChannels || []).find(
+        (rc) => String(rc.ch) === chIdStr || rc.source?.toLowerCase() === labelStr
+      );
 
       return {
-        ch: String(idx + 1).padStart(2, '0'),
-        source: (el.label || el.name || `Input ${idx + 1}`).toUpperCase(),
-        performer: performerName,
-        mic: el.transducer || mic,
-        phantom: isPhantom,
+        ch: chIdStr.padStart(2, '0'),
+        source: (riderCh?.source || el.label || el.name || `Input ${idx + 1}`).toUpperCase(),
+        performer: riderCh?.notes?.includes('Band') ? 'Band' : performerName,
+        mic: riderCh?.mic || el.transducer || mic,
+        phantom: riderCh !== undefined ? Boolean(riderCh.phantom) : isPhantom,
         notes:
+          riderCh?.notes ||
           el.mix ||
+          el.notes ||
           (isMic ? 'Wireless RF' : isDrum ? 'Gate/Comp' : isAmp ? 'Pre-EQ drop' : 'Stereo Pair'),
       };
     });
+  } else if (store.riderChannels && store.riderChannels.length > 0) {
+    channels = store.riderChannels.map((c, idx) => ({
+      ch: String(c.ch || idx + 1).padStart(2, '0'),
+      source: (c.source || `Channel ${idx + 1}`).toUpperCase(),
+      performer: members[idx % (members.length || 1)]?.name || 'Band',
+      mic: c.mic || 'Direct / Mic',
+      phantom: Boolean(c.phantom),
+      notes: c.notes || c.stand || 'FOH Mix',
+    }));
   }
 
   // Setlist calculations
@@ -300,8 +373,24 @@ export function projectProductionDocumentData(
   });
   const remainingGearUnits = Math.max(0, totalGearUnits - packedGearUnits);
 
+  let projectName =
+    store.projectName || (store as any).name || liveState?.name || liveState?.projectName;
+  if (!projectName || projectName === 'Main Stage') {
+    try {
+      const raw =
+        typeof localStorage !== 'undefined' ? localStorage.getItem('stagecoreProject') : null;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.name || parsed.projectName) {
+          projectName = parsed.name || parsed.projectName;
+        }
+      }
+    } catch (_) {}
+  }
+  if (!projectName) projectName = 'Main Stage';
+
   return {
-    projectName: store.projectName || 'Main Stage',
+    projectName,
     sceneName,
     sceneIdx: selectedIdx,
     totalScenes: activeScenes.length,

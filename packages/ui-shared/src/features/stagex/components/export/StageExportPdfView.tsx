@@ -11,6 +11,7 @@ import {
   type ProductionDocumentSectionsConfig,
 } from '../../services/projectProductionDocumentData';
 import { generateProductionDocumentPdf } from '../../services/generateProductionDocumentPdf';
+import { StageBridge } from '../../services/StageBridgeService';
 import { SectionVisibilityPopover } from './SectionVisibilityPopover';
 import { SaveFilenameModal } from './SaveFilenameModal';
 
@@ -18,6 +19,14 @@ export interface StageExportPdfViewProps {
   onBack: () => void;
   isLight?: boolean;
   isAmoled?: boolean;
+}
+
+if (typeof window !== 'undefined') {
+  (window as any).__stagexTestApi = {
+    generateProductionDocumentPdf,
+    projectProductionDocumentData,
+    useStagexStore,
+  };
 }
 
 export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
@@ -55,9 +64,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     return () => clearTimeout(timer);
   }, [saveSuccessNotification]);
 
-  // Reload latest storage data on mount to ensure fresh state
+  // Flush live state and reload storage data on mount to ensure fresh state
   useEffect(() => {
-    useStagexStore.getState().reloadFromStorage();
+    StageBridge.syncCurrentProjectState();
   }, []);
 
   // Hardware Back Handler
@@ -137,6 +146,9 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     setSectionsConfig(DEFAULT_PRODUCTION_DOCUMENT_SECTIONS);
   }, []);
 
+  // Active PDF theme mode
+  const pdfTheme: 'light' | 'dark' | 'amoled' = isAmoled ? 'amoled' : isLight ? 'light' : 'dark';
+
   // PDF Export Execution: Share Document
   const handleShareDocument = useCallback(async () => {
     setIsExportMenuOpen(false);
@@ -146,6 +158,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
         fileName: defaultPdfFileName,
         share: true,
         sections: sectionsConfig,
+        theme: pdfTheme,
       });
     } catch (err) {
       console.error('Failed to share production document PDF:', err);
@@ -153,7 +166,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     } finally {
       setIsExportBusy(false);
     }
-  }, [data, defaultPdfFileName, sectionsConfig]);
+  }, [data, defaultPdfFileName, sectionsConfig, pdfTheme]);
 
   // PDF Export Execution: Save to Downloads
   const handleSaveToDownloads = useCallback(
@@ -164,6 +177,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           fileName: customFileName,
           share: false,
           sections: sectionsConfig,
+          theme: pdfTheme,
         });
         setIsSaveModalOpen(false);
         toast.success(`Saved to Downloads: ${result.fileName}`);
@@ -179,7 +193,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
         setIsExportBusy(false);
       }
     },
-    [data, sectionsConfig]
+    [data, sectionsConfig, pdfTheme]
   );
 
   // Dynamic Theme Colors

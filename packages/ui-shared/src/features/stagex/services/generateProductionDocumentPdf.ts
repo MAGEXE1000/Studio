@@ -6,10 +6,13 @@ import type {
 } from './projectProductionDocumentData';
 import { DEFAULT_PRODUCTION_DOCUMENT_SECTIONS } from './projectProductionDocumentData';
 
+export type PdfThemeMode = 'light' | 'dark' | 'amoled';
+
 export interface GeneratePdfOptions {
   fileName?: string;
   share?: boolean;
   sections?: ProductionDocumentSectionsConfig;
+  theme?: PdfThemeMode;
 }
 
 export interface GeneratePdfResult {
@@ -20,9 +23,113 @@ export interface GeneratePdfResult {
   success?: boolean;
 }
 
+export interface PdfThemePalette {
+  mode: PdfThemeMode;
+  bgPage: readonly [number, number, number];
+  bgCard: readonly [number, number, number];
+  bgHeader: readonly [number, number, number];
+  bgZebra: readonly [number, number, number];
+  bgBlueprint: readonly [number, number, number];
+  gridDot: readonly [number, number, number];
+  textPrimary: readonly [number, number, number];
+  textSecondary: readonly [number, number, number];
+  textMuted: readonly [number, number, number];
+  border: readonly [number, number, number];
+  borderSubtle: readonly [number, number, number];
+  blue: readonly [number, number, number];
+  bluePillBg: readonly [number, number, number];
+  amber: readonly [number, number, number];
+  green: readonly [number, number, number];
+}
+
+export function resolvePdfTheme(theme?: PdfThemeMode): PdfThemePalette {
+  if (theme === 'amoled') {
+    return {
+      mode: 'amoled',
+      bgPage: [0, 0, 0] as const, // Pure pitch black #000000 for AMOLED
+      bgCard: [10, 10, 14] as const,
+      bgHeader: [16, 16, 22] as const,
+      bgZebra: [12, 12, 16] as const,
+      bgBlueprint: [4, 4, 6] as const,
+      gridDot: [32, 32, 42] as const,
+      textPrimary: [255, 255, 255] as const,
+      textSecondary: [212, 212, 216] as const,
+      textMuted: [140, 140, 150] as const,
+      border: [42, 42, 52] as const,
+      borderSubtle: [26, 26, 34] as const,
+      blue: [59, 130, 246] as const,
+      bluePillBg: [15, 23, 42] as const,
+      amber: [245, 158, 11] as const,
+      green: [16, 185, 129] as const,
+    };
+  }
+
+  if (theme === 'dark') {
+    return {
+      mode: 'dark',
+      bgPage: [9, 9, 11] as const, // #09090b
+      bgCard: [20, 20, 26] as const,
+      bgHeader: [27, 27, 35] as const,
+      bgZebra: [15, 15, 20] as const,
+      bgBlueprint: [12, 12, 15] as const,
+      gridDot: [36, 36, 46] as const,
+      textPrimary: [255, 255, 255] as const,
+      textSecondary: [212, 212, 216] as const,
+      textMuted: [140, 140, 150] as const,
+      border: [45, 45, 55] as const,
+      borderSubtle: [28, 28, 36] as const,
+      blue: [59, 130, 246] as const,
+      bluePillBg: [20, 30, 55] as const,
+      amber: [245, 158, 11] as const,
+      green: [16, 185, 129] as const,
+    };
+  }
+
+  // Light (default)
+  return {
+    mode: 'light',
+    bgPage: [255, 255, 255] as const,
+    bgCard: [249, 250, 251] as const,
+    bgHeader: [243, 244, 246] as const,
+    bgZebra: [250, 250, 251] as const,
+    bgBlueprint: [244, 245, 247] as const,
+    gridDot: [224, 227, 233] as const,
+    textPrimary: [17, 24, 39] as const,
+    textSecondary: [75, 85, 99] as const,
+    textMuted: [156, 163, 175] as const,
+    border: [229, 231, 235] as const,
+    borderSubtle: [243, 244, 246] as const,
+    blue: [37, 99, 235] as const,
+    bluePillBg: [239, 246, 255] as const,
+    amber: [245, 158, 11] as const,
+    green: [16, 185, 129] as const,
+  };
+}
+
+function parseHexColor(
+  hex?: string,
+  fallback: readonly [number, number, number] = [59, 130, 246]
+): [number, number, number] {
+  if (!hex || typeof hex !== 'string') return [fallback[0], fallback[1], fallback[2]];
+  const clean = hex.replace('#', '').trim();
+  if (clean.length === 6) {
+    const r = parseInt(clean.slice(0, 2), 16);
+    const g = parseInt(clean.slice(2, 4), 16);
+    const b = parseInt(clean.slice(4, 6), 16);
+    if (!isNaN(r) && !isNaN(g) && !isNaN(b)) return [r, g, b];
+  } else if (clean.length === 3) {
+    const r = parseInt(clean[0] + clean[0], 16);
+    const g = parseInt(clean[1] + clean[1], 16);
+    const b = parseInt(clean[2] + clean[2], 16);
+    if (!isNaN(r) && !isNaN(g) && !isNaN(b)) return [r, g, b];
+  }
+  return [fallback[0], fallback[1], fallback[2]];
+}
+
 /**
  * Generates a clean, professional, multi-page vector PDF production document
- * from the canonical Stagex ProductionDocumentData contract.
+ * from the canonical Stagex ProductionDocumentData contract, fully respecting
+ * the active Studio theme (Light, Dark, AMOLED).
  */
 export async function generateProductionDocumentPdf(
   data: ProductionDocumentData,
@@ -42,17 +149,17 @@ export async function generateProductionDocumentPdf(
   const MARGIN_BOTTOM = 16;
   const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT; // 182mm
 
-  // Palette (Print-safe, high contrast)
-  const C_BLACK = [17, 24, 39] as const; // #111827
-  const C_DARK = [31, 41, 55] as const; // #1f2937
-  const C_GRAY = [75, 85, 99] as const; // #4b5563
-  const C_MUTED = [156, 163, 175] as const; // #9ca3af
-  const C_BLUE = [37, 99, 235] as const; // #2563eb
-  const C_BLUE_LIGHT = [239, 246, 255] as const; // #eff6ff
-  const C_BORDER = [229, 231, 235] as const; // #e5e7eb
-  const C_BG_CARD = [249, 250, 251] as const; // #f9fafb
-  const C_GREEN = [16, 185, 129] as const; // #10b981
-  const C_AMBER = [245, 158, 11] as const; // #f59e0b
+  // Active theme palette
+  const T = resolvePdfTheme(options.theme);
+
+  // Paint full background of a page with the theme's background color
+  const fillPageBackground = () => {
+    doc.setFillColor(T.bgPage[0], T.bgPage[1], T.bgPage[2]);
+    doc.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, 'F');
+  };
+
+  // Fill initial page 1
+  fillPageBackground();
 
   let currentY = MARGIN_TOP;
 
@@ -61,16 +168,16 @@ export async function generateProductionDocumentPdf(
     if (pageNumber <= 1) return;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
     doc.text('STAGEX PRODUCTION DOCUMENT', MARGIN_LEFT, 10);
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
-    doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
     const rightText = `${data.projectName.toUpperCase()} · ${data.sceneName.toUpperCase()}`;
     doc.text(rightText, PAGE_WIDTH - MARGIN_RIGHT, 10, { align: 'right' });
 
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.25);
     doc.line(MARGIN_LEFT, 12, PAGE_WIDTH - MARGIN_RIGHT, 12);
   };
@@ -79,6 +186,7 @@ export async function generateProductionDocumentPdf(
   const ensureSpace = (heightNeeded: number): void => {
     if (currentY + heightNeeded > PAGE_HEIGHT - MARGIN_BOTTOM) {
       doc.addPage();
+      fillPageBackground();
       currentY = MARGIN_TOP + 4;
       drawRunningHeader(doc.getNumberOfPages());
     }
@@ -88,23 +196,23 @@ export async function generateProductionDocumentPdf(
     ensureSpace(12);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
-    doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
     doc.text(`${num} //`, MARGIN_LEFT, currentY);
 
     const titleX = MARGIN_LEFT + doc.getTextWidth(`${num} // `);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
-    doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+    doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     doc.text(title.toUpperCase(), titleX, currentY);
 
     if (subtitle) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
       doc.text(subtitle, PAGE_WIDTH - MARGIN_RIGHT, currentY, { align: 'right' });
     }
 
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.2);
     doc.line(MARGIN_LEFT, currentY + 2.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 2.5);
     currentY += 7;
@@ -123,25 +231,25 @@ export async function generateProductionDocumentPdf(
   // ═══════════════════════════════════════════════════════════════════
 
   // Document Type Pill
-  doc.setFillColor(C_BLUE_LIGHT[0], C_BLUE_LIGHT[1], C_BLUE_LIGHT[2]);
+  doc.setFillColor(T.bluePillBg[0], T.bluePillBg[1], T.bluePillBg[2]);
   doc.roundedRect(MARGIN_LEFT, currentY, 58, 5.5, 1.2, 1.2, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7);
-  doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+  doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
   doc.text('LIVE STAGE PRODUCTION DOCUMENT', MARGIN_LEFT + 3, currentY + 3.8);
   currentY += 8.5;
 
   // Project Title
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(22);
-  doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+  doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
   doc.text(data.projectName.toUpperCase(), MARGIN_LEFT, currentY);
   currentY += 5.5;
 
   // Subtitle / Scene Details
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+  doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
   doc.text(
     `Scene: ${data.sceneName} · Generated: ${data.date} ${data.time} · Document ID: ${data.documentId}`,
     MARGIN_LEFT,
@@ -152,30 +260,30 @@ export async function generateProductionDocumentPdf(
   // Production Logistics Card (Venue, Contact, Phone/Email)
   const hasLogistics = Boolean(data.venue || data.contactName || data.contactPhone);
   if (hasLogistics) {
-    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.25);
     doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 14, 2, 2, 'FD');
 
     // Left Column: Venue
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
     doc.text('VENUE / FESTIVAL', MARGIN_LEFT + 4, currentY + 4.5);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
-    doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+    doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     doc.text(data.venue || 'Production Stage / Main Hall', MARGIN_LEFT + 4, currentY + 9.5);
 
     // Right Column: Production Contact
     const col2X = MARGIN_LEFT + CONTENT_WIDTH / 2 + 4;
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
     doc.text('PRODUCTION CONTACT', col2X, currentY + 4.5);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8.5);
-    doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+    doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     const contactLine = [data.contactName, data.contactPhone].filter(Boolean).join(' · ');
     doc.text(contactLine || 'Stage Manager / FOH Engineer', col2X, currentY + 9.5);
 
@@ -186,29 +294,39 @@ export async function generateProductionDocumentPdf(
   if (sections.stagePlot) {
     drawSectionTitle(getNextSectionNumber(), 'Stage Plot', `Scale 1:50 · ${data.stageDimensions}`);
 
-    const plotBoxH = data.isSquare ? 58 : 52;
+    const plotBoxH = data.isSquare ? 62 : 54;
     ensureSpace(plotBoxH + 4);
 
     // Stage Boundary Outer Box
-    doc.setFillColor(248, 249, 250);
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setFillColor(T.bgBlueprint[0], T.bgBlueprint[1], T.bgBlueprint[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.3);
     doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, plotBoxH, 2, 2, 'FD');
 
+    // Blueprint Grid Dots
+    doc.setFillColor(T.gridDot[0], T.gridDot[1], T.gridDot[2]);
+    for (let gx = MARGIN_LEFT + 8; gx < MARGIN_LEFT + CONTENT_WIDTH - 6; gx += 8) {
+      for (let gy = currentY + 7; gy < currentY + plotBoxH - 5; gy += 8) {
+        doc.circle(gx, gy, 0.25, 'F');
+      }
+    }
+
     // Upstage marker bar
-    doc.setFillColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
-    doc.rect(MARGIN_LEFT + 2, currentY + 1, CONTENT_WIDTH - 4, 0.4, 'F');
+    doc.setFillColor(T.border[0], T.border[1], T.border[2]);
+    doc.rect(MARGIN_LEFT + 2, currentY + 1, CONTENT_WIDTH - 4, 0.35, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
-    doc.text('▲ UPSTAGE / BACKLINE', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 4, {
+    doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
+    doc.text('▲ UPSTAGE / BACKLINE WALL', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 4, {
       align: 'center',
     });
+    doc.setFontSize(5.5);
+    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
     doc.text('STAGE LEFT (SL)', MARGIN_LEFT + 4, currentY + 4);
     doc.text('STAGE RIGHT (SR)', PAGE_WIDTH - MARGIN_RIGHT - 4, currentY + 4, { align: 'right' });
 
     // Centerline guide
-    doc.setDrawColor(235, 238, 242);
+    doc.setDrawColor(T.borderSubtle[0], T.borderSubtle[1], T.borderSubtle[2]);
     doc.setLineWidth(0.2);
     doc.setLineDashPattern([1.5, 1.5], 0);
     doc.line(
@@ -219,12 +337,46 @@ export async function generateProductionDocumentPdf(
     );
     doc.setLineDashPattern([], 0); // Reset dash
 
-    // Draw Elements on Stage Plot
     const elements = data.elements || [];
+    const connections = data.connections || [];
+
+    // Draw active connections
+    if (connections.length > 0 && elements.length > 0) {
+      connections.forEach((conn: any) => {
+        const fromEl = elements.find((e: any) => e.id === conn.fromId);
+        const toEl = elements.find((e: any) => e.id === conn.toId);
+        if (!fromEl || !toEl) return;
+        const fromX =
+          MARGIN_LEFT +
+          10 +
+          Math.max(0, Math.min(1, fromEl.x / (data.refW || 650))) * (CONTENT_WIDTH - 20);
+        const fromY =
+          currentY + 9 + Math.max(0, Math.min(1, fromEl.y / (data.refH || 420))) * (plotBoxH - 18);
+        const toX =
+          MARGIN_LEFT +
+          10 +
+          Math.max(0, Math.min(1, toEl.x / (data.refW || 650))) * (CONTENT_WIDTH - 20);
+        const toY =
+          currentY + 9 + Math.max(0, Math.min(1, toEl.y / (data.refH || 420))) * (plotBoxH - 18);
+
+        const connColor = parseHexColor(conn.color, T.blue);
+        doc.setDrawColor(connColor[0], connColor[1], connColor[2]);
+        doc.setLineWidth(0.25);
+        if (conn.style === 'dashed') {
+          doc.setLineDashPattern([2, 1.5], 0);
+        } else if (conn.style === 'dotted') {
+          doc.setLineDashPattern([0.8, 0.8], 0);
+        }
+        doc.line(fromX, fromY, toX, toY);
+        doc.setLineDashPattern([], 0);
+      });
+    }
+
+    // Draw Elements on Stage Plot
     if (elements.length === 0) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
       doc.text(
         'No stage elements placed in active scene',
         MARGIN_LEFT + CONTENT_WIDTH / 2,
@@ -237,34 +389,38 @@ export async function generateProductionDocumentPdf(
       elements.forEach((el, idx) => {
         const rawPctX = el.x / (data.refW || 650);
         const rawPctY = el.y / (data.refH || 420);
-        const elX = MARGIN_LEFT + 8 + Math.max(0, Math.min(1, rawPctX)) * (CONTENT_WIDTH - 16);
-        const elY = currentY + 8 + Math.max(0, Math.min(1, rawPctY)) * (plotBoxH - 16);
+        const elX = MARGIN_LEFT + 10 + Math.max(0, Math.min(1, rawPctX)) * (CONTENT_WIDTH - 20);
+        const elY = currentY + 9 + Math.max(0, Math.min(1, rawPctY)) * (plotBoxH - 18);
 
-        // Element badge
-        doc.setFillColor(255, 255, 255);
-        doc.setDrawColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
-        doc.setLineWidth(0.3);
-        doc.circle(elX, elY, 3, 'FD');
+        const elColor = parseHexColor(el.color, T.blue);
+
+        // Element badge circle
+        doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+        doc.setDrawColor(elColor[0], elColor[1], elColor[2]);
+        doc.setLineWidth(0.35);
+        doc.circle(elX, elY, 3.2, 'FD');
 
         // Element index number
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(5.5);
-        doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+        doc.setTextColor(elColor[0], elColor[1], elColor[2]);
         doc.text(String(idx + 1), elX, elY + 1.2, { align: 'center' });
 
-        // Label below element
-        const labelStr = (el.label || el.name || el.type || `Input ${idx + 1}`).toUpperCase();
+        // Label below element - Density-adapted typography
+        const rawLabel = (el.label || el.name || el.type || `CH ${idx + 1}`).toUpperCase();
+        const labelStr = rawLabel.length > 13 ? `${rawLabel.slice(0, 12)}…` : rawLabel;
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(5);
-        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
-        doc.text(labelStr.slice(0, 15), elX, elY + 4.8, { align: 'center' });
+        doc.setFontSize(4.8);
+        doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
+        const labelY = Math.min(currentY + plotBoxH - 3.5, elY + 4.8);
+        doc.text(labelStr, elX, labelY, { align: 'center' });
       });
     }
 
     // Downstage marker bar
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6);
-    doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.setFontSize(5.5);
+    doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
     doc.text(
       '▼ DOWNSTAGE / AUDIENCE (FOH LINE)',
       MARGIN_LEFT + CONTENT_WIDTH / 2,
@@ -294,14 +450,14 @@ export async function generateProductionDocumentPdf(
     const colNotesW = CONTENT_WIDTH - (colChW + colInstW + colPerfW + colMicW + col48vW); // 28mm
 
     const drawTableHeader = () => {
-      doc.setFillColor(243, 244, 246);
-      doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+      doc.setFillColor(T.bgHeader[0], T.bgHeader[1], T.bgHeader[2]);
+      doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
       doc.setLineWidth(0.2);
       doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 6, 'FD');
 
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(6.5);
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+      doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
 
       let x = MARGIN_LEFT + 2;
       doc.text('CH#', x, currentY + 4);
@@ -324,7 +480,7 @@ export async function generateProductionDocumentPdf(
     if (data.channels.length === 0) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
       doc.text('No input channels configured', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
         align: 'center',
       });
@@ -338,11 +494,11 @@ export async function generateProductionDocumentPdf(
 
         // Zebra striping
         if (idx % 2 === 1) {
-          doc.setFillColor(250, 250, 250);
+          doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
           doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 6, 'F');
         }
 
-        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
         doc.setLineWidth(0.1);
         doc.line(MARGIN_LEFT, currentY + 6, PAGE_WIDTH - MARGIN_RIGHT, currentY + 6);
 
@@ -350,25 +506,25 @@ export async function generateProductionDocumentPdf(
         // CH
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
-        doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+        doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
         doc.text(ch.ch, x, currentY + 4.2);
 
         // Instrument
         x += colChW;
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
         doc.text(ch.source.slice(0, 24), x, currentY + 4.2);
 
         // Performer
         x += colInstW;
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text(ch.performer.slice(0, 20), x, currentY + 4.2);
 
         // Mic / DI
         x += colPerfW;
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text(ch.mic.slice(0, 24), x, currentY + 4.2);
 
         // 48V Phantom
@@ -376,12 +532,12 @@ export async function generateProductionDocumentPdf(
         if (ch.phantom) {
           doc.setFont('helvetica', 'bold');
           doc.setFontSize(6);
-          doc.setTextColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
+          doc.setTextColor(T.amber[0], T.amber[1], T.amber[2]);
           doc.text('+48V', x + col48vW / 2 - 2, currentY + 4.2, { align: 'center' });
         } else {
           doc.setFont('helvetica', 'normal');
           doc.setFontSize(7);
-          doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+          doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
           doc.text('—', x + col48vW / 2 - 2, currentY + 4.2, { align: 'center' });
         }
 
@@ -389,7 +545,7 @@ export async function generateProductionDocumentPdf(
         x += col48vW;
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
-        doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+        doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
         doc.text(ch.notes.slice(0, 18), x, currentY + 4.2);
 
         currentY += 6;
@@ -410,18 +566,18 @@ export async function generateProductionDocumentPdf(
     ensureSpace(24);
 
     // Card 1: FOH Audio Protocol
-    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.roundedRect(MARGIN_LEFT, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
-    doc.setFillColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.setFillColor(T.blue[0], T.blue[1], T.blue[2]);
     doc.rect(MARGIN_LEFT, currentY, 1.5, 20, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+    doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
     doc.text('FOH PROTOCOL', MARGIN_LEFT + 4, currentY + 4.5);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
-    doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+    doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     const fohLines = doc.splitTextToSize(
       data.requirements.foh[0] || 'Dante 96kHz / 32ch minimum',
       reqCardW - 6
@@ -430,18 +586,18 @@ export async function generateProductionDocumentPdf(
 
     // Card 2: Monitor / IEM
     const card2X = MARGIN_LEFT + reqCardW + 3;
-    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.roundedRect(card2X, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
-    doc.setFillColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
+    doc.setFillColor(T.amber[0], T.amber[1], T.amber[2]);
     doc.rect(card2X, currentY, 1.5, 20, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(C_AMBER[0], C_AMBER[1], C_AMBER[2]);
+    doc.setTextColor(T.amber[0], T.amber[1], T.amber[2]);
     doc.text('MONITOR / IEM', card2X + 4, currentY + 4.5);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
-    doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+    doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     const monLines = doc.splitTextToSize(
       data.requirements.monitor[0] || 'Min 4 discrete stereo IEM mixes',
       reqCardW - 6
@@ -450,18 +606,18 @@ export async function generateProductionDocumentPdf(
 
     // Card 3: Power Distribution
     const card3X = card2X + reqCardW + 3;
-    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.roundedRect(card3X, currentY, reqCardW, 20, 1.5, 1.5, 'FD');
-    doc.setFillColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
+    doc.setFillColor(T.green[0], T.green[1], T.green[2]);
     doc.rect(card3X, currentY, 1.5, 20, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
+    doc.setTextColor(T.green[0], T.green[1], T.green[2]);
     doc.text('POWER REQUIREMENT', card3X + 4, currentY + 4.5);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
-    doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+    doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     const powerLines = doc.splitTextToSize(
       data.requirements.power[0] || '2× 20A isolated circuits Stage Left',
       reqCardW - 6
@@ -478,14 +634,14 @@ export async function generateProductionDocumentPdf(
       ensureSpace(14);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(7);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
       doc.text('ADDITIONAL PRODUCTION SPECIFICATIONS:', MARGIN_LEFT, currentY);
       currentY += 4;
 
       extraSpecs.slice(0, 4).forEach((spec) => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7.5);
-        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text(`•  ${spec}`, MARGIN_LEFT + 2, currentY);
         currentY += 4;
       });
@@ -502,14 +658,14 @@ export async function generateProductionDocumentPdf(
     const notesBoxH = Math.max(16, notesLines.length * 4.2 + 6);
 
     ensureSpace(notesBoxH + 4);
-    doc.setFillColor(C_BG_CARD[0], C_BG_CARD[1], C_BG_CARD[2]);
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.25);
     doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, notesBoxH, 1.5, 1.5, 'FD');
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+    doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
     doc.text(notesLines, MARGIN_LEFT + 4, currentY + 5.5);
     currentY += notesBoxH + 6;
   }
@@ -528,18 +684,18 @@ export async function generateProductionDocumentPdf(
     if (data.setlist.length === 0) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
       doc.text('No songs added to setlist', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
         align: 'center',
       });
       currentY += 12;
     } else {
       // Setlist Header
-      doc.setFillColor(243, 244, 246);
+      doc.setFillColor(T.bgHeader[0], T.bgHeader[1], T.bgHeader[2]);
       doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(6.5);
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+      doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
 
       doc.text('#', MARGIN_LEFT + 2, currentY + 3.8);
       doc.text('TRACK TITLE', MARGIN_LEFT + 12, currentY + 3.8);
@@ -552,36 +708,36 @@ export async function generateProductionDocumentPdf(
       data.setlist.forEach((s, idx) => {
         ensureSpace(6);
         if (idx % 2 === 1) {
-          doc.setFillColor(250, 250, 250);
+          doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
           doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
         }
-        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
         doc.setLineWidth(0.1);
         doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
-        doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+        doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
         doc.text(String(idx + 1).padStart(2, '0'), MARGIN_LEFT + 2, currentY + 3.8);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
         doc.text(s.title.slice(0, 36), MARGIN_LEFT + 12, currentY + 3.8);
 
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text((s.artist || s.notes || '—').slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(C_BLUE[0], C_BLUE[1], C_BLUE[2]);
+        doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
         doc.text(s.key || 'C', MARGIN_LEFT + 125, currentY + 3.8);
 
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text(`${s.bpm || 120} BPM`, MARGIN_LEFT + 145, currentY + 3.8);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
         doc.text(s.duration || '04:00', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
           align: 'right',
         });
@@ -604,17 +760,17 @@ export async function generateProductionDocumentPdf(
     if (data.gear.length === 0) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
       doc.text('No gear items added to inventory', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
         align: 'center',
       });
       currentY += 12;
     } else {
-      doc.setFillColor(243, 244, 246);
+      doc.setFillColor(T.bgHeader[0], T.bgHeader[1], T.bgHeader[2]);
       doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(6.5);
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+      doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
 
       doc.text('ITEM NAME', MARGIN_LEFT + 2, currentY + 3.8);
       doc.text('CATEGORY', MARGIN_LEFT + 80, currentY + 3.8);
@@ -625,35 +781,35 @@ export async function generateProductionDocumentPdf(
       data.gear.forEach((item, idx) => {
         ensureSpace(6);
         if (idx % 2 === 1) {
-          doc.setFillColor(250, 250, 250);
+          doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
           doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
         }
-        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
         doc.setLineWidth(0.1);
         doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
-        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
         doc.text(item.name.slice(0, 38), MARGIN_LEFT + 2, currentY + 3.8);
 
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text((item.category || 'General').slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
 
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(C_DARK[0], C_DARK[1], C_DARK[2]);
+        doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
         doc.text(`${item.qty || 1}x`, MARGIN_LEFT + 130, currentY + 3.8);
 
         if (item.packed) {
           doc.setFont('helvetica', 'bold');
-          doc.setTextColor(C_GREEN[0], C_GREEN[1], C_GREEN[2]);
+          doc.setTextColor(T.green[0], T.green[1], T.green[2]);
           doc.text('VERIFIED / PACKED', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
             align: 'right',
           });
         } else {
           doc.setFont('helvetica', 'normal');
-          doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+          doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
           doc.text('REQUIRED', PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, { align: 'right' });
         }
 
@@ -675,17 +831,17 @@ export async function generateProductionDocumentPdf(
     if (data.members.length === 0) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
-      doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+      doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
       doc.text('No members added to roster', MARGIN_LEFT + CONTENT_WIDTH / 2, currentY + 6, {
         align: 'center',
       });
       currentY += 12;
     } else {
-      doc.setFillColor(243, 244, 246);
+      doc.setFillColor(T.bgHeader[0], T.bgHeader[1], T.bgHeader[2]);
       doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(6.5);
-      doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+      doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
 
       doc.text('NAME', MARGIN_LEFT + 2, currentY + 3.8);
       doc.text('ROLE / POSITION', MARGIN_LEFT + 50, currentY + 3.8);
@@ -696,35 +852,35 @@ export async function generateProductionDocumentPdf(
       data.members.forEach((m, idx) => {
         ensureSpace(6);
         if (idx % 2 === 1) {
-          doc.setFillColor(250, 250, 250);
+          doc.setFillColor(T.bgZebra[0], T.bgZebra[1], T.bgZebra[2]);
           doc.rect(MARGIN_LEFT, currentY, CONTENT_WIDTH, 5.5, 'F');
         }
-        doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+        doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
         doc.setLineWidth(0.1);
         doc.line(MARGIN_LEFT, currentY + 5.5, PAGE_WIDTH - MARGIN_RIGHT, currentY + 5.5);
 
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(7.5);
-        doc.setTextColor(C_BLACK[0], C_BLACK[1], C_BLACK[2]);
+        doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
         doc.text(m.name.slice(0, 24), MARGIN_LEFT + 2, currentY + 3.8);
 
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text((m.role || 'Member').slice(0, 24), MARGIN_LEFT + 50, currentY + 3.8);
 
         const assignText =
           m.assignedElements.length > 0 ? m.assignedElements.join(', ') : 'Unassigned';
         doc.setFont('helvetica', m.assignedElements.length > 0 ? 'bold' : 'normal');
         doc.setTextColor(
-          m.assignedElements.length > 0 ? C_BLUE[0] : C_MUTED[0],
-          m.assignedElements.length > 0 ? C_BLUE[1] : C_MUTED[1],
-          m.assignedElements.length > 0 ? C_BLUE[2] : C_MUTED[2]
+          m.assignedElements.length > 0 ? T.blue[0] : T.textMuted[0],
+          m.assignedElements.length > 0 ? T.blue[1] : T.textMuted[1],
+          m.assignedElements.length > 0 ? T.blue[2] : T.textMuted[2]
         );
         doc.text(assignText.slice(0, 30), MARGIN_LEFT + 100, currentY + 3.8);
 
         const contactStr = [m.phone, m.email].filter(Boolean).join(' · ');
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(C_GRAY[0], C_GRAY[1], C_GRAY[2]);
+        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
         doc.text((contactStr || '—').slice(0, 20), PAGE_WIDTH - MARGIN_RIGHT - 2, currentY + 3.8, {
           align: 'right',
         });
@@ -740,7 +896,7 @@ export async function generateProductionDocumentPdf(
     ensureSpace(24);
     doc.setFont('helvetica', 'italic');
     doc.setFontSize(9);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
     doc.text(
       'No document sections selected in export configuration.',
       MARGIN_LEFT + CONTENT_WIDTH / 2,
@@ -757,13 +913,13 @@ export async function generateProductionDocumentPdf(
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
     // Foot line
-    doc.setDrawColor(C_BORDER[0], C_BORDER[1], C_BORDER[2]);
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.25);
     doc.line(MARGIN_LEFT, PAGE_HEIGHT - 12, PAGE_WIDTH - MARGIN_RIGHT, PAGE_HEIGHT - 12);
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(C_MUTED[0], C_MUTED[1], C_MUTED[2]);
+    doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
     doc.text('STAGEX PRODUCTION DOCUMENT', MARGIN_LEFT, PAGE_HEIGHT - 8);
 
     doc.setFont('helvetica', 'normal');

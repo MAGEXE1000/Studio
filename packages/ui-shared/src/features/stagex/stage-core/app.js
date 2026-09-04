@@ -9289,11 +9289,11 @@ async function exportPDF() {
     } catch (_) {}
 
     // ── PDF document ──────────────────────────────────────
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const cssPerMm = CAPTURE_WIDTH / 210;
+    const totalPdfH = Math.max(297, Math.ceil(totalH / cssPerMm));
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [210, totalPdfH] });
     const pdfW = pdf.internal.pageSize.getWidth();
     const pdfH = pdf.internal.pageSize.getHeight();
-    const cssPerMm = CAPTURE_WIDTH / pdfW;
-    const pageHpx = Math.floor(pdfH * cssPerMm);
 
     function fillPageBg() {
       pdf.setFillColor(14, 14, 14);
@@ -9301,61 +9301,16 @@ async function exportPDF() {
     }
 
     if (bigCvs) {
-      // ── 5a. FAST PATH: slice the single big canvas into A4 pages,
-      //         breaking only at recorded section boundaries.
-      const cvsPerCss = bigCvs.width / CAPTURE_WIDTH;
-
-      const pages = [];
-      let pageStart = 0;
-      for (let i = 1; i < breaks.length; i++) {
-        const segStart = breaks[i - 1];
-        const segEnd = breaks[i];
-        const segH = segEnd - segStart;
-        if (segH > pageHpx) {
-          if (pageStart < segStart) pages.push({ s: pageStart, e: segStart });
-          let s = segStart;
-          while (s < segEnd) {
-            const e = Math.min(s + pageHpx, segEnd);
-            pages.push({ s, e });
-            s = e;
-          }
-          pageStart = segEnd;
-        } else if (segEnd - pageStart > pageHpx) {
-          pages.push({ s: pageStart, e: segStart });
-          pageStart = segStart;
-        }
-      }
-      if (pageStart < totalH) pages.push({ s: pageStart, e: totalH });
-
-      const pageCvs = document.createElement('canvas');
-      const pageCtx = pageCvs.getContext('2d');
-      for (let p = 0; p < pages.length; p++) {
-        const { s, e } = pages[p];
-        const sliceCss = e - s;
-        pageCvs.width = bigCvs.width;
-        pageCvs.height = Math.max(1, Math.round(sliceCss * cvsPerCss));
-        pageCtx.fillStyle = '#0e0e0e';
-        pageCtx.fillRect(0, 0, pageCvs.width, pageCvs.height);
-        pageCtx.drawImage(bigCvs, 0, -Math.round(s * cvsPerCss));
-
-        const imgData = pageCvs.toDataURL('image/jpeg', JPEG_Q);
-        const hMm = sliceCss / cssPerMm;
-        if (p > 0) pdf.addPage();
-        fillPageBg();
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, hMm, undefined, 'FAST');
-      }
+      // ── 5a. FAST PATH: single continuous long-format page (strictly 1 page)
+      fillPageBg();
+      const imgData = bigCvs.toDataURL('image/jpeg', JPEG_Q);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfW, totalH / cssPerMm, undefined, 'FAST');
     } else {
-      // ── 5b. FALLBACK PATH: capture each section individually.
-      //         Slower but more resilient for very long documents or
-      //         environments where the single capture fails.
+      // ── 5b. FALLBACK PATH: capture each section individually onto the continuous page
       const GAP_MM = 8;
       let pageY = 0;
       fillPageBg();
-      const startNewPage = () => {
-        pdf.addPage();
-        fillPageBg();
-        pageY = 0;
-      };
+      const startNewPage = () => {};
       const mmPerPx = pdfW / (CAPTURE_WIDTH * SCALE);
 
       for (const id of SECTION_IDS) {

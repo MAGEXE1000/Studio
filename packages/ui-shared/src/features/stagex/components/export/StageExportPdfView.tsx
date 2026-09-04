@@ -752,8 +752,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               ) : (
                 <div
                   data-testid="stage-plot-preview-container"
-                  className={`relative w-full border rounded-xl overflow-hidden stage-blueprint-grid p-2.5 flex flex-col justify-between select-none ${
-                    data.isSquare ? 'aspect-square max-h-[420px]' : 'aspect-[4/3] max-h-[360px]'
+                  className={`relative w-full border rounded-xl overflow-hidden stage-blueprint-grid select-none ${
+                    data.isSquare ? 'aspect-square max-h-[420px]' : 'aspect-[16/9] max-h-[360px]'
                   }`}
                   style={{
                     backgroundColor: blueprintBg,
@@ -762,7 +762,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 >
                   {/* Upstage Boundary Header */}
                   <div
-                    className="w-full flex items-center justify-between text-[8px] font-mono font-bold tracking-wider uppercase z-10 select-none"
+                    className="absolute top-1.5 inset-x-2.5 flex items-center justify-between text-[8px] font-mono font-bold tracking-wider uppercase z-10 select-none pointer-events-none"
                     style={{ color: textDim }}
                   >
                     <span>{isSpanish ? 'Escenario Izquierda (SL)' : 'Stage Left (SL)'}</span>
@@ -780,8 +780,71 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     <span>{isSpanish ? 'Escenario Derecha (SR)' : 'Stage Right (SR)'}</span>
                   </div>
 
-                  {/* Elements Plot Plane */}
-                  <div className="relative flex-1 w-full h-full overflow-hidden my-1">
+                  {/* Stage Canonical Layout & Boundary Overlay (matching live canvas _renderStageLayout) */}
+                  <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden"
+                    style={{ color: borderCol }}
+                  >
+                    {/* 8% Performance Boundary */}
+                    <rect
+                      x="8%"
+                      y="8%"
+                      width="84%"
+                      height="84%"
+                      rx="4"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeDasharray="4 4"
+                      opacity={0.6}
+                    />
+                    {/* Vertical Centerline */}
+                    <line
+                      x1="50%"
+                      y1="8%"
+                      x2="50%"
+                      y2="92%"
+                      stroke="currentColor"
+                      strokeWidth="0.8"
+                      strokeDasharray="2 3"
+                      opacity={0.35}
+                    />
+                    {/* Horizontal Centerline */}
+                    <line
+                      x1="8%"
+                      y1="50%"
+                      x2="92%"
+                      y2="50%"
+                      stroke="currentColor"
+                      strokeWidth="0.8"
+                      strokeDasharray="2 3"
+                      opacity={0.35}
+                    />
+                    {/* Zone Separators */}
+                    <line
+                      x1="35%"
+                      y1="8%"
+                      x2="35%"
+                      y2="92%"
+                      stroke="currentColor"
+                      strokeWidth="0.8"
+                      strokeDasharray="2 3"
+                      opacity={0.35}
+                    />
+                    <line
+                      x1="65%"
+                      y1="8%"
+                      x2="65%"
+                      y2="92%"
+                      stroke="currentColor"
+                      strokeWidth="0.8"
+                      strokeDasharray="2 3"
+                      opacity={0.35}
+                    />
+                  </svg>
+
+                  {/* Elements & Connections Plot Plane */}
+                  <div className="absolute inset-0 w-full h-full overflow-hidden">
                     {/* Active Connection Lines */}
                     {data.connections.length > 0 && (
                       <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
@@ -789,10 +852,10 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                           const fromEl = data.elements.find((e: any) => e.id === conn.fromId);
                           const toEl = data.elements.find((e: any) => e.id === conn.toId);
                           if (!fromEl || !toEl) return null;
-                          const x1 = Math.min(94, Math.max(6, (fromEl.x / data.refW) * 100));
-                          const y1 = Math.min(94, Math.max(6, (fromEl.y / data.refH) * 100));
-                          const x2 = Math.min(94, Math.max(6, (toEl.x / data.refW) * 100));
-                          const y2 = Math.min(94, Math.max(6, (toEl.y / data.refH) * 100));
+                          const x1 = (fromEl.x / data.refW) * 100;
+                          const y1 = (fromEl.y / data.refH) * 100;
+                          const x2 = (toEl.x / data.refW) * 100;
+                          const y2 = (toEl.y / data.refH) * 100;
                           return (
                             <line
                               key={conn.id || cIdx}
@@ -818,10 +881,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
 
                     {/* Literal Elements Rendered from State */}
                     {data.elements.map((el: any, idx: number) => {
-                      const rawPctX = (el.x / data.refW) * 100;
-                      const rawPctY = (el.y / data.refH) * 100;
-                      const pctX = Math.min(94, Math.max(6, rawPctX));
-                      const pctY = Math.min(94, Math.max(6, rawPctY));
+                      const pctX = (el.x / data.refW) * 100;
+                      const pctY = (el.y / data.refH) * 100;
                       const rotation = el.rotation || 0;
                       const scale = (el.scale || 100) / 100;
                       const color = el.color || '#7aafff';
@@ -922,9 +983,8 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
 
                   {/* Downstage Boundary Footer */}
                   <div
-                    className="w-full flex items-center justify-between text-[8px] font-mono font-bold tracking-wider uppercase border-t pt-1 z-10 select-none"
+                    className="absolute bottom-1.5 inset-x-2.5 flex items-center justify-between text-[8px] font-mono font-bold tracking-wider uppercase z-10 select-none pointer-events-none"
                     style={{
-                      borderColor: borderCol,
                       color: textDim,
                     }}
                   >

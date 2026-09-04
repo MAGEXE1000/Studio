@@ -131,11 +131,14 @@ function parseHexColor(
 // In-memory cache for rasterized PNG data URLs to guarantee fast, reliable PDF generation
 const assetPngCache = new Map<string, string>();
 
-async function resolveAssetPngDataUrl(src: string): Promise<string | null> {
+async function resolveAssetPngDataUrl(src: string, rotation = 0): Promise<string | null> {
   if (!src) return null;
-  if (assetPngCache.has(src)) return assetPngCache.get(src)!;
-  if (src.startsWith('data:image/png') || src.startsWith('data:image/jpeg')) {
-    assetPngCache.set(src, src);
+  const rotNorm = ((Math.round(rotation) % 360) + 360) % 360;
+  const cacheKey = `${src}_rot_${rotNorm}`;
+  if (assetPngCache.has(cacheKey)) return assetPngCache.get(cacheKey)!;
+
+  if (rotNorm === 0 && (src.startsWith('data:image/png') || src.startsWith('data:image/jpeg'))) {
+    assetPngCache.set(cacheKey, src);
     return src;
   }
 
@@ -155,7 +158,13 @@ async function resolveAssetPngDataUrl(src: string): Promise<string | null> {
               reject(new Error('No canvas 2D context'));
               return;
             }
-            ctx.drawImage(img, 0, 0, size, size);
+            ctx.save();
+            ctx.translate(size / 2, size / 2);
+            if (rotNorm !== 0) {
+              ctx.rotate((rotNorm * Math.PI) / 180);
+            }
+            ctx.drawImage(img, -size / 2, -size / 2, size, size);
+            ctx.restore();
             const out = canvas.toDataURL('image/png');
             resolve(out);
           } catch (e) {
@@ -165,7 +174,7 @@ async function resolveAssetPngDataUrl(src: string): Promise<string | null> {
         img.onerror = (err) => reject(err);
         img.src = src;
       });
-      assetPngCache.set(src, dataUrl);
+      assetPngCache.set(cacheKey, dataUrl);
       return dataUrl;
     } catch (err) {
       console.warn('Could not rasterize asset for PDF:', src, err);
@@ -173,6 +182,27 @@ async function resolveAssetPngDataUrl(src: string): Promise<string | null> {
     }
   }
   return null;
+}
+
+function drawVectorElementFallback(
+  doc: jsPDF,
+  el: any,
+  x: number,
+  y: number,
+  size: number,
+  color: [number, number, number],
+  T: PdfThemePalette
+) {
+  doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
+  doc.setDrawColor(color[0], color[1], color[2]);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(x - size / 2, y - size / 2, size, size, 1.2, 1.2, 'FD');
+
+  const iconStr = (el.icon || el.type || el.label || el.name || 'EL').slice(0, 3).toUpperCase();
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(Math.max(4, Math.min(6.5, size * 0.5)));
+  doc.setTextColor(color[0], color[1], color[2]);
+  doc.text(iconStr, x, y + size * 0.16, { align: 'center' });
 }
 
 /**
@@ -210,13 +240,13 @@ export async function generateProductionDocumentPdf(
   const activeSectionsCount = Object.values(sections).filter(Boolean).length;
 
   // ═══════════════════════════════════════════════════════════════════
-  // 1. PRE-LOAD ELEMENT GRAPHICAL ASSETS
+  // 1. PRE-LOAD ELEMENT GRAPHICAL ASSETS (WITH CENTER ROTATION)
   // ═══════════════════════════════════════════════════════════════════
   const elementImages = await Promise.all(
     (data.elements || []).map(async (el) => {
       const iconKey = el.icon || el.type || 'mic';
       const src = el.imageData || STAGEX_ICON_MAP[iconKey] || STAGEX_ICON_MAP['mic'];
-      const dataUrl = src ? await resolveAssetPngDataUrl(src) : null;
+      const dataUrl = src ? await resolveAssetPngDataUrl(src, el.rotation || 0) : null;
       return { id: el.id, dataUrl };
     })
   );
@@ -239,16 +269,20 @@ export async function generateProductionDocumentPdf(
   }
   totalContentHeight += headerH;
 
-  // Section 1: Stage Plot (preserving 32:24 / 4:3 or 1:1 true logical aspect ratio)
-  const plotBoxH = data.isSquare ? CONTENT_WIDTH : Math.round(CONTENT_WIDTH * (24 / 32) * 10) / 10; // 182mm or 136.5mm
+  // Section 1: Stage Plot (preserving 16:9 rectangular or 1:1 square logical aspect ratio)
+  const refW = data.refW || (data.isSquare ? 800 : 800);
+  const refH = data.refH || (data.isSquare ? 800 : 450);
+  const stageAspectRatio = refH / refW; // 9/16 = 0.5625 for 16:9, or 1.0 for square
+  const plotW = CONTENT_WIDTH; // 182mm
+  const plotBoxH = data.isSquare ? plotW : Math.round(plotW * stageAspectRatio * 10) / 10;
   if (sections.stagePlot) {
-    totalContentHeight += 10.0 + plotBoxH + 8.0;
+    totalContentHeight += 7.0 + plotBoxH + 6.0;
   }
 
   // Section 2: Input Channels & Patch List
   if (sections.inputPatch) {
     const patchRowsH = data.channels.length === 0 ? 12.0 : data.channels.length * 6.0;
-    totalContentHeight += 10.0 + 6.0 + patchRowsH + 6.0;
+    totalContentHeight += 7.0 + 6.0 + patchRowsH + 6.0;
   }
 
   // Section 3: Technical Requirements (Rider)
@@ -263,9 +297,9 @@ export async function generateProductionDocumentPdf(
     ];
     let extraH = 0;
     if (extraSpecs.length > 0) {
-      extraH = 6.0 + Math.min(extraSpecs.length, 4) * 4.0;
+      extraH = 4.0 + Math.min(extraSpecs.length, 6) * 4.0 + 2.0;
     }
-    totalContentHeight += 10.0 + 22.0 + extraH + 6.0;
+    totalContentHeight += 7.0 + 24.0 + extraH + 6.0;
   }
 
   // Section 4: Production & Technical Notes
@@ -278,7 +312,7 @@ export async function generateProductionDocumentPdf(
         ? 'No se proporcionaron notas de producción personalizadas.'
         : 'No custom production notes provided.');
     const approxCharsPerLine = Math.floor((CONTENT_WIDTH - 8) / 1.7);
-    const words = notesText.split(' ');
+    const words = notesText.split(/\s+/);
     let curLine = '';
     notesLines = [];
     words.forEach((w) => {
@@ -291,25 +325,25 @@ export async function generateProductionDocumentPdf(
     });
     if (curLine) notesLines.push(curLine.trim());
     notesBoxH = Math.max(16.0, notesLines.length * 4.2 + 6.0);
-    totalContentHeight += 10.0 + notesBoxH + 6.0;
+    totalContentHeight += 7.0 + notesBoxH + 6.0;
   }
 
   // Section 5: Setlist Running Order
   if (sections.setlist) {
     const setlistRowsH = data.setlist.length === 0 ? 12.0 : 5.5 + data.setlist.length * 5.5;
-    totalContentHeight += 10.0 + setlistRowsH + 6.0;
+    totalContentHeight += 7.0 + setlistRowsH + 6.0;
   }
 
   // Section 6: Gear / Load-In Checklist
   if (sections.gear) {
     const gearRowsH = data.gear.length === 0 ? 12.0 : 5.5 + data.gear.length * 5.5;
-    totalContentHeight += 10.0 + gearRowsH + 6.0;
+    totalContentHeight += 7.0 + gearRowsH + 6.0;
   }
 
   // Section 7: Band & Crew Roster
   if (sections.bandCrew) {
     const memberRowsH = data.members.length === 0 ? 12.0 : 5.5 + data.members.length * 5.5;
-    totalContentHeight += 10.0 + memberRowsH + 6.0;
+    totalContentHeight += 7.0 + memberRowsH + 6.0;
   }
 
   // Fallback if all sections disabled
@@ -317,11 +351,14 @@ export async function generateProductionDocumentPdf(
     totalContentHeight += 24.0;
   }
 
-  // Footer: 14mm
-  totalContentHeight += 14.0;
+  // Footer: 16mm
+  totalContentHeight += 16.0;
 
-  // Single Page Total Height (dynamic, exact, continuous)
-  const PAGE_HEIGHT = Math.max(120, Math.round(MARGIN_TOP + totalContentHeight + MARGIN_BOTTOM));
+  // Single Page Total Height (dynamic, exact, continuous with safe bottom margin buffer)
+  const PAGE_HEIGHT = Math.max(
+    120,
+    Math.round(MARGIN_TOP + totalContentHeight + MARGIN_BOTTOM + 6)
+  );
 
   // Initialize jsPDF with EXACT single-page long-format dimensions
   const doc = new jsPDF({
@@ -441,7 +478,7 @@ export async function generateProductionDocumentPdf(
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // 5. SECTION: STAGE PLOT DIAGRAM (CANONICAL GRAPHICAL ASSETS + 4:3 GEOMETRY)
+  // 5. SECTION: STAGE PLOT DIAGRAM (CANONICAL GRAPHICAL ASSETS + 16:9/1:1 GEOMETRY)
   // ═══════════════════════════════════════════════════════════════════
   if (sections.stagePlot) {
     drawSectionTitle(
@@ -450,85 +487,79 @@ export async function generateProductionDocumentPdf(
       isEs ? `Escala 1:50 · ${data.stageDimensions}` : `Scale 1:50 · ${data.stageDimensions}`
     );
 
-    // Stage Boundary Outer Box
+    const plotX = MARGIN_LEFT;
+    const plotY = currentY;
+
+    // Stage Boundary Outer Box (Stage Floor)
     doc.setFillColor(T.bgBlueprint[0], T.bgBlueprint[1], T.bgBlueprint[2]);
     doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
     doc.setLineWidth(0.3);
-    doc.roundedRect(MARGIN_LEFT, currentY, CONTENT_WIDTH, plotBoxH, 2, 2, 'FD');
+    doc.roundedRect(plotX, plotY, plotW, plotBoxH, 2, 2, 'FD');
 
     // Blueprint Grid Dots
     doc.setFillColor(T.gridDot[0], T.gridDot[1], T.gridDot[2]);
-    for (let gx = MARGIN_LEFT + 8; gx < MARGIN_LEFT + CONTENT_WIDTH - 6; gx += 8) {
-      for (let gy = currentY + 7; gy < currentY + plotBoxH - 5; gy += 8) {
+    for (let gx = plotX + 8; gx < plotX + plotW - 6; gx += 8) {
+      for (let gy = plotY + 7; gy < plotY + plotBoxH - 5; gy += 8) {
         doc.circle(gx, gy, 0.25, 'F');
       }
     }
 
+    // Performance Area Boundary (8% canonical margin matching _renderStageLayout in features.js)
+    const bX = plotX + plotW * 0.08;
+    const bY = plotY + plotBoxH * 0.08;
+    const bW = plotW * 0.84;
+    const bH = plotBoxH * 0.84;
+
+    doc.setDrawColor(T.border[0], T.border[1], T.border[2]);
+    doc.setLineWidth(0.25);
+    doc.setLineDashPattern([2, 2], 0);
+    doc.roundedRect(bX, bY, bW, bH, 1.5, 1.5, 'D');
+
+    // Center Crosshairs & Zone Separators (matching live stage)
+    doc.setDrawColor(T.borderSubtle[0], T.borderSubtle[1], T.borderSubtle[2]);
+    doc.setLineWidth(0.18);
+    doc.setLineDashPattern([1.5, 2.5], 0);
+    // Vertical center line
+    doc.line(plotX + plotW * 0.5, bY, plotX + plotW * 0.5, bY + bH);
+    // Horizontal center line
+    doc.line(bX, plotY + plotBoxH * 0.5, bX + bW, plotY + plotBoxH * 0.5);
+    // Zone separators (35% and 65% width)
+    doc.line(plotX + plotW * 0.35, bY, plotX + plotW * 0.35, bY + bH);
+    doc.line(plotX + plotW * 0.65, bY, plotX + plotW * 0.65, bY + bH);
+    doc.setLineDashPattern([], 0); // Reset dash
+
     // Upstage marker bar
     doc.setFillColor(T.border[0], T.border[1], T.border[2]);
-    doc.rect(MARGIN_LEFT + 2, currentY + 1, CONTENT_WIDTH - 4, 0.35, 'F');
+    doc.rect(plotX + 2, plotY + 1, plotW - 4, 0.35, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6);
     doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
     doc.text(
       isEs ? '▲ FONDO DE ESCENARIO / PARED BACKLINE' : '▲ UPSTAGE / BACKLINE WALL',
-      MARGIN_LEFT + CONTENT_WIDTH / 2,
-      currentY + 4,
+      plotX + plotW / 2,
+      plotY + 4,
       { align: 'center' }
     );
     doc.setFontSize(5.5);
     doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
-    doc.text(isEs ? 'ESCENARIO IZQUIERDA (SL)' : 'STAGE LEFT (SL)', MARGIN_LEFT + 4, currentY + 4);
-    doc.text(
-      isEs ? 'ESCENARIO DERECHA (SR)' : 'STAGE RIGHT (SR)',
-      PAGE_WIDTH - MARGIN_RIGHT - 4,
-      currentY + 4,
-      { align: 'right' }
-    );
-
-    // Centerline guide
-    doc.setDrawColor(T.borderSubtle[0], T.borderSubtle[1], T.borderSubtle[2]);
-    doc.setLineWidth(0.2);
-    doc.setLineDashPattern([1.5, 1.5], 0);
-    doc.line(
-      MARGIN_LEFT + CONTENT_WIDTH / 2,
-      currentY + 5,
-      MARGIN_LEFT + CONTENT_WIDTH / 2,
-      currentY + plotBoxH - 5
-    );
-    doc.setLineDashPattern([], 0); // Reset dash
+    doc.text(isEs ? 'ESCENARIO IZQUIERDA (SL)' : 'STAGE LEFT (SL)', plotX + 4, plotY + 4);
+    doc.text(isEs ? 'ESCENARIO DERECHA (SR)' : 'STAGE RIGHT (SR)', plotX + plotW - 4, plotY + 4, {
+      align: 'right',
+    });
 
     const elements = data.elements || [];
     const connections = data.connections || [];
 
-    const innerPadX = 8;
-    const innerPadTop = 7;
-    const innerPadBottom = 6;
-    const innerW = CONTENT_WIDTH - innerPadX * 2;
-    const innerH = plotBoxH - (innerPadTop + innerPadBottom);
-
-    // Draw active connections
+    // Draw active connections joining exact element centers
     if (connections.length > 0 && elements.length > 0) {
       connections.forEach((conn: any) => {
         const fromEl = elements.find((e: any) => e.id === conn.fromId);
         const toEl = elements.find((e: any) => e.id === conn.toId);
         if (!fromEl || !toEl) return;
-        const fromX =
-          MARGIN_LEFT +
-          innerPadX +
-          Math.max(0.04, Math.min(0.96, fromEl.x / (data.refW || 650))) * innerW;
-        const fromY =
-          currentY +
-          innerPadTop +
-          Math.max(0.06, Math.min(0.92, fromEl.y / (data.refH || 420))) * innerH;
-        const toX =
-          MARGIN_LEFT +
-          innerPadX +
-          Math.max(0.04, Math.min(0.96, toEl.x / (data.refW || 650))) * innerW;
-        const toY =
-          currentY +
-          innerPadTop +
-          Math.max(0.06, Math.min(0.92, toEl.y / (data.refH || 420))) * innerH;
+        const fromX = plotX + (fromEl.x / refW) * plotW;
+        const fromY = plotY + (fromEl.y / refH) * plotBoxH;
+        const toX = plotX + (toEl.x / refW) * plotW;
+        const toY = plotY + (toEl.y / refH) * plotBoxH;
 
         const connColor = parseHexColor(conn.color, T.blue);
         doc.setDrawColor(connColor[0], connColor[1], connColor[2]);
@@ -552,20 +583,32 @@ export async function generateProductionDocumentPdf(
         isEs
           ? 'No hay elementos ubicados en la escena activa'
           : 'No stage elements placed in active scene',
-        MARGIN_LEFT + CONTENT_WIDTH / 2,
-        currentY + plotBoxH / 2,
+        plotX + plotW / 2,
+        plotY + plotBoxH / 2,
         { align: 'center' }
       );
     } else {
       elements.forEach((el, idx) => {
-        const rawPctX = el.x / (data.refW || 650);
-        const rawPctY = el.y / (data.refH || 420);
-        const elX = MARGIN_LEFT + innerPadX + Math.max(0.04, Math.min(0.96, rawPctX)) * innerW;
-        const elY = currentY + innerPadTop + Math.max(0.06, Math.min(0.92, rawPctY)) * innerH;
+        const scale = (el.scale || 100) / 100;
+        const baseIconSize = 9.5; // 9.5mm standard size
+        const iconSize = Math.max(6.0, Math.min(20.0, baseIconSize * scale));
+
+        // Exact canonical linear position matching stage-canvas coordinates
+        const rawElX = plotX + (el.x / refW) * plotW;
+        const rawElY = plotY + (el.y / refH) * plotBoxH;
+
+        // Keep graphic securely within outer stage bounds
+        const elX = Math.max(
+          plotX + iconSize / 2 + 1,
+          Math.min(plotX + plotW - iconSize / 2 - 1, rawElX)
+        );
+        const elY = Math.max(
+          plotY + iconSize / 2 + 1,
+          Math.min(plotY + plotBoxH - iconSize / 2 - 1, rawElY)
+        );
 
         const elColor = parseHexColor(el.color, T.blue);
         const imgDataUrl = elementImageMap.get(el.id);
-        const iconSize = 9.5; // 9.5mm standard size
 
         if (imgDataUrl) {
           try {
@@ -581,33 +624,11 @@ export async function generateProductionDocumentPdf(
             );
           } catch (imgErr) {
             console.warn('doc.addImage fallback for', el.id, imgErr);
-            doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
-            doc.setDrawColor(elColor[0], elColor[1], elColor[2]);
-            doc.setLineWidth(0.35);
-            doc.roundedRect(
-              elX - iconSize / 2,
-              elY - iconSize / 2,
-              iconSize,
-              iconSize,
-              1.2,
-              1.2,
-              'FD'
-            );
+            drawVectorElementFallback(doc, el, elX, elY, iconSize, elColor, T);
           }
         } else {
-          // Fallback if asset is missing
-          doc.setFillColor(T.bgCard[0], T.bgCard[1], T.bgCard[2]);
-          doc.setDrawColor(elColor[0], elColor[1], elColor[2]);
-          doc.setLineWidth(0.35);
-          doc.roundedRect(
-            elX - iconSize / 2,
-            elY - iconSize / 2,
-            iconSize,
-            iconSize,
-            1.2,
-            1.2,
-            'FD'
-          );
+          // Fallback if asset is missing or in headless environment
+          drawVectorElementFallback(doc, el, elX, elY, iconSize, elColor, T);
         }
 
         // Small, Unobtrusive Channel Identifier Badge (Top-Right Corner of Graphic)
@@ -632,11 +653,11 @@ export async function generateProductionDocumentPdf(
           el.type,
           isEs ? 'es' : 'en'
         ).toUpperCase();
-        const labelStr = rawLabel.length > 14 ? `${rawLabel.slice(0, 13)}…` : rawLabel;
+        const labelStr = rawLabel.length > 15 ? `${rawLabel.slice(0, 14)}…` : rawLabel;
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(4.8);
         doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
-        const labelY = Math.min(currentY + plotBoxH - 2.5, elY + iconSize / 2 + 3.2);
+        const labelY = Math.min(plotY + plotBoxH - 1.8, elY + iconSize / 2 + 2.8);
         doc.text(labelStr, elX, labelY, { align: 'center' });
       });
     }
@@ -647,8 +668,8 @@ export async function generateProductionDocumentPdf(
     doc.setTextColor(T.blue[0], T.blue[1], T.blue[2]);
     doc.text(
       isEs ? '▼ FRENTE DE ESCENARIO / AUDIENCIA (LÍNEA FOH)' : '▼ DOWNSTAGE / AUDIENCE (FOH LINE)',
-      MARGIN_LEFT + CONTENT_WIDTH / 2,
-      currentY + plotBoxH - 2,
+      plotX + plotW / 2,
+      plotY + plotBoxH - 2.2,
       { align: 'center' }
     );
     currentY += plotBoxH + 6;

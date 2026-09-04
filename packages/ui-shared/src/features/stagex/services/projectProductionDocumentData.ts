@@ -202,11 +202,11 @@ export function projectProductionDocumentData(
 
   // Canvas Dimensions
   const isSquare = store.preferences?.stageShape === 'square';
-  const stageDimensions = isSquare ? "28' × 28'" : "32' × 24'";
+  const stageDimensions = isSquare ? "28' × 28'" : "32' × 18'";
   const refW =
-    liveState?.canvasW && liveState.canvasW > 0 ? liveState.canvasW : isSquare ? 500 : 650;
+    liveState?.canvasW && liveState.canvasW > 0 ? liveState.canvasW : isSquare ? 800 : 800;
   const refH =
-    liveState?.canvasH && liveState.canvasH > 0 ? liveState.canvasH : isSquare ? 500 : 420;
+    liveState?.canvasH && liveState.canvasH > 0 ? liveState.canvasH : isSquare ? 800 : 450;
 
   // Formatted Timestamps
   const now = new Date();

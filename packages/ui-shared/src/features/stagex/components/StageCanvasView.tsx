@@ -31,6 +31,8 @@ import {
   injectAccentVars,
 } from '../services/StageBridgeService';
 import { useStagexStore } from '../state/useStagexStore';
+import { projectProductionDocumentData } from '../services/projectProductionDocumentData';
+import { generateProductionDocumentPdf } from '../services/generateProductionDocumentPdf';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { resolveAccent } from '@workspace/studio-core';
 
@@ -581,9 +583,15 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     async (share: boolean) => {
       setPdfBusy(true);
       try {
-        await StageBridge.exportPdf(iframeRef.current, {
-          name: (pdfFileName.trim() || 'StagePlot') + '.pdf',
-          includeBackdrop: true,
+        StageBridge.syncCurrentProjectState(iframeRef.current);
+        const data = projectProductionDocumentData(useStagexStore.getState(), pdfSceneChoice);
+        const settings = useSettingsStore.getState().settings;
+        const pdfTheme = isAmoled ? 'amoled' : isLight ? 'light' : 'dark';
+        await generateProductionDocumentPdf(data, {
+          fileName: (pdfFileName.trim() || 'StagePlot') + '.pdf',
+          share,
+          theme: pdfTheme,
+          lang: settings.language === 'es' ? 'es' : 'en',
         });
         setPdfSheetOpen(false);
       } catch (err) {
@@ -592,7 +600,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         setPdfBusy(false);
       }
     },
-    [pdfFileName]
+    [pdfFileName, pdfSceneChoice, isLight, isAmoled]
   );
 
   const preferences = useStagexStore((s) => s.preferences);

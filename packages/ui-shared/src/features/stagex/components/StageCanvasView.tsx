@@ -273,14 +273,6 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     StageBridge.savePresetSelected(iframeRef.current);
   }, []);
 
-  const handleAddMicNearby = useCallback(() => {
-    StageBridge.addMicNearbySelected(iframeRef.current);
-  }, []);
-
-  const handleAssignChannel = useCallback(() => {
-    StageBridge.assignChannelSelected(iframeRef.current);
-  }, []);
-
   const bandMembers = useMemo(() => {
     return StageBridge.getBandMembers(iframeRef.current);
   }, [iframeRef.current, specsOpen]);
@@ -802,8 +794,6 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         onToggleLock={handleToggleLock}
         onTogglePin={handleTogglePin}
         onSavePreset={handleSavePreset}
-        onAddMicNearby={handleAddMicNearby}
-        onAssignChannel={handleAssignChannel}
         bandMembers={bandMembers}
         isLight={isLight}
         isAmoled={isAmoled}

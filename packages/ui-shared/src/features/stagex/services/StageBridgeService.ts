@@ -259,22 +259,6 @@ export const StageBridge = {
     win?.scSaveAsPreset?.();
   },
 
-  addMicNearbySelected(iframe: HTMLIFrameElement | null): void {
-    const win = this.getWin(iframe) as any;
-    if (typeof win?.scAddMicNear === 'function' && win.state?.selectedId) {
-      const el = win.state.elements?.find((e: any) => e.id === win.state.selectedId);
-      if (el) win.scAddMicNear(el);
-    }
-  },
-
-  assignChannelSelected(iframe: HTMLIFrameElement | null): void {
-    const win = this.getWin(iframe) as any;
-    if (typeof win?.scAssignChannel === 'function' && win.state?.selectedId) {
-      const el = win.state.elements?.find((e: any) => e.id === win.state.selectedId);
-      if (el) win.scAssignChannel(el);
-    }
-  },
-
   getBandMembers(iframe: HTMLIFrameElement | null): Array<{ id: string; name: string }> {
     const win = this.getWin(iframe) as any;
     if (!win || !win.state) return [];

@@ -2750,156 +2750,8 @@ if (typeof _origAddItemToStage === 'function') {
 //   Cable Estimator · Measure · Zoom-to-Fit · Signal Chain
 // ════════════════════════════════════════════════════
 
-// ─── A. CONTEXT MENU + LOCK ────────────────────────
-(function _initContextMenu() {
-  const menu = document.createElement('div');
-  menu.id = 'sc-ctx';
-  menu.style.display = 'none';
-  document.body.appendChild(menu);
-
-  function _item(label, fn, danger) {
-    const d = document.createElement('div');
-    d.className = 'ctx-r' + (danger ? ' ctx-dn' : '');
-    d.textContent = label;
-    d.onclick = () => {
-      _hide();
-      fn();
-    };
-    return d;
-  }
-  function _sep() {
-    const d = document.createElement('div');
-    d.className = 'ctx-sep';
-    return d;
-  }
-
-  function _show(x, y, el) {
-    menu.innerHTML = '';
-    if (!el) return;
-    menu.appendChild(_item('Duplicate', () => scDuplicateEl(el)));
-    menu.appendChild(_item('Add Mic Nearby', () => scAddMicNear(el)));
-    menu.appendChild(_item('Assign Channel\u2026', () => scAssignChannel(el)));
-    menu.appendChild(_sep());
-    menu.appendChild(_item(el.locked ? 'Unlock' : 'Lock', () => scToggleLock(el)));
-    menu.style.display = '';
-    if (typeof _injectCtxExtras === 'function') _injectCtxExtras(el);
-    const vw = window.innerWidth,
-      vh = window.innerHeight;
-    const mw = menu.offsetWidth || 170,
-      mh = menu.offsetHeight || 200;
-    menu.style.left = Math.min(x, vw - mw - 8) + 'px';
-    menu.style.top = (y + mh > vh ? Math.max(0, y - mh) : y) + 'px';
-  }
-  function _hide() {
-    menu.style.display = 'none';
-  }
-
-  function _haptic() {
-    if (navigator.vibrate) navigator.vibrate(12);
-  }
-
-  function _findEl(target) {
-    const wrap = target.closest('.stage-element');
-    if (!wrap) return null;
-    const id = wrap.id.replace('elem-', '');
-    return state.elements.find((el) => String(el.id) === id) || null;
-  }
-
-  setTimeout(() => {
-    const canvas = document.getElementById('stage-canvas');
-    if (!canvas) return;
-
-    canvas.addEventListener('contextmenu', (e) => {
-      e.preventDefault();
-      const el = _findEl(e.target);
-      if (el) {
-        _haptic();
-        if (typeof selectElement === 'function') selectElement(el.id);
-        _show(e.clientX, e.clientY, el);
-      }
-    });
-
-    let _lpTimer = null;
-    let _lpTouch = null;
-    let _lpMoved = false;
-    const LP_DELAY = 420;
-    const LP_MOVE_THRESH = 10;
-
-    canvas.addEventListener(
-      'touchstart',
-      (e) => {
-        if (e.touches.length !== 1) return;
-        _lpMoved = false;
-        const t = e.touches[0];
-        _lpTouch = { x: t.clientX, y: t.clientY, target: e.target };
-        _lpTimer = setTimeout(() => {
-          if (_lpMoved) return;
-          const el = _findEl(_lpTouch.target);
-          if (el) {
-            e.preventDefault();
-            _haptic();
-            if (typeof selectElement === 'function') selectElement(el.id);
-            _show(_lpTouch.x, _lpTouch.y, el);
-          }
-          _lpTimer = null;
-        }, LP_DELAY);
-      },
-      { passive: false }
-    );
-
-    canvas.addEventListener(
-      'touchmove',
-      (e) => {
-        if (!_lpTimer || !_lpTouch) return;
-        const t = e.touches[0];
-        if (
-          Math.abs(t.clientX - _lpTouch.x) > LP_MOVE_THRESH ||
-          Math.abs(t.clientY - _lpTouch.y) > LP_MOVE_THRESH
-        ) {
-          _lpMoved = true;
-          clearTimeout(_lpTimer);
-          _lpTimer = null;
-        }
-      },
-      { passive: true }
-    );
-
-    canvas.addEventListener(
-      'touchend',
-      () => {
-        if (_lpTimer) {
-          clearTimeout(_lpTimer);
-          _lpTimer = null;
-        }
-        _lpTouch = null;
-      },
-      { passive: true }
-    );
-
-    canvas.addEventListener(
-      'touchcancel',
-      () => {
-        if (_lpTimer) {
-          clearTimeout(_lpTimer);
-          _lpTimer = null;
-        }
-        _lpTouch = null;
-      },
-      { passive: true }
-    );
-  }, 300);
-
-  document.addEventListener(
-    'pointerdown',
-    (e) => {
-      if (!e.target.closest('#sc-ctx')) _hide();
-    },
-    true
-  );
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') _hide();
-  });
-
+// ─── A. ELEMENT INTERACTION GUARDS ──────────────────
+(function _initElementGuards() {
   document.addEventListener(
     'pointerdown',
     (e) => {
@@ -3197,7 +3049,10 @@ function _applyLockVisuals() {
       if (!dom.querySelector('.sc-lock-badge')) {
         const b = document.createElement('span');
         b.className = 'sc-lock-badge';
-        b.textContent = '🔒';
+        b.setAttribute('aria-label', 'Locked');
+        b.title = 'Locked';
+        b.innerHTML =
+          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>';
         dom.appendChild(b);
       }
     } else {
@@ -3545,7 +3400,7 @@ function _scMeasureClick(e) {
   }
 
   const canvas = document.getElementById('stage-canvas');
-  if (!canvas || e.target.closest('.stage-element') || e.target.closest('#sc-ctx')) return;
+  if (!canvas || e.target.closest('.stage-element')) return;
 
   const rect = canvas.getBoundingClientRect();
   const zoom = state.zoom || 1;
@@ -3732,7 +3587,6 @@ function _buildChainView(container) {
 // Deselect when clicking outside the stage canvas (but not UI panels that interact with selection)
 (function () {
   const _keepIds = [
-    'sc-ctx',
     'sc-tools-fab',
     'sc-el-presets-panel',
     'sc-presets-drop',
@@ -4887,7 +4741,10 @@ function _applyPinBadges() {
       if (!badge) {
         badge = document.createElement('span');
         badge.className = 'sc-pin-badge';
-        badge.textContent = '📌';
+        badge.setAttribute('aria-label', 'Pinned');
+        badge.title = 'Pinned';
+        badge.innerHTML =
+          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14l-2-6V4a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7l-2 6z"></path></svg>';
         dom.appendChild(badge);
       }
     } else {
@@ -5082,56 +4939,6 @@ async function _verifyPwShare(storedHash, encodedPayload) {
     }
   }
 }
-
-// ── CONTEXT MENU INJECTION (Pin + Preset + Delete) ───────────────────────────
-// Fires after the original handler (300 ms setup) via listener added at 400 ms
-function _injectCtxExtras(el) {
-  const menu = document.getElementById('sc-ctx');
-  if (!menu || menu.style.display === 'none' || !el) return;
-  menu.querySelectorAll('.sc-ctx-injected').forEach((n) => n.remove());
-  function _irow(label, fn, danger) {
-    const r = document.createElement('div');
-    r.className = 'ctx-r sc-ctx-injected' + (danger ? ' ctx-dn' : '');
-    r.textContent = label;
-    r.onclick = () => {
-      menu.style.display = 'none';
-      fn();
-    };
-    return r;
-  }
-  function _isep() {
-    const s = document.createElement('div');
-    s.className = 'ctx-sep sc-ctx-injected';
-    return s;
-  }
-  menu.appendChild(_isep());
-  menu.appendChild(_irow(el.pinned ? 'Unpin Element' : 'Pin Element', () => scTogglePin(el)));
-  menu.appendChild(_irow('Save as Preset', () => scSaveAsPreset()));
-  menu.appendChild(_isep());
-  menu.appendChild(
-    _irow(
-      'Delete',
-      () => {
-        if (typeof scCtxDelete === 'function') scCtxDelete(el);
-        else {
-          if (typeof pushHistory === 'function') pushHistory();
-          state.elements = state.elements.filter((x) => x.id !== el.id);
-          state.connections = (state.connections || []).filter(
-            (c) => c.from !== el.id && c.to !== el.id
-          );
-          if (typeof renderElements === 'function') renderElements();
-          if (typeof markAutosaveDirty === 'function') markAutosaveDirty();
-        }
-      },
-      true
-    )
-  );
-  const mRect = menu.getBoundingClientRect();
-  if (mRect.bottom > window.innerHeight - 6)
-    menu.style.top = Math.max(0, window.innerHeight - mRect.height - 10) + 'px';
-}
-
-// Extras (Pin, Preset, Delete) are now injected directly from _show() above
 
 // ════════════════════════════════════════════════════
 // INIT

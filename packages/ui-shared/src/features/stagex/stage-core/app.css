@@ -242,6 +242,14 @@ html[data-amoled='1'] .sc-help-card {
   justify-content: center;
   position: relative;
 }
+
+#elements-layer {
+  transition: opacity 120ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+#elements-layer.scene-switch {
+  opacity: 0.65;
+}
+
 /* Compact card box wrapping icon + label */
 .el-box {
   display: flex;
@@ -655,6 +663,17 @@ html[data-theme='light'] .sc-scene-label {
   color: rgba(0, 0, 0, 0.45) !important;
 }
 
+@keyframes scSceneChipIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .sc-scene-chip,
 .sc-scene-btn {
   display: inline-flex !important;
@@ -673,7 +692,8 @@ html[data-theme='light'] .sc-scene-label {
   flex-shrink: 1 !important;
   min-width: 0 !important;
   max-width: 110px !important;
-  transition: all 150ms ease !important;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+  animation: scSceneChipIn 140ms cubic-bezier(0.16, 1, 0.3, 1) !important;
   box-sizing: border-box !important;
   user-select: none !important;
   outline: none !important;
@@ -3148,85 +3168,60 @@ body.share-mode::after {
   outline-offset: 3px;
 }
 
-/* ── Professional Tools: Context Menu, Dialogs, Overlays, Canvas Tools ── */
-#sc-ctx {
-  position: absolute;
-  z-index: 99999;
-  background: rgba(22, 22, 26, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  min-width: 160px;
-  padding: 4px;
-  box-shadow:
-    0 12px 48px rgba(0, 0, 0, 0.7),
-    0 2px 8px rgba(0, 0, 0, 0.4);
-  animation: scCtxIn 0.14s cubic-bezier(0.34, 1.56, 0.64, 1);
-  font-family: 'Inter', sans-serif;
-  overflow: hidden;
-}
-@keyframes scCtxIn {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.ctx-r {
-  display: flex;
-  align-items: center;
-  padding: 7px 14px;
-  color: rgba(220, 220, 225, 0.85);
-  cursor: pointer;
-  font-size: 12.5px;
-  font-weight: 500;
-  border-radius: 8px;
-  transition:
-    background 0.1s,
-    color 0.1s;
-  white-space: nowrap;
-  letter-spacing: -0.01em;
-}
-.ctx-r:hover,
-.ctx-r:active {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f0f0f2;
-}
-.ctx-r.ctx-dn {
-  color: rgba(255, 113, 108, 0.75);
-}
-.ctx-r.ctx-dn:hover,
-.ctx-r.ctx-dn:active {
-  background: rgba(255, 113, 108, 0.1);
-  color: #ff716c;
-}
-.ctx-r .ctx-ic {
-  display: none;
-}
-.ctx-sep {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.06);
-  margin: 3px 4px;
-}
-.ctx-hd {
-  display: none;
-}
+/* ── Modern Lock & Pin Visual States ── */
 .stage-element.sc-locked {
   cursor: not-allowed !important;
-  outline: 1px dashed rgba(255, 200, 60, 0.5) !important;
+  box-shadow: 0 0 0 1.5px rgba(245, 158, 11, 0.6) !important;
+  opacity: 0.96;
 }
 .sc-lock-badge {
   position: absolute;
-  top: -7px;
-  right: -7px;
-  font-size: 10px;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: rgba(20, 20, 24, 0.88);
+  border: 1px solid rgba(245, 158, 11, 0.65);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: none;
   z-index: 20;
-  line-height: 1;
+}
+.sc-pin-badge {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: rgba(20, 20, 24, 0.88);
+  border: 1px solid rgba(236, 72, 153, 0.65);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+  color: #ec4899;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 20;
+}
+html[data-theme='light'] .sc-lock-badge {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(217, 119, 6, 0.7);
+  color: #d97706;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+html[data-theme='light'] .sc-pin-badge {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(219, 39, 119, 0.7);
+  color: #db2777;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+html[data-theme='light'] .stage-element.sc-locked {
+  box-shadow: 0 0 0 1.5px rgba(217, 119, 6, 0.7) !important;
 }
 #sc-zones-svg {
   position: absolute;

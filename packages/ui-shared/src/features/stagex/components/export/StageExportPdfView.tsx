@@ -474,6 +474,21 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   const typeStr = (el.type || '').toLowerCase();
                   const labelStr = (el.label || el.name || '').toLowerCase();
 
+                  const renderStandardLabel = (label: string, fallback: string) => {
+                    const display = (label || fallback || '').toUpperCase();
+                    return (
+                      <span
+                        className="text-[10px] font-bold uppercase tracking-[0.05em] text-center truncate max-w-[80px] leading-tight"
+                        style={{
+                          fontFamily: "'Manrope', sans-serif",
+                          color: textPrimary,
+                        }}
+                      >
+                        {display}
+                      </span>
+                    );
+                  };
+
                   // 1. Drum / Riser
                   if (typeStr.includes('drum') || labelStr.includes('drum')) {
                     return (
@@ -492,26 +507,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                           backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
                         }}
                       >
-                        <span
-                          className="text-[9px] font-mono font-medium tracking-tight"
-                          style={{ color: textPrimary }}
-                        >
-                          {el.label || 'DRUM RISER'}
-                        </span>
-                        <span className="text-[7px] font-mono" style={{ color: textDim }}>
-                          8' × 8' × 18"
-                        </span>
-                        <div
-                          className="w-6 h-6 mt-1 rounded-full flex items-center justify-center text-[7px] font-mono"
-                          style={{
-                            border: isLight
-                              ? '1px dashed rgba(0,0,0,0.4)'
-                              : '1px dashed rgba(255,255,255,0.4)',
-                            color: textSecondary,
-                          }}
-                        >
-                          Kit
-                        </div>
+                        {renderStandardLabel(el.label, el.name || 'DRUM RISER')}
                       </div>
                     );
                   }
@@ -521,7 +517,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     return (
                       <div
                         key={el.id || i}
-                        className="absolute flex flex-col items-center justify-center transition-transform select-none"
+                        className="absolute flex flex-col items-center justify-center transition-transform select-none gap-1"
                         style={{
                           left: `${px}%`,
                           top: `${py}%`,
@@ -543,12 +539,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                             style={{ backgroundColor: textPrimary }}
                           />
                         </div>
-                        <span
-                          className="text-[8px] font-mono font-medium tracking-wider uppercase mt-1"
-                          style={{ color: textPrimary }}
-                        >
-                          {el.label || 'Lead Vox (RF)'}
-                        </span>
+                        {renderStandardLabel(el.label, el.name || 'LEAD VOX')}
                       </div>
                     );
                   }
@@ -568,26 +559,18 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                           left: `${px}%`,
                           top: `${py}%`,
                           transform: 'translate(-50%, -50%)',
-                          width: 56,
-                          height: 38,
+                          width: 64,
+                          height: 40,
                           border: isLight
                             ? '1px solid rgba(0,0,0,0.35)'
                             : '1px solid rgba(255,255,255,0.3)',
                           backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
                         }}
                       >
-                        <span
-                          className="text-[8.5px] font-mono font-medium leading-none"
-                          style={{ color: textPrimary }}
-                        >
-                          {isBass ? 'BASS' : 'GTR'}
-                        </span>
-                        <span
-                          className="text-[7px] font-mono mt-0.5 truncate max-w-[50px]"
-                          style={{ color: textDim }}
-                        >
-                          {el.label || (isBass ? 'SVT Rig' : 'Cab 4x12')}
-                        </span>
+                        {renderStandardLabel(
+                          el.label,
+                          el.name || (isBass ? 'BASS RIG' : 'GUITAR AMP')
+                        )}
                       </div>
                     );
                   }
@@ -606,26 +589,15 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                           left: `${px}%`,
                           top: `${py}%`,
                           transform: 'translate(-50%, -50%)',
-                          width: 62,
-                          height: 38,
+                          width: 68,
+                          height: 40,
                           border: isLight
                             ? '1px solid rgba(0,0,0,0.35)'
                             : '1px solid rgba(255,255,255,0.3)',
                           backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
                         }}
                       >
-                        <span
-                          className="text-[8px] font-mono font-medium leading-tight"
-                          style={{ color: textSecondary }}
-                        >
-                          KEYS
-                        </span>
-                        <span
-                          className="text-[6.5px] font-mono truncate max-w-[56px]"
-                          style={{ color: textDim }}
-                        >
-                          {el.label || 'Stage Synth'}
-                        </span>
+                        {renderStandardLabel(el.label, el.name || 'STAGE SYNTH')}
                       </div>
                     );
                   }
@@ -639,20 +611,15 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                         left: `${px}%`,
                         top: `${py}%`,
                         transform: 'translate(-50%, -50%)',
-                        minWidth: 50,
-                        height: 32,
+                        minWidth: 54,
+                        height: 34,
                         border: isLight
                           ? '1px solid rgba(0,0,0,0.3)'
                           : '1px solid rgba(255,255,255,0.3)',
                         backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
                       }}
                     >
-                      <span
-                        className="text-[7.5px] font-mono font-medium truncate max-w-[65px]"
-                        style={{ color: textPrimary }}
-                      >
-                        {el.label || el.name || 'STAGE ELEMENT'}
-                      </span>
+                      {renderStandardLabel(el.label, el.name || 'STAGE ELEMENT')}
                     </div>
                   );
                 })

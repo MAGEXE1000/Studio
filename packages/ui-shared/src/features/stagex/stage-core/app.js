@@ -2817,6 +2817,7 @@ function createElementDOM(el) {
   wrap.id = 'elem-' + el.id;
   wrap.style.cssText = `left:${el.x}px;top:${el.y}px;transform:translate(-50%,-50%) scale(${el.scale / 100});--el-color:${el.color};`;
 
+  const elLabelText = (el.label || el.name || '').toUpperCase();
   wrap.innerHTML = DOMPurify.sanitize(`
     <div class="el-content">
       <div class="el-box">
@@ -2825,7 +2826,7 @@ function createElementDOM(el) {
             ${buildIconsHTML(el)}
           </div>
         </div>
-        <div class="el-label" style="${state.labelsVisible ? '' : 'display:none;'}">${el.label}</div>
+        <div class="el-label" style="${state.labelsVisible ? '' : 'display:none;'}">${elLabelText}</div>
       </div>
     </div>`);
 
@@ -8272,6 +8273,8 @@ function switchScene(idx) {
   if (idx === state.currentSceneIdx) return;
   if (idx < 0 || idx >= state.scenes.length) return;
   _persistCurrentScene();
+  const elLayer = document.getElementById('elements-layer');
+  if (elLayer) elLayer.classList.add('scene-switch');
   _loadScene(idx);
   // Reset undo/redo history so the user cannot undo INTO the previous scene's
   // layout — history is scoped to the active scene's lifetime.
@@ -8279,6 +8282,11 @@ function switchScene(idx) {
   state.historyIndex = -1;
   renderAll();
   renderScenesBar();
+  if (elLayer) {
+    requestAnimationFrame(() => {
+      elLayer.classList.remove('scene-switch');
+    });
+  }
   try {
     const bar = document.getElementById('sc-scenes-bar');
     const activeChip = bar?.querySelector('.sc-scene-chip.active');

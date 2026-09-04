@@ -1126,8 +1126,8 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
     width: 100% !important;
     height: 100% !important;
     box-sizing: border-box !important;
-    padding-top: 8px !important;
-    padding-bottom: calc(var(--dock-safe-gap, 140px) + env(safe-area-inset-bottom, 0px)) !important;
+    padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 52px) !important;
+    padding-bottom: calc(var(--dock-safe-gap, 80px) + env(safe-area-inset-bottom, 0px)) !important;
     padding-left: calc(max(12px, env(safe-area-inset-left, 0px))) !important;
     padding-right: calc(max(12px, env(safe-area-inset-right, 0px))) !important;
     overflow: hidden !important;
@@ -1160,9 +1160,9 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
     width: 100% !important;
     max-width: min(
       1080px,
-      calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
       calc(
-        (100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 220px) * 16 / 9
+        (100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 144px) * 16 / 9
       )
     ) !important;
     height: auto !important;
@@ -1175,14 +1175,14 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
     margin-bottom: 0 !important;
     aspect-ratio: 1 / 1 !important;
     width: min(
-      calc(100vw - 36px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100vh - 240px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-      420px
+      calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(100vh - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      640px
     ) !important;
     height: min(
-      calc(100vw - 36px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100vh - 240px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-      420px
+      calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(100vh - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      640px
     ) !important;
   }
 
@@ -4562,8 +4562,11 @@ html[data-theme='light'] .presets-empty {
   /* ── Left toolbar: centered vertically and respecting safe-area-inset-left ── */
   #sc-vtools {
     left: calc(max(10px, env(safe-area-inset-left))) !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #sc-vtools-body.vtools-collapsed {
+    border: none !important;
   }
   /* Cap body height and quietly scroll; hide scrollbar */
   #sc-vtools-body {

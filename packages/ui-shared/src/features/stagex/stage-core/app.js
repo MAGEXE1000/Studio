@@ -1876,6 +1876,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
   });
+  requestAnimationFrame(function () {
+    if (typeof positionVTools === 'function') positionVTools();
+  });
 });
 
 // ── Mobile category tray ─────────────────────────────────────
@@ -2969,16 +2972,28 @@ function dismissPropPanel() {
 window.addEventListener('orientationchange', function () {
   _rescaleElementsOnResize();
 });
+window.addEventListener('resize', function () {
+  _rescaleElementsOnResize();
+  if (typeof positionVTools === 'function') {
+    positionVTools();
+  }
+});
 try {
   var _landscapeMql = window.matchMedia('(orientation: landscape) and (max-width: 960px)');
   _landscapeMql.addEventListener('change', function (e) {
-    setTimeout(_rescaleElementsOnResize, 200);
+    setTimeout(function () {
+      _rescaleElementsOnResize();
+      if (typeof positionVTools === 'function') positionVTools();
+    }, 200);
   });
 } catch (e) {}
 
 function _rescaleElementsOnResize() {
   var canvas = document.getElementById('stage-canvas');
   if (!canvas) return;
+  if (typeof positionVTools === 'function') {
+    positionVTools();
+  }
   var rect = canvas.getBoundingClientRect();
   if (rect.width <= 0 || rect.height <= 0) return;
   if (!state.canvasW || !state.canvasH) {
@@ -3477,6 +3492,9 @@ window.setStageShape = function (shape) {
     }
     if (typeof renderScenesBar === 'function') {
       renderScenesBar();
+    }
+    if (typeof positionVTools === 'function') {
+      positionVTools();
     }
   });
 };
@@ -4449,6 +4467,9 @@ function resetView() {
   state.panX = 0;
   state.panY = 0;
   applyZoom();
+  if (typeof positionVTools === 'function') {
+    positionVTools();
+  }
 }
 function applyZoom() {
   const z = state.zoom || 1;
@@ -4457,6 +4478,9 @@ function applyZoom() {
   stageCanvas.style.transform = `translate(${px}px, ${py}px) scale(${z})`;
   stageCanvas.style.transformOrigin = 'center center';
   positionScenesBar();
+  if (typeof positionVTools === 'function') {
+    positionVTools();
+  }
   updateStatusBar();
   const selectedDom = document.querySelector('.stage-element.selected');
   if (selectedDom) {
@@ -7569,7 +7593,7 @@ function renderMobileScenesList() {
   let html = '';
   state.scenes.forEach((s, idx) => {
     const isActive = idx === state.currentSceneIdx;
-    const canDelete = true;
+    const canDelete = idx > 0;
     html += `
       <div class="sc-scene-sheet-row ${isActive ? 'active' : ''}" onclick="switchScene(${idx})">
         <input type="text" class="sc-scene-sheet-name-input" value="${s.name}" 
@@ -7721,9 +7745,10 @@ function renderScenesBar() {
         oncontextmenu="event.preventDefault();renameScenePrompt(${i});return false;"
         class="sc-scene-chip ${active ? 'active' : ''}">
         <span class="sc-scene-name">${s.name}</span>
+        ${i > 0 ? `
         <button type="button" onclick="event.stopPropagation();removeScene(${i})" class="sc-scene-del-btn" title="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}" aria-label="${state.lang === 'es' ? 'Eliminar escena' : 'Delete scene'}">
           <span class="material-symbols-outlined" style="font-size:13px;line-height:1;">close</span>
-        </button>
+        </button>` : ''}
       </div>`;
     })
     .join('');
@@ -7743,6 +7768,7 @@ function renderScenesBar() {
   bar.innerHTML = DOMPurify.sanitize(tabsHtml + addHtml);
   initScenesBarTouchHandler();
   requestAnimationFrame(positionScenesBar);
+  requestAnimationFrame(positionVTools);
 }
 
 function initScenesBarTouchHandler() {
@@ -8042,6 +8068,23 @@ function positionScenesBar() {
   bar.style.transform = `translate(${px}px, ${deltaTop}px)`;
 }
 
+function positionVTools() {
+  const vt = document.getElementById('sc-vtools');
+  const toggle = document.getElementById('sc-vtools-toggle');
+  const canvas = document.getElementById('stage-canvas');
+  if (!vt || !canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const container = document.getElementById('canvas-container') || document.body;
+  const cRect = container.getBoundingClientRect();
+  const canvasCenterY = rect.top - cRect.top + rect.height / 2;
+  const toggleH = toggle ? toggle.offsetHeight : 32;
+  const topOffset = canvasCenterY - toggleH / 2;
+  if (!isNaN(topOffset) && canvasCenterY > 0) {
+    vt.style.setProperty('top', `${topOffset}px`, 'important');
+    vt.style.setProperty('transform', 'none', 'important');
+  }
+}
+
 function renameScenePrompt(idx) {
   _ensureScenes();
   if (idx < 0 || idx >= state.scenes.length) return;
@@ -8077,6 +8120,7 @@ window.addItemToStage = addItemToStage;
 window.selectElement = selectElement;
 window.updateCanvasBg = updateCanvasBg;
 window.resetView = resetView;
+window.positionVTools = positionVTools;
 
 function setAutosaveUI(mode) {
   const dot = document.getElementById('autosave-dot');
@@ -8220,7 +8264,16 @@ function _ensureScenes() {
     state.currentSceneIdx = -1;
   }
   if (state.scenes.length === 0) {
-    state.currentSceneIdx = -1;
+    state.scenes = [
+      {
+        id: 's1',
+        name: state.lang === 'es' ? 'Escena 1' : 'Scene 1',
+        elements: Array.isArray(state.elements) ? JSON.parse(JSON.stringify(state.elements)) : [],
+        connections: Array.isArray(state.connections) ? JSON.parse(JSON.stringify(state.connections)) : [],
+        nextId: state.nextId || 1,
+      },
+    ];
+    state.currentSceneIdx = 0;
     return;
   }
   if (
@@ -8327,7 +8380,8 @@ function addScene() {
 
 function removeScene(idx, skipConfirm = false) {
   _ensureScenes();
-  if (idx < 0 || idx >= state.scenes.length) return;
+  // Invariant: Scene 1 (index 0) is immutable and permanent; it cannot be deleted
+  if (idx <= 0 || idx >= state.scenes.length) return;
   const sceneName = state.scenes[idx].name;
 
   const performDelete = () => {

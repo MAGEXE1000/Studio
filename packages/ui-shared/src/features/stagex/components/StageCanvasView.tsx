@@ -23,7 +23,6 @@ import { StageCollabDialog } from './dialogs/StageCollabDialog';
 import { StageBridge, injectTheme, injectAmoled } from '../services/StageBridgeService';
 import { useStagexStore } from '../state/useStagexStore';
 import SmartLoading from '../../../shared/loading/SmartLoading';
-import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { resolveAccent } from '@workspace/studio-core';
 
 export interface StageCanvasViewProps {
@@ -426,129 +425,122 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         />
       )}
 
-      {/* Mobile Seamless Header & Floating Actions */}
+      {/* Mobile Seamless Floating Actions (Overlaid on canvas) */}
       {!isWebDesktop && !liveMode && (
-        <div className="w-full flex-shrink-0 z-20 pointer-events-none">
-          <div className="w-full pointer-events-auto">
-            <StudioHeader
-              title="Stagex"
-              actions={
-                <div
-                  className="stagex-floating-actions-pill flex items-center gap-1 p-1 rounded-full"
-                  style={{
-                    background: isAmoled
-                      ? 'rgba(10, 10, 12, 0.88)'
-                      : isLight
-                        ? 'rgba(255, 255, 255, 0.85)'
-                        : 'rgba(20, 20, 26, 0.80)',
-                    border: isAmoled
-                      ? '1px solid rgba(255, 255, 255, 0.12)'
-                      : isLight
-                        ? '1px solid rgba(0, 0, 0, 0.08)'
-                        : '1px solid rgba(255, 255, 255, 0.10)',
-                    backdropFilter: 'blur(16px)',
-                    WebkitBackdropFilter: 'blur(16px)',
-                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => callIframe('scActivateMeasure')}
-                    title={tr.stagex?.toolMeasure || 'Measure'}
-                    aria-label={tr.stagex?.toolMeasure || 'Measure'}
-                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
-                      straighten
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="stagex-reset-view-btn"
-                    onClick={() => callIframe('resetView')}
-                    title={tr.stagex?.resetView || 'Reset View'}
-                    aria-label={tr.stagex?.resetView || 'Reset View'}
-                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
-                      center_focus_strong
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    data-testid="stagex-export-doc-btn"
-                    onClick={openProductionDocumentWorkflow}
-                    title={tr.stagex?.productionDoc || 'Production Document (PDF)'}
-                    aria-label={tr.stagex?.productionDoc || 'Production Document (PDF)'}
-                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
-                      picture_as_pdf
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => callIframe('openPresetsPanel')}
-                    title="Presets"
-                    aria-label="Presets"
-                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
-                      bookmark
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => callIframe('openTimelinePanel')}
-                    title={tr.stagex?.toolHistory || 'History'}
-                    aria-label={tr.stagex?.toolHistory || 'History'}
-                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center text-zinc-300 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
-                      history
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCollabModalOpen(true)}
-                    title="Collaboration"
-                    aria-label="Collaboration"
-                    className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all"
-                    style={{
-                      color:
-                        collabState === 'connected'
-                          ? '#10b981'
-                          : isLight
-                            ? 'rgba(0,0,0,0.70)'
-                            : 'rgba(255,255,255,0.85)',
-                      background: collabState === 'connected' ? 'rgba(16,185,129,0.15)' : undefined,
-                    }}
-                  >
-                    <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
-                      {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
-                    </span>
-                  </button>
-                </div>
-              }
-              containerStyle={{
-                paddingTop:
-                  'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
-                paddingBottom: '0px',
-                paddingLeft: '16px',
-                paddingRight: '16px',
-                background: 'transparent',
-                alignItems: 'center',
+        <div
+          className="absolute top-0 left-0 right-0 z-20 pointer-events-none flex items-center justify-end px-4"
+          style={{
+            paddingTop: 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px)',
+          }}
+        >
+          <div
+            className="stagex-floating-actions-pill pointer-events-auto flex items-center gap-1 p-1 rounded-full"
+            style={{
+              background: isAmoled
+                ? 'rgba(10, 10, 12, 0.88)'
+                : isLight
+                  ? 'rgba(255, 255, 255, 0.85)'
+                  : 'rgba(20, 20, 26, 0.80)',
+              border: isAmoled
+                ? '1px solid rgba(255, 255, 255, 0.12)'
+                : isLight
+                  ? '1px solid rgba(0, 0, 0, 0.08)'
+                  : '1px solid rgba(255, 255, 255, 0.10)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
+            }}
+          >
+            {/* 1. Ruler */}
+            <button
+              type="button"
+              data-testid="stagex-ruler-btn"
+              onClick={() => callIframe('scActivateMeasure')}
+              title={tr.stagex?.toolMeasure || 'Measure'}
+              aria-label={tr.stagex?.toolMeasure || 'Measure'}
+              className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
+              style={{
+                color: isLight ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.85)',
               }}
-              titleStyle={{
-                fontFamily: 'Manrope, sans-serif',
-                fontSize: '28px',
-                fontWeight: 800,
-                letterSpacing: '-0.03em',
-                lineHeight: 1.15,
-                color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
-                margin: 0,
+            >
+              <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                straighten
+              </span>
+            </button>
+
+            {/* 2. Cloud (Collaboration) */}
+            <button
+              type="button"
+              data-testid="stagex-collab-btn"
+              onClick={() => setCollabModalOpen(true)}
+              title="Collaboration"
+              aria-label="Collaboration"
+              className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
+              style={{
+                color:
+                  collabState === 'connected'
+                    ? '#10b981'
+                    : isLight
+                      ? 'rgba(0,0,0,0.75)'
+                      : 'rgba(255,255,255,0.85)',
+                background: collabState === 'connected' ? 'rgba(16,185,129,0.15)' : undefined,
               }}
-            />
+            >
+              <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                {collabState === 'connected' ? 'cloud' : 'cloud_queue'}
+              </span>
+            </button>
+
+            {/* 3. History */}
+            <button
+              type="button"
+              data-testid="stagex-history-btn"
+              onClick={() => callIframe('openTimelinePanel')}
+              title={tr.stagex?.toolHistory || 'History'}
+              aria-label={tr.stagex?.toolHistory || 'History'}
+              className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
+              style={{
+                color: isLight ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+              }}
+            >
+              <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                history
+              </span>
+            </button>
+
+            {/* 4. Stage Position Reset */}
+            <button
+              type="button"
+              data-testid="stagex-reset-view-btn"
+              onClick={() => callIframe('resetView')}
+              title={tr.stagex?.resetView || 'Reset View'}
+              aria-label={tr.stagex?.resetView || 'Reset View'}
+              className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
+              style={{
+                color: isLight ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+              }}
+            >
+              <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                filter_center_focus
+              </span>
+            </button>
+
+            {/* 5. PDF (rightmost action) */}
+            <button
+              type="button"
+              data-testid="stagex-export-doc-btn"
+              onClick={openProductionDocumentWorkflow}
+              title={tr.stagex?.productionDoc || 'Production Document (PDF)'}
+              aria-label={tr.stagex?.productionDoc || 'Production Document (PDF)'}
+              className="w-8 h-8 rounded-full flex-shrink-0 overflow-hidden flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all"
+              style={{
+                color: isLight ? 'rgba(0, 0, 0, 0.75)' : 'rgba(255, 255, 255, 0.85)',
+              }}
+            >
+              <span className="material-symbols-outlined text-[17px] select-none block overflow-hidden leading-none">
+                picture_as_pdf
+              </span>
+            </button>
           </div>
         </div>
       )}

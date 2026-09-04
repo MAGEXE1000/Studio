@@ -175,7 +175,20 @@ function readProjectStorage(): Record<string, any> {
   try {
     const raw =
       typeof localStorage !== 'undefined' ? localStorage.getItem(PROJECT_STORAGE_KEY) : null;
-    return raw ? JSON.parse(raw) : {};
+    const parsed = raw ? JSON.parse(raw) : {};
+    if (!Array.isArray(parsed.scenes) || parsed.scenes.length === 0) {
+      parsed.scenes = [
+        {
+          id: 's1',
+          name: 'Scene 1',
+          elements: parsed.elements || [],
+          connections: parsed.connections || [],
+          nextId: 1,
+        },
+      ];
+      parsed.currentSceneIdx = 0;
+    }
+    return parsed;
   } catch (err) {
     console.error('[StagexStore] Failed to read project from storage:', err);
     return {};
@@ -186,16 +199,32 @@ function writeProjectStorage(updates: Record<string, any>) {
   try {
     if (typeof localStorage === 'undefined') return;
     const current = readProjectStorage();
+    const targetScenes = Array.isArray(updates.scenes)
+      ? updates.scenes
+      : Array.isArray(current.scenes)
+        ? current.scenes
+        : [];
+    const guaranteedScenes =
+      targetScenes.length > 0
+        ? targetScenes
+        : [
+            {
+              id: 's1',
+              name: 'Scene 1',
+              elements: current.elements || [],
+              connections: current.connections || [],
+              nextId: 1,
+            },
+          ];
+
     const merged = {
       schemaVersion: 9,
       elements: current.elements || [],
       connections: current.connections || [],
-      scenes: Array.isArray(current.scenes)
-        ? current.scenes
-        : [{ id: 's1', name: 'Scene 1', elements: [], connections: [], nextId: 1 }],
       currentSceneIdx: typeof current.currentSceneIdx === 'number' ? current.currentSceneIdx : 0,
       ...current,
       ...updates,
+      scenes: guaranteedScenes,
       lastModified: new Date().toISOString(),
     };
     localStorage.setItem(PROJECT_STORAGE_KEY, JSON.stringify(merged));

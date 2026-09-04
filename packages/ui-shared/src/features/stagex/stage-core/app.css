@@ -4774,39 +4774,13 @@ html[data-theme='light'] #exp-options-drawer button {
   border-bottom-color: rgba(0, 0, 0, 0.06) !important;
 }
 
-/* Responsive History Menu bottom sheet / floating card (matched to layouts/presets panel) */
-#sc-hist-panel {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 264px;
-  max-height: 420px;
-  z-index: 8500;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-sizing: border-box;
-  background: rgba(14, 14, 18, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 20px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
-  font-family: 'Manrope', sans-serif;
-  transform: translateY(-14px) scale(0.93);
-  transform-origin: top right;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform 330ms cubic-bezier(0.34, 1.56, 0.64, 1),
-    opacity 240ms ease;
-  color: #e0e0e0;
-}
-
-#sc-hist-panel.sc-hist-open {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-  pointer-events: all;
+/* Legacy History popup is replaced by the canonical bottom panel mode */
+#sc-hist-panel,
+#sc-hist-backdrop {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 #sc-hist-panel-hdr {

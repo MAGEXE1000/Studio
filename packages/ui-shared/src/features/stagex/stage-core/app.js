@@ -1576,10 +1576,18 @@ function undo() {
   state.connections = s.connections;
   if (s.setlist) state.setlist = s.setlist;
   if (s.segments) state.segments = s.segments;
-  state.selectedId = null;
+  if (state.selectedId && !s.elements.some((e) => e.id === state.selectedId)) {
+    state.selectedId = null;
+  }
   renderAll();
   renderSetlist();
   updateHistoryButtons();
+  if (typeof window.parent?.__stagexOnHistoryChange === 'function') {
+    window.parent.__stagexOnHistoryChange();
+  }
+  try {
+    window.parent?.postMessage({ type: 'stagex-history-changed' }, '*');
+  } catch (e) {}
 }
 function redo() {
   if (state.historyIndex >= state.history.length - 1) return;
@@ -1589,10 +1597,18 @@ function redo() {
   state.connections = s.connections;
   if (s.setlist) state.setlist = s.setlist;
   if (s.segments) state.segments = s.segments;
-  state.selectedId = null;
+  if (state.selectedId && !s.elements.some((e) => e.id === state.selectedId)) {
+    state.selectedId = null;
+  }
   renderAll();
   renderSetlist();
   updateHistoryButtons();
+  if (typeof window.parent?.__stagexOnHistoryChange === 'function') {
+    window.parent.__stagexOnHistoryChange();
+  }
+  try {
+    window.parent?.postMessage({ type: 'stagex-history-changed' }, '*');
+  } catch (e) {}
 }
 function updateHistoryButtons() {
   const u = document.getElementById('btn-undo');
@@ -1600,6 +1616,8 @@ function updateHistoryButtons() {
   if (u) u.style.opacity = state.historyIndex > 0 ? '1' : '0.3';
   if (r) r.style.opacity = state.historyIndex < state.history.length - 1 ? '1' : '0.3';
 }
+window.undo = undo;
+window.redo = redo;
 const _undoBtn = document.getElementById('btn-undo');
 const _redoBtn = document.getElementById('btn-redo');
 if (_undoBtn) _undoBtn.addEventListener('click', undo);

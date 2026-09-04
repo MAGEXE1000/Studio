@@ -10,6 +10,7 @@ interface StageToolbarProps {
   openPdfSheet: () => void;
   collabState?: string;
   onOpenCollab?: () => void;
+  onOpenHistory?: () => void;
 }
 
 export const StageToolbar: React.FC<StageToolbarProps> = ({
@@ -21,6 +22,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
   openPdfSheet,
   collabState,
   onOpenCollab,
+  onOpenHistory,
 }) => {
   return (
     <Toolbar
@@ -70,7 +72,8 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => callIframe('openTimelinePanel')}
+              data-testid="stagex-history-btn"
+              onClick={onOpenHistory ? onOpenHistory : () => callIframe('openTimelinePanel')}
               icon={<span className="material-symbols-outlined text-[15px]">history</span>}
             >
               {tr.stagex?.toolHistory || 'History'}

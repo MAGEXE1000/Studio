@@ -208,8 +208,70 @@ export const StageBridge = {
   },
 
   openTimelinePanel(iframe: HTMLIFrameElement | null): void {
+    if (typeof (window as any).__stagexOpenHistory === 'function') {
+      (window as any).__stagexOpenHistory();
+      return;
+    }
     const win = this.getWin(iframe);
     win?.openTimelinePanel?.();
+  },
+
+  undo(iframe?: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    win?.undo?.();
+    this.syncCurrentProjectState(iframe);
+  },
+
+  redo(iframe?: HTMLIFrameElement | null): void {
+    const win = this.getWin(iframe) as any;
+    win?.redo?.();
+    this.syncCurrentProjectState(iframe);
+  },
+
+  jumpToHistory(iframe: HTMLIFrameElement | null, index: number): void {
+    const win = this.getWin(iframe) as any;
+    win?.scJumpToHistory?.(index);
+    this.syncCurrentProjectState(iframe);
+  },
+
+  getHistoryState(iframe?: HTMLIFrameElement | null): {
+    entries: Array<{ index: number; label: string; time?: number }>;
+    currentIndex: number;
+    canUndo: boolean;
+    canRedo: boolean;
+  } {
+    const win = this.getWin(iframe) as any;
+    if (!win || !win.state) {
+      return { entries: [], currentIndex: -1, canUndo: false, canRedo: false };
+    }
+    const history: string[] = win.state.history || [];
+    const currentIndex: number =
+      typeof win.state.historyIndex === 'number' ? win.state.historyIndex : -1;
+    const timelineMeta = win._histTimeline || [];
+    const entries = history.map((snapStr: string, idx: number) => {
+      const meta = timelineMeta[idx] || {};
+      let label = meta.label;
+      if (!label) {
+        try {
+          const parsed = JSON.parse(snapStr);
+          const count = (parsed.elements || []).length;
+          label = count === 0 ? 'Initial Stage' : `${count} elements on stage`;
+        } catch {
+          label = `Step ${idx + 1}`;
+        }
+      }
+      return {
+        index: idx,
+        label,
+        time: meta.time,
+      };
+    });
+    return {
+      entries,
+      currentIndex,
+      canUndo: currentIndex > 0,
+      canRedo: currentIndex >= 0 && currentIndex < entries.length - 1,
+    };
   },
 
   toggleZones(iframe: HTMLIFrameElement | null): void {

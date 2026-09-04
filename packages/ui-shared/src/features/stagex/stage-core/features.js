@@ -4499,8 +4499,9 @@ function _deleteElPreset(id) {
 const _histTimeline = []; // [index] → { label, time }
 let _histNextLabel = null;
 let _histTimelineOpen = false;
+window._histTimeline = _histTimeline;
 
-// Patch pushHistory to record timestamps + labels
+// Patch pushHistory to record timestamps + smart descriptive labels
 (function () {
   const _prev = window.pushHistory;
   if (typeof _prev !== 'function') return;
@@ -4517,7 +4518,12 @@ let _histTimelineOpen = false;
       if (state.historyIndex >= 0) {
         _histTimeline[state.historyIndex] = { label, time: Date.now() };
       }
-      if (_histTimelineOpen) _renderHistTimeline();
+      if (typeof window.parent?.__stagexOnHistoryChange === 'function') {
+        window.parent.__stagexOnHistoryChange();
+      }
+      try {
+        window.parent?.postMessage({ type: 'stagex-history-changed' }, '*');
+      } catch (e) {}
     } catch (e) {
       console.warn('[SC] pushHistory extras error:', e);
     }
@@ -4525,8 +4531,51 @@ let _histTimelineOpen = false;
 })();
 
 function _guessHistLabel() {
-  const n = (state.elements || []).length;
-  return n === 0 ? 'Stage cleared' : `${n} element${n !== 1 ? 's' : ''} on stage`;
+  const isEs = state.lang === 'es';
+  const curElements = state.elements || [];
+  if (state.historyIndex <= 0) {
+    return isEs ? 'Escenario inicial' : 'Initial stage layout';
+  }
+  try {
+    if (Array.isArray(state.history) && state.historyIndex > 0) {
+      const prevSnap = JSON.parse(state.history[state.historyIndex - 1]);
+      const prevElements = prevSnap.elements || [];
+      if (curElements.length > prevElements.length) {
+        const added =
+          curElements.find((e) => !prevElements.some((p) => p.id === e.id)) ||
+          curElements[curElements.length - 1];
+        const name = (added && (added.label || added.name)) || (isEs ? 'Elemento' : 'Element');
+        return isEs ? `Añadido: ${name}` : `Added ${name}`;
+      }
+      if (curElements.length < prevElements.length) {
+        const removed = prevElements.find((p) => !curElements.some((e) => e.id === p.id));
+        const name = (removed && (removed.label || removed.name)) || (isEs ? 'Elemento' : 'Element');
+        return isEs ? `Eliminado: ${name}` : `Removed ${name}`;
+      }
+      for (let i = 0; i < curElements.length; i++) {
+        const c = curElements[i];
+        const p = prevElements.find((e) => e.id === c.id);
+        if (p) {
+          if (p.x !== c.x || p.y !== c.y) {
+            const name = c.label || c.name || (isEs ? 'Elemento' : 'Element');
+            return isEs ? `Movido: ${name}` : `Moved ${name}`;
+          }
+          if (p.rotation !== c.rotation || p.scale !== c.scale || p.color !== c.color) {
+            const name = c.label || c.name || (isEs ? 'Elemento' : 'Element');
+            return isEs ? `Modificado: ${name}` : `Modified ${name}`;
+          }
+        }
+      }
+    }
+  } catch (e) {}
+  const n = curElements.length;
+  return isEs
+    ? n === 0
+      ? 'Escenario vaciado'
+      : `${n} elementos en escenario`
+    : n === 0
+      ? 'Stage cleared'
+      : `${n} element${n !== 1 ? 's' : ''} on stage`;
 }
 
 function _scIsLight() {
@@ -4534,161 +4583,23 @@ function _scIsLight() {
 }
 
 function openTimelinePanel() {
-  // Toggle: close if already open
-  if (_histTimelineOpen) {
-    closeTimelinePanel();
-    return;
-  }
-
-  // Mutual exclusion: never overlap with the presets panel
-  if (typeof closePresetsPanel === 'function') {
+  if (typeof window.parent?.__stagexOpenHistory === 'function') {
+    window.parent.__stagexOpenHistory();
+  } else {
     try {
-      closePresetsPanel();
-    } catch (e) {
-      /* noop */
-    }
+      window.parent?.postMessage({ type: 'stagex-open-history' }, '*');
+    } catch (e) {}
   }
-
-  // ── Compact floating sheet anchored near the top of the viewport ──
-  // Sits just below the React top toolbar so it doesn't cover the stage.
-  const isNarrow = window.innerWidth < 520;
-  const panelW = isNarrow ? Math.min(window.innerWidth - 16, 320) : 320;
-  let panel = document.getElementById('sc-hist-panel');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = 'sc-hist-panel';
-    document.body.appendChild(panel);
-  }
-
-  // Backdrop tap closes the panel (mobile-friendly)
-  let backdrop = document.getElementById('sc-hist-backdrop');
-  if (!backdrop) {
-    backdrop = document.createElement('div');
-    backdrop.id = 'sc-hist-backdrop';
-    document.body.appendChild(backdrop);
-    backdrop.addEventListener('click', closeTimelinePanel);
-  }
-
-  _histTimelineOpen = true;
-  _renderHistTimeline();
-
-  // Trigger transitions by adding classes in requestAnimationFrame
-  requestAnimationFrame(() => {
-    panel.classList.add('sc-hist-open');
-    backdrop.classList.add('sc-hist-open');
-    document.body.classList.add('sc-hist-open');
-  });
-
-  // Disable native Undo/Redo buttons while the history panel is open
-  const u = document.getElementById('btn-undo');
-  const r = document.getElementById('btn-redo');
-  if (u) {
-    u.disabled = true;
-    u.style.opacity = '0.15';
-    u.style.pointerEvents = 'none';
-  }
-  if (r) {
-    r.disabled = true;
-    r.style.opacity = '0.15';
-    r.style.pointerEvents = 'none';
-  }
-
-  if (typeof closeShareModal === 'function') closeShareModal();
-  if (typeof window.reportStagexState === 'function') window.reportStagexState();
 }
 
 function closeTimelinePanel() {
-  const panel = document.getElementById('sc-hist-panel');
-  if (panel) {
-    panel.classList.remove('sc-hist-open');
+  if (typeof window.parent?.__stagexCloseHistory === 'function') {
+    window.parent.__stagexCloseHistory();
+  } else {
+    try {
+      window.parent?.postMessage({ type: 'stagex-close-history' }, '*');
+    } catch (e) {}
   }
-  const backdrop = document.getElementById('sc-hist-backdrop');
-  if (backdrop) {
-    backdrop.classList.remove('sc-hist-open');
-  }
-  document.body.classList.remove('sc-hist-open');
-  _histTimelineOpen = false;
-
-  // Restore/Re-enable native Undo/Redo buttons
-  if (typeof updateHistoryButtons === 'function') {
-    updateHistoryButtons();
-    const u = document.getElementById('btn-undo');
-    const r = document.getElementById('btn-redo');
-    if (u) {
-      u.disabled = false;
-      u.style.pointerEvents = 'auto';
-    }
-    if (r) {
-      r.disabled = false;
-      r.style.pointerEvents = 'auto';
-    }
-  }
-  if (typeof window.reportStagexState === 'function') window.reportStagexState();
-}
-
-function _renderHistTimeline() {
-  const panel = document.getElementById('sc-hist-panel');
-  if (!panel) return;
-  const entries = state.history || [];
-  const cur = state.historyIndex;
-  const light = _scIsLight();
-
-  const c = light
-    ? {
-        emptyText: '#6c6c70',
-        scrollThumb: 'rgba(0,0,0,0.18)',
-      }
-    : {
-        emptyText: '#767575',
-        scrollThumb: 'rgba(72,72,71,0.4)',
-      };
-
-  const rows = entries
-    .map((_, i) => {
-      const meta = _histTimeline[i] || {};
-      const label = meta.label || `Step ${i + 1}`;
-      const time = meta.time
-        ? new Date(meta.time).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-            second: '2-digit',
-          })
-        : '';
-      const isNow = i === cur;
-      return `
-      <div onclick="scJumpToHistory(${i})" class="sc-hist-row${isNow ? ' sc-hist-now' : ''}">
-        <div class="sc-hist-dot${isNow ? ' sc-hist-dot-now' : ''}"></div>
-        <div style="flex:1;min-width:0;">
-          <div class="sc-hist-label${isNow ? ' sc-hist-label-now' : ''}">${label}</div>
-          ${time ? `<div class="sc-hist-time">${time}</div>` : ''}
-        </div>
-        ${isNow ? '<span class="sc-hist-badge">NOW</span>' : ''}
-      </div>`;
-    })
-    .reverse()
-    .join('');
-
-  const isUndoDisabled = cur <= 0;
-  const isRedoDisabled = cur >= entries.length - 1;
-
-  panel.innerHTML = DOMPurify.sanitize(`
-    <div id="sc-hist-panel-hdr">
-      <button id="sc-hist-back-btn" onclick="closeTimelinePanel()">
-        <span class="material-symbols-outlined" style="font-size:15px;display:block;">arrow_back</span>
-      </button>
-      <span id="sc-hist-panel-title">History</span>
-    </div>
-    <div id="sc-hist-list-wrap" style="scrollbar-width:thin;scrollbar-color:${c.scrollThumb} transparent;">
-      ${
-        entries.length === 0
-          ? `<p style="font-family:'Inter';font-size:9px;color:${c.emptyText};text-align:center;margin:14px 0;line-height:1.5;">No history yet.<br>Make edits to see your timeline.</p>`
-          : rows
-      }
-    </div>
-    <div id="sc-hist-footer">
-      <button onclick="undo();_renderHistTimeline();" ${isUndoDisabled ? 'disabled' : ''}>← Undo</button>
-      <button onclick="redo();_renderHistTimeline();" ${isRedoDisabled ? 'disabled' : ''}>Redo →</button>
-    </div>`);
 }
 
 function scJumpToHistory(index) {
@@ -4699,12 +4610,22 @@ function scJumpToHistory(index) {
   state.connections = s.connections;
   if (s.setlist) state.setlist = s.setlist;
   if (s.segments) state.segments = s.segments;
-  state.selectedId = null;
+  if (state.selectedId && !s.elements.some((e) => e.id === state.selectedId)) {
+    state.selectedId = null;
+  }
   if (typeof renderAll === 'function') renderAll();
   if (typeof renderSetlist === 'function') renderSetlist();
   if (typeof updateHistoryButtons === 'function') updateHistoryButtons();
-  _renderHistTimeline();
+  if (typeof window.parent?.__stagexOnHistoryChange === 'function') {
+    window.parent.__stagexOnHistoryChange();
+  }
+  try {
+    window.parent?.postMessage({ type: 'stagex-history-changed' }, '*');
+  } catch (e) {}
 }
+window.scJumpToHistory = scJumpToHistory;
+window.openTimelinePanel = openTimelinePanel;
+window.closeTimelinePanel = closeTimelinePanel;
 
 // ── 5. PIN ELEMENTS ──────────────────────────────────────────────────────────
 

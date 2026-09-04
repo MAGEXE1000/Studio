@@ -26,7 +26,7 @@ export function applyThemeTokens(settings: any) {
 
   const activeVis = {
     theme: perAppVis?.theme ?? globalTheme,
-    amoledMode: perAppVis?.amoledMode ?? globalAmoled,
+    amoledMode: Boolean(perAppVis?.amoledMode || globalAmoled),
   };
 
   const key = [

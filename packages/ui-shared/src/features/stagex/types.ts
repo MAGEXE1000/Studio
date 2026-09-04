@@ -27,5 +27,16 @@ export type StageWin = Window & {
   __getSceneInfo?: () => { count: number; currentIdx: number; names: string[] };
   setStageShape?: (shape: 'rectangular' | 'square') => void;
   resetView?: () => void;
+  setSnapToGrid?: (val: boolean) => void;
+  setGridVisible?: (val: boolean) => void;
+  setGridSize?: (size: number) => void;
+  setConnectionsVisible?: (val: boolean) => void;
+  setLabelsVisible?: (val: boolean) => void;
+  setShowCableLength?: (val: boolean) => void;
+  setAutoWire?: (val: boolean) => void;
+  setStageBalanceVisible?: (val: boolean) => void;
+  setStageUnits?: (units: 'meters' | 'feet') => void;
+  setReducedAnimations?: (val: boolean) => void;
+  syncAllPreferences?: (prefs: any) => void;
   state?: any;
 };

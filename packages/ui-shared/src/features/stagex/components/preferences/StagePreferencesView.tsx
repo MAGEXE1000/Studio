@@ -20,7 +20,10 @@ export interface StagePreferencesViewProps {
   isAmoled?: boolean;
 }
 
-export const StagePreferencesView: React.FC<StagePreferencesViewProps> = () => {
+export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
+  isLight: isLightProp,
+  isAmoled: isAmoledProp,
+}) => {
   const settings = useSettingsStore((s) => s.settings);
   const acc = resolveAccent(settings.accentColor);
 
@@ -33,8 +36,21 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = () => {
 
   const { preferences, updatePreferences } = useStagexStore();
 
+  const activeVis = settings.perApp?.stagex;
+  const isLight =
+    isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+  const isAmoled =
+    isAmoledProp !== undefined
+      ? isAmoledProp
+      : !isLight && Boolean(settings.amoledMode || activeVis?.amoledMode || preferences?.amoled);
+
   const cardStyle: React.CSSProperties = {
-    background: 'var(--app-surface)',
+    background: isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--app-surface, #111115)',
+    border: isLight
+      ? '1px solid #eaecef'
+      : isAmoled
+        ? '1px solid rgba(255, 255, 255, 0.12)'
+        : '1px solid var(--c-border, rgba(255, 255, 255, 0.08))',
     borderRadius: '1.5rem',
     overflow: 'hidden',
     transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
@@ -70,7 +86,16 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = () => {
     tr.stagex?.preferencesSubtitle || 'Stage plot canvas, display and editor settings';
 
   return (
-    <div className="flex flex-col h-full overflow-hidden app-bg">
+    <div
+      className="flex flex-col h-full overflow-hidden app-bg"
+      style={{
+        backgroundColor: isLight
+          ? 'var(--app-bg, #f8fafc)'
+          : isAmoled
+            ? '#000000'
+            : 'var(--app-bg, #0a0a0c)',
+      }}
+    >
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto no-scrollbar px-0"

@@ -8,6 +8,7 @@ import { useSettingsStore, useT } from '@workspace/studio-core';
 export interface StageRiderViewProps {
   onBack: () => void;
   isLight?: boolean;
+  isAmoled?: boolean;
 }
 
 const TYPE_CONFIG: Record<
@@ -85,7 +86,11 @@ const PRESETS_BY_TYPE: Record<RiderNeed['type'], { label: string; value: string 
   ],
 };
 
-export const StageRiderView: React.FC<StageRiderViewProps> = ({ onBack, isLight: isLightProp }) => {
+export const StageRiderView: React.FC<StageRiderViewProps> = ({
+  onBack,
+  isLight: isLightProp,
+  isAmoled: isAmoledProp,
+}) => {
   const t = useT();
   const settings = useSettingsStore((s) => s.settings);
   const {
@@ -106,10 +111,13 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({ onBack, isLight:
     preferences,
   } = useStagexStore();
 
-  const isAmoled = preferences?.amoled || false;
   const activeVis = settings.perApp?.stagex;
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+  const isAmoled =
+    isAmoledProp !== undefined
+      ? isAmoledProp
+      : !isLight && Boolean(settings.amoledMode || activeVis?.amoledMode || preferences?.amoled);
 
   const prefersReducedMotion = useReducedMotion();
 
@@ -198,7 +206,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({ onBack, isLight:
   }, [riderChannels, elements]);
 
   // Theme Design Tokens
-  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #0d0d11)';
+  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #111115)';
   const cardBorder = isLight
     ? '#eaecef'
     : isAmoled
@@ -219,7 +227,12 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({ onBack, isLight:
   const textMuted = isLight ? '#9ca3af' : '#71717a';
 
   return (
-    <StageSetupDetailLayout title="Technical Rider" onBack={onBack} isLight={isLight}>
+    <StageSetupDetailLayout
+      title="Technical Rider"
+      onBack={onBack}
+      isLight={isLight}
+      isAmoled={isAmoled}
+    >
       <div className="space-y-3.5 pb-10">
         {/* ── SECTION 1: HERO CARD & METRICS ─────────────────────── */}
         <section className="space-y-2.5" data-purpose="stage-summary">

@@ -3330,7 +3330,10 @@ function _renderCableLabels() {
       my = (a.y + b.y) / 2 - 6;
 
     const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    const lbl = `~${meters}m`;
+    const isFeet = typeof state !== 'undefined' && state.stageUnits === 'feet';
+    const distVal = isFeet ? (parseFloat(meters) * 3.28084).toFixed(1) : meters;
+    const unitLbl = isFeet ? 'ft' : 'm';
+    const lbl = `~${distVal}${unitLbl}`;
     const tw = lbl.length * 4.5 + 6;
     bg.setAttribute('x', mx - tw / 2);
     bg.setAttribute('y', my - 8);
@@ -3443,7 +3446,10 @@ function _scMeasureClick(e) {
       svg.appendChild(mkDot(px, py));
       const mx = (s.x + px) / 2,
         my = (s.y + py) / 2;
-      const lbl = `${meters}m`;
+      const isFeet = typeof state !== 'undefined' && state.stageUnits === 'feet';
+      const distVal = isFeet ? (parseFloat(meters) * 3.28084).toFixed(2) : meters;
+      const unitLbl = isFeet ? 'ft' : 'm';
+      const lbl = `${distVal}${unitLbl}`;
       const tw = lbl.length * 5 + 10;
       const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       bg.setAttribute('x', mx - tw / 2);

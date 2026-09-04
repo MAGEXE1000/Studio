@@ -372,7 +372,8 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     [pdfFileName]
   );
 
-  const stageShape = useStagexStore((s) => s.preferences.stageShape || 'rectangular');
+  const preferences = useStagexStore((s) => s.preferences);
+  const stageShape = preferences?.stageShape || 'rectangular';
 
   // Handle iframe load
   const handleIframeLoad = () => {
@@ -383,7 +384,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       injectTheme(iframeRef.current, isLight ? 'light' : 'dark');
       injectAmoled(iframeRef.current, isAmoled);
       StageBridge.updateCanvasBg(iframeRef.current, stageBg);
-      StageBridge.setStageShape(iframeRef.current, stageShape);
+      StageBridge.syncAllPreferences(iframeRef.current, preferences);
       callIframe('resetView');
       try {
         const win = iframeRef.current.contentWindow as any;
@@ -400,9 +401,9 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
 
   useEffect(() => {
     if (!iframeLoading && iframeRef.current) {
-      StageBridge.setStageShape(iframeRef.current, stageShape);
+      StageBridge.syncAllPreferences(iframeRef.current, preferences);
     }
-  }, [stageShape, iframeLoading]);
+  }, [preferences, iframeLoading]);
 
   return (
     <div

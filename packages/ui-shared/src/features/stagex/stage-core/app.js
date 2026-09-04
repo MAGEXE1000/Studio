@@ -2550,8 +2550,11 @@ function handleDrop(e) {
   let x = e.clientX - rect.left;
   let y = e.clientY - rect.top;
   if (state.snapToGrid) {
-    x = Math.round(x / 20) * 20;
-    y = Math.round(y / 20) * 20;
+    const curGs = state.gridSize || 80;
+    const isMobile = window.innerWidth <= 767;
+    const step = isMobile ? Math.max(10, Math.round(curGs / 4)) : Math.max(10, Math.round(curGs / 4));
+    x = Math.round(x / step) * step;
+    y = Math.round(y / step) * step;
   }
   x = Math.max(32, Math.min(rect.width - 32, x));
   y = Math.max(32, Math.min(rect.height - 32, y));
@@ -3109,8 +3112,10 @@ function startDragElement(e, el) {
     let ny = initY + dy;
 
     if (state.snapToGrid) {
-      nx = Math.round(nx / 20) * 20;
-      ny = Math.round(ny / 20) * 20;
+      const curGs = state.gridSize || 80;
+      const step = Math.max(10, Math.round(curGs / 4));
+      nx = Math.round(nx / step) * step;
+      ny = Math.round(ny / step) * step;
     }
 
     nx = Math.max(0, Math.min(rect.width, nx));
@@ -3220,8 +3225,10 @@ function startTouchDragElement(touch, el) {
     let nx = initX + dx;
     let ny = initY + dy;
     if (state.snapToGrid) {
-      nx = Math.round(nx / 20) * 20;
-      ny = Math.round(ny / 20) * 20;
+      const curGs = state.gridSize || 80;
+      const step = Math.max(10, Math.round(curGs / 4));
+      nx = Math.round(nx / step) * step;
+      ny = Math.round(ny / step) * step;
     }
     nx = Math.max(0, Math.min(rect.width, nx));
     ny = Math.max(0, Math.min(rect.height, ny));
@@ -3497,6 +3504,129 @@ window.setStageShape = function (shape) {
       positionVTools();
     }
   });
+};
+
+window.setSnapToGrid = function (val) {
+  state.snapToGrid = Boolean(val);
+  _setToolBtn('btn-snap', state.snapToGrid, 'primary');
+  if (typeof updateStatusBar === 'function') updateStatusBar();
+  saveSettings();
+};
+
+window.setGridVisible = function (val) {
+  state.gridVisible = Boolean(val);
+  var sc = document.getElementById('stage-canvas');
+  if (sc) sc.classList.toggle('grid-off', !state.gridVisible);
+  _setToolBtn('btn-grid', state.gridVisible, 'primary');
+  saveSettings();
+};
+
+window.setGridSize = function (size) {
+  if (typeof updateGridSize === 'function') {
+    updateGridSize(Number(size));
+  } else {
+    state.gridSize = Number(size);
+    _applyGridSize(state.gridSize);
+    saveSettings();
+  }
+};
+
+window.setConnectionsVisible = function (val) {
+  state.connectionsVisible = Boolean(val);
+  var connSvg = document.getElementById('connections-svg');
+  if (connSvg) connSvg.style.display = state.connectionsVisible ? '' : 'none';
+  var ccm = document.getElementById('cable-context-menu');
+  if (ccm && !state.connectionsVisible && typeof _closeCableMenu === 'function') _closeCableMenu();
+  _setToolBtn('btn-connections', state.connectionsVisible, 'primary');
+  if (typeof renderConnections === 'function') renderConnections();
+  saveSettings();
+};
+
+window.setLabelsVisible = function (val) {
+  state.labelsVisible = Boolean(val);
+  document.querySelectorAll('.el-label').forEach(function (el) {
+    el.style.display = state.labelsVisible ? '' : 'none';
+  });
+  saveSettings();
+};
+
+window.setShowCableLength = function (val) {
+  state.showCableLength = Boolean(val);
+  if (typeof scCableLengthVisible !== 'undefined') {
+    scCableLengthVisible = Boolean(val);
+  }
+  var btn = document.getElementById('btn-sc-cable');
+  if (btn && typeof scCableLengthVisible !== 'undefined') btn.classList.toggle('active', scCableLengthVisible);
+  if (typeof _renderCableLabels === 'function') _renderCableLabels();
+  saveSettings();
+};
+
+window.setAutoWire = function (val) {
+  state.autoWire = Boolean(val);
+  if (typeof toggleAutoWire === 'function') {
+    toggleAutoWire(Boolean(val));
+  } else if (typeof autoWireEnabled !== 'undefined') {
+    autoWireEnabled = Boolean(val);
+  }
+  saveSettings();
+};
+
+window.setStageBalanceVisible = function (val) {
+  state.stageBalanceVisible = Boolean(val);
+  if (typeof updateStageBalance === 'function') updateStageBalance();
+  saveSettings();
+};
+
+window.setStageUnits = function (units) {
+  state.stageUnits = units === 'feet' ? 'feet' : 'meters';
+  if (typeof _renderCableLabels === 'function') _renderCableLabels();
+  saveSettings();
+};
+
+window.setReducedAnimations = function (val) {
+  state.reducedAnimations = Boolean(val);
+  document.documentElement.classList.toggle('reduced-motion', state.reducedAnimations);
+  saveSettings();
+};
+
+window.syncAllPreferences = function (prefs) {
+  if (!prefs) return;
+  if (prefs.canvasBg !== undefined && typeof window.updateCanvasBg === 'function') {
+    window.updateCanvasBg(prefs.canvasBg);
+  }
+  if (prefs.gridSize !== undefined && typeof window.setGridSize === 'function') {
+    window.setGridSize(prefs.gridSize);
+  }
+  if (prefs.stageShape !== undefined && typeof window.setStageShape === 'function') {
+    window.setStageShape(prefs.stageShape);
+  }
+  if (prefs.snapToGrid !== undefined && typeof window.setSnapToGrid === 'function') {
+    window.setSnapToGrid(prefs.snapToGrid);
+  }
+  if (prefs.gridVisible !== undefined && typeof window.setGridVisible === 'function') {
+    window.setGridVisible(prefs.gridVisible);
+  }
+  if (prefs.connectionsVisible !== undefined && typeof window.setConnectionsVisible === 'function') {
+    window.setConnectionsVisible(prefs.connectionsVisible);
+  }
+  if (prefs.labelsVisible !== undefined && typeof window.setLabelsVisible === 'function') {
+    window.setLabelsVisible(prefs.labelsVisible);
+  }
+  if (prefs.showCableLength !== undefined && typeof window.setShowCableLength === 'function') {
+    window.setShowCableLength(prefs.showCableLength);
+  }
+  if (prefs.autoWire !== undefined && typeof window.setAutoWire === 'function') {
+    window.setAutoWire(prefs.autoWire);
+  }
+  if (prefs.stageBalanceVisible !== undefined && typeof window.setStageBalanceVisible === 'function') {
+    window.setStageBalanceVisible(prefs.stageBalanceVisible);
+  }
+  if (prefs.stageUnits !== undefined && typeof window.setStageUnits === 'function') {
+    window.setStageUnits(prefs.stageUnits);
+  }
+  if (prefs.reducedAnimations !== undefined && typeof window.setReducedAnimations === 'function') {
+    window.setReducedAnimations(prefs.reducedAnimations);
+  }
 };
 
 function removeSelected() {
@@ -10008,14 +10138,18 @@ function saveSettings() {
         canvasBg: state.canvasBg,
         showStatusBar: state.showStatusBar,
         snapToGrid: state.snapToGrid,
-        connectionsVisible: state.connectionsVisible,
-        labelsVisible: state.labelsVisible,
+        gridVisible: state.gridVisible !== false,
+        connectionsVisible: state.connectionsVisible !== false,
+        labelsVisible: state.labelsVisible !== false,
         connLineStyle: state.connLineStyle,
-        reducedAnimations: state.reducedAnimations,
-        amoled: state.amoled,
+        reducedAnimations: Boolean(state.reducedAnimations),
+        amoled: Boolean(state.amoled),
         gigMode: state.gigMode,
         smartSuggestionsEnabled: state.smartSuggestionsEnabled,
-        stageBalanceVisible: state.stageBalanceVisible,
+        stageBalanceVisible: Boolean(state.stageBalanceVisible),
+        showCableLength: typeof scCableLengthVisible !== 'undefined' ? Boolean(scCableLengthVisible) : false,
+        autoWire: typeof autoWireEnabled !== 'undefined' ? Boolean(autoWireEnabled) : false,
+        stageUnits: state.stageUnits || 'meters',
         smIntelligenceEnabled: state.smIntelligenceEnabled,
         smAutoOptEnabled: state.smAutoOptEnabled,
         smConflictEnabled: state.smConflictEnabled,
@@ -10036,6 +10170,7 @@ function loadSettings() {
     if (s.canvasBg) state.canvasBg = s.canvasBg;
     /* showStatusBar intentionally not restored — always hidden in embedded view */
     if (s.snapToGrid !== undefined) state.snapToGrid = s.snapToGrid;
+    if (s.gridVisible !== undefined) state.gridVisible = s.gridVisible;
     if (s.connectionsVisible !== undefined) state.connectionsVisible = s.connectionsVisible;
     if (s.labelsVisible !== undefined) state.labelsVisible = s.labelsVisible;
     if (s.connLineStyle) state.connLineStyle = s.connLineStyle;
@@ -10045,6 +10180,13 @@ function loadSettings() {
     if (s.smartSuggestionsEnabled !== undefined)
       state.smartSuggestionsEnabled = s.smartSuggestionsEnabled;
     if (s.stageBalanceVisible !== undefined) state.stageBalanceVisible = s.stageBalanceVisible;
+    if (s.showCableLength !== undefined && typeof scCableLengthVisible !== 'undefined') {
+      scCableLengthVisible = Boolean(s.showCableLength);
+    }
+    if (s.autoWire !== undefined && typeof autoWireEnabled !== 'undefined') {
+      autoWireEnabled = Boolean(s.autoWire);
+    }
+    if (s.stageUnits) state.stageUnits = s.stageUnits;
     if (s.smIntelligenceEnabled !== undefined)
       state.smIntelligenceEnabled = s.smIntelligenceEnabled;
     if (s.smAutoOptEnabled !== undefined) state.smAutoOptEnabled = s.smAutoOptEnabled;
@@ -10560,6 +10702,7 @@ function updateCanvasBg(color) {
   });
   saveSettings();
 }
+window.updateCanvasBg = updateCanvasBg;
 
 // ══════════════════════════════════════════════════════════
 //  SETTINGS — grid size

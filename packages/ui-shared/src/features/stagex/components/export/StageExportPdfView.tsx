@@ -218,12 +218,13 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
         }
       `}</style>
 
-      {/* ── 1. CANONICAL STUDIO FLOATING TOP BAR ───────────────────── */}
       <SharedFloatingHeader
         title="Production Document"
         titleTestId="production-document-title"
         backBtnTestId="production-document-back-btn"
         onBack={onBack}
+        isLight={isLight}
+        isAmoled={isAmoled}
         toolbarActions={
           <div className="flex items-center gap-1.5">
             {/* Control 1: Sections Visibility Toggle Button */}

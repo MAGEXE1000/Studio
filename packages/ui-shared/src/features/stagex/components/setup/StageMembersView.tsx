@@ -7,6 +7,7 @@ import { useSettingsStore } from '@workspace/studio-core';
 interface StageMembersViewProps {
   onBack: () => void;
   isLight?: boolean;
+  isAmoled?: boolean;
 }
 
 const MEMBER_COLORS = [
@@ -33,6 +34,7 @@ const QUICK_ROLES = [
 export const StageMembersView: React.FC<StageMembersViewProps> = ({
   onBack,
   isLight: isLightProp,
+  isAmoled: isAmoledProp,
 }) => {
   const settings = useSettingsStore((s) => s.settings);
   const activeVis = settings.perApp?.stagex;
@@ -40,7 +42,10 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
 
   const { members, addMember, removeMember, elements, preferences } = useStagexStore();
-  const isAmoled = preferences?.amoled || false;
+  const isAmoled =
+    isAmoledProp !== undefined
+      ? isAmoledProp
+      : !isLight && Boolean(settings.amoledMode || activeVis?.amoledMode || preferences?.amoled);
   const prefersReducedMotion = useReducedMotion();
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,7 +111,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
   };
 
   // Theme Design Tokens
-  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #0d0d11)';
+  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #111115)';
   const cardBorder = isLight
     ? '#eaecef'
     : isAmoled
@@ -132,6 +137,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
       title="Band & Crew"
       onBack={onBack}
       isLight={isLight}
+      isAmoled={isAmoled}
       toolbarActions={
         <button
           type="button"

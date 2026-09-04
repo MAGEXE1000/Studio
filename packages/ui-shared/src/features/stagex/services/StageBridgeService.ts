@@ -101,6 +101,61 @@ export const StageBridge = {
     win?.setStageShape?.(shape);
   },
 
+  setSnapToGrid(iframe: HTMLIFrameElement | null, snap: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setSnapToGrid?.(snap);
+  },
+
+  setGridVisible(iframe: HTMLIFrameElement | null, visible: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setGridVisible?.(visible);
+  },
+
+  setGridSize(iframe: HTMLIFrameElement | null, size: number): void {
+    const win = this.getWin(iframe);
+    win?.setGridSize?.(size);
+  },
+
+  setConnectionsVisible(iframe: HTMLIFrameElement | null, visible: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setConnectionsVisible?.(visible);
+  },
+
+  setLabelsVisible(iframe: HTMLIFrameElement | null, visible: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setLabelsVisible?.(visible);
+  },
+
+  setShowCableLength(iframe: HTMLIFrameElement | null, show: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setShowCableLength?.(show);
+  },
+
+  setAutoWire(iframe: HTMLIFrameElement | null, autoWire: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setAutoWire?.(autoWire);
+  },
+
+  setStageBalanceVisible(iframe: HTMLIFrameElement | null, visible: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setStageBalanceVisible?.(visible);
+  },
+
+  setStageUnits(iframe: HTMLIFrameElement | null, units: 'meters' | 'feet'): void {
+    const win = this.getWin(iframe);
+    win?.setStageUnits?.(units);
+  },
+
+  setReducedAnimations(iframe: HTMLIFrameElement | null, reduced: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setReducedAnimations?.(reduced);
+  },
+
+  syncAllPreferences(iframe: HTMLIFrameElement | null, prefs: any): void {
+    const win = this.getWin(iframe);
+    win?.syncAllPreferences?.(prefs);
+  },
+
   resetView(iframe: HTMLIFrameElement | null): void {
     const win = this.getWin(iframe);
     win?.resetView?.();

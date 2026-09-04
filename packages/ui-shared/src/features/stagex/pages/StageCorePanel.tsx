@@ -90,8 +90,17 @@ export default function StagexPanel() {
     return false;
   })();
 
-  const isAmoled = Boolean(activeVis.amoledMode && !isLight);
+  const preferences = useStagexStore((s) => s.preferences);
+  const isAmoled = Boolean(
+    !isLight && (activeVis.amoledMode || settings.amoledMode || preferences?.amoled)
+  );
   const stageBg = isLight ? '#f2f1ef' : isAmoled ? '#000000' : '#0e0e0e';
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.toggle('amoled', isAmoled);
+    }
+  }, [isAmoled]);
 
   // Mobile live mode state
   const [liveMode, setLiveMode] = useState(false);
@@ -169,6 +178,7 @@ export default function StagexPanel() {
                       <StageSetupContainer
                         onBackToStage={() => navigate('Editor')}
                         isLight={isLight}
+                        isAmoled={isAmoled}
                       />
                     </div>
                   )}

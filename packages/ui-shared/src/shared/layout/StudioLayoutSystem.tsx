@@ -159,6 +159,8 @@ export interface SharedFloatingHeaderProps {
   headerProgress?: any;
   titleTestId?: string;
   backBtnTestId?: string;
+  isLight?: boolean;
+  isAmoled?: boolean;
 }
 
 export function SharedFloatingHeader({
@@ -171,10 +173,13 @@ export function SharedFloatingHeader({
   headerProgress,
   titleTestId,
   backBtnTestId,
+  isLight: isLightProp,
+  isAmoled: isAmoledProp,
 }: SharedFloatingHeaderProps) {
   // Read current theme to apply warm tinted translucency
   const settings = useSettingsStore((s) => s.settings);
-  const isLight = settings.theme === 'light';
+  const isLight = isLightProp !== undefined ? isLightProp : settings.theme === 'light';
+  const isAmoled = isAmoledProp !== undefined ? isAmoledProp : settings.amoledMode;
 
   return (
     <div

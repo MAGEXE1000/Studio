@@ -12,12 +12,14 @@ export interface StageSetupContainerProps {
   initialSubView?: StagexSubView | 'hub';
   onBackToStage?: () => void;
   isLight?: boolean;
+  isAmoled?: boolean;
 }
 
 export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
   initialSubView = 'hub',
   onBackToStage,
   isLight = false,
+  isAmoled = false,
 }) => {
   const storeSubView = useStagexStore((s) => s.setupSubView);
   const setStoreSubView = useStagexStore((s) => s.setSetupSubView);
@@ -79,31 +81,47 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
         >
           {activeSubView === 'hub' && (
             <div className="w-full h-full">
-              <StageSetupHub onSelectSubView={handleSubViewChange} isLight={isLight} />
+              <StageSetupHub
+                onSelectSubView={handleSubViewChange}
+                isLight={isLight}
+                isAmoled={isAmoled}
+              />
             </div>
           )}
 
           {activeSubView === 'rider' && (
             <div className="w-full h-full">
-              <StageRiderView onBack={handleBackFromRider} isLight={isLight} />
+              <StageRiderView onBack={handleBackFromRider} isLight={isLight} isAmoled={isAmoled} />
             </div>
           )}
 
           {activeSubView === 'setlist' && (
             <div className="w-full h-full">
-              <StageSetlistView onBack={() => handleSubViewChange('hub')} isLight={isLight} />
+              <StageSetlistView
+                onBack={() => handleSubViewChange('hub')}
+                isLight={isLight}
+                isAmoled={isAmoled}
+              />
             </div>
           )}
 
           {activeSubView === 'gear' && (
             <div className="w-full h-full">
-              <StageGearView onBack={() => handleSubViewChange('hub')} isLight={isLight} />
+              <StageGearView
+                onBack={() => handleSubViewChange('hub')}
+                isLight={isLight}
+                isAmoled={isAmoled}
+              />
             </div>
           )}
 
           {activeSubView === 'members' && (
             <div className="w-full h-full">
-              <StageMembersView onBack={() => handleSubViewChange('hub')} isLight={isLight} />
+              <StageMembersView
+                onBack={() => handleSubViewChange('hub')}
+                isLight={isLight}
+                isAmoled={isAmoled}
+              />
             </div>
           )}
         </StudioPageTransition>

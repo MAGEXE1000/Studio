@@ -7,6 +7,7 @@ export interface StageSetupDetailLayoutProps {
   onBack: () => void;
   toolbarActions?: React.ReactNode;
   isLight?: boolean;
+  isAmoled?: boolean;
   children: React.ReactNode;
 }
 
@@ -15,21 +16,38 @@ export const StageSetupDetailLayout: React.FC<StageSetupDetailLayoutProps> = ({
   onBack,
   toolbarActions,
   isLight: isLightProp,
+  isAmoled: isAmoledProp,
   children,
 }) => {
   const settings = useSettingsStore((s) => s.settings);
   const activeVis = settings.perApp?.stagex;
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+  const isAmoled =
+    isAmoledProp !== undefined
+      ? isAmoledProp
+      : !isLight && (settings.amoledMode || activeVis?.amoledMode);
 
   return (
-    <div className="w-full h-full relative overflow-hidden flex flex-col bg-transparent">
+    <div
+      className="w-full h-full relative overflow-hidden flex flex-col"
+      style={{
+        background: isLight
+          ? 'var(--app-bg, #f4f4f5)'
+          : isAmoled
+            ? '#000000'
+            : 'var(--app-bg, #09090b)',
+      }}
+    >
       {/* Canonical Stagex Detail Floating Topbar */}
       <SharedFloatingHeader
         title={title}
         onBack={onBack}
         hideBack={false}
+        backBtnTestId="stage-setup-back-btn"
         toolbarActions={toolbarActions}
+        isLight={isLight}
+        isAmoled={isAmoled}
       />
 
       {/* Continuous Scrolling Content Area with Safe-Area Insets */}

@@ -7,18 +7,23 @@ import { useSettingsStore } from '@workspace/studio-core';
 interface StageSetlistViewProps {
   onBack: () => void;
   isLight?: boolean;
+  isAmoled?: boolean;
 }
 
 export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
   onBack,
   isLight: isLightProp,
+  isAmoled: isAmoledProp,
 }) => {
   const settings = useSettingsStore((s) => s.settings);
   const { setlist, addSong, removeSong, reorderSongs, preferences } = useStagexStore();
-  const isAmoled = preferences?.amoled || false;
   const activeVis = settings.perApp?.stagex;
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+  const isAmoled =
+    isAmoledProp !== undefined
+      ? isAmoledProp
+      : !isLight && Boolean(settings.amoledMode || activeVis?.amoledMode || preferences?.amoled);
 
   const prefersReducedMotion = useReducedMotion();
 
@@ -145,7 +150,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
   };
 
   // Theme Design Tokens
-  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #0d0d11)';
+  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #111115)';
   const cardBorder = isLight
     ? '#eaecef'
     : isAmoled
@@ -175,6 +180,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
       title="Setlist"
       onBack={onBack}
       isLight={isLight}
+      isAmoled={isAmoled}
       toolbarActions={
         <button
           type="button"

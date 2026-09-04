@@ -7,6 +7,7 @@ import { useSettingsStore } from '@workspace/studio-core';
 interface StageGearViewProps {
   onBack: () => void;
   isLight?: boolean;
+  isAmoled?: boolean;
 }
 
 const GEAR_CATEGORIES: Array<{
@@ -24,13 +25,20 @@ const GEAR_CATEGORIES: Array<{
   { key: 'misc', label: 'Miscellaneous', icon: 'category', color: '#ec4899' },
 ];
 
-export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: isLightProp }) => {
+export const StageGearView: React.FC<StageGearViewProps> = ({
+  onBack,
+  isLight: isLightProp,
+  isAmoled: isAmoledProp,
+}) => {
   const settings = useSettingsStore((s) => s.settings);
   const { gear, addGearItem, updateGearItem, removeGearItem, preferences } = useStagexStore();
-  const isAmoled = preferences?.amoled || false;
   const activeVis = settings.perApp?.stagex;
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+  const isAmoled =
+    isAmoledProp !== undefined
+      ? isAmoledProp
+      : !isLight && Boolean(settings.amoledMode || activeVis?.amoledMode || preferences?.amoled);
 
   const prefersReducedMotion = useReducedMotion();
 
@@ -94,7 +102,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
   };
 
   // Theme Design Tokens
-  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #0d0d11)';
+  const cardBg = isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--c-bg-card, #111115)';
   const cardBorder = isLight
     ? '#eaecef'
     : isAmoled
@@ -119,6 +127,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
       title="Gear Inventory"
       onBack={onBack}
       isLight={isLight}
+      isAmoled={isAmoled}
       toolbarActions={
         <button
           type="button"

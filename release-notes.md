@@ -1,14 +1,13 @@
-# Version 4.5.56
+# Version 4.5.57
 
-Release Date: 2026-09-03
+Release Date: 2026-09-04
 
 ### Added
 
-- Stagex Production Document PDF Export Engine: Built native vector jsPDF export engine replacing legacy html2canvas rasterizer, delivering full Setup data parity across stage plot coordinate mapping, audio patch sheet with phantom power (+48V) and IEM mixes, logistics, technical requirements, notes, running setlist, gear inventory, and band & crew roster.
-- Production Document Disambiguation: Established distinct "Production Document" naming across toolbar actions, canvas pills, dialogs, and exported documents, completely separating it from Setup > Technical Rider.
+- Stagex Preferences Real-Time Canvas Functionality: Fully integrated all 12 exposed canvas preferences (Canvas Background presets, dynamic Grid Size, Stage Plot Shape, Snap to Grid with dynamic interval calculation, Cable Length badges, Auto Wire, Stage Balance Visualizer, Measurement Units in meters and feet, Reduced Animations, Grid Overlay, Cable Connections, and Element Labels) into the canvas engine with window bridge setters and automatic synchronization.
+- Complete AMOLED Pitch Black Hardening: Standardized all Stagex Setup screens (Setup Hub, Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences) to pure black `#000000` with zero dark-navy bleed.
+- Uniform Floating Header Material & Geometry: Unified floating headers across all Setup detail views to canonical 58px height, 9999px pill geometry, safe-area top insets, and consistent frosted glass elevation.
 
 ### Improved
 
-- Stagex Setlist Redesign: Aligned Setup > Setlist with Stitch mobile reference, featuring floating header, arrangement subheaders, 2x2 metrics strip, key/tempo badges, and setlist insights.
-- Stagex Gear Inventory Redesign: Upgraded Setup > Gear Inventory with crisp vector icons, 2x2 stats grid, verification status tracking, and lightweight empty state.
-- Stagex Band & Crew Redesign: Enhanced Setup > Band & Crew with 8-member capacity guard, integrated quick-add member card, 2x2 personnel metrics, assigned stage elements tracking, and refined empty states.
+- Stage Canvas Experience: Seamless full-bleed canvas overlay layout without top clipping seams, removal of redundant Stagex title header, 5-button toolbar hierarchy with canonical center focus icon, Scene 1 deletion protection, and perfect three-dot control vertical centering.

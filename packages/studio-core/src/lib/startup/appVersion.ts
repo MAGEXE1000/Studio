@@ -98,16 +98,15 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Stagex Production Document PDF Export Engine: Built native vector jsPDF export engine replacing legacy html2canvas rasterizer, delivering full Setup data parity across stage plot coordinate mapping, audio patch sheet with phantom power (+48V) and IEM mixes, logistics, technical requirements, notes, running setlist, gear inventory, and band & crew roster.',
-      'Production Document Disambiguation: Established distinct "Production Document" naming across toolbar actions, canvas pills, dialogs, and exported documents, completely separating it from Setup > Technical Rider.',
+      'Stagex Preferences Real-Time Canvas Functionality: Fully integrated all 12 exposed canvas preferences (Canvas Background presets, dynamic Grid Size, Stage Plot Shape, Snap to Grid with dynamic interval calculation, Cable Length badges, Auto Wire, Stage Balance Visualizer, Measurement Units in meters and feet, Reduced Animations, Grid Overlay, Cable Connections, and Element Labels) into the canvas engine with window bridge setters and automatic synchronization.',
+      'Complete AMOLED Pitch Black Hardening: Standardized all Stagex Setup screens (Setup Hub, Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences) to pure black `#000000` with zero dark-navy bleed.',
+      'Uniform Floating Header Material & Geometry: Unified floating headers across all Setup detail views to canonical 58px height, 9999px pill geometry, safe-area top insets, and consistent frosted glass elevation.',
     ],
   },
   {
     heading: 'Improved',
     items: [
-      'Stagex Setlist Redesign: Aligned Setup > Setlist with Stitch mobile reference, featuring floating header, arrangement subheaders, 2x2 metrics strip, key/tempo badges, and setlist insights.',
-      'Stagex Gear Inventory Redesign: Upgraded Setup > Gear Inventory with crisp vector icons, 2x2 stats grid, verification status tracking, and lightweight empty state.',
-      'Stagex Band & Crew Redesign: Enhanced Setup > Band & Crew with 8-member capacity guard, integrated quick-add member card, 2x2 personnel metrics, assigned stage elements tracking, and refined empty states.',
+      'Stage Canvas Experience: Seamless full-bleed canvas overlay layout without top clipping seams, removal of redundant Stagex title header, 5-button toolbar hierarchy with canonical center focus icon, Scene 1 deletion protection, and perfect three-dot control vertical centering.',
     ],
   },
 ];
@@ -119,6 +118,16 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.57',
+    date: '2026-09-04',
+    highlights: [
+      'Stagex Preferences Real-Time Canvas Functionality: Fully integrated all 12 exposed canvas preferences (Canvas Background presets, dynamic Grid Size, Stage Plot Shape, Snap to Grid with dynamic interval calculation, Cable Length badges, Auto Wire, Stage Balance Visualizer, Measurement Units in meters and feet, Reduced Animations, Grid Overlay, Cable Connections, and Element Labels) into the canvas engine with window bridge setters and automatic synchronization.',
+      'Complete AMOLED Pitch Black Hardening: Standardized all Stagex Setup screens (Setup Hub, Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences) to pure black `#000000` with zero dark-navy bleed.',
+      'Uniform Floating Header Material & Geometry: Unified floating headers across all Setup detail views to canonical 58px height, 9999px pill geometry, safe-area top insets, and consistent frosted glass elevation.',
+      'Stage Canvas Experience: Seamless full-bleed canvas overlay layout without top clipping seams, removal of redundant Stagex title header, 5-button toolbar hierarchy with canonical center focus icon, Scene 1 deletion protection, and perfect three-dot control vertical centering.',
+    ],
+  },
   {
     version: '4.5.56',
     date: '2026-09-03',
@@ -209,17 +218,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Stagex Tab Navigation & State Preservation: Resolved disappearing/blank stage regressions across tab transitions (`Stage` ↔ `Setup` ↔ `Preferences`) by restoring canvas opacity immediately and resetting layout cache.',
       'Drumex Android Viewport Sizing: Corrected viewport height and safe-area margins in Drumex pattern library and editor screens.',
       'Conservative Performance Optimizations: Eliminated broad subtree mutation storms during stage element dragging, prevented synchronous layout recalculation in PA sound coverage, cached theme engine CSS variable mutations, and isolated sub-app re-render boundaries in `SharedAppShell`.',
-    ],
-  },
-  {
-    version: '4.5.47',
-    date: '2026-08-28',
-    highlights: [
-      'Global Accent Color System: Introduced a dedicated Accent Color configuration under Settings → Appearance with 9 curated design-system presets, custom RGB color picker, real-time live preview across all sub-apps, and full decoupling from individual sub-app identity branding.',
-      'Dynamic Accent Theme Engine: Integrated `resolveAccent()` in `studio-core` to calculate contrast text, glow, borders, and gradient variants directly on `:root` custom properties.',
-      'App Identity Decoupling: Removed hardcoded `[data-app-key]` theme overrides to ensure Drumex, Stagex, Groovex, Vocalex, and Chordex share the global interactive accent while preserving authentic app brand identity colors on Hub cards and logos.',
-      'Desktop Logging Resilience: Enhanced host language server log stream handling to prevent unhandled stream write exceptions during high-throughput agent operations.',
-      'Release Pipeline Verification: Added automated GitHub CLI keyring authentication fallback and strengthened end-to-end multi-manifest synchronization.',
     ],
   },
 ];

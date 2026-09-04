@@ -20,6 +20,7 @@ import {
   SpringPresets,
   extractStructuredReleaseNotes,
   sanitizeUTF8String,
+  useT,
 } from '@workspace/studio-core';
 import {
   applyUpdateDirect,
@@ -318,6 +319,8 @@ export default function UpdateIndicator({
 
   const checkRef = useRef<HTMLDivElement | null>(null);
   const pillRef = useRef<HTMLButtonElement | null>(null);
+  const t = useT();
+  const updaterTr = (t as any)?.updater;
 
   const hubVisTheme = useSettingsStore(
     (s) => s.settings.perApp?.hub?.theme ?? s.settings.theme ?? 'dark'
@@ -748,7 +751,7 @@ export default function UpdateIndicator({
                     color: 'var(--c-text-primary)',
                   }}
                 >
-                  Studio updated
+                  {updaterTr?.appUpdated || 'Studio updated'}
                 </span>
                 <span
                   style={{ fontFamily: 'Inter', fontSize: 11, color: 'var(--c-text-secondary)' }}
@@ -778,7 +781,7 @@ export default function UpdateIndicator({
                   borderRadius: 6,
                 }}
               >
-                View changelog
+                {updaterTr?.whatsNew || 'View changelog'}
               </button>
 
               <button
@@ -1008,6 +1011,8 @@ function UpdateModal({
   setInstallFailedReason: (v: string | null) => void;
 }) {
   const updater = useAppUpdate();
+  const t = useT();
+  const updaterTr = (t as any)?.updater;
   const [permissionBlocked, setPermissionBlocked] = useState(false);
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -1245,7 +1250,7 @@ function UpdateModal({
   // Select Icon and Colors based on State
   let iconName = 'download';
   let iconColor = purpleFrom;
-  let title = 'Update available';
+  let title = updaterTr?.studioUpdateAvailable || 'Update available';
   let description: React.ReactNode = '';
   const showProgress = isUpdateInProgress(updater.updateState);
   const progressVal = updater.progress;
@@ -1349,23 +1354,23 @@ function UpdateModal({
       iconName = 'sync';
       iconColor = purpleFrom;
       showSpinner = true;
-      title = 'Checking for updates';
-      description = 'Connecting to release server...';
+      title = updaterTr?.checkingForUpdates || 'Checking for updates';
+      description = updaterTr?.connectingToServer || 'Connecting to release server...';
       showButtons = false;
       break;
 
     case 'idle':
       iconName = 'check_circle';
       iconColor = '#22c55e';
-      title = 'Studio is up to date';
-      description = 'You’re running the latest version of Studio.';
+      title = updaterTr?.upToDate || 'Studio is up to date';
+      description = updaterTr?.latestVersion || 'You’re running the latest version of Studio.';
       break;
 
     case 'available':
       iconName = 'system_update';
       iconColor = purpleFrom;
-      title = 'Studio update available';
-      description = 'A new version of Studio is ready to install.';
+      title = updaterTr?.studioUpdateAvailable || 'Studio update available';
+      description = updaterTr?.newVersionReady || 'A new version of Studio is ready to install.';
       break;
 
     case 'manual_apk_required':
@@ -1397,8 +1402,9 @@ function UpdateModal({
     case 'downloading':
       iconName = 'cloud_download';
       iconColor = purpleFrom;
-      title = 'Downloading update';
-      description = 'Studio is downloading the latest app package.';
+      title = updaterTr?.downloadingUpdate || 'Downloading update';
+      description =
+        updaterTr?.downloadingPackage || 'Studio is downloading the latest app package.';
       showButtons = false;
       showSpinner = true;
       break;
@@ -1408,7 +1414,7 @@ function UpdateModal({
     case 'verifying':
       iconName = 'verified_user';
       iconColor = purpleFrom;
-      title = 'Verifying update';
+      title = updaterTr?.verifyingUpdate || 'Verifying update';
       description =
         updater.statusText || 'Studio is checking the update package before installation.';
       showSpinner = true;
@@ -1418,7 +1424,7 @@ function UpdateModal({
     case 'readyForInstallPrompt':
       iconName = 'task_alt';
       iconColor = '#22c55e';
-      title = 'Ready to install';
+      title = updaterTr?.readyToInstall || 'Ready to install';
       description =
         'The update package is verified. Android will now ask you to confirm the installation.';
       break;
@@ -1437,13 +1443,15 @@ function UpdateModal({
       iconColor = purpleFrom;
       showSpinner = true;
       const isSuccess = updater.updateState === 'INSTALL_SUCCESS';
-      title = isSuccess ? 'Finalizing...' : 'Installing...';
+      title = isSuccess
+        ? updaterTr?.finalizing || 'Finalizing...'
+        : updaterTr?.installing || 'Installing...';
       description = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'center' }}>
           <div>
             {isSuccess
-              ? 'Finalizing installation...'
-              : updater.statusText || 'Android is installing the update.'}
+              ? updaterTr?.finalizing || 'Finalizing installation...'
+              : updater.statusText || updaterTr?.installing || 'Android is installing the update.'}
           </div>
           <div style={{ fontSize: 13, color: 'var(--c-text-secondary)' }}>
             Please wait... Do not close the application.
@@ -1459,8 +1467,8 @@ function UpdateModal({
     case 'completed':
       iconName = 'check_circle';
       iconColor = '#22c55e';
-      title = 'App updated';
-      description = 'Your application has been successfully updated.';
+      title = updaterTr?.appUpdated || 'App updated';
+      description = updaterTr?.appUpdatedDesc || 'Your application has been successfully updated.';
       showButtons = false;
       showSpinner = false;
       break;
@@ -1468,7 +1476,7 @@ function UpdateModal({
     case 'install_failed':
       iconName = 'error';
       iconColor = '#f87171';
-      title = 'Installation Failed';
+      title = updaterTr?.installFailed || 'Installation Failed';
       description = installFailedReason || 'The installation could not be launched.';
       showButtons = false;
       showSpinner = false;
@@ -1523,7 +1531,7 @@ function UpdateModal({
       } else {
         iconName = 'error';
         iconColor = '#f87171';
-        title = 'Update download failed';
+        title = updaterTr?.downloadFailed || 'Update download failed';
         if (
           updater.error &&
           (updater.error.includes('404') || updater.error.includes('non-OK status: 404'))
@@ -1690,7 +1698,7 @@ function UpdateModal({
             onClick={() => setPermissionBlocked(false)}
             style={secondaryButtonStyle}
           >
-            Cancel
+            {updaterTr?.cancel || 'Cancel'}
           </ActionButton>
           <ActionButton type="button" onClick={handleOpenSettings} style={primaryButtonStyle}>
             Open Settings
@@ -1707,7 +1715,7 @@ function UpdateModal({
             onClick={onClose}
             style={{ ...primaryButtonStyle, width: '100%' }}
           >
-            Close
+            {updaterTr?.done || 'Close'}
           </ActionButton>
         </div>
       );
@@ -1723,7 +1731,7 @@ function UpdateModal({
           </ActionButton>
 
           <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
-            Cancel
+            {updaterTr?.cancel || 'Cancel'}
           </ActionButton>
         </div>
       );
@@ -1763,16 +1771,16 @@ function UpdateModal({
                 Continue Installation
               </ActionButton>
               <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
-                Later
+                {updaterTr?.later || 'Later'}
               </ActionButton>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
               <button type="button" onClick={handleStartUpdate} style={primaryButtonStyle}>
-                Update Now
+                {updaterTr?.installNow || 'Update Now'}
               </button>
               <button type="button" onClick={onLater} style={secondaryButtonStyle}>
-                Later
+                {updaterTr?.later || 'Later'}
               </button>
             </div>
           )}
@@ -1817,7 +1825,7 @@ function UpdateModal({
             </ActionButton>
           </div>
           <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
-            Later
+            {updaterTr?.later || 'Later'}
           </ActionButton>
         </div>
       );
@@ -1827,10 +1835,10 @@ function UpdateModal({
       return (
         <div style={{ display: 'flex', gap: 8, marginTop: 18, width: '100%' }}>
           <ActionButton type="button" onClick={onLater} style={secondaryButtonStyle}>
-            Later
+            {updaterTr?.later || 'Later'}
           </ActionButton>
           <ActionButton type="button" onClick={handleInstallApk} style={primaryButtonStyle}>
-            Install
+            {updaterTr?.installNow || 'Install'}
           </ActionButton>
         </div>
       );
@@ -1868,7 +1876,7 @@ function UpdateModal({
               Retry
             </ActionButton>
             <ActionButton type="button" onClick={onLater} style={halfSecondaryButtonStyle}>
-              Cancel
+              {updaterTr?.cancel || 'Cancel'}
             </ActionButton>
           </div>
 
@@ -1905,7 +1913,7 @@ function UpdateModal({
           style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 18, width: '100%' }}
         >
           <ActionButton type="button" onClick={onLater} style={primaryButtonStyle}>
-            Later
+            {updaterTr?.later || 'Later'}
           </ActionButton>
         </div>
       );
@@ -1967,11 +1975,11 @@ function UpdateModal({
                 color="currentColor"
                 style={{ marginRight: 6 }}
               />
-              Retry Installation
+              {updaterTr?.retry || 'Retry Installation'}
             </ActionButton>
 
             <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
-              Cancel
+              {updaterTr?.cancel || 'Cancel'}
             </ActionButton>
           </div>
         );
@@ -2029,11 +2037,11 @@ function UpdateModal({
               color="currentColor"
               style={{ marginRight: 6 }}
             />
-            Retry Update
+            {updaterTr?.retry || 'Retry Update'}
           </ActionButton>
 
           <ActionButton type="button" onClick={onLater} style={tertiaryButtonStyle}>
-            Cancel
+            {updaterTr?.cancel || 'Cancel'}
           </ActionButton>
         </div>
       );
@@ -2063,7 +2071,7 @@ function UpdateModal({
             }}
             style={{ ...primaryButtonStyle, width: '100%' }}
           >
-            Done
+            {updaterTr?.done || 'Done'}
           </ActionButton>
         </div>
       );
@@ -2392,7 +2400,7 @@ function UpdateModal({
             fontFamily: 'Manrope, sans-serif',
           }}
         >
-          What's New
+          {updaterTr?.whatsNew || "What's New"}
         </span>
         {targetVer && (
           <span

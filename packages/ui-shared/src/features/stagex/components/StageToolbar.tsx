@@ -42,7 +42,9 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
               data-testid="stagex-toolbar-curview"
               className="text-[8.5px] text-zinc-500 font-extrabold uppercase tracking-widest"
             >
-              {curView === 'Export' ? 'Production Document' : 'Setup & Options'}
+              {curView === 'Export'
+                ? tr.stagex?.productionDocShort || 'Production Document'
+                : tr.stagex?.setupOptions || 'Setup & Options'}
             </span>
           </>
         )}
@@ -86,7 +88,7 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
             onClick={() => callIframe('openPresetsPanel')}
             icon={<span className="material-symbols-outlined text-[15px]">save</span>}
           >
-            Save Preset
+            {tr.stagex?.savePreset || 'Save Preset'}
           </Button>
           <Button
             size="sm"
@@ -112,7 +114,9 @@ export const StageToolbar: React.FC<StageToolbarProps> = ({
                 </span>
               }
             >
-              {collabState === 'connected' ? 'Live' : 'Collab'}
+              {collabState === 'connected'
+                ? tr.stagex?.collabLive || 'Live'
+                : tr.stagex?.collab || 'Collab'}
             </Button>
           )}
         </div>

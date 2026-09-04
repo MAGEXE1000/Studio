@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useStagexStore, type GearItem } from '../../state/useStagexStore';
 import { StageSetupDetailLayout } from './StageSetupDetailLayout';
-import { useSettingsStore } from '@workspace/studio-core';
+import { useSettingsStore, useT } from '@workspace/studio-core';
 
 interface StageGearViewProps {
   onBack: () => void;
@@ -10,19 +10,14 @@ interface StageGearViewProps {
   isAmoled?: boolean;
 }
 
-const GEAR_CATEGORIES: Array<{
-  key: GearItem['category'];
-  label: string;
-  icon: string;
-  color: string;
-}> = [
-  { key: 'mics', label: 'Microphones', icon: 'mic', color: '#38bdf8' },
-  { key: 'inst', label: 'Instruments', icon: 'piano', color: '#a855f7' },
-  { key: 'amps', label: 'Amplifiers & Cabs', icon: 'speaker', color: '#f97316' },
-  { key: 'mon', label: 'Monitoring & IEM', icon: 'headphones', color: '#10b981' },
-  { key: 'util', label: 'Utilities & Power', icon: 'power', color: '#facc15' },
-  { key: 'cables', label: 'Cabling & Snakes', icon: 'cable', color: '#94a3b8' },
-  { key: 'misc', label: 'Miscellaneous', icon: 'category', color: '#ec4899' },
+const DEFAULT_GEAR_CATEGORIES = [
+  { key: 'mics' as const, icon: 'mic', color: '#38bdf8' },
+  { key: 'inst' as const, icon: 'piano', color: '#a855f7' },
+  { key: 'amps' as const, icon: 'speaker', color: '#f97316' },
+  { key: 'mon' as const, icon: 'headphones', color: '#10b981' },
+  { key: 'util' as const, icon: 'power', color: '#facc15' },
+  { key: 'cables' as const, icon: 'cable', color: '#94a3b8' },
+  { key: 'misc' as const, icon: 'category', color: '#ec4899' },
 ];
 
 export const StageGearView: React.FC<StageGearViewProps> = ({
@@ -30,7 +25,59 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
   isLight: isLightProp,
   isAmoled: isAmoledProp,
 }) => {
+  const t = useT();
+  const tr = t as any;
+  const gearTr = tr.stagex?.setup?.gear;
   const settings = useSettingsStore((s) => s.settings);
+  const isSpanish = (settings.language ?? 'en') === 'es';
+
+  const GEAR_CATEGORIES = useMemo(
+    () => [
+      {
+        key: 'mics' as const,
+        label: gearTr?.catMics || 'Microphones',
+        icon: 'mic',
+        color: '#38bdf8',
+      },
+      {
+        key: 'inst' as const,
+        label: gearTr?.catInst || 'Instruments',
+        icon: 'piano',
+        color: '#a855f7',
+      },
+      {
+        key: 'amps' as const,
+        label: gearTr?.catAmps || 'Amplifiers & Cabs',
+        icon: 'speaker',
+        color: '#f97316',
+      },
+      {
+        key: 'mon' as const,
+        label: gearTr?.catMon || 'Monitoring & IEM',
+        icon: 'headphones',
+        color: '#10b981',
+      },
+      {
+        key: 'util' as const,
+        label: gearTr?.catUtil || 'Utilities & Power',
+        icon: 'power',
+        color: '#facc15',
+      },
+      {
+        key: 'cables' as const,
+        label: gearTr?.catCables || 'Cabling & Snakes',
+        icon: 'cable',
+        color: '#94a3b8',
+      },
+      {
+        key: 'misc' as const,
+        label: gearTr?.catMisc || 'Miscellaneous',
+        icon: 'category',
+        color: '#ec4899',
+      },
+    ],
+    [gearTr]
+  );
   const { gear, addGearItem, updateGearItem, removeGearItem, preferences } = useStagexStore();
   const activeVis = settings.perApp?.stagex;
   const isLight =
@@ -124,7 +171,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
 
   return (
     <StageSetupDetailLayout
-      title="Gear Inventory"
+      title={gearTr?.title || tr.stagex?.gearTitle || 'Gear Inventory'}
       onBack={onBack}
       isLight={isLight}
       isAmoled={isAmoled}
@@ -137,8 +184,8 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
             backgroundColor: isLight ? '#000000' : '#ffffff',
             color: isLight ? '#ffffff' : '#000000',
           }}
-          title={isAdding ? 'Cancel' : 'Add Item'}
-          aria-label={isAdding ? 'Cancel' : 'Add Item'}
+          title={isAdding ? gearTr?.cancel || 'Cancel' : gearTr?.addItem || 'Add Item'}
+          aria-label={isAdding ? gearTr?.cancel || 'Cancel' : gearTr?.addItem || 'Add Item'}
           data-testid="btn-toggle-add-gear"
         >
           <svg
@@ -295,7 +342,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
                   className="px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer opacity-70 hover:opacity-100"
                   style={{ color: textSecondary }}
                 >
-                  Cancel
+                  {gearTr?.cancel || 'Cancel'}
                 </button>
                 <button
                   type="submit"
@@ -307,7 +354,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
                   }}
                   data-testid="btn-submit-gear"
                 >
-                  Add to Inventory
+                  {gearTr?.formAddButton || 'Add to Inventory'}
                 </button>
               </div>
             </motion.form>
@@ -353,13 +400,16 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
               className="text-sm font-bold tracking-[0.08em] uppercase mb-2"
               style={{ color: textPrimary }}
             >
-              No Gear Items Yet
+              {gearTr?.emptyTitle || (isSpanish ? 'No hay equipo registrado' : 'No Gear Items Yet')}
             </h2>
             <p
               className="text-xs sm:text-[13px] max-w-[240px] leading-relaxed font-normal"
               style={{ color: textSecondary }}
             >
-              Click &quot;Add Gear Item&quot; to start your load-in list
+              {gearTr?.emptyDesc ||
+                (isSpanish
+                  ? 'Pulsa "Añadir Equipo" para comenzar tu lista de carga'
+                  : 'Click "Add Gear Item" to start your load-in list')}
             </p>
           </section>
         ) : (
@@ -605,7 +655,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
               className="text-[11px] font-bold tracking-wider uppercase"
               style={{ color: textSecondary }}
             >
-              Total Items
+              {gearTr?.statTotalUnits || (isSpanish ? 'Artículos Totales' : 'Total Items')}
             </header>
             <div className="flex items-end justify-between mt-auto">
               <span
@@ -641,7 +691,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
               className="text-[11px] font-bold tracking-wider uppercase"
               style={{ color: textSecondary }}
             >
-              Packed
+              {gearTr?.statusPacked || (isSpanish ? 'Empacado' : 'Packed')}
             </header>
             <div className="flex items-end justify-between mt-auto">
               <span
@@ -678,7 +728,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
               className="text-[11px] font-bold tracking-wider uppercase"
               style={{ color: textSecondary }}
             >
-              Remaining
+              {gearTr?.statRemaining || (isSpanish ? 'Restante' : 'Remaining')}
             </header>
             <div className="flex items-end justify-between mt-auto">
               <span
@@ -714,7 +764,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
               className="text-[11px] font-bold tracking-wider uppercase"
               style={{ color: textSecondary }}
             >
-              Total Units
+              {gearTr?.statTotalUnits || (isSpanish ? 'Unidades Totales' : 'Total Units')}
             </header>
             <div className="flex items-end justify-between mt-auto">
               <span

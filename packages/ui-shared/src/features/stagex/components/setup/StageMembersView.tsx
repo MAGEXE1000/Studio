@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useStagexStore } from '../../state/useStagexStore';
 import { StageSetupDetailLayout } from './StageSetupDetailLayout';
-import { useSettingsStore } from '@workspace/studio-core';
+import { useSettingsStore, useT } from '@workspace/studio-core';
 
 interface StageMembersViewProps {
   onBack: () => void;
@@ -21,22 +21,29 @@ const MEMBER_COLORS = [
   '#6366f1', // indigo
 ];
 
-const QUICK_ROLES = [
-  'Lead Vocals',
-  'Guitar',
-  'Bass',
-  'Drums',
-  'Keys',
-  'FOH Engineer',
-  'Stage Tech',
-];
-
 export const StageMembersView: React.FC<StageMembersViewProps> = ({
   onBack,
   isLight: isLightProp,
   isAmoled: isAmoledProp,
 }) => {
+  const t = useT();
+  const tr = t as any;
+  const membersTr = tr.stagex?.setup?.members;
   const settings = useSettingsStore((s) => s.settings);
+  const isSpanish = (settings.language ?? 'en') === 'es';
+
+  const QUICK_ROLES = useMemo(
+    () => [
+      membersTr?.roleLeadVocals || (isSpanish ? 'Voz Principal' : 'Lead Vocals'),
+      membersTr?.roleGuitar || (isSpanish ? 'Guitarra' : 'Guitar'),
+      membersTr?.roleBass || (isSpanish ? 'Bajo' : 'Bass'),
+      membersTr?.roleDrums || (isSpanish ? 'Batería' : 'Drums'),
+      membersTr?.roleKeys || (isSpanish ? 'Teclados' : 'Keys'),
+      membersTr?.roleFohEngineer || (isSpanish ? 'Ingeniero FOH' : 'FOH Engineer'),
+      membersTr?.roleStageTech || (isSpanish ? 'Técnico de Escenario' : 'Stage Tech'),
+    ],
+    [membersTr, isSpanish]
+  );
   const activeVis = settings.perApp?.stagex;
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
@@ -134,7 +141,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
 
   return (
     <StageSetupDetailLayout
-      title="Band & Crew"
+      title={membersTr?.title || tr.stagex?.bandCrewTitle || 'Band & Crew'}
       onBack={onBack}
       isLight={isLight}
       isAmoled={isAmoled}
@@ -203,10 +210,13 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               className="text-sm font-bold tracking-[0.2em] uppercase mb-2 font-sans"
               style={{ color: textSecondary }}
             >
-              NO MEMBERS YET
+              {membersTr?.emptyTitle || (isSpanish ? 'NO HAY MIEMBROS' : 'NO MEMBERS YET')}
             </h2>
             <p className="text-[15px] font-medium" style={{ color: textMuted }}>
-              Enter a name and tap Add to get started.
+              {membersTr?.emptyDesc ||
+                (isSpanish
+                  ? 'Ingresa un nombre y pulsa Añadir para comenzar.'
+                  : 'Enter a name and tap Add to get started.')}
             </p>
           </section>
         )}
@@ -219,7 +229,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                 className="text-[11px] font-bold tracking-wider uppercase font-sans"
                 style={{ color: textSecondary }}
               >
-                Current Roster
+                {isSpanish ? 'Plantilla Actual' : 'Current Roster'}
               </span>
               <span
                 className="text-xs font-semibold font-mono"
@@ -353,7 +363,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
             className="text-xs font-bold tracking-wider uppercase mb-3.5 font-sans"
             style={{ color: textSecondary }}
           >
-            ADD MEMBER
+            {membersTr?.formAddTitle || (isSpanish ? 'AÑADIR MIEMBRO' : 'ADD MEMBER')}
           </h3>
 
           <form onSubmit={handleAdd} className="space-y-3">
@@ -364,7 +374,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter a name..."
+                placeholder={isSpanish ? 'Ingresa un nombre...' : 'Enter a name...'}
                 autoComplete="off"
                 disabled={isAtLimit}
                 className="w-full h-14 pl-4 pr-24 py-3 text-[15px] font-medium rounded-2xl border transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
@@ -399,7 +409,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   <line x1="12" y1="5" x2="12" y2="19" />
                   <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
-                <span>Add</span>
+                <span>{isSpanish ? 'Añadir' : 'Add'}</span>
               </button>
             </div>
 
@@ -450,7 +460,15 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                 }}
                 data-testid="btn-toggle-extra-details"
               >
-                <span>{showExtraDetails ? 'Fewer details' : '+ Details'}</span>
+                <span>
+                  {showExtraDetails
+                    ? isSpanish
+                      ? 'Menos detalles'
+                      : 'Fewer details'
+                    : isSpanish
+                      ? '+ Detalles'
+                      : '+ Details'}
+                </span>
               </button>
             </div>
 
@@ -468,7 +486,11 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       type="text"
                       value={customRole}
                       onChange={(e) => setCustomRole(e.target.value)}
-                      placeholder="Custom Role (overrides tags)"
+                      placeholder={
+                        isSpanish
+                          ? 'Rol personalizado (invalida etiquetas)'
+                          : 'Custom Role (overrides tags)'
+                      }
                       className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
                       style={{
                         backgroundColor: inputBg,
@@ -481,7 +503,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       type="text"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Phone (optional)"
+                      placeholder={isSpanish ? 'Teléfono (opcional)' : 'Phone (optional)'}
                       className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
                       style={{
                         backgroundColor: inputBg,
@@ -497,7 +519,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Email (optional)"
+                      placeholder={isSpanish ? 'Correo electrónico (opcional)' : 'Email (optional)'}
                       className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
                       style={{
                         backgroundColor: inputBg,
@@ -510,7 +532,11 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       type="text"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Notes / Position specs"
+                      placeholder={
+                        isSpanish
+                          ? 'Notas / especificaciones de posición'
+                          : 'Notes / Position specs'
+                      }
                       className="h-10 px-3 text-xs rounded-xl border focus:outline-none"
                       style={{
                         backgroundColor: inputBg,
@@ -527,7 +553,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       className="text-[10.5px] font-bold uppercase tracking-wider"
                       style={{ color: textSecondary }}
                     >
-                      Avatar Accent:
+                      {isSpanish ? 'Acento de avatar:' : 'Avatar Accent:'}
                     </span>
                     <div className="flex items-center gap-1.5 flex-wrap">
                       {MEMBER_COLORS.map((c) => (
@@ -564,7 +590,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               className="text-xs font-bold tracking-wider uppercase font-sans"
               style={{ color: textSecondary }}
             >
-              MEMBERS
+              {membersTr?.statTotalRoster || (isSpanish ? 'MIEMBROS' : 'MEMBERS')}
             </span>
             <div className="flex items-baseline mt-3">
               <span
@@ -594,7 +620,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               className="text-xs font-bold tracking-wider uppercase font-sans"
               style={{ color: textSecondary }}
             >
-              ASSIGNED
+              {membersTr?.statAssigned || (isSpanish ? 'ASIGNADOS' : 'ASSIGNED')}
             </span>
             <div className="mt-3">
               <span
@@ -618,7 +644,8 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               className="text-xs font-bold tracking-wider uppercase font-sans"
               style={{ color: textSecondary }}
             >
-              STAGE ELEMENTS
+              {membersTr?.statStageElements ||
+                (isSpanish ? 'ELEMENTOS EN ESCENARIO' : 'STAGE ELEMENTS')}
             </span>
             <div className="mt-3">
               <span
@@ -642,7 +669,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               className="text-xs font-bold tracking-wider uppercase font-sans"
               style={{ color: textSecondary }}
             >
-              UNASSIGNED
+              {membersTr?.statUnassigned || (isSpanish ? 'SIN ASIGNAR' : 'UNASSIGNED')}
             </span>
             <div className="mt-3">
               <span

@@ -1031,9 +1031,28 @@ export async function generateProductionDocumentPdf(
         doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
         doc.text(item.name.slice(0, 38), MARGIN_LEFT + 2, currentY + 3.8);
 
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
-        doc.text((item.category || 'General').slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
+        const gearCatMap: Record<string, string> = isEs
+          ? {
+              mics: 'Micrófonos',
+              inst: 'Instrumentos',
+              amps: 'Amplificadores',
+              mon: 'Monitoreo / IEM',
+              util: 'Accesorios / Energía',
+              cables: 'Cables',
+              misc: 'Varios',
+            }
+          : {
+              mics: 'Microphones',
+              inst: 'Instruments',
+              amps: 'Amplifiers',
+              mon: 'Monitoring / IEM',
+              util: 'Utilities / Power',
+              cables: 'Cables',
+              misc: 'Miscellaneous',
+            };
+        const catLabel =
+          gearCatMap[item.category] || item.category || (isEs ? 'General' : 'General');
+        doc.text(catLabel.slice(0, 24), MARGIN_LEFT + 80, currentY + 3.8);
 
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);

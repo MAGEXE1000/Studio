@@ -64,11 +64,23 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
   );
 
   const subViewTitles: Record<StagexSubView | 'hub', string> = {
-    hub: tr.stagex?.setup || 'Setup & Options',
-    rider: tr.stagex?.techRider || 'Technical Rider',
-    setlist: tr.stagex?.setlist || 'Setlist',
-    gear: tr.stagex?.gearInventory || 'Gear Inventory',
-    members: tr.stagex?.bandMembers || 'Band & Crew',
+    hub: tr.stagex?.setupOptions || tr.stagex?.setupTitle || 'Setup & Options',
+    rider:
+      tr.stagex?.setup?.rider?.title ||
+      tr.stagex?.techRiderTitle ||
+      tr.stagex?.techRider ||
+      'Technical Rider',
+    setlist: tr.stagex?.setup?.setlist?.title || tr.stagex?.setlistTitle || 'Setlist',
+    gear:
+      tr.stagex?.setup?.gear?.title ||
+      tr.stagex?.gearTitle ||
+      tr.stagex?.gearInventory ||
+      'Gear Inventory',
+    members:
+      tr.stagex?.setup?.members?.title ||
+      tr.stagex?.bandCrewTitle ||
+      tr.stagex?.bandMembers ||
+      'Band & Crew',
   };
 
   return (

@@ -562,6 +562,11 @@ const TRANSLATIONS = {
     setlistLabel: 'Setlist',
     techNotesTitle: 'Technical Notes',
     rdAddNeed: 'Add Need',
+    toolMeasure: 'Measure',
+    toolLength: 'Length',
+    toolHistory: 'History',
+    scenes: 'Scenes',
+    canvasTools: 'Canvas Tools',
   },
   es: {
     // PDF / Export
@@ -894,6 +899,11 @@ const TRANSLATIONS = {
     setlistLabel: 'Setlist',
     techNotesTitle: 'Notas técnicas',
     rdAddNeed: 'Agregar',
+    toolMeasure: 'Medir',
+    toolLength: 'Longitud',
+    toolHistory: 'Historial',
+    scenes: 'Escenas',
+    canvasTools: 'Herramientas de lienzo',
   },
 };
 function T(key) {
@@ -912,6 +922,9 @@ function applyTranslations() {
       el.appendChild(document.createTextNode(part));
     });
   });
+  if (typeof window.syncFabTranslations === 'function') {
+    window.syncFabTranslations();
+  }
 }
 
 const library = {

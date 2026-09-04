@@ -11,80 +11,7 @@ export interface StageRiderViewProps {
   isAmoled?: boolean;
 }
 
-const TYPE_CONFIG: Record<
-  RiderNeed['type'],
-  { label: string; color: string; icon: string; defaultPlaceholder: string }
-> = {
-  foh: {
-    label: 'FOH PROTOCOL',
-    color: '#2563eb',
-    icon: 'graphic_eq',
-    defaultPlaceholder: 'e.g. Dante Primary/Secondary @ 96kHz, Cat6 homerun',
-  },
-  monitor: {
-    label: 'MONITOR / IEM',
-    color: '#8b5cf6',
-    icon: 'headphones',
-    defaultPlaceholder: 'e.g. Minimum 4 discrete stereo wireless IEM mixes',
-  },
-  power: {
-    label: 'POWER REQUIREMENT',
-    color: '#f59e0b',
-    icon: 'bolt',
-    defaultPlaceholder: 'e.g. 2× 20A circuits, distro Stage Left',
-  },
-  hospitality: {
-    label: 'HOSPITALITY',
-    color: '#10b981',
-    icon: 'local_cafe',
-    defaultPlaceholder: 'e.g. 12 bottles still water, clean stage towels, green room access',
-  },
-  custom: {
-    label: 'PRODUCTION SPEC',
-    color: '#64748b',
-    icon: 'sticky_note_2',
-    defaultPlaceholder: 'e.g. Drum riser 8x8 ft, clearance height min 14 ft',
-  },
-};
-
 const CATEGORY_KEYS: RiderNeed['type'][] = ['foh', 'monitor', 'power', 'hospitality', 'custom'];
-
-const PRESETS_BY_TYPE: Record<RiderNeed['type'], { label: string; value: string }[]> = {
-  foh: [
-    { label: 'Dante 96kHz', value: 'Dante Primary/Secondary @ 96kHz' },
-    { label: 'Analog 32ch min', value: 'Analog 32-channel split snake minimum' },
-    { label: 'Digital 48ch min', value: 'Digital 48-channel desk with recallable preamps' },
-    { label: 'MADI / Dante hybrid', value: 'MADI / Dante hybrid optical redundant link' },
-    { label: 'Console by band', value: 'FOH desk and stage boxes provided by band' },
-  ],
-  monitor: [
-    { label: '4 Stereo IEM min', value: 'Minimum 4 discrete stereo IEM mixes' },
-    { label: '5 Wedge mixes', value: '5 bi-amped wedge mixes on independent auxes' },
-    { label: '2 Stereo IEM + 4 Wedge', value: '2 stereo IEM pairs + 4 floor wedges' },
-    { label: '8 Aux mixes', value: '8 balanced XLR aux sends from stage rack' },
-    { label: 'No monitors', value: 'In-ear system completely self-contained' },
-  ],
-  power: [
-    { label: '2× 20A SL', value: '2× 20A circuits, distro Stage Left' },
-    { label: '3× 20A SC', value: '3× 20A isolated sound power Stage Center' },
-    { label: '4× 15A circuits', value: '4× 15A circuits distributed SL/SR' },
-    { label: 'Band Distro', value: '100A 3-phase camlock service for band distro' },
-    { label: 'Standard Venue', value: 'Standard 120V/240V clean stage power' },
-  ],
-  hospitality: [
-    { label: '12 Still Water', value: '12 bottles still spring water, room temp' },
-    { label: 'Clean Towels', value: '6 black stage towels laundered fresh' },
-    { label: 'Green Room Access', value: 'Secure green room with lockable storage' },
-    { label: 'Hot Meals', value: 'Hot post-soundcheck dinner for crew & band' },
-    { label: 'Standard Hospitality', value: 'Standard venue hospitality package' },
-  ],
-  custom: [
-    { label: 'Drum Riser 8x8', value: 'Drum riser 8x8 ft, height 18-24 in' },
-    { label: 'Clearance 14ft min', value: 'Minimum stage clearance height 14 ft' },
-    { label: 'Strobe Warning', value: 'Strobe lighting warning signage posted' },
-    { label: 'Loading Dock B', value: 'Load-in via Loading Dock B strictly' },
-  ],
-};
 
 export const StageRiderView: React.FC<StageRiderViewProps> = ({
   onBack,
@@ -92,7 +19,165 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
   isAmoled: isAmoledProp,
 }) => {
   const t = useT();
+  const tr = t as any;
   const settings = useSettingsStore((s) => s.settings);
+  const isSpanish = (settings.language ?? 'en') === 'es';
+  const riderTr = tr.stagex?.setup?.rider;
+
+  const TYPE_CONFIG = useMemo<
+    Record<
+      RiderNeed['type'],
+      { label: string; color: string; icon: string; defaultPlaceholder: string }
+    >
+  >(
+    () => ({
+      foh: {
+        label: riderTr?.typeFoh || 'FOH PROTOCOL',
+        color: '#2563eb',
+        icon: 'graphic_eq',
+        defaultPlaceholder:
+          riderTr?.placeholderFoh || 'e.g. Dante Primary/Secondary @ 96kHz, Cat6 homerun',
+      },
+      monitor: {
+        label: riderTr?.typeMonitor || 'MONITOR / IEM',
+        color: '#8b5cf6',
+        icon: 'headphones',
+        defaultPlaceholder:
+          riderTr?.placeholderMonitor || 'e.g. Minimum 4 discrete stereo wireless IEM mixes',
+      },
+      power: {
+        label: riderTr?.typePower || 'POWER REQUIREMENT',
+        color: '#f59e0b',
+        icon: 'bolt',
+        defaultPlaceholder: riderTr?.placeholderPower || 'e.g. 2× 20A circuits, distro Stage Left',
+      },
+      hospitality: {
+        label: riderTr?.typeHospitality || 'HOSPITALITY',
+        color: '#10b981',
+        icon: 'local_cafe',
+        defaultPlaceholder:
+          riderTr?.placeholderHospitality ||
+          'e.g. 12 bottles still water, clean stage towels, green room access',
+      },
+      custom: {
+        label: riderTr?.typeCustom || 'PRODUCTION SPEC',
+        color: '#64748b',
+        icon: 'sticky_note_2',
+        defaultPlaceholder:
+          riderTr?.placeholderCustom || 'e.g. Drum riser 8x8 ft, clearance height min 14 ft',
+      },
+    }),
+    [riderTr]
+  );
+
+  const PRESETS_BY_TYPE = useMemo<Record<RiderNeed['type'], { label: string; value: string }[]>>(
+    () => ({
+      foh: [
+        { label: 'Dante 96kHz', value: riderTr?.presetDante || 'Dante Primary/Secondary @ 96kHz' },
+        {
+          label: isSpanish ? 'Analógico 32ch' : 'Analog 32ch min',
+          value: riderTr?.presetAnalog || 'Analog 32-channel split snake minimum',
+        },
+        {
+          label: isSpanish ? 'Digital 48ch' : 'Digital 48ch min',
+          value: riderTr?.presetDigital || 'Digital 48-channel desk with recallable preamps',
+        },
+        {
+          label: 'MADI / Dante',
+          value: riderTr?.presetMadi || 'MADI / Dante hybrid optical redundant link',
+        },
+        {
+          label: isSpanish ? 'Consola propia' : 'Console by band',
+          value: riderTr?.presetConsole || 'FOH desk and stage boxes provided by band',
+        },
+      ],
+      monitor: [
+        {
+          label: isSpanish ? '4 IEM Estéreo' : '4 Stereo IEM min',
+          value: riderTr?.presetIem || 'Minimum 4 discrete stereo IEM mixes',
+        },
+        {
+          label: isSpanish ? '5 Cuñas' : '5 Wedge mixes',
+          value: riderTr?.presetWedges || '5 bi-amped wedge mixes on independent auxes',
+        },
+        {
+          label: isSpanish ? '2 IEM + 4 Cuñas' : '2 Stereo IEM + 4 Wedge',
+          value: riderTr?.presetHybridMon || '2 stereo IEM pairs + 4 floor wedges',
+        },
+        {
+          label: isSpanish ? '8 Mezclas Aux' : '8 Aux mixes',
+          value: riderTr?.presetAux || '8 balanced XLR aux sends from stage rack',
+        },
+        {
+          label: isSpanish ? 'Sin monitores' : 'No monitors',
+          value: riderTr?.presetNoMon || 'In-ear system completely self-contained',
+        },
+      ],
+      power: [
+        {
+          label: '2× 20A SL',
+          value: riderTr?.presetPowerSl || '2× 20A circuits, distro Stage Left',
+        },
+        {
+          label: '3× 20A SC',
+          value: riderTr?.presetPowerSc || '3× 20A isolated sound power Stage Center',
+        },
+        {
+          label: isSpanish ? '4× 15A circuitos' : '4× 15A circuits',
+          value: riderTr?.presetPowerCircuits || '4× 15A circuits distributed SL/SR',
+        },
+        {
+          label: isSpanish ? 'Acometida banda' : 'Band Distro',
+          value: riderTr?.presetPowerDistro || '100A 3-phase camlock service for band distro',
+        },
+        {
+          label: isSpanish ? 'Recinto estándar' : 'Standard Venue',
+          value: riderTr?.presetPowerVenue || 'Standard 120V/240V clean stage power',
+        },
+      ],
+      hospitality: [
+        {
+          label: isSpanish ? '12 Aguas' : '12 Still Water',
+          value: riderTr?.presetHospWater || '12 bottles still spring water, room temp',
+        },
+        {
+          label: isSpanish ? 'Toallas limpias' : 'Clean Towels',
+          value: riderTr?.presetHospTowels || '6 black stage towels laundered fresh',
+        },
+        {
+          label: isSpanish ? 'Acceso camerino' : 'Green Room Access',
+          value: riderTr?.presetHospGreenRoom || 'Secure green room with lockable storage',
+        },
+        {
+          label: isSpanish ? 'Cena caliente' : 'Hot Meals',
+          value: riderTr?.presetHospHotMeals || 'Hot post-soundcheck dinner for crew & band',
+        },
+        {
+          label: isSpanish ? 'Hospitalidad base' : 'Standard Hospitality',
+          value: riderTr?.presetHospVenue || 'Standard venue hospitality package',
+        },
+      ],
+      custom: [
+        {
+          label: isSpanish ? 'Tarima 8x8' : 'Drum Riser 8x8',
+          value: riderTr?.presetSpecRiser || 'Drum riser 8x8 ft, height 18-24 in',
+        },
+        {
+          label: isSpanish ? 'Despeje 14ft' : 'Clearance 14ft min',
+          value: riderTr?.presetSpecClearance || 'Minimum stage clearance height 14 ft',
+        },
+        {
+          label: isSpanish ? 'Aviso estrobo' : 'Strobe Warning',
+          value: riderTr?.presetSpecStrobe || 'Strobe lighting warning signage posted',
+        },
+        {
+          label: isSpanish ? 'Muelle carga B' : 'Loading Dock B',
+          value: riderTr?.presetSpecLoadingDock || 'Load-in via Loading Dock B strictly',
+        },
+      ],
+    }),
+    [riderTr, isSpanish]
+  );
   const {
     projectName,
     elements,
@@ -228,7 +313,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
 
   return (
     <StageSetupDetailLayout
-      title="Technical Rider"
+      title={riderTr?.title || tr.stagex?.techRiderTitle || 'Technical Rider'}
       onBack={onBack}
       isLight={isLight}
       isAmoled={isAmoled}
@@ -247,13 +332,14 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                   className="text-[10px] font-black uppercase tracking-widest block"
                   style={{ color: textPrimary, letterSpacing: '0.12em' }}
                 >
-                  NO STAGE ELEMENTS YET
+                  {riderTr?.noElementsTitle || 'NO STAGE ELEMENTS YET'}
                 </span>
                 <p
                   className="text-[11px] font-medium leading-relaxed"
                   style={{ color: textSecondary }}
                 >
-                  Add elements to the stage — they appear here automatically
+                  {riderTr?.noElementsDesc ||
+                    'Add elements to the stage — they appear here automatically'}
                 </p>
                 <div
                   className="w-full h-1 rounded-full mt-3"
@@ -267,7 +353,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                     className="text-[9.5px] font-black uppercase tracking-widest block text-blue-600 dark:text-blue-400"
                     style={{ letterSpacing: '0.12em' }}
                   >
-                    TECHNICAL RIDER &amp; STAGE SPECIFICATION
+                    {riderTr?.specTitle || 'TECHNICAL RIDER & STAGE SPECIFICATION'}
                   </span>
                   <div className="flex items-center gap-1.5">
                     <span
@@ -308,8 +394,9 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 </h2>
 
                 <p className="text-[11.5px] leading-relaxed" style={{ color: textSecondary }}>
-                  Configure live production specifications detailing audio requirements, power
-                  distribution, monitoring channels, and venue logistics.
+                  {isSpanish
+                    ? 'Configura las especificaciones de producción en vivo detallando audio, distribución de energía, monitores y logística.'
+                    : 'Configure live production specifications detailing audio requirements, power distribution, monitoring channels, and venue logistics.'}
                 </p>
 
                 <div
@@ -330,7 +417,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-[9px] font-bold uppercase tracking-wider"
                 style={{ color: textMuted }}
               >
-                CHANNELS
+                {riderTr?.statChannels || 'CHANNELS'}
               </p>
               <p
                 className="text-base font-black mt-0.5"
@@ -347,7 +434,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-[9px] font-bold uppercase tracking-wider"
                 style={{ color: textMuted }}
               >
-                ELEMENTS
+                {riderTr?.statElements || 'ELEMENTS'}
               </p>
               <p
                 className="text-base font-black mt-0.5"
@@ -375,7 +462,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-xs font-black tracking-wider uppercase"
                 style={{ color: textPrimary, letterSpacing: '0.06em' }}
               >
-                TECHNICAL REQUIREMENTS
+                {riderTr?.prodRequirementsTitle || 'TECHNICAL REQUIREMENTS'}
               </h2>
             </div>
             <button
@@ -390,7 +477,15 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
               }}
             >
               <span>{isAdding ? '✕' : '+'}</span>
-              <span>{isAdding ? 'CANCEL' : 'ADD NEED'}</span>
+              <span>
+                {isAdding
+                  ? isSpanish
+                    ? 'CANCELAR'
+                    : 'CANCEL'
+                  : isSpanish
+                    ? 'AÑADIR REQUISITO'
+                    : 'ADD NEED'}
+              </span>
             </button>
           </div>
 
@@ -445,7 +540,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                     className="text-[8px] font-bold uppercase tracking-wider mb-1.5"
                     style={{ color: textMuted }}
                   >
-                    Quick Presets
+                    {isSpanish ? 'Plantillas Rápidas' : 'Quick Presets'}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {PRESETS_BY_TYPE[newType]?.map((preset) => (
@@ -503,7 +598,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                       color: isLight ? '#ffffff' : '#111827',
                     }}
                   >
-                    SAVE
+                    {riderTr?.save || 'SAVE'}
                   </button>
                 </div>
               </motion.form>
@@ -515,9 +610,12 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
             {riderNeeds.length === 0 ? (
               <StageSetupEmptyState
                 icon="bolt"
-                title="No requirements added yet"
-                description="Add specifications for power distribution, audio protocols, IEMs, or hospitality"
-                actionLabel="Add Requirement"
+                title={riderTr?.emptyRequirementsTitle || 'No requirements added yet'}
+                description={
+                  riderTr?.emptyRequirementsDesc ||
+                  'Add specifications for power distribution, audio protocols, IEMs, or hospitality'
+                }
+                actionLabel={riderTr?.addRequirement || 'Add Requirement'}
                 onAction={() => setIsAdding(true)}
                 iconColor="#f59e0b"
                 isLight={isLight}
@@ -559,7 +657,9 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                         <div
                           className="flex items-center gap-1.5 cursor-pointer select-none"
                           onClick={() => handleCycleType(needId, need.type, needIdx)}
-                          title="Click to cycle category"
+                          title={
+                            isSpanish ? 'Toca para alternar categoría' : 'Click to cycle category'
+                          }
                         >
                           <span
                             className="text-[10px] font-extrabold tracking-wider uppercase"
@@ -576,7 +676,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                         </div>
                         <button
                           type="button"
-                          aria-label="Remove requirement"
+                          aria-label={isSpanish ? 'Eliminar requisito' : 'Remove requirement'}
                           data-testid={`btn-delete-need-${needId}`}
                           onClick={() => handleRemoveNeed(needId, needIdx)}
                           className="p-1 rounded-md transition-colors cursor-pointer"
@@ -601,7 +701,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                             className="text-[8px] font-extrabold uppercase tracking-wider block"
                             style={{ color: textSecondary }}
                           >
-                            Active Specification
+                            {isSpanish ? 'Especificación Activa' : 'Active Specification'}
                           </span>
                           <p className="text-xs font-bold truncate" style={{ color: textPrimary }}>
                             {need.value}
@@ -615,7 +715,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                           className="text-[8px] font-bold uppercase tracking-wider mb-1.5"
                           style={{ color: textMuted }}
                         >
-                          Quick Presets
+                          {isSpanish ? 'Plantillas Rápidas' : 'Quick Presets'}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
                           {presets.map((preset) => {
@@ -669,7 +769,11 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                         <div className="relative flex-1">
                           <input
                             type="text"
-                            placeholder="Custom specification (e.g. Ravenna, AES67...)"
+                            placeholder={
+                              isSpanish
+                                ? 'Especificación personalizada (ej. Ravenna, AES67...)'
+                                : 'Custom specification (e.g. Ravenna, AES67...)'
+                            }
                             value={customText}
                             onChange={(e) => handleCustomInputChange(needId, e.target.value)}
                             onKeyDown={(e) => {
@@ -696,7 +800,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                             color: isLight ? '#ffffff' : '#111827',
                           }}
                         >
-                          Set
+                          {isSpanish ? 'Fijar' : 'Set'}
                         </button>
                       </div>
                     </motion.div>
@@ -721,7 +825,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
               className="text-xs font-black tracking-wider uppercase"
               style={{ color: textPrimary }}
             >
-              TECHNICAL NOTES
+              {isSpanish ? 'NOTAS TÉCNICAS' : 'TECHNICAL NOTES'}
             </h2>
           </div>
 
@@ -730,7 +834,11 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
             <textarea
               rows={3}
               data-testid="input-rider-notes"
-              placeholder="Artist provides all instruments, IEM transmitters, and playback rack. Venue supplies microphones, stands, and XLR cabling. PA must sustain 105 dB continuous at FOH."
+              placeholder={
+                isSpanish
+                  ? 'El artista proporciona todos los instrumentos, transmisores IEM y rack de pistas. El recinto suministra micrófonos, pies y cableado XLR. La PA debe mantener 105 dB continuos en FOH.'
+                  : 'Artist provides all instruments, IEM transmitters, and playback rack. Venue supplies microphones, stands, and XLR cabling. PA must sustain 105 dB continuous at FOH.'
+              }
               value={riderConfig.notes || ''}
               onChange={(e) => updateRiderConfig({ notes: e.target.value })}
               className="w-full text-[11px] font-normal leading-relaxed pr-2 border-none bg-transparent resize-none focus:outline-none"
@@ -763,7 +871,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-xs font-black tracking-wider uppercase"
                 style={{ color: textPrimary }}
               >
-                PRODUCTION CONTACT &amp; VENUE
+                {isSpanish ? 'CONTACTO DE PRODUCCIÓN Y RECINTO' : 'PRODUCTION CONTACT & VENUE'}
               </h2>
             </div>
             <span
@@ -774,7 +882,13 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 borderColor: isLight ? 'rgba(37, 99, 235, 0.2)' : 'rgba(59, 130, 246, 0.3)',
               }}
             >
-              {riderConfig.contactName ? 'CONFIRMED' : 'SETUP'}
+              {riderConfig.contactName
+                ? isSpanish
+                  ? 'CONFIRMADO'
+                  : 'CONFIRMED'
+                : isSpanish
+                  ? 'MONTAJE'
+                  : 'SETUP'}
             </span>
           </div>
 
@@ -795,12 +909,16 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                   className="text-[9px] font-bold uppercase tracking-wider"
                   style={{ color: textMuted }}
                 >
-                  CONTACT NAME
+                  {isSpanish ? 'NOMBRE DE CONTACTO' : 'CONTACT NAME'}
                 </p>
                 <input
                   type="text"
                   data-testid="input-rider-contact-name"
-                  placeholder="e.g. Alex Miller — FOH Engineer"
+                  placeholder={
+                    isSpanish
+                      ? 'ej. Alex Miller — Ingeniero FOH'
+                      : 'e.g. Alex Miller — FOH Engineer'
+                  }
                   value={riderConfig.contactName || ''}
                   onChange={(e) => updateRiderConfig({ contactName: e.target.value })}
                   className="w-full text-xs font-bold mt-0.5 bg-transparent border-none focus:outline-none"
@@ -825,7 +943,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                   className="text-[9px] font-bold uppercase tracking-wider"
                   style={{ color: textMuted }}
                 >
-                  PHONE / EMAIL
+                  {isSpanish ? 'TELÉFONO / CORREO' : 'PHONE / EMAIL'}
                 </p>
                 <input
                   type="text"
@@ -855,7 +973,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                   className="text-[9px] font-bold uppercase tracking-wider"
                   style={{ color: textMuted }}
                 >
-                  VENUE / FESTIVAL
+                  {isSpanish ? 'RECINTO / FESTIVAL' : 'VENUE / FESTIVAL'}
                 </p>
                 <input
                   type="text"
@@ -889,7 +1007,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-xs font-black tracking-wider uppercase"
                 style={{ color: textPrimary }}
               >
-                STAGE PLOT ELEMENTS
+                {isSpanish ? 'ELEMENTOS DEL PLANO DE ESCENARIO' : 'STAGE PLOT ELEMENTS'}
               </h2>
             </div>
             <span
@@ -899,7 +1017,14 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 color: textSecondary,
               }}
             >
-              {elements.length} {elements.length === 1 ? 'Element' : 'Elements'}
+              {elements.length}{' '}
+              {elements.length === 1
+                ? isSpanish
+                  ? 'Elemento'
+                  : 'Element'
+                : isSpanish
+                  ? 'Elementos'
+                  : 'Elements'}
             </span>
           </div>
 
@@ -945,7 +1070,9 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                         className="text-[9.5px] font-medium block"
                         style={{ color: textSecondary }}
                       >
-                        Position: X: {Math.round(el.x || 0)}% · Y: {Math.round(el.y || 0)}%
+                        {isSpanish
+                          ? `Posición: X: ${Math.round(el.x || 0)}% · Y: ${Math.round(el.y || 0)}%`
+                          : `Position: X: ${Math.round(el.x || 0)}% · Y: ${Math.round(el.y || 0)}%`}
                       </span>
                     </div>
                   </div>
@@ -971,10 +1098,12 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 alt_route
               </span>
               <p className="text-xs font-bold" style={{ color: textPrimary }}>
-                No Stage Elements Placed
+                {isSpanish ? 'Sin elementos colocados en el escenario' : 'No Stage Elements Placed'}
               </p>
               <p className="text-[11px] max-w-xs mt-0.5" style={{ color: textSecondary }}>
-                Add instruments and microphones to the stage to populate this section.
+                {isSpanish
+                  ? 'Añade instrumentos y micrófonos al escenario para poblar esta sección.'
+                  : 'Add instruments and microphones to the stage to populate this section.'}
               </p>
             </div>
           )}
@@ -998,7 +1127,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-xs font-black tracking-wider uppercase"
                 style={{ color: textPrimary }}
               >
-                INPUT CHANNELS &amp; PATCH LIST
+                {riderTr?.inputPatchTitle || 'INPUT CHANNELS & PATCH LIST'}
               </h2>
             </div>
             <span
@@ -1008,7 +1137,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 color: textSecondary,
               }}
             >
-              {patchList.length} Channels
+              {patchList.length} {isSpanish ? 'Canales' : 'Channels'}
             </span>
           </div>
 
@@ -1079,7 +1208,9 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
             </div>
           ) : (
             <p className="text-xs py-3 text-center" style={{ color: textSecondary }}>
-              No channels defined. Add instruments to the stage to generate the input patch list.
+              {isSpanish
+                ? 'No hay canales definidos. Añade instrumentos al escenario para generar la lista de entradas.'
+                : 'No channels defined. Add instruments to the stage to generate the input patch list.'}
             </p>
           )}
         </section>
@@ -1102,7 +1233,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-xs font-black tracking-wider uppercase"
                 style={{ color: textPrimary }}
               >
-                BAND &amp; CREW ROSTER
+                {isSpanish ? 'PLANTILLA DE BANDA Y EQUIPO' : 'BAND & CREW ROSTER'}
               </h2>
             </div>
             <span
@@ -1112,7 +1243,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 color: textSecondary,
               }}
             >
-              {members.length} Members
+              {members.length} {isSpanish ? 'Miembros' : 'Members'}
             </span>
           </div>
 
@@ -1146,7 +1277,9 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
             </div>
           ) : (
             <p className="text-xs py-2 text-center" style={{ color: textSecondary }}>
-              No band or crew members added yet. Configure in Setup &gt; Band &amp; Crew.
+              {isSpanish
+                ? 'No hay integrantes añadidos aún. Configúralos en Montaje > Banda y Equipo.'
+                : 'No band or crew members added yet. Configure in Setup > Band & Crew.'}
             </p>
           )}
         </section>
@@ -1169,7 +1302,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 className="text-xs font-black tracking-wider uppercase"
                 style={{ color: textPrimary }}
               >
-                GEAR INVENTORY &amp; LOAD-IN
+                {isSpanish ? 'INVENTARIO Y CARGA DE EQUIPAMIENTO' : 'GEAR INVENTORY & LOAD-IN'}
               </h2>
             </div>
             <span
@@ -1179,7 +1312,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 color: textSecondary,
               }}
             >
-              {gear.length} Items Listed
+              {gear.length} {isSpanish ? 'Elementos Listados' : 'Items Listed'}
             </span>
           </div>
 
@@ -1212,19 +1345,29 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                       color: g.packed ? '#10b981' : '#f59e0b',
                     }}
                   >
-                    {g.packed ? 'packed' : 'pending'}
+                    {g.packed
+                      ? isSpanish
+                        ? 'empacado'
+                        : 'packed'
+                      : isSpanish
+                        ? 'pendiente'
+                        : 'pending'}
                   </span>
                 </div>
               ))}
               {gear.length > 6 && (
                 <span className="text-[10.5px] text-center pt-1" style={{ color: textSecondary }}>
-                  + {gear.length - 6} more gear items in Inventory
+                  {isSpanish
+                    ? `+ ${gear.length - 6} elementos más en Inventario`
+                    : `+ ${gear.length - 6} more gear items in Inventory`}
                 </span>
               )}
             </div>
           ) : (
             <p className="text-xs py-2 text-center" style={{ color: textSecondary }}>
-              No gear items listed in inventory. Configure in Setup &gt; Gear.
+              {isSpanish
+                ? 'No hay elementos de equipamiento listados. Configúralos en Montaje > Equipamiento.'
+                : 'No gear items listed in inventory. Configure in Setup > Gear.'}
             </p>
           )}
         </section>

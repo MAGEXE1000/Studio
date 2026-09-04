@@ -1,6 +1,11 @@
 import React, { useEffect, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { UpdaterFlightRecorder, DurationPresets, EasingPresets } from '@workspace/studio-core';
+import {
+  UpdaterFlightRecorder,
+  DurationPresets,
+  EasingPresets,
+  useT,
+} from '@workspace/studio-core';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import { Loader } from '../../../components/motion/loader';
 import { MorphingModal } from '../../../components/motion/morphing-modal';
@@ -61,6 +66,8 @@ export default memo(function StudioUpdateScreen({
   });
 
   const [reducedMotion, setReducedMotion] = useState(false);
+  const t = useT();
+  const updaterTr = (t as any)?.updater;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -309,7 +316,7 @@ export default memo(function StudioUpdateScreen({
                   fontWeight: 600,
                 }}
               >
-                Current
+                {updaterTr?.current || 'Current'}
               </span>
               <span
                 style={{
@@ -336,7 +343,7 @@ export default memo(function StudioUpdateScreen({
                   fontWeight: 600,
                 }}
               >
-                New
+                {updaterTr?.new || 'New'}
               </span>
               <span
                 style={{
@@ -391,7 +398,7 @@ export default memo(function StudioUpdateScreen({
                 overflow: 'hidden',
               }}
             >
-              This update is required.
+              {updaterTr?.required || 'This update is required.'}
             </motion.p>
           )}
         </AnimatePresence>

@@ -96,6 +96,7 @@ export default function StudioHubSettingsPanel() {
             desc={t.settings.rows.appLanguageDesc || 'Change the display language for Studio'}
           >
             <motion.button
+              data-testid="settings-language-picker-trigger"
               whileTap={{ scale: 0.95 }}
               whileHover={{ scale: 1.02 }}
               onClick={() => setIsLanguageOpen(true)}

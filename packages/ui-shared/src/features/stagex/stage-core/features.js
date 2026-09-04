@@ -3692,22 +3692,37 @@ function _initProfessionalTools() {
 
       const iconSpan = (ic) =>
         `<span class="material-symbols-outlined" style="font-size:13px;line-height:1;">${ic}</span>`;
-      const mkFabBtn = (id, ic, label, fn) => {
+      const getFabLabel = (key, fallback) => {
+        if (typeof T === 'function') {
+          const val = T(key);
+          if (val && val !== key) return val;
+        }
+        if (typeof state !== 'undefined' && state.lang === 'es') {
+          if (key === 'toolMeasure') return 'Medir';
+          if (key === 'toolLength') return 'Longitud';
+          if (key === 'toolHistory') return 'Historial';
+          if (key === 'scenes') return 'Escenas';
+        }
+        return fallback;
+      };
+      const mkFabBtn = (id, ic, key, fallback, fn) => {
         const b = document.createElement('button');
         b.id = id;
         b.className = 'sc-fab-btn';
-        b.innerHTML = DOMPurify.sanitize(`${iconSpan(ic)}${label}`);
+        b.setAttribute('data-fab-key', key);
+        b.setAttribute('data-fab-fallback', fallback);
+        b.innerHTML = DOMPurify.sanitize(`${iconSpan(ic)}${getFabLabel(key, fallback)}`);
         b.onclick = fn;
         return b;
       };
 
       const menu = document.createElement('div');
       menu.id = 'sc-tools-menu';
-      menu.appendChild(mkFabBtn('btn-sc-measure', 'straighten', 'Measure', scActivateMeasure));
-      menu.appendChild(mkFabBtn('btn-sc-cable', 'cable', 'Length', scToggleCableLength));
-      menu.appendChild(mkFabBtn('btn-sc-hist', 'history', 'History', openTimelinePanel));
+      menu.appendChild(mkFabBtn('btn-sc-measure', 'straighten', 'toolMeasure', 'Measure', scActivateMeasure));
+      menu.appendChild(mkFabBtn('btn-sc-cable', 'cable', 'toolLength', 'Length', scToggleCableLength));
+      menu.appendChild(mkFabBtn('btn-sc-hist', 'history', 'toolHistory', 'History', openTimelinePanel));
       menu.appendChild(
-        mkFabBtn('btn-sc-scenes', 'layers', 'Scenes', () => {
+        mkFabBtn('btn-sc-scenes', 'layers', 'scenes', 'Scenes', () => {
           fab.classList.remove('open');
           if (typeof window.scOpenMobileScenes === 'function') {
             window.scOpenMobileScenes();
@@ -3717,7 +3732,7 @@ function _initProfessionalTools() {
 
       const trigger = document.createElement('button');
       trigger.id = 'sc-tools-trigger';
-      trigger.title = 'Canvas Tools';
+      trigger.title = typeof state !== 'undefined' && state.lang === 'es' ? 'Herramientas de lienzo' : 'Canvas Tools';
       trigger.innerHTML = DOMPurify.sanitize(
         '<span class="material-symbols-outlined" style="font-size:16px;">add</span>'
       );
@@ -3736,6 +3751,19 @@ function _initProfessionalTools() {
       fab.appendChild(menu);
       fab.appendChild(trigger);
       canvas.appendChild(fab);
+
+      window.syncFabTranslations = function () {
+        document.querySelectorAll('.sc-fab-btn[data-fab-key]').forEach((b) => {
+          const key = b.getAttribute('data-fab-key');
+          const fallback = b.getAttribute('data-fab-fallback') || '';
+          const iconSpanHtml = b.querySelector('span.material-symbols-outlined')?.outerHTML || '';
+          b.innerHTML = DOMPurify.sanitize(`${iconSpanHtml}${getFabLabel(key, fallback)}`);
+        });
+        const trig = document.getElementById('sc-tools-trigger');
+        if (trig) {
+          trig.title = typeof state !== 'undefined' && state.lang === 'es' ? 'Herramientas de lienzo' : 'Canvas Tools';
+        }
+      };
     }
   }
 

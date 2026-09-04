@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { useStagexStore } from '../../state/useStagexStore';
 import { StageSetupDetailLayout } from './StageSetupDetailLayout';
-import { useSettingsStore } from '@workspace/studio-core';
+import { useSettingsStore, useT } from '@workspace/studio-core';
 
 interface StageSetlistViewProps {
   onBack: () => void;
@@ -15,7 +15,11 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
   isLight: isLightProp,
   isAmoled: isAmoledProp,
 }) => {
+  const t = useT();
+  const tr = t as any;
+  const setlistTr = tr.stagex?.setup?.setlist;
   const settings = useSettingsStore((s) => s.settings);
+  const isSpanish = (settings.language ?? 'en') === 'es';
   const { setlist, addSong, removeSong, reorderSongs, preferences } = useStagexStore();
   const activeVis = settings.perApp?.stagex;
   const isLight =
@@ -73,10 +77,11 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
     const max = Math.max(...bpmList);
     const diff = max - min;
 
-    if (diff <= 10) return `Consistent (±${diff} BPM)`;
-    if (diff <= 25) return `Moderate (${min}–${max} BPM)`;
-    return `Dynamic (${min}–${max} BPM)`;
-  }, [setlist]);
+    if (diff <= 10) return isSpanish ? `Consistente (±${diff} BPM)` : `Consistent (±${diff} BPM)`;
+    if (diff <= 25)
+      return isSpanish ? `Moderado (${min}–${max} BPM)` : `Moderate (${min}–${max} BPM)`;
+    return isSpanish ? `Dinámico (${min}–${max} BPM)` : `Dynamic (${min}–${max} BPM)`;
+  }, [setlist, isSpanish]);
 
   const keyVariety = useMemo(() => {
     if (setlist.length === 0) return '—';
@@ -84,9 +89,10 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
 
     if (keys.length === 0) return '—';
     const unique = Array.from(new Set(keys));
-    if (unique.length === 1) return `Single Key (${unique[0]})`;
-    return `${unique.length} Distinct Keys`;
-  }, [setlist]);
+    if (unique.length === 1)
+      return isSpanish ? `Tono Único (${unique[0]})` : `Single Key (${unique[0]})`;
+    return isSpanish ? `${unique.length} Tonos Distintos` : `${unique.length} Distinct Keys`;
+  }, [setlist, isSpanish]);
 
   const transitionFluidity = useMemo(() => {
     if (setlist.length < 2) return '—';
@@ -101,10 +107,10 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
     }
 
     const avgDelta = comparisons > 0 ? Math.round(totalDelta / comparisons) : 0;
-    if (avgDelta <= 15) return 'Smooth Harmonic Flow';
-    if (avgDelta <= 30) return 'Balanced Momentum';
-    return 'High Dynamic Contrast';
-  }, [setlist]);
+    if (avgDelta <= 15) return isSpanish ? 'Flujo Armónico Suave' : 'Smooth Harmonic Flow';
+    if (avgDelta <= 30) return isSpanish ? 'Impulso Equilibrado' : 'Balanced Momentum';
+    return isSpanish ? 'Alto Contraste Dinámico' : 'High Dynamic Contrast';
+  }, [setlist, isSpanish]);
 
   // Filtered/Sorted list for display
   const displayList = useMemo(() => {
@@ -177,7 +183,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
 
   return (
     <StageSetupDetailLayout
-      title="Setlist"
+      title={setlistTr?.title || tr.stagex?.setlistTitle || 'Setlist'}
       onBack={onBack}
       isLight={isLight}
       isAmoled={isAmoled}
@@ -190,8 +196,8 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             backgroundColor: isLight ? '#000000' : '#ffffff',
             color: isLight ? '#ffffff' : '#000000',
           }}
-          title={isAdding ? 'Cancel' : 'Add Track'}
-          aria-label={isAdding ? 'Cancel' : 'Add Track'}
+          title={isAdding ? setlistTr?.cancel || 'Cancel' : setlistTr?.addTrack || 'Add Track'}
+          aria-label={isAdding ? setlistTr?.cancel || 'Cancel' : setlistTr?.addTrack || 'Add Track'}
           data-testid="btn-toggle-add-track"
         >
           <svg
@@ -221,8 +227,8 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               className="font-extrabold text-[22px] tracking-tight leading-none"
               style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
             >
-              Current <br />
-              <span style={{ color: textPrimary }}>Arrangement</span>
+              {setlistTr?.currentArrangement ||
+                (isSpanish ? 'Repertorio Actual' : 'Current Arrangement')}
             </h2>
           </div>
 
@@ -231,7 +237,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             <button
               type="button"
               onClick={handleCycleSort}
-              aria-label="Filter arrangement"
+              aria-label={setlistTr?.filterArrangement || 'Filter arrangement'}
               className="p-2 rounded-lg transition-colors cursor-pointer"
               style={{
                 color: sortBy !== 'default' ? (isLight ? '#09090b' : '#ffffff') : textSecondary,
@@ -242,7 +248,13 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                       : 'rgba(255, 255, 255, 0.08)'
                     : 'transparent',
               }}
-              title={sortBy === 'default' ? 'Sort / Filter' : `Sorted by ${sortBy.toUpperCase()}`}
+              title={
+                sortBy === 'default'
+                  ? setlistTr?.sortFilter || 'Sort / Filter'
+                  : isSpanish
+                    ? `Ordenado por ${sortBy.toUpperCase()}`
+                    : `Sorted by ${sortBy.toUpperCase()}`
+              }
               data-testid="btn-filter-arrangement"
             >
               <svg
@@ -271,7 +283,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                   : 'transparent',
                 color: showSections ? textPrimary : textSecondary,
               }}
-              title="Toggle Sections"
+              title={isSpanish ? 'Alternar Secciones' : 'Toggle Sections'}
               data-testid="btn-toggle-sections"
             >
               <svg
@@ -287,7 +299,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 className="text-xs font-bold tracking-wider uppercase"
                 style={{ fontFamily: 'Manrope, sans-serif' }}
               >
-                SECTIONS
+                {isSpanish ? 'SECCIONES' : 'SECTIONS'}
               </span>
             </button>
           </div>
@@ -338,7 +350,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
                   type="text"
-                  placeholder="Song Title *"
+                  placeholder={setlistTr?.formSongTitle || 'Song Title *'}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="px-3.5 py-2.5 rounded-xl text-xs border focus:outline-none transition-colors"
@@ -465,7 +477,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                   className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer opacity-70 hover:opacity-100"
                   style={{ color: textSecondary }}
                 >
-                  Cancel
+                  {setlistTr?.cancel || 'Cancel'}
                 </button>
                 <button
                   type="submit"
@@ -496,7 +508,9 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               className="text-[12px] font-extrabold tracking-[0.08em] max-w-[270px] leading-relaxed uppercase mb-4"
               style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
             >
-              NO SONGS YET — TAP ADD NEW TRACK TO START YOUR SETLIST.
+              {isSpanish
+                ? 'NO HAY CANCIONES — TOCA AÑADIR CANCIÓN PARA INICIAR TU REPERTORIO.'
+                : 'NO SONGS YET — TAP ADD NEW TRACK TO START YOUR SETLIST.'}
             </p>
             <button
               type="button"
@@ -524,7 +538,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                 />
               </svg>
               <span className="tracking-[0.06em]" style={{ fontFamily: 'Manrope, sans-serif' }}>
-                ADD NEW TRACK
+                {isSpanish ? 'AÑADIR CANCIÓN' : 'ADD NEW TRACK'}
               </span>
             </button>
           </section>
@@ -701,7 +715,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               className="block text-[11px] font-bold tracking-wider uppercase font-sans"
               style={{ color: textMuted }}
             >
-              SONGS COUNT
+              {setlistTr.statTracks || (isSpanish ? 'CANCIONES' : 'SONGS COUNT')}
             </span>
             <span
               className="block font-black text-4xl mt-1 leading-none"
@@ -721,7 +735,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               className="block text-[11px] font-bold tracking-wider uppercase font-sans"
               style={{ color: textMuted }}
             >
-              TOTAL DURATION
+              {setlistTr.statTotalRuntime || (isSpanish ? 'DURACIÓN TOTAL' : 'TOTAL DURATION')}
             </span>
             <span
               className="block font-black text-4xl mt-1 leading-none tracking-tight"
@@ -741,7 +755,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               className="block text-[11px] font-bold tracking-wider uppercase font-sans"
               style={{ color: textMuted }}
             >
-              AVG ENERGY
+              {setlistTr.statEnergy || (isSpanish ? 'ENERGÍA PROMEDIO' : 'AVG ENERGY')}
             </span>
             <div className="mt-2.5 h-6 flex items-center justify-between">
               {avgEnergy !== null ? (
@@ -790,14 +804,15 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               letterSpacing: '0.08em',
             }}
           >
-            SETLIST INSIGHTS
+            {isSpanish ? 'ANÁLISIS DEL REPERTORIO' : 'SETLIST INSIGHTS'}
           </h3>
 
           <div className="space-y-4">
             {/* Tempo Stability */}
             <div className="flex items-center justify-between text-sm py-0.5">
               <span className="font-medium text-[13px]" style={{ color: textSecondary }}>
-                Tempo Stability
+                {setlistTr.insightTempoDynamics ||
+                  (isSpanish ? 'Estabilidad de Tempo' : 'Tempo Stability')}
               </span>
               <span
                 className="font-bold text-sm tracking-wider font-mono"
@@ -812,7 +827,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             {/* Key Variety */}
             <div className="flex items-center justify-between text-sm py-0.5">
               <span className="font-medium text-[13px]" style={{ color: textSecondary }}>
-                Key Variety
+                {setlistTr.insightKeyHarmony || (isSpanish ? 'Variedad Tonal' : 'Key Variety')}
               </span>
               <span
                 className="font-bold text-sm tracking-wider font-mono"
@@ -827,7 +842,8 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             {/* Transition Fluidity */}
             <div className="flex items-center justify-between text-sm py-0.5">
               <span className="font-medium text-[13px]" style={{ color: textSecondary }}>
-                Transition Fluidity
+                {setlistTr.insightShowFlow ||
+                  (isSpanish ? 'Fluidez de Transición' : 'Transition Fluidity')}
               </span>
               <span
                 className="font-bold text-sm tracking-wider font-mono"

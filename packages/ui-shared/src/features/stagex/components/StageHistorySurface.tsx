@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { useSettingsStore, useT } from '@workspace/studio-core';
 
 export interface StageHistoryItem {
   index: number;
@@ -30,8 +31,15 @@ export const StageHistorySurface: React.FC<StageHistorySurfaceProps> = ({
   onRedo,
   onJumpToHistory,
   isLight,
-  isSpanish = false,
+  isSpanish: isSpanishProp,
 }) => {
+  const t = useT();
+  const tr = t as any;
+  const settingsLang = useSettingsStore((s) => s.settings.language);
+  const isSpanish =
+    isSpanishProp !== undefined
+      ? isSpanishProp
+      : settingsLang === 'es' || tr.nav?.stagexStage === 'Escenario';
   const historyContainerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll active history card into view
@@ -156,8 +164,8 @@ export const StageHistorySurface: React.FC<StageHistorySurfaceProps> = ({
                 ? '1px solid rgba(0, 0, 0, 0.06)'
                 : '1px solid rgba(255, 255, 255, 0.08)',
             }}
-            aria-label="Close History Panel"
-            title="Close"
+            aria-label={isSpanish ? 'Cerrar panel de historial' : 'Close History Panel'}
+            title={isSpanish ? 'Cerrar' : 'Close'}
           >
             <span className="material-symbols-outlined text-[16px]">close</span>
           </button>
@@ -216,7 +224,7 @@ export const StageHistorySurface: React.FC<StageHistorySurfaceProps> = ({
                       : '1px solid rgba(255, 255, 255, 0.07)',
                   color: isLight ? '#09090b' : '#ffffff',
                 }}
-                title={`Jump to ${entry.label}`}
+                title={isSpanish ? `Ir a ${entry.label}` : `Jump to ${entry.label}`}
               >
                 {/* Top: Step Badge + Current Indicator */}
                 <div className="w-full flex items-center justify-between gap-1">

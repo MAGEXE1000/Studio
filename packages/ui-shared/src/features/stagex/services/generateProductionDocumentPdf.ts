@@ -557,13 +557,13 @@ export async function generateProductionDocumentPdf(
         x += colInstW;
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
-        doc.text(ch.performer.slice(0, 20), x, currentY + 4.2);
+        doc.text((ch.performer || '—').slice(0, 20), x, currentY + 4.2);
 
         // Mic / DI
         x += colPerfW;
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(T.textSecondary[0], T.textSecondary[1], T.textSecondary[2]);
-        doc.text(ch.mic.slice(0, 24), x, currentY + 4.2);
+        doc.text((ch.mic || '—').slice(0, 24), x, currentY + 4.2);
 
         // 48V Phantom
         x += colMicW;
@@ -584,7 +584,7 @@ export async function generateProductionDocumentPdf(
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
         doc.setTextColor(T.textMuted[0], T.textMuted[1], T.textMuted[2]);
-        doc.text(ch.notes.slice(0, 18), x, currentY + 4.2);
+        doc.text((ch.notes || '—').slice(0, 18), x, currentY + 4.2);
 
         currentY += 6;
       });
@@ -618,10 +618,7 @@ export async function generateProductionDocumentPdf(
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
-    const fohLines = doc.splitTextToSize(
-      data.requirements.foh[0] || 'Dante 96kHz / 32ch minimum',
-      reqCardW - 6
-    );
+    const fohLines = doc.splitTextToSize(data.requirements.foh[0] || '—', reqCardW - 6);
     doc.text(fohLines.slice(0, 3), MARGIN_LEFT + 4, currentY + 9);
 
     // Card 2: Monitor / IEM
@@ -638,10 +635,7 @@ export async function generateProductionDocumentPdf(
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
-    const monLines = doc.splitTextToSize(
-      data.requirements.monitor[0] || 'Min 4 discrete stereo IEM mixes',
-      reqCardW - 6
-    );
+    const monLines = doc.splitTextToSize(data.requirements.monitor[0] || '—', reqCardW - 6);
     doc.text(monLines.slice(0, 3), card2X + 4, currentY + 9);
 
     // Card 3: Power Distribution
@@ -658,10 +652,7 @@ export async function generateProductionDocumentPdf(
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
     doc.setTextColor(T.textPrimary[0], T.textPrimary[1], T.textPrimary[2]);
-    const powerLines = doc.splitTextToSize(
-      data.requirements.power[0] || '2× 20A isolated circuits Stage Left',
-      reqCardW - 6
-    );
+    const powerLines = doc.splitTextToSize(data.requirements.power[0] || '—', reqCardW - 6);
     doc.text(powerLines.slice(0, 3), card3X + 4, currentY + 9);
     currentY += 24;
 
@@ -703,7 +694,12 @@ export async function generateProductionDocumentPdf(
       isEs ? 'Notas Técnicas y de Producción' : 'Production & Technical Notes'
     );
 
-    const notesLines = doc.splitTextToSize(data.notes, CONTENT_WIDTH - 8);
+    const notesText =
+      data.notes ||
+      (isEs
+        ? 'No se proporcionaron notas de producción personalizadas.'
+        : 'No custom production notes provided.');
+    const notesLines = doc.splitTextToSize(notesText, CONTENT_WIDTH - 8);
     const notesBoxH = Math.max(16, notesLines.length * 4.2 + 6);
 
     ensureSpace(notesBoxH + 4);

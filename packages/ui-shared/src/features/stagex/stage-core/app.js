@@ -64,12 +64,8 @@ const state = {
   lastModified: null,
   plotVersion: 1,
   showLastUpdated: true,
-  riderNeeds: [
-    { id: 'rn1', type: 'foh', value: 'Dante Primary/Secondary @ 96kHz' },
-    { id: 'rn2', type: 'monitor', value: 'Minimum 4 discrete stereo IEM mixes' },
-    { id: 'rn3', type: 'power', value: '2× 20A circuits, distro Stage Left' },
-  ],
-  _rnNextId: 4,
+  riderNeeds: [],
+  _rnNextId: 1,
 };
 
 // ── Cable / Power constants ──────────────────────────────────
@@ -2269,8 +2265,8 @@ function addItemToStage(item) {
     rotation: 0,
     scale: getDefaultScale(item),
     channelId: 'CH-' + channelNum,
-    source: 'SL01',
-    output: 'FOH',
+    source: '',
+    output: '',
     phantom: false,
     notes: '',
     color: item.color || '#7aafff',
@@ -2578,8 +2574,8 @@ function handleDrop(e) {
     rotation: 0,
     scale: getDefaultScale(raw),
     channelId: 'CH-' + channelNum,
-    source: 'SL01',
-    output: 'FOH',
+    source: '',
+    output: '',
     phantom: false,
     notes: '',
     color: raw.color || '#7aafff',
@@ -2746,8 +2742,8 @@ function addRoleFromPicker(item) {
     type: item.type,
     icon: item.icon,
     channelId: nextChannelId(),
-    source: 'SL01',
-    output: 'FOH',
+    source: '',
+    output: '',
     phantom: false,
     notes: '',
   });
@@ -3608,9 +3604,6 @@ window.setReducedAnimations = function (val) {
 
 window.syncAllPreferences = function (prefs) {
   if (!prefs) return;
-  if (prefs.canvasBg !== undefined && typeof window.updateCanvasBg === 'function') {
-    window.updateCanvasBg(prefs.canvasBg);
-  }
   if (prefs.gridSize !== undefined && typeof window.setGridSize === 'function') {
     window.setGridSize(prefs.gridSize);
   }
@@ -6991,7 +6984,7 @@ const QUICK_PRESETS = {
         channelId: 'CH-01',
         source: 'direct',
         output: 'FOH',
-        phantom: true,
+        phantom: false,
         notes: 'Pickup DI',
         roles: [],
       },
@@ -7008,7 +7001,7 @@ const QUICK_PRESETS = {
         channelId: 'CH-02',
         source: 'direct',
         output: 'FOH',
-        phantom: true,
+        phantom: false,
         notes: 'Pickup DI',
         roles: [],
       },
@@ -11696,8 +11689,8 @@ function _addCustomItemToStage(item) {
     rotation: 0,
     scale: getDefaultScale(item),
     channelId: 'CH-' + channelNum,
-    source: 'SL01',
-    output: 'FOH',
+    source: '',
+    output: '',
     phantom: false,
     notes: '',
     color: item.color || '#7aafff',

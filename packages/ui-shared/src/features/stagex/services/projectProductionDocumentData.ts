@@ -240,11 +240,6 @@ export function projectProductionDocumentData(
     }
   });
 
-  // If no requirements configured, provide standard defaults
-  if (reqs.foh.length === 0) reqs.foh.push('Dante Primary/Secondary @ 96kHz, 32-channel minimum');
-  if (reqs.monitor.length === 0) reqs.monitor.push('Minimum 4 discrete stereo wireless IEM mixes');
-  if (reqs.power.length === 0) reqs.power.push('2× 20A dedicated circuits, distro Stage Left');
-
   const totalRequirementsCount =
     reqs.foh.length +
     reqs.monitor.length +
@@ -254,9 +249,7 @@ export function projectProductionDocumentData(
 
   // Production Logistics
   const riderConfig = store.riderConfig || {};
-  const notes =
-    riderConfig.notes ||
-    'Artist provides all instruments, IEM transmitters, and playback rack. Venue must provide all microphones, stands, and XLR cabling as per the input list. PA system must be capable of 105dB continuous at FOH without distortion. Front-fills are mandatory for the first 3 rows. All wireless systems must be frequency-coordinated prior to load-in.';
+  const notes = (riderConfig.notes && riderConfig.notes.trim()) || '';
 
   // Band & Crew with assigned elements
   const members: ProductionDocumentMember[] = (store.members || []).map((m) => {
@@ -278,41 +271,7 @@ export function projectProductionDocumentData(
   let channels: ProductionDocumentChannel[] = [];
   if (currentElements.length > 0) {
     channels = currentElements.map((el, idx) => {
-      const typeStr = (el.type || '').toLowerCase();
       const labelStr = (el.label || el.name || '').toLowerCase();
-      const isMic =
-        typeStr.includes('mic') || labelStr.includes('vocal') || labelStr.includes('vox');
-      const isAmp =
-        typeStr.includes('amp') ||
-        labelStr.includes('guitar') ||
-        labelStr.includes('bass') ||
-        labelStr.includes('rig');
-      const isKey =
-        typeStr.includes('key') || labelStr.includes('synth') || labelStr.includes('piano');
-      const isDrum =
-        typeStr.includes('drum') || labelStr.includes('percussion') || labelStr.includes('kit');
-
-      let mic = 'Direct Line / DI';
-      if (isMic) mic = labelStr.includes('lead') ? 'Axient KSM9 (Wireless)' : 'Shure Beta 58A';
-      else if (isDrum) mic = labelStr.includes('kick') ? 'Shure Beta 91A' : 'Audix DP7 Pack';
-      else if (isAmp) mic = labelStr.includes('bass') ? 'Radial J48 Active DI' : 'Sennheiser e609';
-      else if (isKey) mic = 'Radial ProD2 Stereo';
-
-      const assignedMember = members.find((m) => m.id === el.memberId);
-      const performerName =
-        assignedMember?.name ||
-        el.performer ||
-        (isMic
-          ? 'Lead Vocalist'
-          : isDrum
-            ? 'Drummer'
-            : isAmp
-              ? 'Guitar / Bass'
-              : isKey
-                ? 'Keys / Synth'
-                : 'Band');
-
-      const isPhantom = Boolean(el.phantom || isKey || mic.includes('91A') || mic.includes('J48'));
       const chIdStr = el.channelId ? String(el.channelId).replace(/^CH-?/i, '') : String(idx + 1);
 
       // Check if store.riderChannels has a match
@@ -320,27 +279,44 @@ export function projectProductionDocumentData(
         (rc) => String(rc.ch) === chIdStr || rc.source?.toLowerCase() === labelStr
       );
 
+      const assignedMember = members.find((m) => m.id === el.memberId);
+      const performerName =
+        assignedMember?.name ||
+        (el.performer && el.performer.trim()) ||
+        (riderCh?.performer && riderCh.performer.trim()) ||
+        '';
+
+      const mic =
+        (riderCh?.mic && riderCh.mic.trim()) ||
+        (el.transducer && el.transducer.trim()) ||
+        (el.mic && el.mic.trim()) ||
+        '';
+
+      const isPhantom = riderCh !== undefined ? Boolean(riderCh.phantom) : Boolean(el.phantom);
+
+      const chNotes =
+        (riderCh?.notes && riderCh.notes.trim()) ||
+        (el.notes && el.notes.trim()) ||
+        (el.mix && el.mix.trim()) ||
+        '';
+
       return {
         ch: chIdStr.padStart(2, '0'),
         source: (riderCh?.source || el.label || el.name || `Input ${idx + 1}`).toUpperCase(),
-        performer: riderCh?.notes?.includes('Band') ? 'Band' : performerName,
-        mic: riderCh?.mic || el.transducer || mic,
-        phantom: riderCh !== undefined ? Boolean(riderCh.phantom) : isPhantom,
-        notes:
-          riderCh?.notes ||
-          el.mix ||
-          el.notes ||
-          (isMic ? 'Wireless RF' : isDrum ? 'Gate/Comp' : isAmp ? 'Pre-EQ drop' : 'Stereo Pair'),
+        performer: performerName,
+        mic,
+        phantom: isPhantom,
+        notes: chNotes,
       };
     });
   } else if (store.riderChannels && store.riderChannels.length > 0) {
     channels = store.riderChannels.map((c, idx) => ({
       ch: String(c.ch || idx + 1).padStart(2, '0'),
       source: (c.source || `Channel ${idx + 1}`).toUpperCase(),
-      performer: members[idx % (members.length || 1)]?.name || 'Band',
-      mic: c.mic || 'Direct / Mic',
+      performer: (c.performer && c.performer.trim()) || '',
+      mic: (c.mic && c.mic.trim()) || '',
       phantom: Boolean(c.phantom),
-      notes: c.notes || c.stand || 'FOH Mix',
+      notes: (c.notes && c.notes.trim()) || '',
     }));
   }
 

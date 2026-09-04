@@ -116,8 +116,10 @@ html[data-theme='light'] [data-i18n="downstageLabel"] {
   color: var(--sc-downstage-color, #1d4ed8) !important;
   font-weight: 800 !important;
 }
-.stage-grid.grid-off {
-  background-image: none;
+.stage-grid.grid-off,
+html[data-amoled='1'] .stage-grid.grid-off,
+html[data-theme='light'] .stage-grid.grid-off {
+  background-image: none !important;
 }
 
 /* Setup Hub grid layout */

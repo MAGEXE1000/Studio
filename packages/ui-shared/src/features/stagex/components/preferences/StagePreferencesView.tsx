@@ -56,15 +56,6 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
     transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
   };
 
-  const bgPresets = [
-    { label: 'Shadow', value: '#16161a', desc: 'Standard studio contrast' },
-    { label: 'Void', value: '#000000', desc: 'Maximum battery savings' },
-    { label: 'Graphite', value: '#1e2229', desc: 'Cool dark slate' },
-    { label: 'Slate', value: '#1c2430', desc: 'Muted slate blue' },
-    { label: 'Midnight', value: '#1a1a2e', desc: 'Deep midnight navy' },
-    { label: 'Forest', value: '#16241a', desc: 'Deep forest green' },
-  ];
-
   const isSpanish = tr.nav?.stagexStage === 'Escenario';
 
   const gridSizes = [
@@ -131,85 +122,7 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
         <StudioHeader title={title} subtitle={subtitle} />
 
         <div className="px-6 max-w-3xl mx-auto">
-          {/* ── 1. APPEARANCE ── */}
-          <SectionHeader
-            icon="palette"
-            title={tr.stagex?.appearance || (isSpanish ? 'Apariencia' : 'Appearance')}
-          />
-          <div style={cardStyle} className="mb-6">
-            <div
-              style={{
-                padding: '14px 16px',
-                boxSizing: 'border-box',
-              }}
-            >
-              <p
-                style={{
-                  fontSize: '14.5px',
-                  fontWeight: 750,
-                  color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
-                  letterSpacing: '-0.015em',
-                  margin: 0,
-                }}
-              >
-                {tr.stagex?.canvasBackground ||
-                  (isSpanish ? 'Fondo de lienzo' : 'Canvas Background')}
-              </p>
-              <p
-                style={{
-                  fontSize: '12px',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 500,
-                  lineHeight: 1.35,
-                  opacity: 0.82,
-                  margin: '2px 0 12px',
-                }}
-              >
-                {tr.stagex?.canvasBackgroundDesc ||
-                  (isSpanish
-                    ? 'Define el color de fondo del plano de escenario.'
-                    : 'Set the stage plot canvas color.')}
-              </p>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {bgPresets.map((bg) => {
-                  const active = preferences.canvasBg === bg.value;
-                  return (
-                    <button
-                      key={bg.value}
-                      type="button"
-                      data-testid={`bg-swatch-${bg.label.toLowerCase()}`}
-                      onClick={() =>
-                        updatePreferences({ canvasBg: bg.value, amoled: bg.value === '#000000' })
-                      }
-                      className="h-12 rounded-[12px] flex flex-col justify-end p-1.5 transition-all cursor-pointer relative overflow-hidden"
-                      style={{
-                        backgroundColor: bg.value,
-                        border: active ? `2px solid ${acc.from}` : '1px solid var(--c-border)',
-                        boxShadow: active
-                          ? `0 0 0 1.5px ${acc.from}, 0 2px 8px rgba(0, 0, 0, 0.3)`
-                          : 'none',
-                        transform: active ? 'scale(1.02)' : 'scale(1)',
-                      }}
-                    >
-                      <span
-                        className="text-[9px] font-extrabold tracking-wider uppercase text-center block w-full truncate"
-                        style={{
-                          color: active ? '#ffffff' : 'var(--c-text-secondary)',
-                          fontFamily: 'Inter, sans-serif',
-                        }}
-                      >
-                        {bg.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* ── 2. CANVAS ── */}
+          {/* ── 1. CANVAS ── */}
           <SectionHeader
             icon="grid_4x4"
             title={tr.stagex?.canvas || (isSpanish ? 'Lienzo' : 'Canvas')}
@@ -332,7 +245,7 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
             </SettingRow>
           </div>
 
-          {/* ── 3. EDITOR ── */}
+          {/* ── 2. EDITOR ── */}
           <SectionHeader
             icon="tune"
             title={tr.stagex?.editor || (isSpanish ? 'Editor' : 'Editor')}

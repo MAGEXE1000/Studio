@@ -978,13 +978,13 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                         className="col-span-2 text-[11px] truncate font-medium"
                         style={{ color: textDim }}
                       >
-                        {ch.performer}
+                        {ch.performer || '—'}
                       </div>
                       <div
                         className="col-span-3 font-mono text-[11px] truncate"
                         style={{ color: textSecondary }}
                       >
-                        {ch.mic}
+                        {ch.mic || '—'}
                       </div>
                       <div className="col-span-1 flex justify-center">
                         {ch.phantom ? (
@@ -1004,7 +1004,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                         className="col-span-2 text-right text-[11px] truncate"
                         style={{ color: textDim }}
                       >
-                        {ch.notes}
+                        {ch.notes || '—'}
                       </div>
                     </div>
                   ))
@@ -1058,7 +1058,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     {isSpanish ? 'Protocolo FOH' : 'FOH Protocol'}
                   </div>
                   <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
-                    {data.requirements.foh[0] || 'Dante 96kHz'}
+                    {data.requirements.foh[0] || '—'}
                   </div>
                 </div>
 
@@ -1078,7 +1078,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     Monitor / IEM
                   </div>
                   <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
-                    {data.requirements.monitor[0] || 'Stereo IEM Mixes'}
+                    {data.requirements.monitor[0] || '—'}
                   </div>
                 </div>
 
@@ -1098,7 +1098,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                     {isSpanish ? 'Requerimientos de Energía' : 'Power Requirements'}
                   </div>
                   <div className="text-[12px] font-bold" style={{ color: textPrimary }}>
-                    {data.requirements.power[0] || '2× 20A Circuits'}
+                    {data.requirements.power[0] || '—'}
                   </div>
                 </div>
               </div>

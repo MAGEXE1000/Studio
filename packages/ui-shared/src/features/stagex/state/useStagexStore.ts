@@ -9,6 +9,7 @@ export interface RiderNeed {
 export interface RiderChannel {
   ch: number;
   source: string;
+  performer?: string;
   mic: string;
   stand: string;
   phantom: boolean;
@@ -69,7 +70,6 @@ export interface BandMember {
 }
 
 export interface StagexPreferences {
-  canvasBg: string;
   gridVisible: boolean;
   snapToGrid: boolean;
   gridSize: number;
@@ -146,14 +146,9 @@ interface StagexStoreState {
 const PROJECT_STORAGE_KEY = 'stagecoreProject';
 const SETTINGS_STORAGE_KEY = 'stagecoreSettings';
 
-const DEFAULT_RIDER_NEEDS: RiderNeed[] = [
-  { id: 'rn1', type: 'foh', value: 'Dante Primary/Secondary @ 96kHz' },
-  { id: 'rn2', type: 'monitor', value: 'Minimum 4 discrete stereo IEM mixes' },
-  { id: 'rn3', type: 'power', value: '2× 20A circuits, distro Stage Left' },
-];
+const DEFAULT_RIDER_NEEDS: RiderNeed[] = [];
 
 const DEFAULT_PREFERENCES: StagexPreferences = {
-  canvasBg: '#0e0e0e',
   gridVisible: true,
   snapToGrid: false,
   gridSize: 80,
@@ -237,7 +232,12 @@ function readSettingsStorage(): Partial<StagexPreferences> {
   try {
     const raw =
       typeof localStorage !== 'undefined' ? localStorage.getItem(SETTINGS_STORAGE_KEY) : null;
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if ('canvasBg' in parsed) {
+      delete parsed.canvasBg;
+    }
+    return parsed;
   } catch (err) {
     console.error('[StagexStore] Failed to read settings from storage:', err);
     return {};

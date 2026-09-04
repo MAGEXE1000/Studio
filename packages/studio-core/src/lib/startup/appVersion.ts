@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.55';
-export const NATIVE_VERSION_CODE = 40555;
-export const WEB_VERSION = '4.5.55';
+export const NATIVE_VERSION = '4.5.56';
+export const NATIVE_VERSION_CODE = 40556;
+export const WEB_VERSION = '4.5.56';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '00b7521f';
+export const APP_COMMIT_SHA = '1300f6a8';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/3/2026, 2:12:47 PM CST';
+export const APP_BUILD_TIMESTAMP = '9/3/2026, 8:18:47 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,12 +96,18 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
+    heading: 'Added',
+    items: [
+      'Stagex Production Document PDF Export Engine: Built native vector jsPDF export engine replacing legacy html2canvas rasterizer, delivering full Setup data parity across stage plot coordinate mapping, audio patch sheet with phantom power (+48V) and IEM mixes, logistics, technical requirements, notes, running setlist, gear inventory, and band & crew roster.',
+      'Production Document Disambiguation: Established distinct "Production Document" naming across toolbar actions, canvas pills, dialogs, and exported documents, completely separating it from Setup > Technical Rider.',
+    ],
+  },
+  {
     heading: 'Improved',
     items: [
-      'Stagex Touch Dragging Pipeline: Optimized Android element dragging with unified W3C pointer capture (`setPointerCapture`), zero-deadzone touch responsiveness, and `requestAnimationFrame`-coalesced visual commits, eliminating drag latency, stepping, and stutter.',
-      'Actions Menu Layering & Independence: Portaled the Stagex element Actions menu to `document.body` with viewport edge collision detection and smart vertical positioning, ensuring the menu is never clipped by collapsed or expanded Advanced Specs.',
-      'Multi-Touch Gestures & Stage Sync: Seamlessly transitioned between element manipulation and two-finger pinch-to-zoom on Android, guaranteeing authoritative final coordinate synchronization with React state and PDF Export.',
-      'Design Token Compliance: Normalized typography tokens in AccentColorPicker with canonical CSS variables.',
+      'Stagex Setlist Redesign: Aligned Setup > Setlist with Stitch mobile reference, featuring floating header, arrangement subheaders, 2x2 metrics strip, key/tempo badges, and setlist insights.',
+      'Stagex Gear Inventory Redesign: Upgraded Setup > Gear Inventory with crisp vector icons, 2x2 stats grid, verification status tracking, and lightweight empty state.',
+      'Stagex Band & Crew Redesign: Enhanced Setup > Band & Crew with 8-member capacity guard, integrated quick-add member card, 2x2 personnel metrics, assigned stage elements tracking, and refined empty states.',
     ],
   },
 ];
@@ -113,6 +119,17 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.56',
+    date: '2026-09-03',
+    highlights: [
+      'Stagex Production Document PDF Export Engine: Built native vector jsPDF export engine replacing legacy html2canvas rasterizer, delivering full Setup data parity across stage plot coordinate mapping, audio patch sheet with phantom power (+48V) and IEM mixes, logistics, technical requirements, notes, running setlist, gear inventory, and band & crew roster.',
+      'Production Document Disambiguation: Established distinct "Production Document" naming across toolbar actions, canvas pills, dialogs, and exported documents, completely separating it from Setup > Technical Rider.',
+      'Stagex Setlist Redesign: Aligned Setup > Setlist with Stitch mobile reference, featuring floating header, arrangement subheaders, 2x2 metrics strip, key/tempo badges, and setlist insights.',
+      'Stagex Gear Inventory Redesign: Upgraded Setup > Gear Inventory with crisp vector icons, 2x2 stats grid, verification status tracking, and lightweight empty state.',
+      'Stagex Band & Crew Redesign: Enhanced Setup > Band & Crew with 8-member capacity guard, integrated quick-add member card, 2x2 personnel metrics, assigned stage elements tracking, and refined empty states.',
+    ],
+  },
   {
     version: '4.5.55',
     date: '2026-09-03',
@@ -203,17 +220,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'App Identity Decoupling: Removed hardcoded `[data-app-key]` theme overrides to ensure Drumex, Stagex, Groovex, Vocalex, and Chordex share the global interactive accent while preserving authentic app brand identity colors on Hub cards and logos.',
       'Desktop Logging Resilience: Enhanced host language server log stream handling to prevent unhandled stream write exceptions during high-throughput agent operations.',
       'Release Pipeline Verification: Added automated GitHub CLI keyring authentication fallback and strengthened end-to-end multi-manifest synchronization.',
-    ],
-  },
-  {
-    version: '4.5.46',
-    date: '2026-08-28',
-    highlights: [
-      'Event-Driven Architecture Modernization: Eliminated untyped synthetic `CustomEvent` and `window.dispatchEvent` patterns across navigation, tab switching, quick actions, settings navigation, and lifecycle events in favor of type-safe Zustand stores and typed subscription primitives.',
-      'Unified Navigation & Deep Linking: Replaced `studio:navigate-to-app`, `studio:navigate-to-tab`, `studio:set-active-tab`, `studio:trigger-quick-action`, `studio:open-settings-section`, and `studio:open-auth` with direct calls to `NavigationDispatcher.push(...)` and `useBottomNavigationStore`.',
-      'User Profile & Cover Subscriptions: Replaced custom avatar and cover photo events with canonical `getUserCover`, `setUserCover`, and `subscribeUserCover` primitives.',
-      'Startup & Lifecycle Coordination: Extended `StartupCoordinator` with typed subscribers `subscribeStartupComplete` and `subscribeIntroDone`, replacing window event dispatches across entry points and launch animation engines.',
-      'Developer Diagnostics Performance Optimization: Optimized `PerformanceProfiler.getGPULayerCount()` by replacing unthrottled full-DOM traversals with targeted composited selectors and a 3-second cache. Consolidated duplicate logging in `EmergencyDebugOverlay` to use canonical `getLogs()`. Batched diagnostics listeners with `requestAnimationFrame` micro-batching to eliminate UI thread render thrashing.',
     ],
   },
 ];

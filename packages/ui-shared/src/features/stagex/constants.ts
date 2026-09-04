@@ -98,6 +98,7 @@ export const STAGEX_ICON_MAP: Record<string, string> = {
   'cx-tambourine': '/stage-core/icons/tambourine.svg',
   'cx-guitar-amp': '/stage-core/icons/guitar-amp.png',
   'cx-bass-amp': '/stage-core/icons/bass-amp.png',
+  amp: '/stage-core/icons/bass-amp.png',
   'cx-amp-cab': '/stage-core/icons/amp-cab.png',
   'cx-bass-cab': '/stage-core/icons/bass-cab.png',
   'cx-wedge': '/stage-core/icons/wedge.png',

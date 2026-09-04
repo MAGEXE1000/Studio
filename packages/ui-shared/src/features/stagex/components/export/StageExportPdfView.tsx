@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { useStagexStore } from '../../state/useStagexStore';
 import { StageBridge } from '../../services/StageBridgeService';
 import { ExportPdfDialog } from '../dialogs/ExportPdfDialog';
 import { useBackHandler } from '@workspace/studio-core';
+import { STAGEX_ICON_MAP } from '../../constants';
 
 export interface StageExportPdfViewProps {
   onBack: () => void;
@@ -29,7 +30,6 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     preferences,
   } = useStagexStore();
 
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [isExportBusy, setIsExportBusy] = useState(false);
   const [pdfFileName, setPdfFileName] = useState(
@@ -38,14 +38,10 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
   );
   const [pdfSceneChoice, setPdfSceneChoice] = useState<'current' | 'all' | number>('current');
 
-  const sceneInfo = useMemo(
-    () => ({
-      count: scenes.length || 1,
-      currentIdx: currentSceneIdx || 0,
-      names: scenes.map((s, i) => s.name || `Scene ${i + 1}`),
-    }),
-    [scenes, currentSceneIdx]
-  );
+  // Reload latest storage data on mount to ensure fresh state
+  useEffect(() => {
+    useStagexStore.getState().reloadFromStorage();
+  }, []);
 
   // Hardware Back Handler
   useBackHandler(
@@ -57,20 +53,81 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     [onBack]
   );
 
-  // Current Scene Metadata
-  const currentScene = scenes[currentSceneIdx] || { name: 'Main Stage Scene' };
-  const activeSceneName = currentScene.name || 'Main Stage Scene';
-  const stageDimensions = preferences.stageShape === 'square' ? "28' × 28'" : "32' × 24'";
+  // Authoritative live state from canvas iframe (if mounted)
+  const liveWin = StageBridge.getWin();
+  const liveState = liveWin?.state;
+
+  const activeSceneIdx =
+    typeof liveState?.currentSceneIdx === 'number'
+      ? liveState.currentSceneIdx
+      : typeof currentSceneIdx === 'number'
+        ? currentSceneIdx
+        : 0;
+
+  const activeScenes = liveState?.scenes && liveState.scenes.length > 0 ? liveState.scenes : scenes;
+
+  const currentScene = activeScenes[activeSceneIdx] ||
+    scenes[currentSceneIdx] || { name: 'Main Stage' };
+  const activeSceneName = currentScene.name || `Scene ${activeSceneIdx + 1}`;
+
+  // Current elements: liveState.elements if matching active scene, otherwise scene's elements
+  const currentElements: any[] = useMemo(() => {
+    if (liveState?.elements && liveState.currentSceneIdx === activeSceneIdx) {
+      return liveState.elements;
+    }
+    if (currentScene && Array.isArray(currentScene.elements)) {
+      return currentScene.elements;
+    }
+    return elements || [];
+  }, [liveState?.elements, liveState?.currentSceneIdx, activeSceneIdx, currentScene, elements]);
+
+  // Current connections
+  const currentConnections: any[] = useMemo(() => {
+    if (liveState?.connections && liveState.currentSceneIdx === activeSceneIdx) {
+      return liveState.connections;
+    }
+    if (currentScene && Array.isArray(currentScene.connections)) {
+      return currentScene.connections;
+    }
+    return [];
+  }, [liveState?.connections, liveState?.currentSceneIdx, activeSceneIdx, currentScene]);
+
+  // Canvas dimensions for 1:1 relative mapping
+  const isSquare = preferences.stageShape === 'square';
+  const refW =
+    liveState?.canvasW && liveState.canvasW > 0 ? liveState.canvasW : isSquare ? 500 : 650;
+  const refH =
+    liveState?.canvasH && liveState.canvasH > 0 ? liveState.canvasH : isSquare ? 500 : 420;
+
+  const sceneInfo = useMemo(
+    () => ({
+      count: activeScenes.length || 1,
+      currentIdx: activeSceneIdx,
+      names: activeScenes.map((s: any, i: number) => s.name || `Scene ${i + 1}`),
+    }),
+    [activeScenes, activeSceneIdx]
+  );
+
+  const stageDimensions = isSquare ? "28' × 28'" : "32' × 24'";
   const fohProtocol =
-    riderNeeds
-      .find((n) => n.type === 'foh')
-      ?.value?.split('@')[0]
-      ?.trim() || 'Dante @ 96kHz';
+    riderNeeds.find((n) => n.type === 'foh')?.value || 'Dante Primary/Secondary @ 96kHz';
+  const monitorProtocol =
+    riderNeeds.find((n) => n.type === 'monitor')?.value || 'Minimum 4 discrete stereo IEM mixes';
+  const powerProtocol =
+    riderNeeds.find((n) => n.type === 'power')?.value || '2× 20A circuits, distro Stage Left';
   const updatedDate = useMemo(() => {
     return new Date().toLocaleDateString('en-US', {
       month: 'short',
       day: '2-digit',
       year: 'numeric',
+    });
+  }, []);
+
+  const timeString = useMemo(() => {
+    return new Date().toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
     });
   }, []);
 
@@ -86,10 +143,10 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
         notes: c.notes || c.stand || 'FOH Mix',
       }));
     }
-    if (!elements || elements.length === 0) {
+    if (!currentElements || currentElements.length === 0) {
       return [];
     }
-    return elements.map((el, idx) => {
+    return currentElements.map((el, idx) => {
       const typeStr = (el.type || '').toLowerCase();
       const labelStr = (el.label || el.name || '').toLowerCase();
       const isMic = typeStr.includes('mic') || labelStr.includes('vocal');
@@ -113,7 +170,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
 
       return {
         ch: String(idx + 1).padStart(2, '0'),
-        input: el.label || el.name || `Input ${idx + 1}`,
+        input: (el.label || el.name || `Input ${idx + 1}`).toUpperCase(),
         performer: performerName,
         micDi: el.transducer || micDi,
         phantom: Boolean(el.phantom || isKey || micDi.includes('91A') || micDi.includes('J48')),
@@ -122,7 +179,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
           (isMic ? 'Wireless RF' : isDrum ? 'Bound. mic' : isAmp ? 'Pre-EQ drop' : 'Ch Pair'),
       };
     });
-  }, [riderChannels, elements, members]);
+  }, [riderChannels, currentElements, members]);
 
   // Setlist Total Duration
   const totalSetlistMinutes = useMemo(() => {
@@ -134,58 +191,6 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
       return acc + mins;
     }, 0);
   }, [setlist]);
-
-  // Technical Requirements
-  const requirementsList = useMemo(() => {
-    if (riderNeeds && riderNeeds.length > 0) {
-      return riderNeeds.map((need) => {
-        let cat = 'TECHNICAL REQUIREMENT';
-        let detail = 'Standard verified production protocol.';
-        if (need.type === 'foh') {
-          cat = 'FOH PROTOCOL';
-          detail = 'Cat6 EtherCON dual-run homerun to front-of-house mixing position.';
-        } else if (need.type === 'monitor') {
-          cat = 'MONITOR / IEM SYSTEMS';
-          detail = 'Minimum 4 discrete stereo wireless IEM mixes (Shure PSM1000 or equivalent).';
-        } else if (need.type === 'power') {
-          cat = 'AC ELECTRICAL DROPS';
-          detail =
-            'Direct transformer-isolated drops located Stage Left for backline and playback racks.';
-        } else if (need.type === 'hospitality') {
-          cat = 'HOSPITALITY';
-          detail =
-            'Clean bottled water, fresh stage towels, and green room access prior to soundcheck.';
-        }
-        return {
-          id: need.id,
-          category: cat,
-          title: need.value,
-          detail,
-        };
-      });
-    }
-    return [
-      {
-        id: 'rn1',
-        category: 'FOH PROTOCOL',
-        title: 'Dante Primary & Secondary Redundant @ 96kHz / 24-bit',
-        detail: 'Cat6 EtherCON dual-run homerun to front-of-house mixing position.',
-      },
-      {
-        id: 'rn2',
-        category: 'MONITOR / IEM SYSTEMS',
-        title: 'Minimum 4 discrete stereo wireless IEM mixes',
-        detail: 'Shure PSM1000 or equivalent. Antenna combiner & passive directional paddle.',
-      },
-      {
-        id: 'rn3',
-        category: 'AC ELECTRICAL DROPS',
-        title: '2× 20A isolated clean technical circuits',
-        detail:
-          'Direct transformer-isolated drops located Stage Left for backline and playback racks.',
-      },
-    ];
-  }, [riderNeeds]);
 
   // PDF Export Trigger
   const handleExportClick = () => {
@@ -212,31 +217,19 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     [pdfFileName]
   );
 
-  // Helper for normalizing coordinate percentages
-  const getPercent = (coord: any): number => {
-    if (typeof coord !== 'number') return 50;
-    if (coord >= 0 && coord <= 100) return Math.min(92, Math.max(8, coord));
-    return Math.min(92, Math.max(8, (coord / 800) * 100));
-  };
-
-  // Dynamic Theme Variables
-  const bgMain = isLight ? '#f9f9fb' : isAmoled ? '#000000' : '#060606';
+  // Dynamic Theme Colors
+  const bgMain = isLight ? '#f9f9fb' : isAmoled ? '#000000' : '#08080a';
   const textPrimary = isLight ? '#09090b' : '#ffffff';
   const textSecondary = isLight ? '#52525b' : '#d4d4d8';
-  const textMuted = isLight ? '#71717a' : '#a1a1aa';
   const textDim = isLight ? '#a1a1aa' : '#71717a';
   const borderCol = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
   const borderSubtle = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)';
-  const blueprintBg = isLight ? '#ebecee' : '#0a0a0a';
-  const headerBg = isLight
-    ? 'rgba(255, 255, 255, 0.88)'
-    : isAmoled
-      ? 'rgba(0, 0, 0, 0.92)'
-      : 'rgba(10, 10, 10, 0.85)';
+  const blueprintBg = isLight ? '#f4f4f6' : isAmoled ? '#050507' : '#0c0c0e';
 
   return (
     <div
-      className="w-full h-full min-h-screen flex flex-col overflow-y-auto selection:bg-white selection:text-black"
+      data-testid="stage-export-pdf-view"
+      className="w-full h-full min-h-screen flex flex-col overflow-y-auto selection:bg-blue-500 selection:text-white"
       style={{
         backgroundColor: bgMain,
         color: textSecondary,
@@ -245,497 +238,480 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     >
       <style>{`
         .stage-blueprint-grid {
-          background-size: 20px 20px;
+          background-size: 24px 24px;
           background-image: ${
             isLight
               ? 'linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px)'
-              : 'linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px)'
+              : 'linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px)'
           };
         }
       `}</style>
 
-      {/* ── TOP NAVIGATION ────────────────────────────────────────── */}
+      {/* ── 1. COMPACT TOP BAR ────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-40 w-full transition-all border-b"
+        className="sticky top-0 z-40 w-full flex-shrink-0"
         style={{
-          backgroundColor: headerBg,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderColor: borderCol,
+          paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)',
+          paddingLeft: 'max(env(safe-area-inset-left, 0px), 12px)',
+          paddingRight: 'max(env(safe-area-inset-right, 0px), 12px)',
+          paddingBottom: '8px',
         }}
       >
-        <div className="max-w-2xl mx-auto px-5 h-14 flex items-center justify-between">
-          {/* Back Action */}
-          <button
-            type="button"
-            onClick={onBack}
-            aria-label="Go Back"
-            className="p-1.5 -ml-1.5 transition-colors active:opacity-60 flex items-center gap-1.5 cursor-pointer"
-            style={{ color: textMuted }}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              viewBox="0 0 24 24"
+        <div
+          data-testid="export-pdf-top-bar"
+          className="w-full max-w-2xl mx-auto h-12 px-2.5 rounded-full grid grid-cols-[1fr_auto_1fr] items-center"
+          style={{
+            background: isLight
+              ? 'rgba(255, 255, 255, 0.92)'
+              : isAmoled
+                ? 'rgba(10, 10, 14, 0.94)'
+                : 'rgba(20, 20, 26, 0.88)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: isLight
+              ? '1px solid rgba(0, 0, 0, 0.08)'
+              : '1px solid rgba(255, 255, 255, 0.10)',
+            boxShadow: isLight
+              ? '0 4px 20px rgba(0, 0, 0, 0.06)'
+              : '0 8px 24px rgba(0, 0, 0, 0.45)',
+          }}
+        >
+          {/* Left: Back Action */}
+          <div className="flex items-center justify-start">
+            <button
+              type="button"
+              data-testid="export-pdf-back-btn"
+              onClick={onBack}
+              aria-label="Go Back"
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-90"
+              style={{
+                background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+                color: isLight ? '#18181b' : '#f4f4f5',
+              }}
             >
-              <path d="M15.75 19.5L8.25 12l7.5-7.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          </div>
 
-          {/* Centered Document Identity */}
-          <div className="flex flex-col items-center select-none">
+          {/* Center: Mathematically Centered Title Across Entire Top Bar */}
+          <div className="flex items-center justify-center whitespace-nowrap px-2">
             <span
-              className="text-[13px] font-semibold tracking-tight"
-              style={{ color: textPrimary }}
+              data-testid="export-pdf-title"
+              className="text-[14px] font-bold tracking-tight select-none"
+              style={{
+                color: isLight ? '#09090b' : '#ffffff',
+                fontFamily: "'Inter', sans-serif",
+              }}
             >
-              Technical Rider
-            </span>
-            <span
-              className="text-[10px] tracking-wider uppercase font-mono"
-              style={{ color: textDim }}
-            >
-              {projectName || 'StageX'} Touring Doc
+              Export to PDF
             </span>
           </div>
 
-          {/* Top Bar Actions */}
-          <div className="flex items-center gap-2.5">
+          {/* Right: Preferences and Export Actions */}
+          <div className="flex items-center justify-end gap-1.5">
+            {/* Preferences / Settings Control */}
             <button
               type="button"
-              onClick={() => setIsPreviewMode((prev) => !prev)}
-              className="text-[12px] font-medium px-2.5 py-1 rounded transition-all active:opacity-60 cursor-pointer"
+              data-testid="export-pdf-preferences-btn"
+              onClick={() => setIsExportDialogOpen(true)}
+              aria-label="Export Settings"
+              title="Export Settings"
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-90"
               style={{
-                color: isPreviewMode ? textPrimary : textMuted,
-                backgroundColor: isPreviewMode
-                  ? isLight
-                    ? 'rgba(0,0,0,0.06)'
-                    : 'rgba(255,255,255,0.08)'
-                  : 'transparent',
-                border: isPreviewMode ? `1px solid ${borderCol}` : '1px solid transparent',
+                background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+                color: isLight ? '#18181b' : '#f4f4f5',
               }}
             >
-              {isPreviewMode ? 'Full View' : 'Preview'}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z" />
+              </svg>
             </button>
 
+            {/* Export / Share Control */}
             <button
               type="button"
+              data-testid="export-pdf-action-btn"
               onClick={handleExportClick}
               disabled={isExportBusy}
-              className="text-[12px] font-semibold px-3.5 py-1 rounded-full transition-all active:scale-95 shadow-sm cursor-pointer"
+              aria-label="Export / Share"
+              title="Export / Share"
+              className="w-8 h-8 rounded-full flex items-center justify-center cursor-pointer transition-all active:scale-90"
               style={{
-                backgroundColor: isLight ? '#09090b' : '#ffffff',
-                color: isLight ? '#ffffff' : '#000000',
+                background: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.06)',
+                color: isLight ? '#18181b' : '#f4f4f5',
               }}
             >
-              {isExportBusy ? 'Exporting...' : 'Export PDF'}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                <polyline points="16 6 12 2 8 6" />
+                <line x1="12" y1="2" x2="12" y2="15" />
+              </svg>
             </button>
           </div>
         </div>
       </header>
 
-      {/* ── EDITORIAL DOCUMENT BODY ───────────────────────────────── */}
+      {/* ── 2. EDITORIAL DOCUMENT BODY ─────────────────────────────── */}
       <main
-        className={`w-full max-w-2xl mx-auto px-5 pt-8 pb-16 space-y-14 transition-all ${
-          isPreviewMode
-            ? isLight
-              ? 'my-6 p-8 bg-white border rounded-sm shadow-xl'
-              : 'my-6 p-8 bg-[#0a0a0c] border border-white/10 rounded-sm shadow-2xl'
-            : ''
-        }`}
+        className="w-full max-w-2xl mx-auto px-5 pt-3 space-y-10"
+        style={{
+          paddingBottom: 'calc(max(env(safe-area-inset-bottom, 0px), 24px) + 64px)',
+        }}
       >
         {/* ── RIDER IDENTITY SECTION ─────────────────────────────── */}
-        <section className="space-y-3" data-purpose="rider-identity">
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2">
-              <span
-                className="text-[9px] font-mono tracking-[0.2em] uppercase"
-                style={{ color: textDim }}
-              >
-                Doc Ref
-              </span>
-              <span className="text-[9px] font-mono font-medium" style={{ color: textMuted }}>
-                STG-{new Date().getFullYear()}-X{currentSceneIdx + 1}
-              </span>
-              <span className="text-[10px]" style={{ color: textDim }}>
-                /
-              </span>
-              <span className="text-[9px] font-mono text-emerald-400/90 tracking-wider uppercase bg-emerald-500/10 px-1.5 py-0.5 rounded-[2px] border border-emerald-500/20 font-medium">
-                Verified
-              </span>
+        <section className="space-y-3 pt-2" data-purpose="rider-identity">
+          <div className="space-y-1.5">
+            <div className="text-[10px] font-mono font-bold tracking-wider text-blue-500 uppercase">
+              Technical Rider Export
             </div>
 
             <h1
-              className="text-4xl font-bold tracking-tight uppercase"
-              style={{ color: textPrimary }}
+              data-testid="export-doc-project-name"
+              className="text-3xl font-black tracking-tight uppercase"
+              style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
             >
               {projectName || 'MAIN STAGE'}
             </h1>
 
-            <p className="text-[14px] font-normal tracking-tight" style={{ color: textMuted }}>
-              {activeSceneName}{' '}
-              <span className="mx-1" style={{ color: textDim }}>
-                •
-              </span>{' '}
-              Technical Rider{' '}
-              <span className="mx-1" style={{ color: textDim }}>
-                •
-              </span>{' '}
-              Rev 1.{scenes.length || 1}
+            <p className="text-[13px] font-medium text-zinc-500 tracking-tight">
+              {projectName || 'Main Stage'} · {activeSceneName}
             </p>
           </div>
 
           <div
-            className="pt-3 flex flex-wrap items-center gap-y-1.5 text-[11px] font-mono"
+            className="pt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-mono font-semibold"
             style={{ color: textDim }}
           >
-            <span style={{ color: textSecondary }}>{elements.length} elements</span>
-            <span className="mx-2" style={{ color: textDim }}>
-              •
+            <span className="uppercase" style={{ color: textPrimary }}>
+              ELEMENTS {currentElements.length}
             </span>
-            <span style={{ color: textSecondary }}>{patchList.length} channels</span>
-            <span className="mx-2" style={{ color: textDim }}>
-              •
-            </span>
-            <span className="font-medium" style={{ color: textPrimary }}>
-              {fohProtocol}
-            </span>
-            <span className="mx-2" style={{ color: textDim }}>
-              •
-            </span>
-            <span>Updated {updatedDate}</span>
+            <span>•</span>
+            <span className="uppercase">VER V1</span>
+            <span>•</span>
+            <span className="uppercase">{updatedDate}</span>
           </div>
 
-          <div className="h-px w-full mt-6" style={{ backgroundColor: borderCol }}></div>
+          {/* Metadata Grid Strip */}
+          <div
+            className="grid grid-cols-2 border-t border-b mt-4 select-none"
+            style={{ borderColor: borderCol }}
+          >
+            <div
+              className="py-2.5 pr-4 border-r flex flex-col gap-0.5"
+              style={{ borderColor: borderCol }}
+            >
+              <span className="text-[8px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-400">
+                Document ID
+              </span>
+              <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200">
+                STAGE-CORE
+              </span>
+            </div>
+            <div className="py-2.5 pl-4 flex flex-col gap-0.5">
+              <span className="text-[8px] font-mono font-bold tracking-[0.2em] uppercase text-zinc-400">
+                Last Updated
+              </span>
+              <span className="text-[11px] font-mono font-bold text-zinc-800 dark:text-zinc-200">
+                {updatedDate.toUpperCase()} - {timeString}
+              </span>
+            </div>
+          </div>
         </section>
 
-        {/* ── 01 STAGE PLOT BLUEPRINT ────────────────────────────── */}
-        <section className="space-y-3.5" data-purpose="stage-plot-blueprint">
-          <div className="flex items-baseline justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <span
-                className="px-1.5 py-0.5 rounded-[2px] text-[10px] font-mono font-medium border"
-                style={{
-                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-                  borderColor: borderCol,
-                  color: textPrimary,
-                }}
-              >
-                01
-              </span>
+        {/* ── 01 // STAGE PLOT (LITERAL STAGE PREVIEW) ────────────── */}
+        <section className="space-y-3" data-purpose="stage-plot-blueprint">
+          <div className="flex items-baseline justify-between mb-2">
+            <div className="flex items-center gap-2">
               <h2
-                className="text-xs font-semibold tracking-wider uppercase"
-                style={{ color: textPrimary }}
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">01 //</span>
                 Stage Plot
               </h2>
             </div>
-            <span className="text-[10px] font-mono tracking-tight" style={{ color: textDim }}>
-              SCALE 1:50{' '}
-              <span className="mx-1" style={{ color: textDim }}>
-                •
-              </span>{' '}
-              {stageDimensions}
-            </span>
-          </div>
-
-          <div
-            className="relative w-full aspect-[4/3] border rounded-lg overflow-hidden stage-blueprint-grid p-3 flex flex-col justify-between select-none"
-            style={{
-              backgroundColor: blueprintBg,
-              borderColor: borderCol,
-            }}
-          >
-            {/* Top Blueprint Boundary */}
-            <div
-              className="w-full flex items-center justify-between text-[8.5px] font-mono tracking-wider uppercase"
+            <span
+              className="text-[10px] font-mono tracking-tight font-semibold"
               style={{ color: textDim }}
             >
-              <span>Stage Left (SL)</span>
-              <span
-                className="border-b pb-0.5 font-medium"
-                style={{
-                  borderColor: isLight ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.25)',
-                  color: textMuted,
-                }}
-              >
-                ▲ Upstage / Backline Wall
-              </span>
-              <span>Stage Right (SR)</span>
-            </div>
-
-            {/* Elements Plot Plane */}
-            <div className="relative flex-1 my-2 w-full h-full overflow-hidden">
-              {elements && elements.length > 0 ? (
-                elements.map((el, i) => {
-                  const px = getPercent(el.x);
-                  const py = getPercent(el.y);
-                  const typeStr = (el.type || '').toLowerCase();
-                  const labelStr = (el.label || el.name || '').toLowerCase();
-
-                  const renderStandardLabel = (label: string, fallback: string) => {
-                    const display = (label || fallback || '').toUpperCase();
-                    return (
-                      <span
-                        className="text-[10px] font-bold uppercase tracking-[0.05em] text-center truncate max-w-[80px] leading-tight"
-                        style={{
-                          fontFamily: "'Manrope', sans-serif",
-                          color: textPrimary,
-                        }}
-                      >
-                        {display}
-                      </span>
-                    );
-                  };
-
-                  // 1. Drum / Riser
-                  if (typeStr.includes('drum') || labelStr.includes('drum')) {
-                    return (
-                      <div
-                        key={el.id || i}
-                        className="absolute flex flex-col items-center justify-center rounded-[2px] transition-transform select-none"
-                        style={{
-                          left: `${px}%`,
-                          top: `${py}%`,
-                          transform: 'translate(-50%, -50%)',
-                          width: 104,
-                          height: 60,
-                          border: isLight
-                            ? '1px solid rgba(0,0,0,0.45)'
-                            : '1px solid rgba(255,255,255,0.4)',
-                          backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
-                        }}
-                      >
-                        {renderStandardLabel(el.label, el.name || 'DRUM RISER')}
-                      </div>
-                    );
-                  }
-
-                  // 2. Vocal / Mic
-                  if (typeStr.includes('mic') || labelStr.includes('vocal')) {
-                    return (
-                      <div
-                        key={el.id || i}
-                        className="absolute flex flex-col items-center justify-center transition-transform select-none gap-1"
-                        style={{
-                          left: `${px}%`,
-                          top: `${py}%`,
-                          transform: 'translate(-50%, -50%)',
-                        }}
-                      >
-                        <div
-                          className="w-7 h-7 rounded-full flex items-center justify-center"
-                          style={{
-                            border: isLight
-                              ? '1px solid rgba(0,0,0,0.6)'
-                              : '1px solid rgba(255,255,255,0.7)',
-                            backgroundColor: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)',
-                            boxShadow: isLight ? 'none' : '0 0 10px rgba(255,255,255,0.12)',
-                          }}
-                        >
-                          <div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: textPrimary }}
-                          />
-                        </div>
-                        {renderStandardLabel(el.label, el.name || 'LEAD VOX')}
-                      </div>
-                    );
-                  }
-
-                  // 3. Amp / Backline
-                  if (
-                    typeStr.includes('amp') ||
-                    labelStr.includes('guitar') ||
-                    labelStr.includes('bass')
-                  ) {
-                    const isBass = labelStr.includes('bass');
-                    return (
-                      <div
-                        key={el.id || i}
-                        className="absolute rounded-[2px] flex flex-col items-center justify-center p-1 transition-transform select-none"
-                        style={{
-                          left: `${px}%`,
-                          top: `${py}%`,
-                          transform: 'translate(-50%, -50%)',
-                          width: 64,
-                          height: 40,
-                          border: isLight
-                            ? '1px solid rgba(0,0,0,0.35)'
-                            : '1px solid rgba(255,255,255,0.3)',
-                          backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                        }}
-                      >
-                        {renderStandardLabel(
-                          el.label,
-                          el.name || (isBass ? 'BASS RIG' : 'GUITAR AMP')
-                        )}
-                      </div>
-                    );
-                  }
-
-                  // 4. Keys / Synth
-                  if (
-                    typeStr.includes('key') ||
-                    labelStr.includes('piano') ||
-                    labelStr.includes('synth')
-                  ) {
-                    return (
-                      <div
-                        key={el.id || i}
-                        className="absolute rounded-[2px] flex flex-col items-center justify-center p-1 transition-transform select-none"
-                        style={{
-                          left: `${px}%`,
-                          top: `${py}%`,
-                          transform: 'translate(-50%, -50%)',
-                          width: 68,
-                          height: 40,
-                          border: isLight
-                            ? '1px solid rgba(0,0,0,0.35)'
-                            : '1px solid rgba(255,255,255,0.3)',
-                          backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                        }}
-                      >
-                        {renderStandardLabel(el.label, el.name || 'STAGE SYNTH')}
-                      </div>
-                    );
-                  }
-
-                  // 5. Default Blueprint Element
-                  return (
-                    <div
-                      key={el.id || i}
-                      className="absolute rounded-[2px] flex flex-col items-center justify-center p-1 transition-transform select-none"
-                      style={{
-                        left: `${px}%`,
-                        top: `${py}%`,
-                        transform: 'translate(-50%, -50%)',
-                        minWidth: 54,
-                        height: 34,
-                        border: isLight
-                          ? '1px solid rgba(0,0,0,0.3)'
-                          : '1px solid rgba(255,255,255,0.3)',
-                        backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                      }}
-                    >
-                      {renderStandardLabel(el.label, el.name || 'STAGE ELEMENT')}
-                    </div>
-                  );
-                })
-              ) : (
-                <div
-                  className="w-full h-full flex items-center justify-center text-[10px] font-mono"
-                  style={{ color: textDim }}
-                >
-                  No elements placed on stage plot. Add elements in Editor.
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Blueprint Boundary */}
-            <div
-              className="w-full flex items-center justify-between text-[8.5px] font-mono tracking-wider uppercase border-t pt-1.5"
-              style={{
-                borderColor: borderCol,
-                color: textDim,
-              }}
-            >
-              <span>Downstage Edge</span>
-              <span className="tracking-normal" style={{ color: textDim }}>
-                ▼ FOH / Audience Line
-              </span>
-              <span>Centerline (CL)</span>
-            </div>
-          </div>
-
-          {/* Blueprint Legend Footer */}
-          <div
-            className="flex items-center justify-between text-[10px] font-mono px-1 pt-1"
-            style={{ color: textDim }}
-          >
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="inline-block w-2 h-2 border"
-                  style={{
-                    borderColor: isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.6)',
-                    backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
-                  }}
-                />{' '}
-                Backline / Amp
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="inline-block w-2 h-2 rounded-full border"
-                  style={{
-                    borderColor: isLight ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.7)',
-                    backgroundColor: isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
-                  }}
-                />{' '}
-                Vocal / Transceiver
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="inline-block w-2 h-2 border border-dashed"
-                  style={{
-                    borderColor: isLight ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.4)',
-                  }}
-                />{' '}
-                Drum Riser
-              </span>
-            </div>
-            <span className="text-[9px]" style={{ color: textDim }}>
-              Drawing Ref: 01-A
+              SCALE: 1:50 · {stageDimensions}
             </span>
           </div>
-        </section>
 
-        {/* ── 02 INPUT LIST / PATCH ──────────────────────────────── */}
-        <section className="space-y-3" data-purpose="input-patch-sheet">
-          <div className="flex items-baseline justify-between mb-3">
-            <div className="flex items-center gap-2.5">
+          {/* Literal Stage Plot Canvas Container */}
+          {currentElements.length === 0 ? (
+            <div
+              data-testid="stage-plot-empty"
+              className="w-full flex items-center justify-center rounded-lg border border-dashed select-none"
+              style={{
+                height: isSquare ? '280px' : '200px',
+                backgroundColor: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
+                borderColor: borderCol,
+              }}
+            >
               <span
-                className="px-1.5 py-0.5 rounded-[2px] text-[10px] font-mono font-medium border"
+                className="text-[10.5px] font-mono font-bold tracking-[0.2em] uppercase"
+                style={{ color: textDim }}
+              >
+                No elements placed on stage
+              </span>
+            </div>
+          ) : (
+            <div
+              data-testid="stage-plot-preview-container"
+              className={`relative w-full border rounded-xl overflow-hidden stage-blueprint-grid p-2.5 flex flex-col justify-between select-none ${
+                isSquare ? 'aspect-square max-h-[420px]' : 'aspect-[16/9] max-h-[360px]'
+              }`}
+              style={{
+                backgroundColor: blueprintBg,
+                borderColor: borderCol,
+              }}
+            >
+              {/* Upstage Boundary Header */}
+              <div
+                className="w-full flex items-center justify-between text-[8px] font-mono font-bold tracking-wider uppercase z-10 select-none"
+                style={{ color: textDim }}
+              >
+                <span>Stage Left (SL)</span>
+                <span
+                  className="border-b pb-0.5"
+                  style={{
+                    borderColor: isLight ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.2)',
+                    color: textPrimary,
+                  }}
+                >
+                  ▲ Upstage / Backline Wall
+                </span>
+                <span>Stage Right (SR)</span>
+              </div>
+
+              {/* Elements Plot Plane */}
+              <div className="relative flex-1 w-full h-full overflow-hidden my-1">
+                {/* Active Connection Lines */}
+                {currentConnections.length > 0 && (
+                  <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
+                    {currentConnections.map((conn: any, cIdx: number) => {
+                      const fromEl = currentElements.find((e: any) => e.id === conn.fromId);
+                      const toEl = currentElements.find((e: any) => e.id === conn.toId);
+                      if (!fromEl || !toEl) return null;
+                      const x1 = Math.min(94, Math.max(6, (fromEl.x / refW) * 100));
+                      const y1 = Math.min(94, Math.max(6, (fromEl.y / refH) * 100));
+                      const x2 = Math.min(94, Math.max(6, (toEl.x / refW) * 100));
+                      const y2 = Math.min(94, Math.max(6, (toEl.y / refH) * 100));
+                      return (
+                        <line
+                          key={conn.id || cIdx}
+                          x1={`${x1}%`}
+                          y1={`${y1}%`}
+                          x2={`${x2}%`}
+                          y2={`${y2}%`}
+                          stroke={conn.color || '#7aafff'}
+                          strokeWidth="1.5"
+                          strokeDasharray={
+                            conn.style === 'dashed'
+                              ? '4 3'
+                              : conn.style === 'dotted'
+                                ? '2 2'
+                                : undefined
+                          }
+                          opacity={0.6}
+                        />
+                      );
+                    })}
+                  </svg>
+                )}
+
+                {/* Literal Elements Rendered from State */}
+                {currentElements.map((el: any, idx: number) => {
+                  const rawPctX = (el.x / refW) * 100;
+                  const rawPctY = (el.y / refH) * 100;
+                  const pctX = Math.min(94, Math.max(6, rawPctX));
+                  const pctY = Math.min(94, Math.max(6, rawPctY));
+                  const rotation = el.rotation || 0;
+                  const scale = (el.scale || 100) / 100;
+                  const color = el.color || '#7aafff';
+                  const labelText = (el.label || el.name || '').toUpperCase();
+                  const iconKey = el.icon || 'mic';
+                  const mappedIcon = STAGEX_ICON_MAP[iconKey];
+
+                  return (
+                    <div
+                      key={el.id || idx}
+                      data-testid={`preview-element-${el.id || idx}`}
+                      className="absolute flex flex-col items-center justify-center select-none pointer-events-none"
+                      style={{
+                        left: `${pctX}%`,
+                        top: `${pctY}%`,
+                        transform: `translate(-50%, -50%) scale(${scale})`,
+                      }}
+                    >
+                      {/* Rotated Icon Wrapper */}
+                      <div
+                        className="relative flex items-center justify-center"
+                        style={{
+                          transform: `rotate(${rotation}deg)`,
+                        }}
+                      >
+                        {el.imageData ? (
+                          <img
+                            src={el.imageData}
+                            alt={labelText}
+                            className="w-7 h-7 object-contain"
+                            style={{
+                              filter: isLight
+                                ? undefined
+                                : 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))',
+                            }}
+                          />
+                        ) : mappedIcon ? (
+                          <img
+                            src={mappedIcon}
+                            alt={labelText}
+                            className="w-7 h-7 object-contain"
+                            style={{
+                              filter: isLight
+                                ? undefined
+                                : 'drop-shadow(0 2px 6px rgba(0,0,0,0.5))',
+                            }}
+                          />
+                        ) : (
+                          <span className="material-symbols-outlined text-[24px]" style={{ color }}>
+                            {iconKey === 'mic'
+                              ? 'mic'
+                              : iconKey === 'piano'
+                                ? 'piano'
+                                : 'music_note'}
+                          </span>
+                        )}
+
+                        {/* Micro Lock Badge */}
+                        {el.locked && (
+                          <div
+                            className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                            style={{
+                              background: isLight
+                                ? 'rgba(255, 255, 255, 0.95)'
+                                : 'rgba(20, 20, 24, 0.9)',
+                              border: '1px solid rgba(245, 158, 11, 0.7)',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                              color: '#f59e0b',
+                            }}
+                          >
+                            <svg width="7" height="7" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                            </svg>
+                          </div>
+                        )}
+
+                        {/* Micro Pin Badge */}
+                        {el.pinned && (
+                          <div
+                            className="absolute -top-1.5 -left-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                            style={{
+                              background: isLight
+                                ? 'rgba(255, 255, 255, 0.95)'
+                                : 'rgba(20, 20, 24, 0.9)',
+                              border: '1px solid rgba(236, 72, 153, 0.7)',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                              color: '#ec4899',
+                            }}
+                          >
+                            <svg width="7" height="7" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5v6l1 1 1-1v-6h5v-2l-2-2z" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Standardized Canonical Label */}
+                      <span
+                        className="text-[9.5px] font-bold uppercase tracking-[0.05em] text-center truncate max-w-[85px] leading-tight select-none mt-1"
+                        style={{
+                          fontFamily: "'Manrope', sans-serif",
+                          color: isLight ? '#18181b' : '#ffffff',
+                        }}
+                      >
+                        {labelText}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Downstage Boundary Footer */}
+              <div
+                className="w-full flex items-center justify-between text-[8px] font-mono font-bold tracking-wider uppercase border-t pt-1 z-10 select-none"
                 style={{
-                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
                   borderColor: borderCol,
-                  color: textPrimary,
+                  color: textDim,
                 }}
               >
-                02
-              </span>
+                <span>Downstage Edge</span>
+                <span style={{ color: textPrimary }}>▼ FOH / Audience Line</span>
+                <span>Centerline (CL)</span>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* ── 02 // INPUT LIST & PATCH ───────────────────────────── */}
+        <section className="space-y-3" data-purpose="input-patch-sheet">
+          <div className="flex items-baseline justify-between mb-1">
+            <div className="flex items-center gap-2">
               <h2
-                className="text-xs font-semibold tracking-wider uppercase"
-                style={{ color: textPrimary }}
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
-                Input List &amp; Patch
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">02 //</span>
+                Input List
               </h2>
             </div>
-            <span className="text-[10px] font-mono tracking-tight" style={{ color: textDim }}>
+            <span
+              className="text-[10px] font-mono tracking-tight font-semibold"
+              style={{ color: textDim }}
+            >
               {patchList.length} Active Channels
             </span>
           </div>
 
           <div
-            className="border-t border-b divide-y"
-            style={{
-              borderColor: borderCol,
-              borderTopColor: borderCol,
-              borderBottomColor: borderCol,
-            }}
+            className="border rounded-lg overflow-hidden divide-y select-none"
+            style={{ borderColor: borderCol }}
           >
-            {/* Header Row */}
+            {/* Table Header Strip */}
             <div
-              className="grid grid-cols-12 py-2 text-[9.5px] font-mono tracking-wider uppercase"
-              style={{ color: textDim }}
+              className="grid grid-cols-12 py-2 px-3 text-[9px] font-mono font-bold tracking-wider uppercase"
+              style={{
+                backgroundColor: isLight ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
+                color: textDim,
+              }}
             >
-              <div className="col-span-1">CH</div>
-              <div className="col-span-3">Input</div>
-              <div className="col-span-2">Performer</div>
-              <div className="col-span-3">Mic / DI</div>
+              <div className="col-span-1">CH#</div>
+              <div className="col-span-3">INSTRUMENT</div>
+              <div className="col-span-2">PERFORMER</div>
+              <div className="col-span-3">MIC / DI</div>
               <div className="col-span-1 text-center">48V</div>
-              <div className="col-span-2 text-right">Notes</div>
+              <div className="col-span-2 text-right">NOTES</div>
             </div>
 
             {/* Channels Rows */}
@@ -743,33 +719,36 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               patchList.map((ch, idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-12 py-2.5 items-center text-[12px] font-normal tracking-tight transition-colors"
+                  className="grid grid-cols-12 py-2 px-3 items-center text-[11.5px] font-normal tracking-tight"
                   style={{
-                    borderTop: `1px solid ${borderSubtle}`,
+                    borderTopColor: borderSubtle,
                   }}
                 >
-                  <div className="col-span-1 font-mono text-[11px]" style={{ color: textDim }}>
+                  <div
+                    className="col-span-1 font-mono text-[11px] font-bold"
+                    style={{ color: textDim }}
+                  >
                     {ch.ch}
                   </div>
-                  <div className="col-span-3 font-medium" style={{ color: textPrimary }}>
+                  <div className="col-span-3 font-bold truncate" style={{ color: textPrimary }}>
                     {ch.input}
                   </div>
                   <div
-                    className="col-span-2 text-[11px] font-mono truncate"
+                    className="col-span-2 text-[11px] truncate font-medium"
                     style={{ color: textDim }}
                   >
                     {ch.performer}
                   </div>
                   <div
-                    className="col-span-3 font-mono text-[11px]"
+                    className="col-span-3 font-mono text-[11px] truncate"
                     style={{ color: textSecondary }}
                   >
                     {ch.micDi}
                   </div>
                   <div className="col-span-1 flex justify-center">
                     {ch.phantom ? (
-                      <span className="text-[8.5px] font-mono font-medium text-white bg-white/10 px-1.5 py-0.5 rounded-[2px] border border-white/20 leading-none">
-                        ACTIVE
+                      <span className="text-[8px] font-mono font-bold text-amber-500 bg-amber-500/10 px-1 py-0.5 rounded border border-amber-500/20 leading-none">
+                        48V
                       </span>
                     ) : (
                       <span
@@ -780,274 +759,252 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                       </span>
                     )}
                   </div>
-                  <div className="col-span-2 text-right text-[11px]" style={{ color: textDim }}>
+                  <div
+                    className="col-span-2 text-right text-[11px] truncate"
+                    style={{ color: textDim }}
+                  >
                     {ch.notes}
                   </div>
                 </div>
               ))
             ) : (
-              <div className="py-4 text-[11px] font-mono" style={{ color: textDim }}>
-                No active input channels configured.
+              <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
+                Add elements in the editor to populate this list
               </div>
             )}
           </div>
         </section>
 
-        {/* ── 03 CONNECTIVITY & TECHNICAL REQUIREMENTS ───────────── */}
+        {/* ── 04 // CONNECTIVITY ─────────────────────────────────── */}
         <section className="space-y-3" data-purpose="connectivity-protocols">
-          <div className="flex items-baseline justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <span
-                className="px-1.5 py-0.5 rounded-[2px] text-[10px] font-mono font-medium border"
-                style={{
-                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-                  borderColor: borderCol,
-                  color: textPrimary,
-                }}
-              >
-                03
-              </span>
+          <div className="flex items-baseline justify-between mb-1">
+            <div className="flex items-center gap-2">
               <h2
-                className="text-xs font-semibold tracking-wider uppercase"
-                style={{ color: textPrimary }}
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
-                Connectivity &amp; Technical Requirements
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">04 //</span>
+                Connectivity
               </h2>
             </div>
-            <span className="text-[10px] font-mono tracking-tight" style={{ color: textDim }}>
-              INFRASTRUCTURE
-            </span>
           </div>
 
-          <div
-            className="border-t border-b divide-y"
-            style={{
-              borderColor: borderCol,
-              borderTopColor: borderCol,
-              borderBottomColor: borderCol,
-            }}
-          >
-            {requirementsList.map((req, i) => (
-              <div
-                key={req.id || i}
-                className="py-3.5 flex flex-col gap-1"
-                style={{ borderTop: i === 0 ? 'none' : `1px solid ${borderSubtle}` }}
-              >
-                <div
-                  className="text-[9.5px] font-mono tracking-wider uppercase"
-                  style={{ color: textDim }}
-                >
-                  {req.category}
-                </div>
-                <div
-                  className="text-[13px] font-medium tracking-tight"
-                  style={{ color: textPrimary }}
-                >
-                  {req.title}
-                </div>
-                <div className="text-[11.5px] font-mono" style={{ color: textMuted }}>
-                  {req.detail}
-                </div>
+          <div className="text-[9.5px] font-mono uppercase tracking-wider font-semibold text-blue-500 mb-2">
+            Technical Requirements
+          </div>
+
+          <div className="grid grid-cols-1 gap-2.5">
+            {/* FOH Protocol Card */}
+            <div
+              className="p-3.5 rounded-lg border flex flex-col gap-1"
+              style={{
+                backgroundColor: isLight ? 'rgba(59, 130, 246, 0.03)' : 'rgba(59, 130, 246, 0.05)',
+                borderColor: isLight ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.25)',
+                borderLeftWidth: '3px',
+                borderLeftColor: '#3b82f6',
+              }}
+            >
+              <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-blue-500">
+                FOH Protocol
               </div>
-            ))}
+              <div className="text-[13px] font-bold text-zinc-900 dark:text-white">
+                {fohProtocol}
+              </div>
+            </div>
+
+            {/* Monitor / IEM Card */}
+            <div
+              className="p-3.5 rounded-lg border flex flex-col gap-1"
+              style={{
+                backgroundColor: isLight ? 'rgba(249, 115, 22, 0.03)' : 'rgba(249, 115, 22, 0.05)',
+                borderColor: isLight ? 'rgba(249, 115, 22, 0.15)' : 'rgba(249, 115, 22, 0.25)',
+                borderLeftWidth: '3px',
+                borderLeftColor: '#f97316',
+              }}
+            >
+              <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-orange-500">
+                Monitor / IEM
+              </div>
+              <div className="text-[13px] font-bold text-zinc-900 dark:text-white">
+                {monitorProtocol}
+              </div>
+            </div>
+
+            {/* Power Requirements Card */}
+            <div
+              className="p-3.5 rounded-lg border flex flex-col gap-1"
+              style={{
+                backgroundColor: isLight ? 'rgba(16, 185, 129, 0.03)' : 'rgba(16, 185, 129, 0.05)',
+                borderColor: isLight ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.25)',
+                borderLeftWidth: '3px',
+                borderLeftColor: '#10b981',
+              }}
+            >
+              <div className="text-[9px] font-mono tracking-wider font-bold uppercase text-emerald-500">
+                Power Requirements
+              </div>
+              <div className="text-[13px] font-bold text-zinc-900 dark:text-white">
+                {powerProtocol}
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* ── 04 SETLIST & RUNNING ORDER ─────────────────────────── */}
-        {setlist && setlist.length > 0 && (
-          <section className="space-y-3" data-purpose="setlist-running-order">
-            <div className="flex items-baseline justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="px-1.5 py-0.5 rounded-[2px] text-[10px] font-mono font-medium border"
-                  style={{
-                    backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-                    borderColor: borderCol,
-                    color: textPrimary,
-                  }}
-                >
-                  04
-                </span>
-                <h2
-                  className="text-xs font-semibold tracking-wider uppercase"
-                  style={{ color: textPrimary }}
-                >
-                  Setlist &amp; Running Order
-                </h2>
-              </div>
-              <span className="text-[10px] font-mono tracking-tight" style={{ color: textDim }}>
+        {/* ── 05 // SETLIST ──────────────────────────────────────── */}
+        <section className="space-y-3" data-purpose="setlist-running-order">
+          <div className="flex items-baseline justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <h2
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+              >
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">05 //</span>
+                Setlist
+              </h2>
+            </div>
+            {setlist && setlist.length > 0 && (
+              <span
+                className="text-[10px] font-mono tracking-tight font-semibold"
+                style={{ color: textDim }}
+              >
                 TOTAL {Math.round(totalSetlistMinutes)} MIN
               </span>
-            </div>
+            )}
+          </div>
 
-            <div
-              className="border-t border-b divide-y"
-              style={{
-                borderColor: borderCol,
-                borderTopColor: borderCol,
-                borderBottomColor: borderCol,
-              }}
-            >
-              {setlist.map((song, idx) => (
+          <div
+            className="border rounded-lg overflow-hidden divide-y select-none"
+            style={{ borderColor: borderCol }}
+          >
+            {setlist && setlist.length > 0 ? (
+              setlist.map((song, idx) => (
                 <div
                   key={song.id || idx}
-                  className="py-3 flex items-center justify-between text-[12px] transition-colors"
-                  style={{ borderTop: idx === 0 ? 'none' : `1px solid ${borderSubtle}` }}
+                  className="py-2.5 px-3 flex items-center justify-between text-[12px]"
+                  style={{ borderTopColor: borderSubtle }}
                 >
-                  <div className="flex items-baseline gap-3.5">
-                    <span className="font-mono text-[11px]" style={{ color: textDim }}>
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-mono text-[11px] font-bold" style={{ color: textDim }}>
                       {String(idx + 1).padStart(2, '0')}
                     </span>
-                    <span className="font-medium" style={{ color: textPrimary }}>
+                    <span className="font-bold" style={{ color: textPrimary }}>
                       {song.title}
                     </span>
                   </div>
                   <span className="font-mono text-[11px]" style={{ color: textDim }}>
-                    {song.bpm || 120} BPM{' '}
-                    <span className="mx-1" style={{ color: textDim }}>
-                      •
-                    </span>{' '}
-                    {song.key || 'C'}{' '}
-                    <span className="mx-1" style={{ color: textDim }}>
-                      •
-                    </span>{' '}
-                    {song.duration || '04:00'}
+                    {song.bpm || 120} BPM · {song.key || 'C'} · {song.duration || '04:00'}
                   </span>
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              ))
+            ) : (
+              <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
+                No songs added to setlist
+              </div>
+            )}
+          </div>
+        </section>
 
-        {/* ── 05 TECHNICAL NOTES ─────────────────────────────────── */}
+        {/* ── 06 // TECHNICAL NOTES ──────────────────────────────── */}
         <section className="space-y-3" data-purpose="technical-notes">
-          <div className="flex items-baseline justify-between mb-3">
-            <div className="flex items-center gap-2.5">
-              <span
-                className="px-1.5 py-0.5 rounded-[2px] text-[10px] font-mono font-medium border"
-                style={{
-                  backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-                  borderColor: borderCol,
-                  color: textPrimary,
-                }}
-              >
-                05
-              </span>
+          <div className="flex items-baseline justify-between mb-1">
+            <div className="flex items-center gap-2">
               <h2
-                className="text-xs font-semibold tracking-wider uppercase"
-                style={{ color: textPrimary }}
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">06 //</span>
                 Technical Notes
               </h2>
             </div>
-            <span
-              className="text-[10px] font-mono uppercase tracking-tight"
-              style={{ color: textDim }}
-            >
-              Mandatory Compliance
+            <span className="text-[9px] font-mono uppercase tracking-wider font-semibold text-zinc-400">
+              Click to Edit
             </span>
           </div>
 
           <div
-            className="border-t border-b py-4"
+            className="p-4 rounded-lg border text-[12px] leading-relaxed select-none"
             style={{
+              backgroundColor: isLight ? 'rgba(0, 0, 0, 0.02)' : 'rgba(255, 255, 255, 0.03)',
               borderColor: borderCol,
-              borderTopColor: borderCol,
-              borderBottomColor: borderCol,
+              color: textSecondary,
             }}
           >
-            <p
-              className="text-[13px] leading-relaxed font-normal tracking-tight"
-              style={{ color: textSecondary }}
-            >
-              {riderConfig?.notes ||
-                'Artist provides all core instruments, IEM wireless transmitters, and stage playback system rack. The host venue must provide all microphones, stands, and balanced XLR cabling strictly as specified in the channel list. The house PA system must achieve 105dBA continuous SPL cleanly at the FOH position without distortion. Dedicated front-fills are mandatory for the first 3 audience rows. All RF wireless frequencies must be coordinated prior to load-in.'}
-            </p>
+            {riderConfig?.notes ||
+              'Artist provides all instruments, IEM transmitters, and playback rack. Venue must provide all microphones, stands, and XLR cabling as per the input list. PA system must be capable of 105dB continuous at FOH without distortion. Front-fills are mandatory for the first 3 rows. All wireless systems must be frequency-coordinated prior to load-in.'}
           </div>
         </section>
 
-        {/* ── 06 GEAR & LOAD-IN CHECKLIST ────────────────────────── */}
-        {gear && gear.length > 0 && (
-          <section className="space-y-3" data-purpose="load-in-checklist">
-            <div className="flex items-baseline justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="px-1.5 py-0.5 rounded-[2px] text-[10px] font-mono font-medium border"
-                  style={{
-                    backgroundColor: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.06)',
-                    borderColor: borderCol,
-                    color: textPrimary,
-                  }}
-                >
-                  06
-                </span>
-                <h2
-                  className="text-xs font-semibold tracking-wider uppercase"
-                  style={{ color: textPrimary }}
-                >
-                  Gear &amp; Load-In Checklist
-                </h2>
-              </div>
-              <span
-                className="text-[10px] font-mono uppercase tracking-tight"
-                style={{ color: textDim }}
+        {/* ── 07 // GEAR / LOAD-IN CHECKLIST ─────────────────────── */}
+        <section className="space-y-3" data-purpose="load-in-checklist">
+          <div className="flex items-baseline justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <h2
+                className="text-[14px] font-extrabold tracking-tight uppercase"
+                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
               >
-                Venue Supply / Inventory
-              </span>
+                <span className="text-blue-500 font-mono text-[11px] mr-1.5">07 //</span>
+                Gear / Load-In Checklist
+              </h2>
             </div>
+          </div>
 
-            <div
-              className="border-t border-b divide-y"
-              style={{
-                borderColor: borderCol,
-                borderTopColor: borderCol,
-                borderBottomColor: borderCol,
-              }}
-            >
-              {gear.map((item, idx) => (
+          <div
+            className="border rounded-lg overflow-hidden divide-y select-none"
+            style={{ borderColor: borderCol }}
+          >
+            {gear && gear.length > 0 ? (
+              gear.map((item, idx) => (
                 <div
                   key={item.id || idx}
-                  className="py-3 flex items-center justify-between text-[12px] transition-colors"
-                  style={{ borderTop: idx === 0 ? 'none' : `1px solid ${borderSubtle}` }}
+                  className="py-2.5 px-3 flex items-center justify-between text-[12px]"
+                  style={{ borderTopColor: borderSubtle }}
                 >
-                  <div className="flex items-baseline gap-3.5">
-                    <span className="font-mono text-[11px]" style={{ color: textDim }}>
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-mono text-[11px] font-bold" style={{ color: textDim }}>
                       {String(idx + 1).padStart(2, '0')}
                     </span>
-                    <span className="font-medium" style={{ color: textPrimary }}>
+                    <span className="font-bold" style={{ color: textPrimary }}>
                       {item.name}
                     </span>
                   </div>
                   <span
-                    className={`text-[8.5px] font-mono font-medium tracking-wider uppercase px-1.5 py-0.5 rounded-[2px] border ${
+                    className={`text-[8.5px] font-mono font-bold tracking-wider uppercase px-1.5 py-0.5 rounded border ${
                       item.packed
-                        ? 'text-emerald-400/90 bg-emerald-500/10 border-emerald-500/20'
+                        ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
                         : 'text-zinc-400 bg-zinc-500/10 border-zinc-500/20'
                     }`}
                   >
                     {item.packed ? 'Verified' : 'Required'}
                   </span>
                 </div>
-              ))}
-            </div>
-          </section>
-        )}
+              ))
+            ) : (
+              <div className="py-6 text-center text-[10px] font-mono font-bold tracking-wider uppercase text-zinc-400">
+                No gear items added — visit the Gear tab to build your list.
+              </div>
+            )}
+          </div>
+        </section>
 
         {/* ── DOCUMENT FOOTER ────────────────────────────────────── */}
         <footer
-          className="pt-4 pb-8 space-y-2 border-t text-[10px] font-mono"
+          className="pt-6 pb-4 border-t text-[10px] font-mono flex justify-between items-center select-none"
           style={{
             borderColor: borderCol,
             color: textDim,
           }}
         >
-          <div className="flex justify-between items-center">
-            <span>STAGE-CORE DOCUMENT ENGINE</span>
-            <span>VER 4.5.54</span>
+          <div>
+            <span className="font-bold text-zinc-800 dark:text-zinc-200">STAGEX</span>
+            <p className="text-[8.5px] uppercase tracking-wider mt-0.5 text-zinc-400">
+              Professional Stage Plot &amp; Technical Rider Editor
+            </p>
           </div>
-          <div className="flex justify-between items-center">
-            <span>© {new Date().getFullYear()} STAGEX EDITORIAL SUITE</span>
-            <span>DOC HASH: 9B7-X902</span>
+          <div className="text-right">
+            <span>{updatedDate.toUpperCase()}</span>
+            <p className="text-[8.5px] uppercase tracking-wider mt-0.5 text-zinc-400">
+              Last Updated: {updatedDate.toUpperCase()} - {timeString}
+            </p>
           </div>
         </footer>
       </main>
@@ -1056,7 +1013,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
       <ExportPdfDialog
         open={isExportDialogOpen}
         onClose={() => setIsExportDialogOpen(false)}
-        title="Export PDF"
+        title="Export to PDF"
         nameLabel="Document Name"
         fileName={pdfFileName}
         setFileName={setPdfFileName}
@@ -1076,4 +1033,5 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
     </div>
   );
 };
+
 export default StageExportPdfView;

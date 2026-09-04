@@ -27,4 +27,5 @@ export type StageWin = Window & {
   __getSceneInfo?: () => { count: number; currentIdx: number; names: string[] };
   setStageShape?: (shape: 'rectangular' | 'square') => void;
   resetView?: () => void;
+  state?: any;
 };

@@ -225,6 +225,11 @@ html[data-amoled='1'] .sc-help-card {
   user-select: none;
   touch-action: none;
   z-index: 1;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .stage-element.selected {
   z-index: 10;
@@ -234,10 +239,11 @@ html[data-amoled='1'] .sc-help-card {
 }
 .el-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
+  width: 44px;
+  height: 44px;
 }
 
 #elements-layer {
@@ -250,20 +256,23 @@ html[data-amoled='1'] .sc-help-card {
 /* Compact card box wrapping icon + label */
 .el-box {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
   background: transparent;
   border: 1px solid transparent;
-  padding: 8px 10px 6px;
-  min-width: 54px;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  width: 44px;
+  height: 44px;
+  position: relative;
   transition:
     border-color 0.12s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.12s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .stage-element:hover .el-box {
   border-color: rgba(255, 255, 255, 0.13);
+  border-radius: 8px;
 }
 .stage-element.selected .el-box {
   border-color: transparent;
@@ -277,6 +286,14 @@ html[data-amoled='1'] .sc-help-card {
     drop-shadow(-1px 0 0 var(--el-color, var(--accent)))
     drop-shadow(0 1px 0 var(--el-color, var(--accent)))
     drop-shadow(0 -1px 0 var(--el-color, var(--accent))) drop-shadow(0 0 4px var(--accent-50));
+}
+.stage-element .el-icon-wrap {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
 }
 .stage-element .el-icon {
   width: 44px;
@@ -312,6 +329,7 @@ html[data-amoled='1'] .sc-help-card {
   flex-wrap: wrap;
   gap: 4px;
   align-content: center;
+  justify-content: center;
 }
 .el-icon.multi-role i[data-lucide],
 .el-icon.multi-role svg {
@@ -319,6 +337,10 @@ html[data-amoled='1'] .sc-help-card {
   height: auto;
 }
 .stage-element .el-label {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
   white-space: nowrap;
   font-size: 10px;
   font-weight: 700;
@@ -326,10 +348,12 @@ html[data-amoled='1'] .sc-help-card {
   color: #767575;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  max-width: 80px;
+  max-width: 90px;
   overflow: hidden;
   text-overflow: ellipsis;
   text-align: center;
+  pointer-events: auto;
+  cursor: move;
 }
 .el-icon img {
   image-rendering: -webkit-optimize-contrast;
@@ -4536,24 +4560,22 @@ body.is-landscape #presets-panel {
     justify-content: center !important;
   }
 
-  /* ── Plot canvas: use nearly the full viewport height for a bigger plot ──
-     Portrait formula is (100vh - 40px); landscape viewports are short so we
-     drop the subtracted margin to 16px, giving a much larger 16:9 canvas. */
+  /* ── Plot canvas & scenes bar: deterministic landscape maximization preserving scene selector ── */
   #stage-canvas {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     max-width: min(
-      1080px,
-      calc(100vw - 12px - env(safe-area-inset-left) - env(safe-area-inset-right)),
-      calc((100vh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 16 / 9)
+      1200px,
+      calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc((100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
     ) !important;
   }
 
   #sc-scenes-bar {
     max-width: min(
-      1080px,
-      calc(100vw - 32px - env(safe-area-inset-left) - env(safe-area-inset-right)),
-      calc((100vh - 96px - env(safe-area-inset-top) - env(safe-area-inset-bottom)) * 16 / 9)
+      1200px,
+      calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc((100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
     ) !important;
     margin-top: 0 !important;
     margin-bottom: 6px !important;
@@ -5015,12 +5037,17 @@ html[data-theme='light'] #sc-cp-alpha-track {
     padding-bottom: calc(max(4px, env(safe-area-inset-bottom, 0px))) !important;
     padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
     display: flex !important;
+    flex-direction: column !important;
     justify-content: center !important;
     align-items: center !important;
     overflow: hidden !important;
   }
   #sc-scenes-bar {
-    max-width: calc(100vw - 80px) !important;
+    max-width: min(
+      1200px,
+      calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc((100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+    ) !important;
     padding-bottom: 2px !important;
     margin-top: 0 !important;
     margin-bottom: 6px !important;
@@ -5032,8 +5059,9 @@ html[data-theme='light'] #sc-cp-alpha-track {
     aspect-ratio: 16 / 9 !important;
     width: 100% !important;
     max-width: min(
-      calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc((100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+      1200px,
+      calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc((100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
     ) !important;
     height: auto !important;
   }
@@ -5041,13 +5069,13 @@ html[data-theme='light'] #sc-cp-alpha-track {
   [data-stage-shape='square'] #stage-canvas {
     aspect-ratio: 1 / 1 !important;
     width: min(
-      calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-      calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
       900px
     ) !important;
     height: min(
-      calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-      calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+      calc(100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
       900px
     ) !important;
   }
@@ -5060,9 +5088,22 @@ html.is-landscape #stage-viewport {
   padding-bottom: calc(max(4px, env(safe-area-inset-bottom, 0px))) !important;
   padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
   display: flex !important;
+  flex-direction: column !important;
   justify-content: center !important;
   align-items: center !important;
   overflow: hidden !important;
+}
+body.is-landscape #sc-scenes-bar,
+html.is-landscape #sc-scenes-bar {
+  max-width: min(
+    1200px,
+    calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    calc((100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+  ) !important;
+  padding-bottom: 2px !important;
+  margin-top: 0 !important;
+  margin-bottom: 6px !important;
+  justify-content: center !important;
 }
 body.is-landscape #stage-canvas,
 html.is-landscape #stage-canvas {
@@ -5071,8 +5112,9 @@ html.is-landscape #stage-canvas {
   aspect-ratio: 16 / 9 !important;
   width: 100% !important;
   max-width: min(
-    calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-    calc((100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
+    1200px,
+    calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    calc((100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)) * 16 / 9)
   ) !important;
   height: auto !important;
 }
@@ -5080,13 +5122,13 @@ body.is-landscape[data-stage-shape='square'] #stage-canvas,
 html.is-landscape [data-stage-shape='square'] #stage-canvas {
   aspect-ratio: 1 / 1 !important;
   width: min(
-    calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-    calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    calc(100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
     900px
   ) !important;
   height: min(
-    calc(100vh - 28px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
-    calc(100vw - 80px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
+    calc(100vh - 46px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+    calc(100vw - 76px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
     900px
   ) !important;
 }

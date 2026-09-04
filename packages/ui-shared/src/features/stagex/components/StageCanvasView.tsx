@@ -105,6 +105,11 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         userExitedLandscapeRef.current = false;
       }
       const active = isWindowLandscape && !userExitedLandscapeRef.current;
+      if (active) {
+        document.body.classList.add('is-landscape');
+      } else {
+        document.body.classList.remove('is-landscape');
+      }
       setIsLandscape((prev) => {
         if (prev !== active) {
           if (iframeRef.current?.contentWindow) {
@@ -126,6 +131,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     }
     window.addEventListener('resize', handleOrientation);
     return () => {
+      document.body.classList.remove('is-landscape');
       if (mql.removeEventListener) {
         mql.removeEventListener('change', handleOrientation);
       } else {
@@ -155,6 +161,16 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         setIsCanvasDragging(true);
       } else if (e.data.type === 'sc-drag-end') {
         setIsCanvasDragging(false);
+      } else if (e.data.type === 'sc-canvas-rescaled') {
+        if (Array.isArray(e.data.elements)) {
+          useStagexStore.setState({
+            elements: e.data.elements,
+            scenes:
+              Array.isArray(e.data.scenes) && e.data.scenes.length > 0
+                ? e.data.scenes
+                : useStagexStore.getState().scenes,
+          });
+        }
       } else if (e.data.type === 'sc-project-saved') {
         if (Array.isArray(e.data.elements)) {
           const newName = e.data.name || e.data.projectName;
@@ -389,6 +405,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   const handleExitLandscape = useCallback(async () => {
     userExitedLandscapeRef.current = true;
     setIsLandscape(false);
+    document.body.classList.remove('is-landscape');
     if (panelOpen) setPanelOpen(false);
     if (specsOpen) setSpecsOpen(false);
     const shouldHide = liveMode;
@@ -399,6 +416,12 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       await lockOrientation('portrait');
     } catch {}
     callIframe('sc-landscape', { isLandscape: false });
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage(
+        { type: 'sc-landscape', isLandscape: false },
+        '*'
+      );
+    }
   }, [liveMode, panelOpen, specsOpen, callIframe]);
 
   const handleToggleRotate = useCallback(async () => {
@@ -407,6 +430,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     } else {
       userExitedLandscapeRef.current = false;
       setIsLandscape(true);
+      document.body.classList.add('is-landscape');
       if (panelOpen) setPanelOpen(false);
       if (specsOpen) setSpecsOpen(false);
       setNavLocked(true);
@@ -416,6 +440,12 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         await lockOrientation('landscape');
       } catch {}
       callIframe('sc-landscape', { isLandscape: true });
+      if (iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(
+          { type: 'sc-landscape', isLandscape: true },
+          '*'
+        );
+      }
     }
   }, [isLandscape, handleExitLandscape, panelOpen, specsOpen, callIframe]);
 
@@ -843,7 +873,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         </div>
 
         {/* Desktop Collapsible Elements Library Drawer */}
-        {isWebDesktop && (
+        {isWebDesktop && !isLandscape && (
           <motion.div
             initial={false}
             animate={{ width: isRightPanelCollapsed ? 0 : 280 }}

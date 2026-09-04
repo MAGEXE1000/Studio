@@ -2229,6 +2229,21 @@ function getAssetAlphaBounds(src, callback) {
 }
 
 function isPointerInBounds(e, dom, el) {
+  // If user clicks on the label, allow it as a valid interaction target
+  const label = dom.querySelector('.el-label');
+  if (label && state.labelsVisible && label.style.display !== 'none') {
+    const lRect = label.getBoundingClientRect();
+    const pad = 6;
+    if (
+      e.clientX >= lRect.left - pad &&
+      e.clientX <= lRect.right + pad &&
+      e.clientY >= lRect.top - pad &&
+      e.clientY <= lRect.bottom + pad
+    ) {
+      return true;
+    }
+  }
+
   const icon = dom.querySelector('.el-icon img');
   if (!icon) return true;
 
@@ -3002,24 +3017,21 @@ function _getPropState() {
 function dismissPropPanel() {
   _propUserDismissed = true;
 }
-window.addEventListener('orientationchange', function () {
-  _rescaleElementsOnResize();
-});
-window.addEventListener('resize', function () {
-  _rescaleElementsOnResize();
-  if (typeof positionVTools === 'function') {
-    positionVTools();
-  }
-});
+var _rescaleTimer = null;
+function _triggerRescale() {
+  clearTimeout(_rescaleTimer);
+  _rescaleTimer = setTimeout(function () {
+    _rescaleElementsOnResize();
+    if (typeof positionVTools === 'function') positionVTools();
+    if (typeof _renderStageLayout === 'function') _renderStageLayout();
+  }, 60);
+}
+
+window.addEventListener('orientationchange', _triggerRescale);
+window.addEventListener('resize', _triggerRescale);
 try {
   var _landscapeMql = window.matchMedia('(orientation: landscape)');
-  _landscapeMql.addEventListener('change', function (e) {
-    setTimeout(function () {
-      _rescaleElementsOnResize();
-      if (typeof positionVTools === 'function') positionVTools();
-      if (typeof _renderStageLayout === 'function') _renderStageLayout();
-    }, 60);
-  });
+  _landscapeMql.addEventListener('change', _triggerRescale);
 } catch (e) {}
 
 function _rescaleElementsOnResize() {
@@ -3040,14 +3052,44 @@ function _rescaleElementsOnResize() {
   if (Math.abs(oldW - rect.width) < 2 && Math.abs(oldH - rect.height) < 2) return;
   var scaleX = rect.width / oldW;
   var scaleY = rect.height / oldH;
+
+  var scaledIds = new Set();
   state.elements.forEach(function (el) {
     el.x = Math.max(20, Math.min(rect.width - 20, el.x * scaleX));
     el.y = Math.max(20, Math.min(rect.height - 20, el.y * scaleY));
+    scaledIds.add(el.id);
   });
+
+  if (Array.isArray(state.scenes)) {
+    state.scenes.forEach(function (sc) {
+      if (Array.isArray(sc.elements)) {
+        sc.elements.forEach(function (el) {
+          if (!scaledIds.has(el.id)) {
+            el.x = Math.max(20, Math.min(rect.width - 20, el.x * scaleX));
+            el.y = Math.max(20, Math.min(rect.height - 20, el.y * scaleY));
+          }
+        });
+      }
+    });
+  }
+
   state.canvasW = rect.width;
   state.canvasH = rect.height;
   renderElements();
   if (typeof _renderStageLayout === 'function') _renderStageLayout();
+
+  try {
+    window.parent.postMessage(
+      {
+        type: 'sc-canvas-rescaled',
+        canvasW: rect.width,
+        canvasH: rect.height,
+        elements: JSON.parse(JSON.stringify(state.elements)),
+        scenes: JSON.parse(JSON.stringify(state.scenes || [])),
+      },
+      '*'
+    );
+  } catch (err) {}
 }
 // Drag peek - no-op since legacy panel is removed
 function _propPeek(on) {}
@@ -6652,8 +6694,20 @@ function doConfirm(ok) {
 window.doConfirm = doConfirm;
 
 window.addEventListener('message', function (e) {
-  if (e.data && e.data.type === 'stage-core:confirm-response') {
+  if (!e.data || typeof e.data !== 'object') return;
+  if (e.data.type === 'stage-core:confirm-response') {
     doConfirm(e.data.ok);
+  } else if (e.data.type === 'sc-landscape') {
+    if (e.data.isLandscape) {
+      document.body.classList.add('is-landscape');
+      document.documentElement.classList.add('is-landscape');
+    } else {
+      document.body.classList.remove('is-landscape');
+      document.documentElement.classList.remove('is-landscape');
+    }
+    if (typeof _triggerRescale === 'function') {
+      _triggerRescale();
+    }
   }
 });
 

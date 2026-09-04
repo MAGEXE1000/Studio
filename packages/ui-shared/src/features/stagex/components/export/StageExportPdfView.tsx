@@ -901,7 +901,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                         <div
                           key={el.id || idx}
                           data-testid={`preview-element-${el.id || idx}`}
-                          className="absolute flex flex-col items-center justify-center select-none pointer-events-none"
+                          className="absolute flex items-center justify-center select-none pointer-events-none w-7 h-7"
                           style={{
                             left: `${pctX}%`,
                             top: `${pctY}%`,
@@ -910,9 +910,10 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                         >
                           {/* Rotated Icon Wrapper with Channel Badge */}
                           <div
-                            className="relative flex items-center justify-center"
+                            className="relative flex items-center justify-center w-7 h-7"
                             style={{
                               transform: `rotate(${rotation}deg)`,
+                              transformOrigin: 'center center',
                             }}
                           >
                             {el.imageData ? (
@@ -968,7 +969,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
 
                           {/* Standardized Canonical Label */}
                           <span
-                            className="text-[9.5px] font-bold uppercase tracking-[0.05em] text-center truncate max-w-[85px] leading-tight select-none mt-1"
+                            className="absolute top-[calc(100%+2px)] left-1/2 -translate-x-1/2 text-[9.5px] font-bold uppercase tracking-[0.05em] text-center truncate max-w-[85px] leading-tight select-none whitespace-nowrap"
                             style={{
                               fontFamily: "'Manrope', sans-serif",
                               color: isLight ? '#18181b' : '#ffffff',

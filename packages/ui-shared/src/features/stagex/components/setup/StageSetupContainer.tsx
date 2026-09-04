@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useBackHandler, useT } from '@workspace/studio-core';
 import { StudioPageTransition } from '../../../../components/StudioPageTransition';
-import { SharedFloatingHeader } from '../../../../shared/layout/StudioLayoutSystem';
 import { StageSetupHub } from './StageSetupHub';
 import { StageRiderView } from './StageRiderView';
 import { StageSetlistView } from './StageSetlistView';
@@ -72,11 +71,6 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
 
   return (
     <div className="w-full h-full flex flex-col relative overflow-hidden bg-transparent">
-      {/* Canonical Stagex Detail Floating Topbar at the root of Setup */}
-      {activeSubView === 'hub' && (
-        <SharedFloatingHeader title={tr.stagex?.setupTitle || 'Setup'} hideBack={true} />
-      )}
-
       {/* Content Area with Canonical StudioPageTransition */}
       <div className="w-full flex-1 relative overflow-hidden">
         <StudioPageTransition
@@ -84,13 +78,7 @@ export const StageSetupContainer: React.FC<StageSetupContainerProps> = ({
           variant={activeSubView === 'hub' ? 'tab' : 'drilldown'}
         >
           {activeSubView === 'hub' && (
-            <div
-              className="w-full h-full overflow-y-auto"
-              style={{
-                paddingTop:
-                  'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 80px)',
-              }}
-            >
+            <div className="w-full h-full">
               <StageSetupHub onSelectSubView={handleSubViewChange} isLight={isLight} />
             </div>
           )}

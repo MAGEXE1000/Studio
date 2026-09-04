@@ -165,7 +165,7 @@ export default function StagexPanel() {
                 <div className="w-full h-full relative overflow-hidden">
                   {/* Setup Native View */}
                   {viewId === 'Setup' && (
-                    <div className="w-full h-full overflow-y-auto">
+                    <div className="w-full h-full">
                       <StageSetupContainer
                         onBackToStage={() => navigate('Editor')}
                         isLight={isLight}

@@ -97,7 +97,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({ onBack, isLight: i
 
   return (
     <StageSetupDetailLayout
-      title="Gear Inventory"
+      title="Gear"
       onBack={onBack}
       isLight={isLight}
       toolbarActions={

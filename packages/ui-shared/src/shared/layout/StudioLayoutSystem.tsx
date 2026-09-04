@@ -190,6 +190,7 @@ export function SharedFloatingHeader({
     >
       <header
         ref={headerBgRef}
+        data-testid="shared-floating-header"
         style={{
           width: '100%',
           maxWidth: 'calc(var(--content-max-w) - calc(var(--page-inset-h, 24px) * 2))',
@@ -227,6 +228,7 @@ export function SharedFloatingHeader({
         {onBack && !hideBack ? (
           <motion.button
             type="button"
+            data-testid="shared-floating-header-back-btn"
             onClick={onBack}
             aria-label="Go back"
             whileTap={{ scale: 0.9 }}
@@ -270,18 +272,21 @@ export function SharedFloatingHeader({
           <div style={{ width: 40, height: 40, flexShrink: 0 }} />
         )}
 
-        {/* Mathematically Centered Section Title */}
+        {/* Mathematically Centered Section Title across complete top bar */}
         <div
           ref={titleRef}
+          data-testid="shared-floating-header-title"
           style={{
             position: 'absolute',
-            left: hideBack ? 16 : 52,
-            right: toolbarActions ? 104 : 52,
+            left: 0,
+            right: 0,
             top: 0,
             bottom: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            paddingLeft: toolbarActions ? '104px' : '56px',
+            paddingRight: toolbarActions ? '104px' : '56px',
             pointerEvents: 'none',
             zIndex: 1,
           }}

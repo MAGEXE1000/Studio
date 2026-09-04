@@ -57,11 +57,11 @@ export function StudioHeader({
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
       {badge && <div style={{ marginBottom: 4 }}>{badge}</div>}
       {typeof title === 'string' ? (
-        <h2 className={titleClassName} style={mergedTitleStyle}>
+        <h2 className={titleClassName} data-testid="studio-header-title" style={mergedTitleStyle}>
           {title}
         </h2>
       ) : (
-        <div className={titleClassName} style={mergedTitleStyle}>
+        <div className={titleClassName} data-testid="studio-header-title" style={mergedTitleStyle}>
           {title}
         </div>
       )}

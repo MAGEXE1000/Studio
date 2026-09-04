@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { applyThemeTokens } from '../lib/themeEngine';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { type NavigationRoute } from '../lib/navigation/navigationTypes';
+import { useNavigationStore } from '../lib/navigation/useNavigationStore';
 import { detectDeviceLanguage, type Language as I18nLanguage } from '../lib/i18n';
 import { settingsRepository } from '../repositories/SettingsRepository';
 import type { Instrument } from '../data/chords';
@@ -167,7 +168,7 @@ const DEFAULT_SETTINGS: AppSettings = {
     hub: { theme: 'light', amoledMode: false },
     chordex: { theme: 'light', amoledMode: false },
     drumex: { theme: 'light', amoledMode: false },
-    stagex: { theme: 'dark', amoledMode: false },
+    stagex: { theme: 'light', amoledMode: false },
     vocalex: { theme: 'light', amoledMode: false },
     groovex: { theme: 'light', amoledMode: false },
     devtools: { theme: 'light', amoledMode: false },
@@ -257,6 +258,9 @@ if (typeof window !== 'undefined') {
   applyThemeTokens(useSettingsStore.getState().settings);
   useSettingsStore.subscribe((state) => {
     applyThemeTokens(state.settings);
+  });
+  useNavigationStore.subscribe(() => {
+    applyThemeTokens(useSettingsStore.getState().settings);
   });
 }
 

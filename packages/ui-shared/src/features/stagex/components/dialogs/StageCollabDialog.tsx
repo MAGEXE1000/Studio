@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { NavigationDispatcher } from '@workspace/studio-core';
+import { NavigationDispatcher, useT, useSettingsStore } from '@workspace/studio-core';
 import { Loader } from '../../../../components/motion/loader';
 import { ShareMenu } from '../../../../components/share-menu';
 import { SegmentedOtpInput } from '../SegmentedOtpInput';
@@ -47,6 +47,10 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
   generateDiagnosticsReport,
 }) => {
   const [collabCopied, setCollabCopied] = useState(false);
+  const t = useT();
+  const tr = t as any;
+  const language = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const isSpanish = language === 'es';
 
   if (!open) return null;
 
@@ -97,10 +101,12 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                   className="font-headline-sm text-lg font-bold"
                   style={{ color: 'var(--c-text-primary)' }}
                 >
-                  Live Collaboration
+                  {tr.stagex?.collab?.title || 'Live Collaboration'}
                 </h3>
                 <p className="font-body-sm text-xs" style={{ color: 'var(--c-text-secondary)' }}>
-                  Work together on this stage layout in real-time
+                  {isSpanish
+                    ? 'Trabaja en este escenario en tiempo real'
+                    : 'Work together on this stage layout in real-time'}
                 </p>
               </div>
             </div>
@@ -128,7 +134,13 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                     onClick={() => setCollabDiagExpanded(!collabDiagExpanded)}
                     className="flex-shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#ffb4ab]/70 hover:text-[#ffb4ab] transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
                   >
-                    {collabDiagExpanded ? 'Hide' : 'Details'}
+                    {collabDiagExpanded
+                      ? isSpanish
+                        ? 'Ocultar'
+                        : 'Hide'
+                      : isSpanish
+                        ? 'Detalles'
+                        : 'Details'}
                   </button>
                 </div>
                 {collabDiagExpanded && (
@@ -172,7 +184,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                       className="w-full text-[11px] font-semibold text-[#ffb4ab]/50 hover:text-[#ffb4ab]/80 border border-red-500/15 hover:border-red-500/30 rounded-lg py-1.5 flex items-center justify-center gap-1.5 transition-all hover:bg-white/5"
                     >
                       <span className="material-symbols-outlined text-[14px]">content_copy</span>
-                      Copy Diagnostics
+                      {isSpanish ? 'Copiar Diagnóstico' : 'Copy Diagnostics'}
                     </button>
                   </div>
                 )}
@@ -182,7 +194,9 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
             {!currentUser ? (
               <div className="text-center py-6 space-y-4">
                 <p className="text-sm" style={{ color: 'var(--c-text-secondary)' }}>
-                  You must be signed in to host or join collaborative sessions.
+                  {isSpanish
+                    ? 'Debes iniciar sesión para crear o unirte a sesiones colaborativas.'
+                    : 'You must be signed in to host or join collaborative sessions.'}
                 </p>
                 <button
                   onClick={() => {
@@ -198,7 +212,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                     boxShadow: 'var(--studio-accent-glow)',
                   }}
                 >
-                  Sign In
+                  {isSpanish ? 'Iniciar Sesión' : 'Sign In'}
                 </button>
               </div>
             ) : collabState === 'connected' && collabRoom ? (
@@ -208,7 +222,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                     className="font-label-md text-xs uppercase tracking-widest font-semibold block"
                     style={{ color: 'var(--c-text-secondary)' }}
                   >
-                    Your Invite Code
+                    {isSpanish ? 'Tu Código de Invitación' : 'Your Invite Code'}
                   </label>
                   <div className="grid grid-cols-6 gap-3">
                     {Array.from({ length: 6 }).map((_, idx) => (
@@ -246,7 +260,12 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                       <span className="material-symbols-outlined text-[18px]">
                         {collabCopied ? 'check' : 'content_copy'}
                       </span>
-                      {collabCopied ? 'Copied!' : 'Copy Invite Code'}
+                      {collabCopied
+                        ? isSpanish
+                          ? '¡Copiado!'
+                          : 'Copied!'
+                        : tr.stagex?.collab?.copyCode ||
+                          (isSpanish ? 'Copiar Código de Invitación' : 'Copy Invite Code')}
                     </button>
                     <ShareMenu title="StageX Collaborative Session" url={window.location.href}>
                       <button
@@ -258,7 +277,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                         }}
                       >
                         <span className="material-symbols-outlined text-[18px]">share</span>
-                        Share
+                        {isSpanish ? 'Compartir' : 'Share'}
                       </button>
                     </ShareMenu>
                   </div>
@@ -269,7 +288,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                     className="font-label-md text-xs uppercase tracking-widest font-semibold block"
                     style={{ color: 'var(--c-text-secondary)' }}
                   >
-                    Scan to Join
+                    {isSpanish ? 'Escanear para Unirse' : 'Scan to Join'}
                   </label>
                   <div
                     className="p-3 rounded-2xl shadow-lg"
@@ -293,7 +312,8 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                         className="font-label-md text-sm font-semibold"
                         style={{ color: 'var(--c-text-primary)' }}
                       >
-                        Connected ({collabParticipants.length})
+                        {tr.stagex?.collab?.connected || (isSpanish ? 'Conectado' : 'Connected')} (
+                        {collabParticipants.length})
                       </label>
                     </div>
                     <div
@@ -311,7 +331,13 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                           check_circle
                         </span>
                       )}
-                      {pendingOpsCount > 0 ? `${pendingOpsCount} pending` : 'In sync'}
+                      {pendingOpsCount > 0
+                        ? isSpanish
+                          ? `${pendingOpsCount} pendientes`
+                          : `${pendingOpsCount} pending`
+                        : isSpanish
+                          ? 'Sincronizado'
+                          : 'In sync'}
                     </div>
                   </div>
 
@@ -337,7 +363,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                             className="font-body-md text-sm font-semibold"
                             style={{ color: 'var(--c-text-primary)' }}
                           >
-                            {p.displayName || 'Anonymous User'}
+                            {p.displayName || (isSpanish ? 'Usuario Anónimo' : 'Anonymous User')}
                           </span>
                           {p.userId === currentUser.uid && (
                             <span
@@ -347,7 +373,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                                 color: 'var(--c-text-secondary)',
                               }}
                             >
-                              You
+                              {isSpanish ? 'Tú' : 'You'}
                             </span>
                           )}
                         </div>
@@ -361,7 +387,8 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                     className="w-full mt-4 h-12 rounded-full border border-red-500/30 text-red-400 font-label-lg text-sm font-bold flex items-center justify-center gap-2 hover:bg-red-500/10 active:scale-95 transition-all cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-lg">logout</span>
-                    Leave Session
+                    {tr.stagex?.collab?.leave ||
+                      (isSpanish ? 'Salir de la sesión' : 'Leave Session')}
                   </button>
                 </section>
               </div>
@@ -380,13 +407,15 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                       className="font-label-lg text-base font-bold"
                       style={{ color: 'var(--c-text-primary)' }}
                     >
-                      Start a New Session
+                      {isSpanish ? 'Iniciar una Nueva Sesión' : 'Start a New Session'}
                     </h4>
                     <p
                       className="font-body-sm text-xs mt-1"
                       style={{ color: 'var(--c-text-secondary)' }}
                     >
-                      Create a collaborative room and invite others to edit with you.
+                      {isSpanish
+                        ? 'Crea una sala colaborativa e invita a otros a editar contigo.'
+                        : 'Create a collaborative room and invite others to edit with you.'}
                     </p>
                   </div>
                   <button
@@ -406,7 +435,8 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                     ) : (
                       <>
                         <span className="material-symbols-outlined text-lg">add_circle</span>
-                        Host New Session
+                        {tr.stagex?.collab?.host ||
+                          (isSpanish ? 'Crear Sesión' : 'Host New Session')}
                       </>
                     )}
                   </button>
@@ -421,7 +451,7 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                       color: 'var(--c-text-secondary)',
                     }}
                   >
-                    Or Join
+                    {isSpanish ? 'O Unirse' : 'Or Join'}
                   </span>
                 </div>
 
@@ -437,13 +467,16 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                       className="font-label-lg text-base font-bold"
                       style={{ color: 'var(--c-text-primary)' }}
                     >
-                      Join with an Invite Code
+                      {isSpanish ? 'Unirse con Código de Invitación' : 'Join with an Invite Code'}
                     </h4>
                     <p
                       className="font-body-sm text-xs mt-1"
                       style={{ color: 'var(--c-text-secondary)' }}
                     >
-                      Enter the 6-character code shared by the session host.
+                      {tr.stagex?.collab?.enterCode ||
+                        (isSpanish
+                          ? 'Ingresa el código de 6 caracteres compartido por el anfitrión.'
+                          : 'Enter the 6-character code shared by the session host.')}
                     </p>
                   </div>
 
@@ -474,7 +507,8 @@ export const StageCollabDialog: React.FC<StageCollabDialogProps> = ({
                     ) : (
                       <>
                         <span className="material-symbols-outlined text-lg">login</span>
-                        Join Session
+                        {tr.stagex?.collab?.join ||
+                          (isSpanish ? 'Unirse a Sesión' : 'Join Session')}
                       </>
                     )}
                   </button>

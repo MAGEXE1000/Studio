@@ -69,8 +69,8 @@ export default function StagexPanel() {
   const settings = useSettingsStore((s) => s.settings);
   const appKey = 'stagex' as AppKey;
   const activeVis = settings.perApp?.[appKey] ?? {
-    theme: 'dark' as const,
-    amoledMode: false,
+    theme: settings.theme ?? ('light' as const),
+    amoledMode: settings.amoledMode ?? false,
   };
   const accent = resolveAccent(settings.accentColor);
 
@@ -90,17 +90,8 @@ export default function StagexPanel() {
     return false;
   })();
 
-  const preferences = useStagexStore((s) => s.preferences);
-  const isAmoled = Boolean(
-    !isLight && (activeVis.amoledMode || settings.amoledMode || preferences?.amoled)
-  );
-  const stageBg = isLight ? '#f2f1ef' : isAmoled ? '#000000' : '#0e0e0e';
-
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.toggle('amoled', isAmoled);
-    }
-  }, [isAmoled]);
+  const isAmoled = Boolean(!isLight && (activeVis.amoledMode || settings.amoledMode));
+  const stageBg = isLight ? '#ffffff' : isAmoled ? '#000000' : '#0e0e0e';
 
   // Mobile live mode state
   const [liveMode, setLiveMode] = useState(false);
@@ -143,7 +134,7 @@ export default function StagexPanel() {
     <div
       className="stagex-root w-full h-full flex flex-col relative overflow-hidden"
       style={{
-        background: stageBg,
+        background: 'var(--app-bg)',
         fontFamily: 'var(--font-headline)',
         transition: 'background 180ms ease',
       }}

@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useStagexStore } from '../../state/useStagexStore';
 import {
   useSettingsStore,
+  settingsController,
   useScrollHide,
   useT,
   useIsWebDesktop,
@@ -38,11 +39,18 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
 
   const activeVis = settings.perApp?.stagex;
   const isLight =
-    isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
+    isLightProp !== undefined
+      ? isLightProp
+      : activeVis
+        ? activeVis.theme === 'light'
+        : settings.theme === 'light';
   const isAmoled =
     isAmoledProp !== undefined
       ? isAmoledProp
-      : !isLight && Boolean(settings.amoledMode || activeVis?.amoledMode || preferences?.amoled);
+      : !isLight && Boolean(settings.amoledMode || activeVis?.amoledMode);
+
+  const currentLanguage = settings.language ?? 'en';
+  const isSpanish = currentLanguage === 'es';
 
   const cardStyle: React.CSSProperties = {
     background: isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--app-surface, #111115)',
@@ -55,8 +63,6 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
     overflow: 'hidden',
     transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
   };
-
-  const isSpanish = tr.nav?.stagexStage === 'Escenario';
 
   const gridSizes = [
     { label: tr.stagex?.gridFine || 'FINE', value: 40, testId: 'grid-size-fine' },
@@ -286,8 +292,15 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
               }
             >
               <Toggle
-                value={Boolean(preferences.reducedAnimations)}
-                onChange={(val) => updatePreferences({ reducedAnimations: val })}
+                value={Boolean(
+                  preferences.reducedAnimations || settings.animationSpeed === 'reduced'
+                )}
+                onChange={(val) => {
+                  updatePreferences({ reducedAnimations: val });
+                  settingsController.updateSettings({
+                    animationSpeed: val ? 'reduced' : 'normal',
+                  });
+                }}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />

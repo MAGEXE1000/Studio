@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { useBackHandler } from '@workspace/studio-core';
+import { useBackHandler, useT, useSettingsStore } from '@workspace/studio-core';
 import { useStagexStore } from '../state/useStagexStore';
-import { STAGEX_ICON_MAP } from '../constants';
+import { STAGEX_ICON_MAP, localizeElementName } from '../constants';
 import {
   StagexSpecsPicker,
   SpecsSelectorControl,
@@ -72,6 +72,11 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
   if (elementProp) {
     lastElementRef.current = elementProp;
   }
+  const t = useT();
+  const tr = t as any;
+  const language = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const isSpanish = language === 'es';
+
   const element = elementProp || lastElementRef.current;
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
@@ -213,8 +218,12 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
       {
         id: '__none__',
         value: '',
-        label: '— None / Unassigned —',
-        detail: 'No performer assigned to this element',
+        label:
+          tr.stagex?.picker?.noneClear ||
+          (isSpanish ? '— Ninguno (Sin asignar) —' : '— None / Unassigned —'),
+        detail: isSpanish
+          ? 'Sin intérprete asignado a este elemento'
+          : 'No performer assigned to this element',
         icon: 'person_off',
       },
     ];
@@ -230,7 +239,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
         id: m.id || name,
         value: name,
         label: name,
-        detail: m.role || 'Band & Crew Member',
+        detail: m.role || (isSpanish ? 'Músico o Equipo' : 'Band & Crew Member'),
         color: m.color,
         icon: 'person',
       });
@@ -242,13 +251,20 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
         id: '__current_performer__',
         value: currentP,
         label: currentP,
-        detail: 'Current Selection',
+        detail: isSpanish ? 'Selección actual' : 'Current Selection',
         icon: 'person',
       });
     }
 
     return opts;
-  }, [storeMembers, bandMembers, element?.performer, element?.memberId]);
+  }, [
+    storeMembers,
+    bandMembers,
+    element?.performer,
+    element?.memberId,
+    isSpanish,
+    tr.stagex?.picker,
+  ]);
 
   // 2. Channel Options
   const channelOptions: SpecsPickerOption[] = useMemo(() => {
@@ -256,8 +272,10 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
       {
         id: '__none__',
         value: '',
-        label: '— None / Unassigned —',
-        detail: 'No console channel assigned',
+        label:
+          tr.stagex?.picker?.noneClear ||
+          (isSpanish ? '— Ninguno (Sin asignar) —' : '— None / Unassigned —'),
+        detail: isSpanish ? 'Sin canal de consola asignado' : 'No console channel assigned',
         icon: 'block',
       },
     ];
@@ -283,10 +301,12 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
           value: chStr,
           label: chStr,
           detail: occupiedBy
-            ? `Occupied (${occupiedBy})`
+            ? isSpanish
+              ? `Ocupado (${occupiedBy})`
+              : `Occupied (${occupiedBy})`
             : rc.source + (rc.mic ? ` (${rc.mic})` : ''),
           disabled: Boolean(occupiedBy),
-          badge: occupiedBy ? 'In Use' : undefined,
+          badge: occupiedBy ? (isSpanish ? 'En uso' : 'In Use') : undefined,
           icon: 'tune',
         });
       });
@@ -302,9 +322,15 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
           id: chStr,
           value: chStr,
           label: chStr,
-          detail: occupiedBy ? `Occupied (${occupiedBy})` : 'Console Preamp Channel',
+          detail: occupiedBy
+            ? isSpanish
+              ? `Ocupado (${occupiedBy})`
+              : `Occupied (${occupiedBy})`
+            : isSpanish
+              ? 'Canal de Preamplificador'
+              : 'Console Preamp Channel',
           disabled: Boolean(occupiedBy),
-          badge: occupiedBy ? 'In Use' : undefined,
+          badge: occupiedBy ? (isSpanish ? 'En uso' : 'In Use') : undefined,
           icon: 'tune',
         });
       }
@@ -316,13 +342,13 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
         id: '__custom_channel__',
         value: currentCh,
         label: currentCh,
-        detail: 'Custom Channel',
+        detail: isSpanish ? 'Canal personalizado' : 'Custom Channel',
         icon: 'tune',
       });
     }
 
     return opts;
-  }, [riderChannels, allElements, element?.id, element?.channelId]);
+  }, [riderChannels, allElements, element?.id, element?.channelId, isSpanish, tr.stagex?.picker]);
 
   // 3. Source Options
   const sourceOptions: SpecsPickerOption[] = useMemo(() => {
@@ -330,8 +356,10 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
       {
         id: '__none__',
         value: '',
-        label: '— Direct / Unassigned —',
-        detail: 'Direct line / no stage drop assigned',
+        label: isSpanish ? '— Directo / Sin asignar —' : '— Direct / Unassigned —',
+        detail: isSpanish
+          ? 'Línea directa / sin caja asignada'
+          : 'Direct line / no stage drop assigned',
         icon: 'cable',
       },
     ];
@@ -356,7 +384,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
           id: rc.source,
           value: rc.source,
           label: rc.source,
-          detail: 'Rider Source Input',
+          detail: isSpanish ? 'Entrada de señal de rider' : 'Rider Source Input',
           icon: 'cable',
         });
       }
@@ -368,13 +396,13 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
         id: '__custom_src__',
         value: currentSrc,
         label: currentSrc,
-        detail: 'Custom Source',
+        detail: isSpanish ? 'Origen personalizado' : 'Custom Source',
         icon: 'cable',
       });
     }
 
     return opts;
-  }, [riderChannels, element?.source]);
+  }, [riderChannels, element?.source, isSpanish]);
 
   // 4. Destination Options
   const destinationOptions: SpecsPickerOption[] = useMemo(() => {
@@ -382,8 +410,8 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
       {
         id: '__none__',
         value: '',
-        label: '— Default / Unassigned —',
-        detail: 'Standard console routing',
+        label: isSpanish ? '— Predeterminado / Sin asignar —' : '— Default / Unassigned —',
+        detail: isSpanish ? 'Enrutamiento estándar de consola' : 'Standard console routing',
         icon: 'volume_off',
       },
     ];
@@ -408,7 +436,14 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
           id: m.name,
           value: m.name,
           label: m.name,
-          detail: m.type === 'iem' ? 'Stereo IEM Mix' : 'Stage Wedge Mix',
+          detail:
+            m.type === 'iem'
+              ? isSpanish
+                ? 'Mezcla estéreo IEM'
+                : 'Stereo IEM Mix'
+              : isSpanish
+                ? 'Mezcla monitor de suelo'
+                : 'Stage Wedge Mix',
           icon: m.type === 'iem' ? 'headphones' : 'speaker',
         });
       }
@@ -420,13 +455,13 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
         id: '__custom_dest__',
         value: currentDest,
         label: currentDest,
-        detail: 'Custom Destination',
+        detail: isSpanish ? 'Destino personalizado' : 'Custom Destination',
         icon: 'volume_up',
       });
     }
 
     return opts;
-  }, [riderMixes, element?.output]);
+  }, [riderMixes, element?.output, isSpanish]);
 
   if (!element) {
     return null;
@@ -580,15 +615,26 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                               fontFamily: 'Inter, sans-serif',
                             }}
                           >
-                            {element.name || 'Element'}
+                            {element.label ||
+                              localizeElementName(
+                                element.name,
+                                element.type,
+                                isSpanish ? 'es' : 'en'
+                              )}
                           </span>
                           {element.locked && (
-                            <span className="flex items-center text-amber-400" title="Locked">
+                            <span
+                              className="flex items-center text-amber-400"
+                              title={tr.stagex?.specs?.lock || 'Locked'}
+                            >
                               <span className="material-symbols-outlined text-[13px]">lock</span>
                             </span>
                           )}
                           {element.pinned && (
-                            <span className="flex items-center text-pink-400" title="Pinned">
+                            <span
+                              className="flex items-center text-pink-400"
+                              title={tr.stagex?.specs?.pin || 'Pinned'}
+                            >
                               <span className="material-symbols-outlined text-[13px]">
                                 push_pin
                               </span>
@@ -601,7 +647,9 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                             color: isLight ? '#71717a' : '#a1a1aa',
                           }}
                         >
-                          {element.type || 'Stage Element'}{' '}
+                          {element.type
+                            ? localizeElementName(element.type, undefined, isSpanish ? 'es' : 'en')
+                            : tr.stagex?.specs?.title || 'Stage Element'}{' '}
                           {element.channelId ? `· ${element.channelId}` : ''}
                         </div>
                       </div>
@@ -634,10 +682,10 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                               ? '1px solid rgba(0, 0, 0, 0.06)'
                               : '1px solid rgba(255, 255, 255, 0.08)',
                         }}
-                        title="Secondary Actions"
+                        title={tr.stagex?.specs?.secondaryActions || 'Secondary Actions'}
                       >
                         <span className="material-symbols-outlined text-[15px]">more_horiz</span>
-                        <span>Actions</span>
+                        <span>{tr.stagex?.specs?.actions || 'Actions'}</span>
                       </button>
 
                       {/* Close Button */}
@@ -653,8 +701,8 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                             ? '1px solid rgba(0, 0, 0, 0.06)'
                             : '1px solid rgba(255, 255, 255, 0.08)',
                         }}
-                        aria-label="Close Specs"
-                        title="Close"
+                        aria-label={tr.stagex?.specs?.close || 'Close Specs'}
+                        title={tr.stagex?.specs?.close || 'Close'}
                       >
                         <span className="material-symbols-outlined text-[16px]">close</span>
                       </button>
@@ -680,7 +728,15 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                           className="text-[11px] font-semibold truncate"
                           style={{ color: isLight ? '#991b1b' : '#fecaca' }}
                         >
-                          Delete {element.label || element.name}?
+                          {tr.stagex?.specs?.deleteConfirm?.replace(
+                            '{{name}}',
+                            element.label ||
+                              localizeElementName(
+                                element.name,
+                                element.type,
+                                isSpanish ? 'es' : 'en'
+                              )
+                          ) || `Delete ${element.label || element.name}?`}
                         </span>
                       </div>
                       <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -694,7 +750,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                             color: isLight ? '#3f3f46' : '#d4d4d8',
                           }}
                         >
-                          Cancel
+                          {tr.stagex?.specs?.cancel || 'Cancel'}
                         </button>
                         <button
                           type="button"
@@ -706,7 +762,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                           }}
                           className="px-2.5 py-1 rounded-xl text-[10.5px] font-bold bg-red-500 text-white cursor-pointer active:scale-95 shadow-md"
                         >
-                          Delete
+                          {tr.stagex?.specs?.delete || 'Delete'}
                         </button>
                       </div>
                     </div>
@@ -721,7 +777,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                         className="text-[9px] font-bold uppercase tracking-wider"
                         style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
                       >
-                        Label
+                        {tr.stagex?.specs?.label || 'Label'}
                       </label>
                       <input
                         id="specs-input-label"
@@ -744,11 +800,11 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
 
                     {/* Performer Selectable Control */}
                     <SpecsSelectorControl
-                      label="Performer"
+                      label={tr.stagex?.specs?.performer || 'Performer'}
                       testId="input-specs-performer"
                       value={currentPerformerVal}
                       displayValue={currentPerformerVal}
-                      placeholder="— Unassigned —"
+                      placeholder={isSpanish ? '— Sin asignar —' : '— Unassigned —'}
                       icon="person"
                       onClick={() => setActivePicker('performer')}
                       isLight={isLight}
@@ -756,11 +812,11 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
 
                     {/* Channel Selectable Control */}
                     <SpecsSelectorControl
-                      label="Channel"
+                      label={tr.stagex?.specs?.channel || 'Channel'}
                       testId="input-specs-channel"
                       value={currentChannelVal}
                       displayValue={currentChannelVal}
-                      placeholder="— Unassigned —"
+                      placeholder={isSpanish ? '— Sin asignar —' : '— Unassigned —'}
                       icon="tune"
                       onClick={() => setActivePicker('channel')}
                       isLight={isLight}
@@ -772,7 +828,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                         className="text-[9px] font-bold uppercase tracking-wider"
                         style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
                       >
-                        Color
+                        {tr.stagex?.specs?.color || 'Color'}
                       </label>
                       <div
                         className="flex items-center gap-1.5 px-2 py-1 rounded-xl h-[32px]"
@@ -832,7 +888,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                         className="text-[9px] font-bold uppercase tracking-wider"
                         style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
                       >
-                        Rotation ({rotation}°)
+                        {tr.stagex?.specs?.rotate || 'Rotation'} ({rotation}°)
                       </label>
                       <div
                         className="flex items-center rounded-xl h-[32px] overflow-hidden"
@@ -882,7 +938,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                         className="text-[9px] font-bold uppercase tracking-wider"
                         style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
                       >
-                        Scale ({scale}%)
+                        {tr.stagex?.specs?.scale || 'Scale'} ({scale}%)
                       </label>
                       <div
                         className="flex items-center rounded-xl h-[32px] overflow-hidden"
@@ -898,7 +954,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                           data-testid="specs-scale-minus"
                           onClick={() => onUpdateElement({ scale: stepScaleDown(scale) })}
                           className="w-8 h-full flex items-center justify-center text-zinc-400 hover:text-white cursor-pointer active:scale-90 transition-all"
-                          title="Smaller"
+                          title={isSpanish ? 'Reducir' : 'Smaller'}
                         >
                           <span className="material-symbols-outlined text-[15px]">remove</span>
                         </button>
@@ -932,7 +988,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                           data-testid="specs-scale-plus"
                           onClick={() => onUpdateElement({ scale: stepScaleUp(scale) })}
                           className="w-8 h-full flex items-center justify-center text-zinc-400 hover:text-white cursor-pointer active:scale-90 transition-all"
-                          title="Larger"
+                          title={isSpanish ? 'Aumentar' : 'Larger'}
                         >
                           <span className="material-symbols-outlined text-[15px]">add</span>
                         </button>
@@ -949,7 +1005,11 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                       className="flex items-center justify-between w-full py-1 text-[10px] font-bold uppercase tracking-wider cursor-pointer"
                       style={{ color: '#ec4899' }}
                     >
-                      <span>Advanced Specs</span>
+                      <span>
+                        {moreFieldsExpanded
+                          ? tr.stagex?.specs?.lessSpecs || 'Less Specifications'
+                          : tr.stagex?.specs?.moreSpecs || 'Advanced Specs'}
+                      </span>
                       <span
                         className="material-symbols-outlined text-[16px] transition-transform"
                         style={{
@@ -968,7 +1028,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                             className="text-[9px] font-bold uppercase tracking-wider"
                             style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
                           >
-                            48V Phantom
+                            {tr.stagex?.specs?.phantomPower || '48V Phantom'}
                           </label>
                           <button
                             type="button"
@@ -989,18 +1049,26 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                               color: element.phantom ? '#ec4899' : isLight ? '#52525b' : '#a1a1aa',
                             }}
                           >
-                            <span>48V Power</span>
-                            <span className="text-[10px]">{element.phantom ? 'ON' : 'OFF'}</span>
+                            <span>{tr.stagex?.specs?.phantomPower || '48V Power'}</span>
+                            <span className="text-[10px]">
+                              {element.phantom
+                                ? isSpanish
+                                  ? 'SÍ'
+                                  : 'ON'
+                                : isSpanish
+                                  ? 'NO'
+                                  : 'OFF'}
+                            </span>
                           </button>
                         </div>
 
                         {/* Input Source Selectable Control */}
                         <SpecsSelectorControl
-                          label="Source"
+                          label={tr.stagex?.specs?.source || 'Source'}
                           testId="input-specs-source"
                           value={currentSourceVal}
                           displayValue={getSourceDisplay(currentSourceVal)}
-                          placeholder="— Direct / None —"
+                          placeholder={isSpanish ? '— Directo / Ninguno —' : '— Direct / None —'}
                           icon="cable"
                           onClick={() => setActivePicker('source')}
                           isLight={isLight}
@@ -1008,12 +1076,12 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
 
                         {/* Output Destination Selectable Control */}
                         <SpecsSelectorControl
-                          label="Destination"
+                          label={tr.stagex?.specs?.destination || 'Destination'}
                           testId="input-specs-destination"
                           secondaryTestId="input-specs-output"
                           value={currentDestinationVal}
                           displayValue={getDestinationDisplay(currentDestinationVal)}
-                          placeholder="— Default / FOH —"
+                          placeholder={isSpanish ? '— Predeterminado / FOH —' : '— Default / FOH —'}
                           icon="volume_up"
                           onClick={() => setActivePicker('destination')}
                           isLight={isLight}
@@ -1025,7 +1093,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                             className="text-[9px] font-bold uppercase tracking-wider"
                             style={{ color: isLight ? '#71717a' : '#a1a1aa' }}
                           >
-                            Notes
+                            {tr.stagex?.specs?.notes || 'Notes'}
                           </label>
                           <input
                             data-testid="input-specs-notes"
@@ -1043,7 +1111,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                               color: isLight ? '#09090b' : '#ffffff',
                               height: '32px',
                             }}
-                            placeholder="e.g. Wireless IEM"
+                            placeholder={isSpanish ? 'ej. IEM Inalámbrico' : 'e.g. Wireless IEM'}
                           />
                         </div>
                       </div>
@@ -1078,7 +1146,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                   ref={menuRef}
                   data-testid="specs-actions-popup"
                   role="menu"
-                  aria-label="Element Actions"
+                  aria-label={tr.stagex?.specs?.actions || 'Element Actions'}
                   className="fixed z-[9999] w-[184px] rounded-2xl py-1 shadow-2xl flex flex-col pointer-events-auto"
                   initial={{ opacity: 0, scale: 0.95, y: -4 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1111,7 +1179,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                     <span className="material-symbols-outlined text-[15px] text-zinc-400">
                       content_copy
                     </span>
-                    <span>Duplicate</span>
+                    <span>{tr.stagex?.specs?.duplicate || 'Duplicate'}</span>
                   </button>
 
                   <div className="h-px bg-white/5 my-1" />
@@ -1129,7 +1197,11 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                     <span className="material-symbols-outlined text-[15px] text-zinc-400">
                       {element?.locked ? 'lock_open' : 'lock'}
                     </span>
-                    <span>{element?.locked ? 'Unlock' : 'Lock'}</span>
+                    <span>
+                      {element?.locked
+                        ? tr.stagex?.specs?.unlock || 'Unlock'
+                        : tr.stagex?.specs?.lock || 'Lock'}
+                    </span>
                   </button>
 
                   <button
@@ -1145,7 +1217,11 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                     <span className="material-symbols-outlined text-[15px] text-zinc-400">
                       push_pin
                     </span>
-                    <span>{element?.pinned ? 'Unpin Element' : 'Pin Element'}</span>
+                    <span>
+                      {element?.pinned
+                        ? tr.stagex?.specs?.unpin || 'Unpin Element'
+                        : tr.stagex?.specs?.pin || 'Pin Element'}
+                    </span>
                   </button>
 
                   <button
@@ -1161,7 +1237,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                     <span className="material-symbols-outlined text-[15px] text-zinc-400">
                       bookmark
                     </span>
-                    <span>Save as Preset</span>
+                    <span>{tr.stagex?.specs?.savePreset || 'Save as Preset'}</span>
                   </button>
 
                   <div className="h-px bg-white/5 my-1" />
@@ -1178,7 +1254,7 @@ export const StageElementSpecsEditor: React.FC<StageElementSpecsEditorProps> = (
                     <span className="material-symbols-outlined text-[15px] text-red-400">
                       delete
                     </span>
-                    <span>Delete</span>
+                    <span>{tr.stagex?.specs?.delete || 'Delete'}</span>
                   </button>
                 </motion.div>
               </>

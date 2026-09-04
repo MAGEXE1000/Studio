@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useT, useSettingsStore } from '@workspace/studio-core';
 import type { StageLibraryItem } from '../types';
-import { STAGEX_LIBRARY, STAGEX_ICON_MAP } from '../constants';
+import { STAGEX_LIBRARY, STAGEX_ICON_MAP, localizeElementName } from '../constants';
 
 export interface StageElementLibrarySurfaceProps {
   onClose: () => void;
@@ -10,31 +11,37 @@ export interface StageElementLibrarySurfaceProps {
   accent: { from: string; to: string };
 }
 
-interface DrawerCategory {
-  key: string;
-  label: string;
-  icon: string;
-}
-
-const CATEGORIES: DrawerCategory[] = [
-  { key: 'all', label: 'All', icon: 'apps' },
-  { key: 'mics', label: 'Mics', icon: 'mic' },
-  { key: 'inst', label: 'Instruments', icon: 'electric_bolt' },
-  { key: 'drums', label: 'Drums', icon: 'music_note' },
-  { key: 'amps', label: 'Amps', icon: 'speaker' },
-  { key: 'mon', label: 'Monitors', icon: 'volume_up' },
-  { key: 'util', label: 'DI & Gear', icon: 'settings_input_component' },
-  { key: 'people', label: 'People', icon: 'person' },
-];
-
 export const StageElementLibrarySurface: React.FC<StageElementLibrarySurfaceProps> = ({
   onClose,
   onSelectElement,
   isLight,
-  accent,
+  accent: _accent,
 }) => {
+  const t = useT();
+  const tr = t as any;
+  const language = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const isSpanish = language === 'es';
+
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const itemsContainerRef = useRef<HTMLDivElement>(null);
+
+  const categories = useMemo(
+    () => [
+      { key: 'all', label: tr.stagex?.library?.all || 'All', icon: 'apps' },
+      { key: 'mics', label: tr.stagex?.library?.mics || 'Mics', icon: 'mic' },
+      { key: 'inst', label: tr.stagex?.library?.inst || 'Instruments', icon: 'electric_bolt' },
+      { key: 'drums', label: tr.stagex?.library?.drums || 'Drums', icon: 'music_note' },
+      { key: 'amps', label: tr.stagex?.library?.amps || 'Amps', icon: 'speaker' },
+      { key: 'mon', label: tr.stagex?.library?.mon || 'Monitors', icon: 'volume_up' },
+      {
+        key: 'util',
+        label: tr.stagex?.library?.util || 'DI & Gear',
+        icon: 'settings_input_component',
+      },
+      { key: 'people', label: tr.stagex?.library?.people || 'People', icon: 'person' },
+    ],
+    [tr.stagex?.library]
+  );
 
   // Scroll element list back to start when category changes
   useEffect(() => {
@@ -95,7 +102,7 @@ export const StageElementLibrarySurface: React.FC<StageElementLibrarySurfaceProp
             msOverflowStyle: 'none',
           }}
         >
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const isActive = activeCategory === cat.key;
             return (
               <button
@@ -149,8 +156,8 @@ export const StageElementLibrarySurface: React.FC<StageElementLibrarySurfaceProp
               ? '1px solid rgba(0, 0, 0, 0.06)'
               : '1px solid rgba(255, 255, 255, 0.08)',
           }}
-          aria-label="Close Element Drawer"
-          title="Close"
+          aria-label={tr.stagex?.library?.closeDrawer || 'Close Element Drawer'}
+          title={tr.stagex?.library?.closeDrawer || 'Close'}
         >
           <span className="material-symbols-outlined text-[16px]">close</span>
         </button>
@@ -166,41 +173,44 @@ export const StageElementLibrarySurface: React.FC<StageElementLibrarySurfaceProp
           msOverflowStyle: 'none',
         }}
       >
-        {activeItems.map((item, idx) => (
-          <button
-            key={`${item.name}-${idx}`}
-            type="button"
-            data-testid={`drawer-item-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
-            onClick={() => {
-              onSelectElement(item);
-              onClose();
-            }}
-            className="flex flex-col items-center justify-center p-1.5 rounded-2xl transition-all active:scale-95 flex-shrink-0 cursor-pointer group"
-            style={{
-              width: '74px',
-              height: '74px',
-              background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
-              border: isLight
-                ? '1px solid rgba(0, 0, 0, 0.07)'
-                : '1px solid rgba(255, 255, 255, 0.07)',
-              color: isLight ? '#09090b' : '#ffffff',
-            }}
-            title={`Add ${item.name}`}
-          >
-            <div className="w-7 h-7 flex items-center justify-center mb-1.5 transition-transform group-hover:scale-105">
-              {renderIcon(item)}
-            </div>
-            <span
-              className="text-[9.5px] font-semibold text-center w-full truncate px-0.5 leading-tight"
-              style={{
-                fontFamily: 'Inter, sans-serif',
-                color: isLight ? '#27272a' : '#d4d4d8',
+        {activeItems.map((item, idx) => {
+          const localizedName = localizeElementName(item.name, item.type, isSpanish ? 'es' : 'en');
+          return (
+            <button
+              key={`${item.name}-${idx}`}
+              type="button"
+              data-testid={`drawer-item-${item.name.replace(/\s+/g, '-').toLowerCase()}`}
+              onClick={() => {
+                onSelectElement(item);
+                onClose();
               }}
+              className="flex flex-col items-center justify-center p-1.5 rounded-2xl transition-all active:scale-95 flex-shrink-0 cursor-pointer group"
+              style={{
+                width: '74px',
+                height: '74px',
+                background: isLight ? 'rgba(0, 0, 0, 0.03)' : 'rgba(255, 255, 255, 0.04)',
+                border: isLight
+                  ? '1px solid rgba(0, 0, 0, 0.07)'
+                  : '1px solid rgba(255, 255, 255, 0.07)',
+                color: isLight ? '#09090b' : '#ffffff',
+              }}
+              title={isSpanish ? `Añadir ${localizedName}` : `Add ${item.name}`}
             >
-              {item.name}
-            </span>
-          </button>
-        ))}
+              <div className="w-7 h-7 flex items-center justify-center mb-1.5 transition-transform group-hover:scale-105">
+                {renderIcon(item)}
+              </div>
+              <span
+                className="text-[9.5px] font-semibold text-center w-full truncate px-0.5 leading-tight"
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  color: isLight ? '#27272a' : '#d4d4d8',
+                }}
+              >
+                {localizedName}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

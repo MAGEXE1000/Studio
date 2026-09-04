@@ -24,7 +24,12 @@ import { StageHistorySurface } from './StageHistorySurface';
 import { StageElementSpecsEditor } from './StageElementSpecsEditor';
 import { ExportPdfDialog } from './dialogs/ExportPdfDialog';
 import { StageCollabDialog } from './dialogs/StageCollabDialog';
-import { StageBridge, injectTheme, injectAmoled } from '../services/StageBridgeService';
+import {
+  StageBridge,
+  injectTheme,
+  injectAmoled,
+  injectAccentVars,
+} from '../services/StageBridgeService';
 import { useStagexStore } from '../state/useStagexStore';
 import SmartLoading from '../../../shared/loading/SmartLoading';
 import { resolveAccent } from '@workspace/studio-core';
@@ -502,6 +507,12 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     } catch {}
   }, [stageBg, isLight, isAmoled]);
 
+  // Update canvas accent color variables on global accent changes
+  useEffect(() => {
+    if (!iframeRef.current) return;
+    injectAccentVars(iframeRef.current, accent.from, accent.to);
+  }, [accent.from, accent.to]);
+
   // Load custom elements
   const loadCustomElements = useCallback(() => {
     try {
@@ -598,6 +609,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       StageBridge.registerIframe(iframeRef.current);
       injectTheme(iframeRef.current, isLight ? 'light' : 'dark');
       injectAmoled(iframeRef.current, isAmoled);
+      injectAccentVars(iframeRef.current, accent.from, accent.to);
       StageBridge.updateCanvasBg(iframeRef.current, stageBg);
       StageBridge.setLang(iframeRef.current, currentLang);
       StageBridge.syncAllPreferences(iframeRef.current, preferences);

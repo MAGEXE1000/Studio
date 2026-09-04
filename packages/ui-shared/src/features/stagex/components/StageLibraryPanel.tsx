@@ -1,6 +1,13 @@
 import React, { useMemo } from 'react';
+import { useT, useSettingsStore } from '@workspace/studio-core';
 import { StageLibraryItem } from '../types';
-import { STAGEX_LIBRARY, CATEGORY_LABELS, CATEGORY_ICONS, STAGEX_ICON_MAP } from '../constants';
+import {
+  STAGEX_LIBRARY,
+  CATEGORY_LABELS,
+  CATEGORY_ICONS,
+  STAGEX_ICON_MAP,
+  localizeElementName,
+} from '../constants';
 import {
   BouncyAccordion,
   type BouncyAccordionItem,
@@ -32,6 +39,23 @@ export const StageLibraryPanel = React.memo(
     iframeRef,
     handleAddElement,
   }: StageLibraryPanelProps) => {
+    const t = useT();
+    const tr = t as any;
+    const language = useSettingsStore((s) => s.settings.language) ?? 'en';
+    const isSpanish = language === 'es';
+
+    const getCategoryLabel = (catKey: string) => {
+      if (catKey === 'presets') return tr.stagex?.library?.presets || 'Presets';
+      if (catKey === 'custom') return tr.stagex?.library?.custom || 'Custom';
+      if (catKey === 'mics') return tr.stagex?.library?.mics || 'Mics';
+      if (catKey === 'drums') return tr.stagex?.library?.drums || 'Drums';
+      if (catKey === 'inst') return tr.stagex?.library?.inst || 'Instruments';
+      if (catKey === 'amps') return tr.stagex?.library?.amps || 'Amps';
+      if (catKey === 'mon') return tr.stagex?.library?.mon || 'Monitors';
+      if (catKey === 'util') return tr.stagex?.library?.util || 'DI & Gear';
+      if (catKey === 'people') return tr.stagex?.library?.people || 'People';
+      return CATEGORY_LABELS[catKey as keyof typeof CATEGORY_LABELS] || catKey;
+    };
     // Pre-compute flattened, lowercased strings for O(1) filter performance
     const searchDictionary = useMemo(() => {
       const dict: { item: StageLibraryItem; searchStr: string }[] = [];
@@ -108,11 +132,13 @@ export const StageLibraryPanel = React.memo(
     };
 
     const renderCard = (item: StageLibraryItem) => {
+      const displayName = localizeElementName(item.name, item.type, isSpanish ? 'es' : 'en');
       return (
         <button
           key={item.id || item.name}
           onClick={() => handleAddElement(item)}
           className={`btn-smooth ${isLight ? 'hover:bg-black/5' : 'hover:bg-white/5'} text-left`}
+          title={isSpanish ? `Añadir ${displayName}` : `Add ${item.name}`}
           style={{
             display: 'flex',
             flexDirection: 'column',
@@ -156,7 +182,7 @@ export const StageLibraryPanel = React.memo(
               boxSizing: 'border-box',
             }}
           >
-            {item.name}
+            {displayName}
           </span>
         </button>
       );
@@ -235,7 +261,7 @@ export const StageLibraryPanel = React.memo(
               marginBottom: '8px',
             }}
           >
-            Stage Elements
+            {isSpanish ? 'Elementos de Escenario' : 'Stage Elements'}
           </h4>
 
           <div style={{ position: 'relative', width: '100%', marginBottom: '4px' }}>
@@ -254,7 +280,7 @@ export const StageLibraryPanel = React.memo(
             </span>
             <input
               type="text"
-              placeholder="Search elements..."
+              placeholder={tr.stagex?.library?.searchPlaceholder || 'Search elements...'}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -310,7 +336,7 @@ export const StageLibraryPanel = React.memo(
                 marginBottom: '8px',
               }}
             >
-              Search Results
+              {tr.stagex?.library?.searchResults || 'Search Results'}
             </h5>
             {searchResults.length === 0 ? (
               <div
@@ -321,7 +347,7 @@ export const StageLibraryPanel = React.memo(
                   fontSize: '11px',
                 }}
               >
-                No elements found
+                {tr.stagex?.library?.noElementsFound || 'No elements found'}
               </div>
             ) : (
               <div
@@ -343,7 +369,7 @@ export const StageLibraryPanel = React.memo(
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {renderStageCollapsibleSection(
               'presets',
-              CATEGORY_LABELS.presets || 'Presets',
+              getCategoryLabel('presets'),
               CATEGORY_ICONS.presets || 'save',
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <button
@@ -367,7 +393,7 @@ export const StageLibraryPanel = React.memo(
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
                     save
                   </span>
-                  Save Preset
+                  {tr.stagex?.library?.savePreset || 'Save Preset'}
                 </button>
                 <button
                   onClick={() => callIframe('scOpenElPresets')}
@@ -390,7 +416,7 @@ export const StageLibraryPanel = React.memo(
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
                     bookmark
                   </span>
-                  Manage Presets
+                  {tr.stagex?.library?.managePresets || 'Manage Presets'}
                 </button>
               </div>,
               true
@@ -398,7 +424,7 @@ export const StageLibraryPanel = React.memo(
 
             {renderStageCollapsibleSection(
               'custom',
-              CATEGORY_LABELS.custom || 'Custom',
+              getCategoryLabel('custom'),
               CATEGORY_ICONS.custom || 'add_circle',
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <button
@@ -431,7 +457,7 @@ export const StageLibraryPanel = React.memo(
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
                     add
                   </span>
-                  Create Custom
+                  {tr.stagex?.library?.createCustom || 'Create Custom'}
                 </button>
 
                 {customElements.length > 0 ? (
@@ -458,7 +484,7 @@ export const StageLibraryPanel = React.memo(
                       padding: '12px 6px',
                     }}
                   >
-                    No custom elements yet.
+                    {isSpanish ? 'No hay elementos personalizados aún.' : 'No custom elements yet.'}
                   </div>
                 )}
               </div>,
@@ -468,7 +494,7 @@ export const StageLibraryPanel = React.memo(
             {Object.keys(STAGEX_LIBRARY).map((catKey) =>
               renderStageCollapsibleSection(
                 catKey,
-                CATEGORY_LABELS[catKey as keyof typeof CATEGORY_LABELS] || catKey,
+                getCategoryLabel(catKey),
                 CATEGORY_ICONS[catKey as keyof typeof CATEGORY_ICONS] || 'category',
                 <div
                   style={{

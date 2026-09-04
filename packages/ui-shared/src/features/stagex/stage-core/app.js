@@ -5585,6 +5585,9 @@ function setLang(lang) {
   autoTranslateNeeds(prev, lang);
   autoTranslateNotes(lang);
   applyTranslations();
+  if (typeof window.syncFabTranslations === 'function') {
+    window.syncFabTranslations();
+  }
   // Refresh autosave label text
   const saveLbl = document.getElementById('status-save');
   if (saveLbl) saveLbl.textContent = state.autosave ? T('autosaveOn') : T('autosaveOff');

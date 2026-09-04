@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useT, useSettingsStore } from '@workspace/studio-core';
 
 export type SpecsPickerType = 'performer' | 'channel' | 'source' | 'destination';
 
@@ -144,8 +145,13 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
   onSelect,
   onBack,
   isLight,
-  isAmoled,
+  isAmoled: _isAmoled,
 }) => {
+  const t = useT();
+  const tr = t as any;
+  const language = useSettingsStore((s) => s.settings.language) ?? 'en';
+  const isSpanish = language === 'es';
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isCustomOpen, setIsCustomOpen] = useState(false);
   const [customVal, setCustomVal] = useState('');
@@ -158,13 +164,25 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
   }, [isCustomOpen]);
 
   const titleMap: Record<SpecsPickerType, { title: string; icon: string; customLabel: string }> = {
-    performer: { title: 'Select Performer', icon: 'person', customLabel: 'Custom Performer' },
-    channel: { title: 'Select Channel', icon: 'tune', customLabel: 'Custom Channel' },
-    source: { title: 'Select Source', icon: 'cable', customLabel: 'Custom Source' },
+    performer: {
+      title: tr.stagex?.picker?.selectPerformer || 'Select Performer',
+      icon: 'person',
+      customLabel: tr.stagex?.picker?.customPerformer || 'Custom Performer',
+    },
+    channel: {
+      title: tr.stagex?.picker?.selectChannel || 'Select Channel',
+      icon: 'tune',
+      customLabel: tr.stagex?.picker?.customChannel || 'Custom Channel',
+    },
+    source: {
+      title: tr.stagex?.picker?.selectSource || 'Select Source',
+      icon: 'cable',
+      customLabel: tr.stagex?.picker?.customSource || 'Custom Source',
+    },
     destination: {
-      title: 'Select Destination',
+      title: tr.stagex?.picker?.selectDestination || 'Select Destination',
       icon: 'volume_up',
-      customLabel: 'Custom Destination',
+      customLabel: tr.stagex?.picker?.customDestination || 'Custom Destination',
     },
   };
 
@@ -214,8 +232,8 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
               background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
               color: isLight ? '#18181b' : '#ffffff',
             }}
-            aria-label="Back to Specs"
-            title="Back"
+            aria-label={isSpanish ? 'Volver a especificaciones' : 'Back to Specs'}
+            title={isSpanish ? 'Volver' : 'Back'}
           >
             <span className="material-symbols-outlined text-[16px]">arrow_back</span>
           </button>
@@ -241,8 +259,8 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
             background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
             color: isLight ? '#71717a' : '#a1a1aa',
           }}
-          aria-label="Close"
-          title="Done"
+          aria-label={isSpanish ? 'Cerrar' : 'Close'}
+          title={isSpanish ? 'Listo' : 'Done'}
         >
           <span className="material-symbols-outlined text-[16px]">close</span>
         </button>
@@ -271,7 +289,10 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
               data-testid="specs-picker-search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Filter ${type}s...`}
+              placeholder={
+                tr.stagex?.picker?.searchFilter ||
+                (isSpanish ? 'Buscar o filtrar...' : `Filter ${type}s...`)
+              }
               className="w-full text-[11px] font-medium bg-transparent outline-none"
               style={{ color: isLight ? '#09090b' : '#ffffff' }}
             />
@@ -394,7 +415,7 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
                 <div className="flex items-center gap-1 flex-shrink-0 ml-2">
                   {opt.disabled && (
                     <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                      In Use
+                      {isSpanish ? 'En uso' : 'In Use'}
                     </span>
                   )}
                   {isSelected && (
@@ -411,7 +432,7 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
           })
         ) : (
           <div className="py-4 text-center text-[11px] text-zinc-500">
-            No matching options found.
+            {isSpanish ? 'No se encontraron opciones coincidentes.' : 'No matching options found.'}
           </div>
         )}
       </div>
@@ -426,7 +447,11 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
               data-testid="specs-picker-custom-input"
               value={customVal}
               onChange={(e) => setCustomVal(e.target.value)}
-              placeholder={`Enter custom ${type}...`}
+              placeholder={
+                isSpanish
+                  ? `Ingresar ${meta.customLabel.toLowerCase()}...`
+                  : `Enter custom ${type}...`
+              }
               className="flex-1 px-2.5 py-1 rounded-xl text-[11px] font-semibold outline-none"
               style={{
                 background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.06)',
@@ -442,7 +467,7 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
               className="h-[30px] px-2.5 rounded-xl text-[10.5px] font-bold bg-pink-500 text-white cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1"
             >
               <span className="material-symbols-outlined text-[14px]">check</span>
-              <span>Apply</span>
+              <span>{tr.stagex?.picker?.save || (isSpanish ? 'Aplicar' : 'Apply')}</span>
             </button>
             <button
               type="button"
@@ -457,7 +482,7 @@ export const StagexSpecsPicker: React.FC<StagexSpecsPickerProps> = ({
                 color: isLight ? '#71717a' : '#a1a1aa',
               }}
             >
-              Cancel
+              {tr.stagex?.picker?.cancel || (isSpanish ? 'Cancelar' : 'Cancel')}
             </button>
           </form>
         ) : (

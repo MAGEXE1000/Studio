@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion } from 'motion/react';
-import { useT, useIsWebDesktop, useScrollHide } from '@workspace/studio-core';
+import { useT, useIsWebDesktop, useScrollHide, useSettingsStore } from '@workspace/studio-core';
 import { StudioHeader } from '../../../../shared/layout/StudioHeader';
 import { useStagexStore, type StagexSubView } from '../../state/useStagexStore';
 
@@ -23,7 +23,8 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
 
-  const isSpanish = tr.nav?.stagexStage === 'Escenario';
+  const currentLang = useSettingsStore((s) => s.settings.language);
+  const isSpanish = currentLang === 'es';
 
   const title = tr.stagex?.setupTitle || (isSpanish ? 'Configuración' : 'Setup');
   const subtitle =

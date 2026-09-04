@@ -62,6 +62,7 @@ export function BottomNavigationController() {
   const setProfileMenuOpen = useBottomNavigationStore((s) => s.setProfileMenuOpen);
   const toggleProfileMenu = useBottomNavigationStore((s) => s.toggleProfileMenu);
   const storeVisible = useBottomNavigationStore((s) => s.visible);
+  const isLocked = useBottomNavigationStore((s) => s.isLocked);
 
   useBackHandler(
     'overlay',
@@ -437,6 +438,7 @@ export function BottomNavigationController() {
         items={computedItems}
         isLight={isLight}
         visible={visible}
+        isLocked={isLocked}
         collapsed={collapsed}
         isSwitcherOpen={isSwitcherOpen}
         setIsSwitcherOpen={setIsSwitcherOpen}

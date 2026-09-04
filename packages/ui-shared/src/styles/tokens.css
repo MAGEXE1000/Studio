@@ -1004,6 +1004,19 @@ html.theme-transition-active *:not([data-theme-exempt] *):not([data-theme-exempt
     pointer-events: none !important;
   }
 
+  /* Direct-DOM lock and hide for the bottom nav bar (zero-leak invariant) */
+  html[data-nav-locked='true'] .shared-bottom-navbar-wrapper,
+  html[data-nav-hidden='true'] .shared-bottom-navbar-wrapper,
+  html[data-nav-locked='true'] .shared-bottom-nav,
+  html[data-nav-hidden='true'] .shared-bottom-nav,
+  html[data-nav-locked='true'] .glass-nav,
+  html[data-nav-hidden='true'] .glass-nav {
+    pointer-events: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(96px) scale(0.94) !important;
+  }
+
   /* ===== Panel section transitions — unified across all apps =================
      Directional horizontal slide + crossfade.
      Enter:  spring deceleration  — content glides in and settles naturally.

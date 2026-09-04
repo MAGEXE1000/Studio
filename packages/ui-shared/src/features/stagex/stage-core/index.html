@@ -515,7 +515,7 @@
 ══════════════════════════════════════════ */
       #sc-vtools {
         position: absolute;
-        left: calc(max(24px, env(safe-area-inset-left) + 8px));
+        left: calc(max(16px, env(safe-area-inset-left, 0px) + 8px));
         top: 50%;
         transform: translateY(-50%);
         z-index: 100;
@@ -528,8 +528,8 @@
         width: 32px;
         height: 32px;
         border-radius: 10px;
-        background: transparent;
-        border: none;
+        background: rgba(14, 14, 14, 0.94);
+        border: 1px solid rgba(255, 255, 255, 0.09);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -540,13 +540,18 @@
           color 140ms ease,
           background 140ms ease;
         flex-shrink: 0;
-        box-shadow: none;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       }
       #sc-vtools-toggle:hover {
         color: #c8c8c8;
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.12);
       }
       #sc-vtools-body {
+        position: absolute;
+        left: calc(100% + 8px);
+        top: 50%;
+        transform: translateY(calc(-50% + var(--vtools-shift-y, 0px))) scale(1);
+        transform-origin: left center;
         background: rgba(14, 14, 14, 0.94);
         border: 1px solid rgba(255, 255, 255, 0.09);
         border-radius: 16px;
@@ -556,21 +561,23 @@
         align-items: center;
         gap: 1px;
         overflow: hidden;
-        max-height: 700px;
+        max-height: calc(100vh - 128px);
         opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
         transition:
-          max-height 300ms cubic-bezier(0.4, 0, 0.2, 1),
-          opacity 220ms ease,
-          padding 260ms ease;
+          opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+          visibility 180ms;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
       }
       #sc-vtools-body.vtools-collapsed {
-        max-height: 0;
         opacity: 0;
-        padding-top: 0;
-        padding-bottom: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(calc(-50% + var(--vtools-shift-y, 0px))) scale(0.92);
       }
       .sc-vtool-btn {
         width: 32px;
@@ -763,18 +770,28 @@
         width: 100% !important;
         height: 100% !important;
         box-sizing: border-box !important;
-        padding-top: 8px !important;
-        padding-bottom: calc(var(--dock-safe-gap, 140px) + env(safe-area-inset-bottom, 0px)) !important;
+        padding-top: calc(max(12px, env(safe-area-inset-top, 0px)) + 54px) !important;
+        padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 74px) !important;
         padding-left: calc(max(12px, env(safe-area-inset-left, 0px))) !important;
         padding-right: calc(max(12px, env(safe-area-inset-right, 0px))) !important;
         overflow: hidden !important;
-        /* Smooth slide when vtools panel opens/closes */
-        transition: transform 300ms cubic-bezier(0.34, 1.1, 0.64, 1) !important;
       }
-      /* When the vtools panel is expanded: shrink slightly + shift right so nothing clips */
+      @media screen and (orientation: landscape) and (max-width: 960px) {
+        #stage-viewport {
+          padding-top: calc(max(6px, env(safe-area-inset-top, 0px))) !important;
+          padding-left: calc(max(6px, env(safe-area-inset-left, 0px))) !important;
+          padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 0px))) !important;
+          padding-right: calc(max(64px, env(safe-area-inset-right, 0px))) !important;
+        }
+      }
+      @media screen and (min-width: 961px) {
+        #stage-viewport {
+          padding: 16px !important;
+        }
+      }
+      /* When the vtools panel is expanded: keep stage viewport stable in place */
       #canvas-container.vtools-open #stage-viewport {
-        transform: translateX(22px) scale(0.91) !important;
-        transform-origin: center center !important;
+        transform: none !important;
       }
 
       /* Views fill the iframe from top */

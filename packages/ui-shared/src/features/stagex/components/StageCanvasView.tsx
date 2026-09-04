@@ -13,6 +13,7 @@ import {
   setNavHidden,
   setNavLocked,
   useBackHandler,
+  useBottomNavigationStore,
 } from '@workspace/studio-core';
 import { StageToolbar } from './StageToolbar';
 import { StageLibraryPanel } from './StageLibraryPanel';
@@ -67,6 +68,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
   const [isLandscape, setIsLandscape] = useState(false);
   const [selectedElement, setSelectedElement] = useState<any | null>(null);
   const [specsOpen, setSpecsOpen] = useState(false);
+  const [isCanvasDragging, setIsCanvasDragging] = useState(false);
 
   // Sync orientation changes
   useEffect(() => {
@@ -96,6 +98,10 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
           const el = StageBridge.getSelectedElement(iframeRef.current);
           if (el) setSelectedElement(el);
         }
+      } else if (e.data.type === 'sc-drag-start') {
+        setIsCanvasDragging(true);
+      } else if (e.data.type === 'sc-drag-end') {
+        setIsCanvasDragging(false);
       } else if (e.data.type === 'sc-project-saved') {
         if (Array.isArray(e.data.elements)) {
           const newName = e.data.name || e.data.projectName;
@@ -118,13 +124,14 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Ensure bottom navigation reflects landscape, inspection mode, element picker drawer, and specs editor state
+  // Ensure bottom navigation reflects landscape, inspection mode, element picker drawer, specs editor, and drag state
   useEffect(() => {
     if (isWebDesktop) return;
-    const shouldHide = isLandscape || liveMode || fabOpen || specsOpen;
+    const shouldHide = isLandscape || liveMode || fabOpen || specsOpen || isCanvasDragging;
     setNavLocked(shouldHide);
     setNavHidden(shouldHide);
-  }, [isLandscape, liveMode, fabOpen, specsOpen, isWebDesktop]);
+    useBottomNavigationStore.getState().setLocked(shouldHide);
+  }, [isLandscape, liveMode, fabOpen, specsOpen, isCanvasDragging, isWebDesktop]);
 
   // Dismiss Specs editor or element drawer on Android hardware back button
   useBackHandler(
@@ -143,12 +150,13 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     [specsOpen, fabOpen]
   );
 
-  // Clean up orientation lock on unmount
+  // Clean up orientation lock and navigation state on unmount
   useEffect(() => {
     return () => {
       lockOrientation('portrait').catch(() => {});
       setNavLocked(false);
       setNavHidden(false);
+      useBottomNavigationStore.getState().setLocked(false);
     };
   }, []);
 

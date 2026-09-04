@@ -51,7 +51,8 @@ export interface SharedNavigationItem {
 export interface SharedNavigationBarProps {
   items: SharedNavigationItem[];
   isLight: boolean;
-  visible: boolean;
+  visible?: boolean;
+  isLocked?: boolean;
   collapsed: boolean;
   isSwitcherOpen: boolean;
   setIsSwitcherOpen: (open: boolean) => void;
@@ -201,7 +202,8 @@ const NavigationItem = React.memo(
 export function SharedNavigationBar({
   items,
   isLight,
-  visible,
+  visible = true,
+  isLocked,
   collapsed,
   isSwitcherOpen,
   setIsSwitcherOpen,
@@ -213,6 +215,10 @@ export function SharedNavigationBar({
 }: SharedNavigationBarProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const startupComplete = useStartupComplete();
+
+  const storeLocked = useBottomNavigationStore((s) => s.isLocked);
+  const isEffectiveLocked = Boolean(isLocked || storeLocked);
+  const isEffectiveHidden = !visible || isEffectiveLocked;
 
   const isProfileMenuOpen = useBottomNavigationStore((s) => s.isProfileMenuOpen);
   const setProfileMenuOpen = useBottomNavigationStore((s) => s.setProfileMenuOpen);
@@ -257,6 +263,7 @@ export function SharedNavigationBar({
   }, []);
 
   const handleAppSwitch = (appKey: string) => {
+    if (isEffectiveHidden) return;
     NavigationDispatcher.push({ app: appKey as any });
     setIsSwitcherOpen(false);
   };
@@ -369,7 +376,11 @@ export function SharedNavigationBar({
           const numK = Number(k);
           const p = prev[numK];
           const n = newGeom[numK];
-          if (!p || Math.abs(p.width - n.width) > 0.5 || Math.abs(p.centerLeft - n.centerLeft) > 0.5) {
+          if (
+            !p ||
+            Math.abs(p.width - n.width) > 0.5 ||
+            Math.abs(p.centerLeft - n.centerLeft) > 0.5
+          ) {
             changed = true;
             break;
           }
@@ -541,7 +552,7 @@ export function SharedNavigationBar({
   const pressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button !== 0) return;
+    if (isEffectiveHidden || e.button !== 0) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - rect.left;
@@ -559,6 +570,7 @@ export function SharedNavigationBar({
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isEffectiveHidden) return;
     const dragDistance = Math.abs(e.clientX - startXRef.current);
     if (!isScrubbingRef.current && dragDistance > 2) {
       isScrubbingRef.current = true;
@@ -875,6 +887,15 @@ export function SharedNavigationBar({
           key="navigation-bar-wrapper"
           ref={containerRef}
           className="shared-bottom-navbar-wrapper"
+          animate={{
+            y: isEffectiveHidden ? 100 : 0,
+            opacity: isEffectiveHidden ? 0 : 1,
+            scale: isEffectiveHidden ? 0.94 : 1,
+          }}
+          transition={{
+            duration: 0.18,
+            ease: [0.16, 1, 0.3, 1],
+          }}
           style={{
             position: 'fixed',
             bottom: 'max(14px, var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 14px)))',
@@ -885,6 +906,7 @@ export function SharedNavigationBar({
             flexDirection: 'column',
             alignItems: 'center',
             pointerEvents: 'none',
+            visibility: isEffectiveHidden ? 'hidden' : 'visible',
             transformOrigin: 'center center',
           }}
         >
@@ -915,7 +937,7 @@ export function SharedNavigationBar({
                 mass: 0.75,
               }}
               style={{
-                pointerEvents: 'auto',
+                pointerEvents: isEffectiveHidden ? 'none' : 'auto',
                 maxWidth: '100%',
                 height: '58px',
                 borderRadius: '26px',
@@ -1089,6 +1111,7 @@ export function SharedNavigationBar({
                               item={item}
                               index={index}
                               onClick={() => {
+                                if (isEffectiveHidden) return;
                                 if (performance.now() - pointerUpHandledAtRef.current < 100) return;
                                 navigationEpochRef.current += 1;
                                 setNavigationEpoch(navigationEpochRef.current);
@@ -1161,6 +1184,7 @@ export function SharedNavigationBar({
                             item={item}
                             index={index}
                             onClick={() => {
+                              if (isEffectiveHidden) return;
                               if (performance.now() - pointerUpHandledAtRef.current < 100) return;
                               navigationEpochRef.current += 1;
                               setNavigationEpoch(navigationEpochRef.current);
@@ -1201,7 +1225,10 @@ export function SharedNavigationBar({
                 }}
               >
                 <motion.button
-                  onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}
+                  onClick={() => {
+                    if (isEffectiveHidden) return;
+                    setIsSwitcherOpen(!isSwitcherOpen);
+                  }}
                   whileTap={{ scale: 0.92 }}
                   whileHover={{ scale: 1.04 }}
                   transition={{ type: 'spring', stiffness: 360, damping: 24, mass: 0.75 }}

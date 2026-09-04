@@ -29,6 +29,7 @@ export interface BottomNavigationStore {
   items: BottomNavItem[];
   isLight: boolean;
   debugLog: boolean;
+  isLocked: boolean;
 
   // Actions
   setMotionState: (state: BottomNavMotionState) => void;
@@ -40,6 +41,7 @@ export interface BottomNavigationStore {
   setSearchOpen: (open: boolean) => void;
   toggleSearch: () => void;
   closeAllOverlays: () => void;
+  setLocked: (locked: boolean) => void;
   setItems: (items: BottomNavItem[]) => void;
   setIsLight: (isLight: boolean) => void;
   setDebugLog: (enabled: boolean) => void;
@@ -56,26 +58,47 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
   items: [],
   isLight: false,
   debugLog: true,
+  isLocked: false,
+
+  setLocked: (isLocked: boolean) => {
+    if (isLocked) {
+      set({
+        isLocked: true,
+        isSwitcherOpen: false,
+        isProfileMenuOpen: false,
+        isSearchOpen: false,
+        motionState: 'Hidden',
+      });
+      get().logState('locked: true -> bottom nav interaction disabled');
+    } else {
+      set({ isLocked: false, motionState: 'Visible' });
+      get().logState('locked: false -> bottom nav interaction restored');
+    }
+  },
 
   setMotionState: (motionState) => {
+    if (get().isLocked && motionState !== 'Hidden') return;
     const prev = get().motionState;
     if (prev === motionState) return;
     set({ motionState });
     get().logState(`state: ${prev} -> ${motionState}`);
   },
   setVisible: (visible) => {
+    if (get().isLocked && visible) return;
     const prev = get().visible;
     if (prev === visible) return;
     set({ visible });
     get().setMotionState(visible ? 'Visible' : 'Hidden');
   },
   setCollapsed: (collapsed) => {
+    if (get().isLocked) return;
     const prev = get().collapsed;
     if (prev === collapsed) return;
     set({ collapsed });
     get().setMotionState(collapsed ? 'Scrolling' : 'Idle');
   },
   setSwitcherOpen: (isSwitcherOpen) => {
+    if (get().isLocked && isSwitcherOpen) return;
     set({
       isSwitcherOpen,
       isProfileMenuOpen: isSwitcherOpen ? false : get().isProfileMenuOpen,
@@ -84,6 +107,7 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
     get().setMotionState(isSwitcherOpen ? 'SwitchingApp' : 'Visible');
   },
   setProfileMenuOpen: (isProfileMenuOpen) => {
+    if (get().isLocked && isProfileMenuOpen) return;
     set({
       isProfileMenuOpen,
       isSwitcherOpen: isProfileMenuOpen ? false : get().isSwitcherOpen,
@@ -91,10 +115,12 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
     });
   },
   toggleProfileMenu: () => {
+    if (get().isLocked) return;
     const next = !get().isProfileMenuOpen;
     get().setProfileMenuOpen(next);
   },
   setSearchOpen: (isSearchOpen) => {
+    if (get().isLocked && isSearchOpen) return;
     set({
       isSearchOpen,
       isProfileMenuOpen: isSearchOpen ? false : get().isProfileMenuOpen,
@@ -102,6 +128,7 @@ export const useBottomNavigationStore = create<BottomNavigationStore>((set, get)
     });
   },
   toggleSearch: () => {
+    if (get().isLocked) return;
     const next = !get().isSearchOpen;
     get().setSearchOpen(next);
   },

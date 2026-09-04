@@ -3109,6 +3109,9 @@ function startDragElement(e, el) {
     if (!dragging) {
       if (Math.hypot(dx, dy) < threshold) return;
       dragging = true;
+      try {
+        window.parent.postMessage({ type: 'sc-drag-start' }, '*');
+      } catch (_) {}
     }
 
     let nx = initX + dx;
@@ -3168,6 +3171,11 @@ function startDragElement(e, el) {
     try {
       wrap.releasePointerCapture(e.pointerId);
     } catch (_) {}
+    if (dragging) {
+      try {
+        window.parent.postMessage({ type: 'sc-drag-end' }, '*');
+      } catch (_) {}
+    }
     wrap.classList.remove('dragging');
     wrap.style.willChange = '';
     _propPeek(false);
@@ -3224,6 +3232,9 @@ function startTouchDragElement(touch, el) {
     const dy = (t.clientY - startY) / zoom;
     if (!dragging) {
       dragging = true;
+      try {
+        window.parent.postMessage({ type: 'sc-drag-start' }, '*');
+      } catch (_) {}
     }
     let nx = initX + dx;
     let ny = initY + dy;
@@ -3259,6 +3270,9 @@ function startTouchDragElement(touch, el) {
       dom.style.willChange = '';
     }
     if (dragging) {
+      try {
+        window.parent.postMessage({ type: 'sc-drag-end' }, '*');
+      } catch (_) {}
       pushHistory();
       try {
         window.parent.postMessage(
@@ -4480,10 +4494,16 @@ function toggleSCVTools() {
   const container = document.getElementById('canvas-container');
   if (!body) return;
   const isNowCollapsed = body.classList.toggle('vtools-collapsed');
-  // Mirror state onto the container so the CSS slide rule can respond
+  // Mirror state onto the container so any CSS state selectors can respond
   if (container) container.classList.toggle('vtools-open', !isNowCollapsed);
   if (toggle) {
     toggle.title = isNowCollapsed ? 'Show tools' : 'Hide tools';
+  }
+  if (!isNowCollapsed) {
+    if (typeof positionVTools === 'function') {
+      positionVTools();
+      requestAnimationFrame(positionVTools);
+    }
   }
 }
 
@@ -8204,6 +8224,7 @@ function positionScenesBar() {
 function positionVTools() {
   const vt = document.getElementById('sc-vtools');
   const toggle = document.getElementById('sc-vtools-toggle');
+  const body = document.getElementById('sc-vtools-body');
   const canvas = document.getElementById('stage-canvas');
   if (!vt || !canvas) return;
   const rect = canvas.getBoundingClientRect();
@@ -8213,10 +8234,39 @@ function positionVTools() {
   const toggleH = toggle ? toggle.offsetHeight : 32;
   const topOffset = canvasCenterY - toggleH / 2;
   if (!isNaN(topOffset) && canvasCenterY > 0) {
-    vt.style.setProperty('top', `${topOffset}px`, 'important');
+    vt.style.setProperty('top', `${Math.round(topOffset)}px`, 'important');
     vt.style.setProperty('transform', 'none', 'important');
   }
+
+  if (body) {
+    const menuH = body.offsetHeight || 270;
+    const topMin = 54;
+    const bottomMax = Math.max(topMin + menuH, (cRect.height || window.innerHeight) - 74);
+    const naturalTop = canvasCenterY - menuH / 2;
+    const naturalBottom = canvasCenterY + menuH / 2;
+    let shiftY = 0;
+    if (naturalTop < topMin) {
+      shiftY = topMin - naturalTop;
+    } else if (naturalBottom > bottomMax) {
+      shiftY = bottomMax - naturalBottom;
+    }
+    body.style.setProperty('--vtools-shift-y', `${Math.round(shiftY)}px`);
+  }
 }
+
+// Dismiss vertical tools contextual menu on outside click
+document.addEventListener(
+  'pointerdown',
+  (e) => {
+    const body = document.getElementById('sc-vtools-body');
+    const vt = document.getElementById('sc-vtools');
+    if (!body || body.classList.contains('vtools-collapsed')) return;
+    if (vt && !vt.contains(e.target)) {
+      toggleSCVTools();
+    }
+  },
+  { passive: true }
+);
 
 function renameScenePrompt(idx) {
   _ensureScenes();

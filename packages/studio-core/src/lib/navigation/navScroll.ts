@@ -26,8 +26,17 @@ function emit(hidden: boolean) {
 export function setNavLocked(locked: boolean) {
   if (_locked === locked) return;
   _locked = locked;
-  if (!locked) {
+  if (locked) {
     clearAutoShow();
+    if (typeof window !== 'undefined') {
+      document.documentElement.setAttribute('data-nav-locked', 'true');
+    }
+    setNavHidden(true);
+  } else {
+    clearAutoShow();
+    if (typeof window !== 'undefined') {
+      document.documentElement.removeAttribute('data-nav-locked');
+    }
     if (_hidden) {
       _hidden = false;
       emit(false);

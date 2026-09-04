@@ -26,12 +26,7 @@
   --hot-dark: #4a1600;
   --hot-10: rgba(255, 116, 57, 0.1);
   --hot-20: rgba(255, 116, 57, 0.2);
-  --dock-safe-gap: 130px;
-}
-@media (min-width: 768px) {
-  :root {
-    --dock-safe-gap: 146px;
-  }
+  --dock-safe-gap: 74px;
 }
 /* ── Stage canvas: GPU-composited layer, instant zoom (no transition lag) ── */
 #stage-canvas {
@@ -1126,8 +1121,8 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
     width: 100% !important;
     height: 100% !important;
     box-sizing: border-box !important;
-    padding-top: calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 52px) !important;
-    padding-bottom: calc(var(--dock-safe-gap, 80px) + env(safe-area-inset-bottom, 0px)) !important;
+    padding-top: calc(max(12px, env(safe-area-inset-top, 0px)) + 54px) !important;
+    padding-bottom: calc(max(14px, env(safe-area-inset-bottom, 0px)) + 74px) !important;
     padding-left: calc(max(12px, env(safe-area-inset-left, 0px))) !important;
     padding-right: calc(max(12px, env(safe-area-inset-right, 0px))) !important;
     overflow: hidden !important;
@@ -1142,7 +1137,7 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
       calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
     ) !important;
     margin-top: 0px !important;
-    margin-bottom: 12px !important;
+    margin-bottom: 10px !important;
     padding: 0 4px !important;
     background: transparent !important;
     box-sizing: border-box !important;
@@ -1162,7 +1157,7 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
       1080px,
       calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
       calc(
-        (100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 144px) * 16 / 9
+        (100vh - max(12px, env(safe-area-inset-top, 0px)) - max(14px, env(safe-area-inset-bottom, 0px)) - 170px) * 16 / 9
       )
     ) !important;
     height: auto !important;
@@ -1176,12 +1171,12 @@ html[data-theme='light'] .sc-scene-add-btn:hover {
     aspect-ratio: 1 / 1 !important;
     width: min(
       calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100vh - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      calc(100vh - max(12px, env(safe-area-inset-top, 0px)) - max(14px, env(safe-area-inset-bottom, 0px)) - 170px),
       640px
     ) !important;
     height: min(
       calc(100vw - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)),
-      calc(100vh - 160px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)),
+      calc(100vh - max(12px, env(safe-area-inset-top, 0px)) - max(14px, env(safe-area-inset-bottom, 0px)) - 170px),
       640px
     ) !important;
   }

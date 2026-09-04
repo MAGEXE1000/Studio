@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.57';
-export const NATIVE_VERSION_CODE = 40557;
-export const WEB_VERSION = '4.5.57';
+export const NATIVE_VERSION = '4.5.58';
+export const NATIVE_VERSION_CODE = 40558;
+export const WEB_VERSION = '4.5.58';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '0a836047';
+export const APP_COMMIT_SHA = '50f70ff6';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/3/2026, 10:35:18 PM CST';
+export const APP_BUILD_TIMESTAMP = '9/4/2026, 6:49:55 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,15 +98,23 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Stagex Preferences Real-Time Canvas Functionality: Fully integrated all 12 exposed canvas preferences (Canvas Background presets, dynamic Grid Size, Stage Plot Shape, Snap to Grid with dynamic interval calculation, Cable Length badges, Auto Wire, Stage Balance Visualizer, Measurement Units in meters and feet, Reduced Animations, Grid Overlay, Cable Connections, and Element Labels) into the canvas engine with window bridge setters and automatic synchronization.',
-      'Complete AMOLED Pitch Black Hardening: Standardized all Stagex Setup screens (Setup Hub, Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences) to pure black `#000000` with zero dark-navy bleed.',
-      'Uniform Floating Header Material & Geometry: Unified floating headers across all Setup detail views to canonical 58px height, 9999px pill geometry, safe-area top insets, and consistent frosted glass elevation.',
+      'Comprehensive Bilingual Localization: Complete English and Spanish (en/es) translation coverage across all Studio tools and Stagex screens, with reactive language selector sheet and persistent locale storage.',
     ],
   },
   {
-    heading: 'Improved',
+    heading: 'Fixed',
     items: [
-      'Stage Canvas Experience: Seamless full-bleed canvas overlay layout without top clipping seams, removal of redundant Stagex title header, 5-button toolbar hierarchy with canonical center focus icon, Scene 1 deletion protection, and perfect three-dot control vertical centering.',
+      'Stagex Clean Element Data Defaults: Completely eliminated phantom production data defaults on new stage elements (performer names, microphones, DIs, wireless packs, and boilerplate logistics notes).',
+      'Strict +48V Phantom Power Invariant: Hardened phantom power defaults to false across in-app inspectors, projection adapters, and PDF export sheets, showing canonical em-dash (`—`) when unassigned.',
+      'Stagex Canvas Centering & Menu Anchoring: Fixed canvas vertical positioning, toolbar layout hierarchy, and element menu anchor stability.',
+      'External Link Security Hardening: Enforced `rel="noopener noreferrer"` across all external anchor elements in share dialogs.',
+    ],
+  },
+  {
+    heading: 'Changed',
+    items: [
+      'Theme-Governed Canvas Appearance: Deprecated manual canvas background color selection in Preferences in favor of strict system theme alignment (Light, AMOLED pure black, and Dark).',
+      'Standardized Empty State Placeholders: Projected em-dash (`—`) across all unassigned technical specifications and audio channel mappings.',
     ],
   },
 ];
@@ -118,6 +126,18 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.58',
+    date: '2026-09-04',
+    highlights: [
+      'Comprehensive Bilingual Localization: Complete English and Spanish (en/es) translation coverage across all Studio tools and Stagex screens, with reactive language selector sheet and persistent locale storage.',
+      'Stagex Clean Element Data Defaults: Completely eliminated phantom production data defaults on new stage elements (performer names, microphones, DIs, wireless packs, and boilerplate logistics notes).',
+      'Strict +48V Phantom Power Invariant: Hardened phantom power defaults to false across in-app inspectors, projection adapters, and PDF export sheets, showing canonical em-dash (`—`) when unassigned.',
+      'Stagex Canvas Centering & Menu Anchoring: Fixed canvas vertical positioning, toolbar layout hierarchy, and element menu anchor stability.',
+      'External Link Security Hardening: Enforced `rel="noopener noreferrer"` across all external anchor elements in share dialogs.',
+      'Theme-Governed Canvas Appearance: Deprecated manual canvas background color selection in Preferences in favor of strict system theme alignment (Light, AMOLED pure black, and Dark).',
+    ],
+  },
   {
     version: '4.5.57',
     date: '2026-09-04',
@@ -207,17 +227,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Stagex Top Action Controls on Android: Restored upper Stage controls (`SharedFloatingHeader`) on Android editor view, wiring the ruler/measurement tool, PDF export sheet, presets panel, timeline/history, and real-time collaboration modal.',
       'Appearance Accent Color Picker Layout: Integrated the 2D custom color picker directly and flush inside the Appearance section, eliminating redundant nested card framing, dark vertical clipping rails, and fixed-width popup constraints.',
       'Appearance Color Picker Drag Performance: Eliminated interaction stutter and frame-dropping during continuous touch dragging via single-measure cached bounding geometry, `requestAnimationFrame` coordinate batching, fine-grained Zustand store selectors, and isolated durable state persistence upon pointer release.',
-    ],
-  },
-  {
-    version: '4.5.48',
-    date: '2026-08-28',
-    highlights: [
-      'Stagex & Studio 2D Fluid Color Picker: Redesigned the color picker into a production-grade 2D control with continuous saturation-value field, 360° rainbow hue spectrum slider, checkerboard alpha transparency slider, circular draggable handles, HEX and opacity input validation, and full Light/Dark/AMOLED theme parity.',
-      'Stagex Android Viewport Layout & Sizing: Fixed stage canvas sizing and scaling on mobile viewports so that the stage surface properly occupies available phone screen space.',
-      'Stagex Tab Navigation & State Preservation: Resolved disappearing/blank stage regressions across tab transitions (`Stage` ↔ `Setup` ↔ `Preferences`) by restoring canvas opacity immediately and resetting layout cache.',
-      'Drumex Android Viewport Sizing: Corrected viewport height and safe-area margins in Drumex pattern library and editor screens.',
-      'Conservative Performance Optimizations: Eliminated broad subtree mutation storms during stage element dragging, prevented synchronous layout recalculation in PA sound coverage, cached theme engine CSS variable mutations, and isolated sub-app re-render boundaries in `SharedAppShell`.',
     ],
   },
 ];

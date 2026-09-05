@@ -98,17 +98,15 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Canonical Chordex Section-Entry Animations: Integrated the canonical Studio motion system (`StudioPageTransition` with `variant="drilldown"`) across all redesigned Chordex views (Library, Category browsing, Chord Detail, Songs list, Song Editor, and Saxophone Practice).',
-      'Dynamic Drilldown Initial Entrance Support: Enhanced `StudioPageTransition` to support conditional initial mount entrance transitions, ensuring sub-views animate smoothly upon appearance while preserving root tab transitions.',
-      'Canonical Studio Header Parity: Replaced all custom, ad-hoc, and static headers across Chordex with canonical `StudioHeader` (in-flow) and `SharedFloatingHeader` (floating glass capsule) components.',
+      'GrooveX Sample-Accurate Multitrack Transposition: Re-architected transposition engine to use in-memory buffer-level SoundTouch transposition with exact sample length preservation and zero cumulative drift.',
+      'Full Musical Transposition Scale: Supported pitch shifting across -12 to +12 semitones with instantaneous cache retrieval and seamless 25ms crossfade stem hot-swapping during live playback.',
     ],
   },
   {
     heading: 'Improved',
     items: [
-      'Studio Performance & Architecture Optimization: Consolidated redundant orientation and navigation listeners in Stagex, purged dead module candidate scoring loops in Studio Hub, and eliminated unreferenced redesign imports across Chordex and Vocalex.',
-      'Drumex Pattern Library Layout Unification: Unified desktop and mobile pattern browsing under the canonical `DrumPatternsPanel`, removing over 700 lines of duplicate code and reducing bundle overhead.',
-      'Groovex Store Selector Memoization: Converted broad store subscriptions in Groovex Preferences to fine-grained atomic Zustand selectors, isolating preference views from unrelated playback state mutations.',
+      'Percussion Stem Transposition Immunity: Guaranteed 100% pitch and tempo immunity for all drum and percussion stems (kick, snare, toms, cymbals, hi-hats, percussion), keeping rhythm strictly locked to the hardware audio clock.',
+      'Unified Zero-Latency Audio Graph: Eliminated worklet starvation delays, underrun zero-padding, and fractional skip resets by routing all stems directly into the unified master gain with Delta t = 0.000ms.',
     ],
   },
 ];
@@ -120,6 +118,16 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.64',
+    date: '2026-09-05',
+    highlights: [
+      'GrooveX Sample-Accurate Multitrack Transposition: Re-architected transposition engine to use in-memory buffer-level SoundTouch transposition with exact sample length preservation and zero cumulative drift.',
+      'Full Musical Transposition Scale: Supported pitch shifting across -12 to +12 semitones with instantaneous cache retrieval and seamless 25ms crossfade stem hot-swapping during live playback.',
+      'Percussion Stem Transposition Immunity: Guaranteed 100% pitch and tempo immunity for all drum and percussion stems (kick, snare, toms, cymbals, hi-hats, percussion), keeping rhythm strictly locked to the hardware audio clock.',
+      'Unified Zero-Latency Audio Graph: Eliminated worklet starvation delays, underrun zero-padding, and fractional skip resets by routing all stems directly into the unified master gain with Delta t = 0.000ms.',
+    ],
+  },
   {
     version: '4.5.63',
     date: '2026-09-05',
@@ -219,17 +227,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Actions Menu Layering & Independence: Portaled the Stagex element Actions menu to `document.body` with viewport edge collision detection and smart vertical positioning, ensuring the menu is never clipped by collapsed or expanded Advanced Specs.',
       'Multi-Touch Gestures & Stage Sync: Seamlessly transitioned between element manipulation and two-finger pinch-to-zoom on Android, guaranteeing authoritative final coordinate synchronization with React state and PDF Export.',
       'Design Token Compliance: Normalized typography tokens in AccentColorPicker with canonical CSS variables.',
-    ],
-  },
-  {
-    version: '4.5.54',
-    date: '2026-09-03',
-    highlights: [
-      'Stagex PDF Toolbar & Technical Rider Workflow Reconnection: Reconnected the Stagex top toolbar PDF action directly to the complete Technical Rider review and export workflow.',
-      'Complete Production Technical Rider Document: Upgraded Technical Rider into a full document view featuring live stage elements with coordinates, audio input channel patch table (with transducer types, +48V phantom power, and IEM mixes), technical requirements, technical notes, contact & venue details, band roster, and gear inventory.',
-      'Direct PDF Rider Export Engine: Added topbar Export action in the Technical Rider view connected to the PDF generator and native Android sharing sheet.',
-      'Stagex Header & Title Normalization: Normalized Stagex page title hierarchy, removed redundant subtitles, unified Setup/Preferences headers with canonical floating headers, and redesigned scene chips with high-contrast active states.',
-      'Seamless Navigation & State Preservation: Back navigation from the Technical Rider cleanly returns to the Stage canvas without losing active scene or placed stage elements.',
     ],
   },
 ];

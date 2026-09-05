@@ -19,7 +19,7 @@ import {
   CategoryMiniRecess,
   ChordCardMiniRecess,
 } from '../components/MiniFretboardRecess';
-import { StudioHeader } from '../../../shared/layout/StudioHeader';
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
 import { Button, ActionButton } from '../../../shared/design-system/buttons';
 
 export function RelatedPlayBtn({
@@ -397,435 +397,382 @@ export function LibraryChordDetail({
 
   return (
     <div
-      className="flex-1 overflow-y-auto no-scrollbar"
+      className="flex flex-col w-full h-full relative overflow-hidden"
       style={{ background: 'var(--app-bg)' }}
       data-purpose="chord-detail-screen"
     >
+      <SharedFloatingHeader
+        title={`${chord.name} ${chord.type ? capitalize(chord.type) : ''}`}
+        onBack={!isWebDesktop ? handleBack : undefined}
+        hideBack={isWebDesktop}
+        backBtnTestId="chord-detail-back-btn"
+        isLight={isLight}
+      />
+
       <div
-        className="w-full max-w-md mx-auto pb-28 px-4 pt-3 space-y-5"
+        className="flex-1 overflow-y-auto no-scrollbar w-full h-full"
         style={{
-          paddingTop:
-            'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px))',
+          WebkitOverflowScrolling: 'touch',
         }}
-        data-purpose="mobile-viewport"
       >
-        {/* TopBar / Sticky Header */}
-        <header
-          className="sticky top-0 z-30 px-3.5 py-2 flex items-center justify-between w-full rounded-full shadow-sm transition-colors"
+        <div
+          className="w-full max-w-md mx-auto pb-28 px-4 space-y-5"
           style={{
-            backgroundColor: 'var(--surface-card-bg, #ffffff)',
-            borderColor: 'var(--c-border, #E3E6EB)',
-            borderWidth: '1px',
-            backdropFilter: 'blur(16px)',
+            paddingTop: 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 78px)',
           }}
-          data-purpose="chord-detail-top-bar"
+          data-purpose="mobile-viewport"
         >
-          {!isWebDesktop ? (
-            <button
-              aria-label="Go back"
-              onClick={handleBack}
-              className="w-9 h-9 rounded-full border flex items-center justify-center active:scale-90 transition-transform cursor-pointer shrink-0"
-              style={{
-                backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
-                borderColor: 'var(--c-border, #E3E6EB)',
-                color: 'var(--c-text-primary)',
-              }}
-              type="button"
-            >
-              <span className="material-symbols-rounded text-lg">arrow_back</span>
-            </button>
-          ) : (
-            <div className="w-9 h-9 shrink-0" />
-          )}
-
-          <div className="flex flex-col items-center justify-center text-center px-2 min-w-0">
-            <h1
-              className="text-base font-bold tracking-tight leading-none truncate"
-              style={{
-                fontFamily: 'var(--font-headline)',
-                color: 'var(--c-text-primary)',
-              }}
-            >
-              {chord.name} {chord.type ? capitalize(chord.type) : ''}
-            </h1>
-            <p
-              className="text-[11px] font-medium mt-0.5 truncate"
-              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-            >
-              {positionText}
-            </p>
-          </div>
-
-          <button
-            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
-            onClick={() => toggleFavorite(chord.id)}
-            data-purpose="favorite-toggle-button"
-            className="w-9 h-9 rounded-full border flex items-center justify-center active:scale-90 transition-transform cursor-pointer shrink-0"
+          {/* ACTIVE CHORD HERO CARD */}
+          <section
+            className="rounded-3xl p-5 border shadow-soft-card relative overflow-hidden transition-colors"
             style={{
-              backgroundColor: favorite
-                ? 'color-mix(in srgb, #EF4444 12%, var(--surface-card-bg, #ffffff))'
-                : 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
-              borderColor: favorite ? '#FCA5A5' : 'var(--c-border, #E3E6EB)',
-              color: favorite ? '#EF4444' : 'var(--c-text-primary)',
+              backgroundColor: 'var(--surface-card-bg, #ffffff)',
+              borderColor: 'var(--c-border, #E3E6EB)',
             }}
-            type="button"
+            data-purpose="chord-detail-card"
           >
-            <span
-              className="material-symbols-rounded text-lg"
-              style={{ fontVariationSettings: favorite ? "'FILL' 1" : "'FILL' 0" }}
-            >
-              favorite
-            </span>
-          </button>
-        </header>
+            {/* Top Header Row Inside Card */}
+            <div className="flex items-start justify-between">
+              <div className="min-w-0 pr-2">
+                <div
+                  className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold tracking-wide uppercase mb-1"
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
+                    borderColor:
+                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 22%, transparent)',
+                    color: 'var(--c-accent-from, #2563EB)',
+                  }}
+                >
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: 'var(--c-accent-from, #2563EB)' }}
+                  />
+                  <span>{positionText}</span>
+                </div>
 
-        {/* ACTIVE CHORD HERO CARD */}
-        <section
-          className="rounded-3xl p-5 border shadow-soft-card relative overflow-hidden transition-colors"
-          style={{
-            backgroundColor: 'var(--surface-card-bg, #ffffff)',
-            borderColor: 'var(--c-border, #E3E6EB)',
-          }}
-          data-purpose="chord-detail-card"
-        >
-          {/* Top Header Row Inside Card */}
-          <div className="flex items-start justify-between">
-            <div className="min-w-0 pr-2">
-              <div
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold tracking-wide uppercase mb-1"
-                style={{
-                  backgroundColor:
-                    'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
-                  borderColor: 'color-mix(in srgb, var(--c-accent-from, #2563EB) 22%, transparent)',
-                  color: 'var(--c-accent-from, #2563EB)',
-                }}
-              >
-                <span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: 'var(--c-accent-from, #2563EB)' }}
-                />
-                <span>{positionText}</span>
+                <div className="flex items-baseline gap-2 mt-1">
+                  <h2
+                    data-purpose="chord-symbol"
+                    className="text-4xl font-extrabold tracking-tight leading-none"
+                    style={{
+                      fontFamily: 'var(--font-headline)',
+                      color: 'var(--c-text-primary)',
+                    }}
+                  >
+                    {chord.name}
+                  </h2>
+                  <span
+                    data-purpose="chord-quality"
+                    className="text-sm font-semibold"
+                    style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                  >
+                    {chordQuality}
+                  </span>
+                </div>
+
+                <p
+                  data-purpose="chord-notes"
+                  className="text-xs font-medium mt-1.5 tracking-wide"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  Notes:{' '}
+                  <span className="font-bold" style={{ color: 'var(--c-text-primary)' }}>
+                    {notesStr}
+                  </span>
+                </p>
               </div>
 
-              <div className="flex items-baseline gap-2 mt-1">
-                <h2
-                  data-purpose="chord-symbol"
-                  className="text-4xl font-extrabold tracking-tight leading-none"
+              {/* Quick Action Controls */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handlePlayChord}
+                  data-purpose="chord-playback-button"
+                  aria-label={chordPlaying ? 'Stop Audio' : `Play ${chord.name} Chord`}
+                  className="w-11 h-11 rounded-full text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-md"
                   style={{
-                    fontFamily: 'var(--font-headline)',
+                    backgroundColor: 'var(--c-accent-from, #2563EB)',
+                    boxShadow:
+                      '0 4px 14px color-mix(in srgb, var(--c-accent-from, #2563EB) 40%, transparent)',
+                  }}
+                >
+                  <span className="material-symbols-rounded text-2xl">
+                    {chordPlaying ? 'stop' : 'play_arrow'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => addToProgression(chord.id)}
+                  data-purpose="chord-add-button"
+                  aria-label="Add to progression"
+                  className="w-11 h-11 rounded-full border flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
+                    borderColor: 'var(--c-border, #E3E6EB)',
                     color: 'var(--c-text-primary)',
                   }}
                 >
-                  {chord.name}
-                </h2>
-                <span
-                  data-purpose="chord-quality"
-                  className="text-sm font-semibold"
-                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                >
-                  {chordQuality}
-                </span>
+                  <span className="material-symbols-rounded text-xl">add</span>
+                </button>
               </div>
-
-              <p
-                data-purpose="chord-notes"
-                className="text-xs font-medium mt-1.5 tracking-wide"
-                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-              >
-                Notes:{' '}
-                <span className="font-bold" style={{ color: 'var(--c-text-primary)' }}>
-                  {notesStr}
-                </span>
-              </p>
             </div>
 
-            {/* Quick Action Controls */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={handlePlayChord}
-                data-purpose="chord-playback-button"
-                aria-label={chordPlaying ? 'Stop Audio' : `Play ${chord.name} Chord`}
-                className="w-11 h-11 rounded-full text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-md"
-                style={{
-                  backgroundColor: 'var(--c-accent-from, #2563EB)',
-                  boxShadow:
-                    '0 4px 14px color-mix(in srgb, var(--c-accent-from, #2563EB) 40%, transparent)',
-                }}
-              >
-                <span className="material-symbols-rounded text-2xl">
-                  {chordPlaying ? 'stop' : 'play_arrow'}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => addToProgression(chord.id)}
-                data-purpose="chord-add-button"
-                aria-label="Add to progression"
-                className="w-11 h-11 rounded-full border flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                style={{
-                  backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
-                  borderColor: 'var(--c-border, #E3E6EB)',
-                  color: 'var(--c-text-primary)',
-                }}
-              >
-                <span className="material-symbols-rounded text-xl">add</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Segmented Controls: Instrument & View Mode */}
-          <div
-            className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-2"
-            style={{ borderColor: 'var(--c-border, #E3E6EB)' }}
-          >
-            {/* Instrument switch */}
+            {/* Segmented Controls: Instrument & View Mode */}
             <div
-              className="p-0.5 rounded-full flex text-xs font-semibold border"
-              style={{
-                backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
-                borderColor: 'var(--c-border, #E3E6EB)',
-              }}
-              data-purpose="instrument-switch"
+              className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-2"
+              style={{ borderColor: 'var(--c-border, #E3E6EB)' }}
             >
-              {(['guitar', 'piano'] as Instrument[]).map((inst) => {
-                const isActive = activeInstrument === inst;
-                return (
-                  <button
-                    key={inst}
-                    type="button"
-                    onClick={() => setPreviewInstrument(inst)}
-                    className="px-3 py-1 rounded-full capitalize transition-all cursor-pointer"
-                    style={{
-                      backgroundColor: isActive ? 'var(--surface-card-bg, #ffffff)' : 'transparent',
-                      color: isActive
-                        ? 'var(--c-accent-from, #2563EB)'
-                        : 'var(--c-text-secondary, #6B7280)',
-                      boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                    }}
-                  >
-                    {inst}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Display Mode Switch (Notes / Intervals) */}
-            {activeInstrument === 'guitar' && (
+              {/* Instrument switch */}
               <div
                 className="p-0.5 rounded-full flex text-xs font-semibold border"
                 style={{
                   backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
                   borderColor: 'var(--c-border, #E3E6EB)',
                 }}
-                data-purpose="display-mode-switch"
+                data-purpose="instrument-switch"
               >
-                <button
-                  type="button"
-                  onClick={() => setDiagramDisplayMode('notes')}
-                  className="px-3 py-1 rounded-full transition-all cursor-pointer"
-                  style={{
-                    backgroundColor:
-                      diagramDisplayMode === 'notes'
-                        ? 'var(--surface-card-bg, #ffffff)'
-                        : 'transparent',
-                    color:
-                      diagramDisplayMode === 'notes'
-                        ? 'var(--c-accent-from, #2563EB)'
-                        : 'var(--c-text-secondary, #6B7280)',
-                    boxShadow:
-                      diagramDisplayMode === 'notes' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  }}
-                >
-                  Notes
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDiagramDisplayMode('intervals')}
-                  className="px-3 py-1 rounded-full transition-all cursor-pointer"
-                  style={{
-                    backgroundColor:
-                      diagramDisplayMode === 'intervals'
-                        ? 'var(--surface-card-bg, #ffffff)'
-                        : 'transparent',
-                    color:
-                      diagramDisplayMode === 'intervals'
-                        ? 'var(--c-accent-from, #2563EB)'
-                        : 'var(--c-text-secondary, #6B7280)',
-                    boxShadow:
-                      diagramDisplayMode === 'intervals' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-                  }}
-                >
-                  Intervals
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* High Fidelity Clean Fretboard Diagram */}
-          <div className="mt-5 flex flex-col items-center justify-center">
-            {activeInstrument === 'guitar' ? (
-              <DetailFretboardDiagram chordData={chord.guitar} displayMode={diagramDisplayMode} />
-            ) : activeInstrument === 'bass' ? (
-              <FourStringDiagram
-                chordData={chord.guitar}
-                chordName={chord.name}
-                notes={chord.notes}
-                intervals={chord.intervals}
-                showNoteNames={diagramDisplayMode === 'notes'}
-                showIntervals={diagramDisplayMode === 'intervals'}
-                size="lg"
-                instrument="bass"
-                fiveString={settings.bassFiveString}
-              />
-            ) : (
-              <PianoDiagram
-                chordData={chord.piano}
-                chordName={chord.name}
-                notes={chord.notes}
-                intervals={chord.intervals}
-                showNoteNames={diagramDisplayMode === 'notes'}
-                showIntervals={diagramDisplayMode === 'intervals'}
-                size="lg"
-              />
-            )}
-
-            {/* Triad Note Breakdown Pills */}
-            <div
-              className="flex flex-wrap items-center justify-center gap-2 mt-4"
-              data-purpose="triad-note-breakdown"
-            >
-              {chord.notes.map((note: string, idx: number) => {
-                const isRoot = idx === 0 || note.toUpperCase() === chord.root.toUpperCase();
-                const intervalRaw = chord.intervals?.[idx] || (idx === 0 ? '1' : '');
-                const roleLabel = isRoot
-                  ? 'Root'
-                  : intervalRaw === '3' || intervalRaw === 'b3'
-                    ? '3rd'
-                    : intervalRaw === '5' || intervalRaw === 'b5' || intervalRaw === '#5'
-                      ? '5th'
-                      : intervalRaw === '7' || intervalRaw === 'b7' || intervalRaw === 'maj7'
-                        ? '7th'
-                        : intervalRaw === '9' || intervalRaw === 'b9'
-                          ? '9th'
-                          : intervalRaw === '4' || intervalRaw === 'sus4'
-                            ? '4th'
-                            : intervalRaw === '2' || intervalRaw === 'sus2'
-                              ? '2nd'
-                              : intervalRaw === '6'
-                                ? '6th'
-                                : intervalRaw || `${idx + 1}`;
-
-                return (
-                  <div
-                    key={`${note}-${idx}`}
-                    className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all"
-                    style={{
-                      backgroundColor: isRoot
-                        ? 'color-mix(in srgb, var(--c-accent-from, #2563EB) 12%, transparent)'
-                        : 'var(--c-surface-lowest, #ECEEF2)',
-                      borderColor: isRoot
-                        ? 'color-mix(in srgb, var(--c-accent-from, #2563EB) 28%, transparent)'
-                        : 'var(--c-border, #E3E6EB)',
-                      borderWidth: '1px',
-                      color: isRoot
-                        ? 'var(--c-accent-from, #2563EB)'
-                        : 'var(--c-text-primary, #111827)',
-                    }}
-                  >
-                    <span>{note}</span>
-                    <span
-                      className="text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase"
+                {(['guitar', 'piano'] as Instrument[]).map((inst) => {
+                  const isActive = activeInstrument === inst;
+                  return (
+                    <button
+                      key={inst}
+                      type="button"
+                      onClick={() => setPreviewInstrument(inst)}
+                      className="px-3 py-1 rounded-full capitalize transition-all cursor-pointer"
                       style={{
-                        backgroundColor: isRoot
+                        backgroundColor: isActive
+                          ? 'var(--surface-card-bg, #ffffff)'
+                          : 'transparent',
+                        color: isActive
                           ? 'var(--c-accent-from, #2563EB)'
-                          : 'var(--c-surface-low, #E2E4E8)',
-                        color: isRoot ? '#ffffff' : 'var(--c-text-secondary, #6B7280)',
+                          : 'var(--c-text-secondary, #6B7280)',
+                        boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                       }}
                     >
-                      {roleLabel}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
+                      {inst}
+                    </button>
+                  );
+                })}
+              </div>
 
-        {/* RELATED CHORDS SECTION */}
-        {relatedChords.length > 0 && (
-          <section className="space-y-3" data-purpose="related-chords-section">
-            <div className="flex items-center justify-between px-1">
-              <h3
-                className="text-xs font-bold uppercase tracking-wider"
-                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-              >
-                Related in {chord.name} Major Key
-              </h3>
-              <span
-                className="text-xs font-semibold"
-                style={{ color: 'var(--c-accent-from, #2563EB)' }}
-              >
-                {relatedChords.length} Chords
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3" data-purpose="related-chords-grid">
-              {relatedChords.slice(0, 4).map((rel) => {
-                const degree = getHarmonicDegree(chord.root, rel.root, rel.type);
-                return (
-                  <article
-                    key={rel.id}
-                    onClick={() => handleChordClick(rel.id)}
-                    className="rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between active:scale-[0.98] transition-all cursor-pointer group"
+              {/* Display Mode Switch (Notes / Intervals) */}
+              {activeInstrument === 'guitar' && (
+                <div
+                  className="p-0.5 rounded-full flex text-xs font-semibold border"
+                  style={{
+                    backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                  }}
+                  data-purpose="display-mode-switch"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setDiagramDisplayMode('notes')}
+                    className="px-3 py-1 rounded-full transition-all cursor-pointer"
                     style={{
-                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                      borderColor: 'var(--c-border, #E3E6EB)',
+                      backgroundColor:
+                        diagramDisplayMode === 'notes'
+                          ? 'var(--surface-card-bg, #ffffff)'
+                          : 'transparent',
+                      color:
+                        diagramDisplayMode === 'notes'
+                          ? 'var(--c-accent-from, #2563EB)'
+                          : 'var(--c-text-secondary, #6B7280)',
+                      boxShadow:
+                        diagramDisplayMode === 'notes' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                     }}
                   >
-                    <div>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="min-w-0 pr-1">
-                          <div className="flex items-baseline gap-1.5">
-                            <span
-                              className="text-base font-bold tracking-tight truncate"
-                              style={{
-                                fontFamily: 'var(--font-headline)',
-                                color: 'var(--c-text-primary)',
-                              }}
-                            >
-                              {rel.name}
-                            </span>
-                            {degree && (
-                              <span
-                                className="text-[10px] font-semibold"
-                                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                              >
-                                {degree}
-                              </span>
-                            )}
-                          </div>
-                          <p
-                            className="text-[10px] font-medium tracking-wide truncate mt-0.5"
-                            style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                          >
-                            {rel.notes?.join(' · ')}
-                          </p>
-                        </div>
-                        <RelatedPlayBtn guitar={rel.guitar} accent={accent} isLight={isLight} />
-                      </div>
-                    </div>
+                    Notes
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDiagramDisplayMode('intervals')}
+                    className="px-3 py-1 rounded-full transition-all cursor-pointer"
+                    style={{
+                      backgroundColor:
+                        diagramDisplayMode === 'intervals'
+                          ? 'var(--surface-card-bg, #ffffff)'
+                          : 'transparent',
+                      color:
+                        diagramDisplayMode === 'intervals'
+                          ? 'var(--c-accent-from, #2563EB)'
+                          : 'var(--c-text-secondary, #6B7280)',
+                      boxShadow:
+                        diagramDisplayMode === 'intervals' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                    }}
+                  >
+                    Intervals
+                  </button>
+                </div>
+              )}
+            </div>
 
-                    <div className="flex justify-center pt-1">
-                      <ChordCardMiniFretboard chordData={rel.guitar} />
+            {/* High Fidelity Clean Fretboard Diagram */}
+            <div className="mt-5 flex flex-col items-center justify-center">
+              {activeInstrument === 'guitar' ? (
+                <DetailFretboardDiagram chordData={chord.guitar} displayMode={diagramDisplayMode} />
+              ) : activeInstrument === 'bass' ? (
+                <FourStringDiagram
+                  chordData={chord.guitar}
+                  chordName={chord.name}
+                  notes={chord.notes}
+                  intervals={chord.intervals}
+                  showNoteNames={diagramDisplayMode === 'notes'}
+                  showIntervals={diagramDisplayMode === 'intervals'}
+                  size="lg"
+                  instrument="bass"
+                  fiveString={settings.bassFiveString}
+                />
+              ) : (
+                <PianoDiagram
+                  chordData={chord.piano}
+                  chordName={chord.name}
+                  notes={chord.notes}
+                  intervals={chord.intervals}
+                  showNoteNames={diagramDisplayMode === 'notes'}
+                  showIntervals={diagramDisplayMode === 'intervals'}
+                  size="lg"
+                />
+              )}
+
+              {/* Triad Note Breakdown Pills */}
+              <div
+                className="flex flex-wrap items-center justify-center gap-2 mt-4"
+                data-purpose="triad-note-breakdown"
+              >
+                {chord.notes.map((note: string, idx: number) => {
+                  const isRoot = idx === 0 || note.toUpperCase() === chord.root.toUpperCase();
+                  const intervalRaw = chord.intervals?.[idx] || (idx === 0 ? '1' : '');
+                  const roleLabel = isRoot
+                    ? 'Root'
+                    : intervalRaw === '3' || intervalRaw === 'b3'
+                      ? '3rd'
+                      : intervalRaw === '5' || intervalRaw === 'b5' || intervalRaw === '#5'
+                        ? '5th'
+                        : intervalRaw === '7' || intervalRaw === 'b7' || intervalRaw === 'maj7'
+                          ? '7th'
+                          : intervalRaw === '9' || intervalRaw === 'b9'
+                            ? '9th'
+                            : intervalRaw === '4' || intervalRaw === 'sus4'
+                              ? '4th'
+                              : intervalRaw === '2' || intervalRaw === 'sus2'
+                                ? '2nd'
+                                : intervalRaw === '6'
+                                  ? '6th'
+                                  : intervalRaw || `${idx + 1}`;
+
+                  return (
+                    <div
+                      key={`${note}-${idx}`}
+                      className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all"
+                      style={{
+                        backgroundColor: isRoot
+                          ? 'color-mix(in srgb, var(--c-accent-from, #2563EB) 12%, transparent)'
+                          : 'var(--c-surface-lowest, #ECEEF2)',
+                        borderColor: isRoot
+                          ? 'color-mix(in srgb, var(--c-accent-from, #2563EB) 28%, transparent)'
+                          : 'var(--c-border, #E3E6EB)',
+                        borderWidth: '1px',
+                        color: isRoot
+                          ? 'var(--c-accent-from, #2563EB)'
+                          : 'var(--c-text-primary, #111827)',
+                      }}
+                    >
+                      <span>{note}</span>
+                      <span
+                        className="text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase"
+                        style={{
+                          backgroundColor: isRoot
+                            ? 'var(--c-accent-from, #2563EB)'
+                            : 'var(--c-surface-low, #E2E4E8)',
+                          color: isRoot ? '#ffffff' : 'var(--c-text-secondary, #6B7280)',
+                        }}
+                      >
+                        {roleLabel}
+                      </span>
                     </div>
-                  </article>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </section>
-        )}
+
+          {/* RELATED CHORDS SECTION */}
+          {relatedChords.length > 0 && (
+            <section className="space-y-3" data-purpose="related-chords-section">
+              <div className="flex items-center justify-between px-1">
+                <h3
+                  className="text-xs font-bold uppercase tracking-wider"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  Related in {chord.name} Major Key
+                </h3>
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: 'var(--c-accent-from, #2563EB)' }}
+                >
+                  {relatedChords.length} Chords
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3" data-purpose="related-chords-grid">
+                {relatedChords.slice(0, 4).map((rel) => {
+                  const degree = getHarmonicDegree(chord.root, rel.root, rel.type);
+                  return (
+                    <article
+                      key={rel.id}
+                      onClick={() => handleChordClick(rel.id)}
+                      className="rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between active:scale-[0.98] transition-all cursor-pointer group"
+                      style={{
+                        backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                        borderColor: 'var(--c-border, #E3E6EB)',
+                      }}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="min-w-0 pr-1">
+                            <div className="flex items-baseline gap-1.5">
+                              <span
+                                className="text-base font-bold tracking-tight truncate"
+                                style={{
+                                  fontFamily: 'var(--font-headline)',
+                                  color: 'var(--c-text-primary)',
+                                }}
+                              >
+                                {rel.name}
+                              </span>
+                              {degree && (
+                                <span
+                                  className="text-[10px] font-semibold"
+                                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                                >
+                                  {degree}
+                                </span>
+                              )}
+                            </div>
+                            <p
+                              className="text-[10px] font-medium tracking-wide truncate mt-0.5"
+                              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                            >
+                              {rel.notes?.join(' · ')}
+                            </p>
+                          </div>
+                          <RelatedPlayBtn guitar={rel.guitar} accent={accent} isLight={isLight} />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-center pt-1">
+                        <ChordCardMiniFretboard chordData={rel.guitar} />
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1157,6 +1104,7 @@ export function CategoryScreenView({
   accent,
   isLight,
   tuning = 'Standard (EADGBE)',
+  scrollRef,
 }: {
   activeType: string;
   setActiveType: (type: any) => void;
@@ -1170,222 +1118,203 @@ export function CategoryScreenView({
   accent?: any;
   isLight?: boolean;
   tuning?: string;
+  scrollRef?: any;
 }) {
-  const tuningShort = tuning ? tuning.split(' ')[0] : 'Standard';
-
   return (
-    <div className="w-full flex flex-col space-y-3.5" data-purpose="category-screen-container">
-      {/* TopBar / Sticky Header */}
-      <header
-        className="sticky top-0 z-30 px-3.5 py-2 flex items-center justify-between w-full rounded-full shadow-sm transition-colors"
-        style={{
-          backgroundColor: 'var(--surface-card-bg, #ffffff)',
-          borderColor: 'var(--c-border, #E3E6EB)',
-          borderWidth: '1px',
-          backdropFilter: 'blur(16px)',
+    <div
+      className="flex flex-col w-full h-full relative overflow-hidden"
+      style={{ background: 'var(--app-bg)' }}
+      data-purpose="category-screen-container"
+    >
+      <SharedFloatingHeader
+        title={activeCategoryObject?.label || 'Chords'}
+        onBack={() => {
+          setActiveType(null);
+          setCategoryQuery('');
+          setSelectedRootFilter('ALL');
         }}
-        data-purpose="category-top-bar"
+        backBtnTestId="category-back-btn"
+        isLight={isLight}
+      />
+
+      <div
+        className="flex-1 overflow-y-auto no-scrollbar w-full h-full"
+        ref={scrollRef}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        <button
-          aria-label="Go back to Library"
-          onClick={() => {
-            setActiveType(null);
-            setCategoryQuery('');
-            setSelectedRootFilter('ALL');
-          }}
-          className="w-9 h-9 rounded-full border flex items-center justify-center active:scale-90 transition-transform cursor-pointer shrink-0"
-          style={{
-            backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
-            borderColor: 'var(--c-border, #E3E6EB)',
-            color: 'var(--c-text-primary)',
-          }}
-          type="button"
-        >
-          <span className="material-symbols-rounded text-lg">arrow_back</span>
-        </button>
-
-        <div className="flex flex-col items-center justify-center text-center px-2 min-w-0">
-          <h1
-            className="text-base font-bold tracking-tight leading-none truncate"
-            style={{
-              fontFamily: 'var(--font-headline)',
-              color: 'var(--c-text-primary)',
-            }}
-          >
-            {activeCategoryObject?.label || 'Chords'}
-          </h1>
-          <p
-            className="text-[11px] font-medium mt-0.5 truncate"
-            style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-          >
-            {categoryQuery || selectedRootFilter !== 'ALL'
-              ? `${filteredByType.length} ${filteredByType.length === 1 ? 'Chord' : 'Chords'}`
-              : `${activeCategoryObject?.variations || `${filteredByType.length} Chords`} · ${tuningShort} Tuning`}
-          </p>
-        </div>
-
-        <div className="w-9 h-9 shrink-0" aria-hidden="true" />
-      </header>
-
-      {/* Category-Specific Search Bar */}
-      <section className="mb-1" data-purpose="chord-search">
-        <div className="relative flex items-center">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <span
-              className="material-symbols-rounded text-[19px]"
-              style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-            >
-              search
-            </span>
-          </div>
-          <input
-            className="w-full pl-10 pr-10 py-2.5 rounded-full text-xs font-medium border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            style={{
-              backgroundColor: 'var(--surface-card-bg, #ffffff)',
-              borderColor: 'var(--c-border, #E3E6EB)',
-              color: 'var(--c-text-primary)',
-            }}
-            placeholder={
-              activeCategoryObject?.label
-                ? `Search ${activeCategoryObject.label} chords (e.g. C, G, D)...`
-                : 'Search chords...'
-            }
-            type="text"
-            value={categoryQuery}
-            onChange={(e) => setCategoryQuery(e.target.value)}
-          />
-          {categoryQuery ? (
-            <button
-              type="button"
-              onClick={() => setCategoryQuery('')}
-              className="absolute inset-y-0 right-0 pr-3.5 flex items-center cursor-pointer"
-              style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-              aria-label="Clear category search"
-            >
-              <span className="material-symbols-rounded text-sm">close</span>
-            </button>
-          ) : null}
-        </div>
-      </section>
-
-      {/* Root Key Filter Pills */}
-      <nav
-        aria-label="Chord Root Filter"
-        className="mb-1 -mx-4 px-4 overflow-x-auto no-scrollbar flex items-center gap-1.5 py-1"
-        data-purpose="root-key-filter-pills"
-      >
-        {CATEGORY_ROOTS.map((root) => {
-          const isSelected = selectedRootFilter.toUpperCase() === root.toUpperCase();
-          return (
-            <button
-              key={root}
-              type="button"
-              onClick={() => setSelectedRootFilter(root)}
-              className="px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 active:scale-95 transition-all cursor-pointer"
-              style={{
-                backgroundColor: isSelected
-                  ? 'var(--c-accent-from, #2563EB)'
-                  : 'var(--surface-card-bg, #ffffff)',
-                color: isSelected ? '#ffffff' : 'var(--c-text-secondary, #6B7280)',
-                border: isSelected ? '1px solid transparent' : '1px solid var(--c-border, #E3E6EB)',
-                boxShadow: isSelected
-                  ? '0 2px 8px color-mix(in srgb, var(--c-accent-from, #2563EB) 30%, transparent)'
-                  : 'none',
-              }}
-            >
-              {root}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Chord Cards Grid or Empty State */}
-      {filteredByType.length === 0 ? (
         <div
-          className="rounded-3xl p-8 text-center space-y-3 border shadow-soft-card my-4"
+          className="w-full max-w-md mx-auto pb-28 px-4 space-y-5"
           style={{
-            backgroundColor: 'var(--surface-card-bg, #ffffff)',
-            borderColor: 'var(--c-border, #E3E6EB)',
+            paddingTop: 'calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 78px)',
           }}
+          data-purpose="mobile-viewport"
         >
-          <span
-            className="material-symbols-rounded text-3xl"
-            style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+          {/* Category-Specific Search Bar */}
+          <section className="mb-2" data-purpose="chord-search">
+            <div className="relative flex items-center">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                <span
+                  className="material-symbols-rounded text-[20px]"
+                  style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                >
+                  search
+                </span>
+              </div>
+              <input
+                className="w-full pl-11 pr-10 py-3 rounded-full text-sm font-medium border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                style={{
+                  backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                  color: 'var(--c-text-primary)',
+                }}
+                placeholder={
+                  activeCategoryObject?.label
+                    ? `Search ${activeCategoryObject.label} chords (e.g. C, G, D)...`
+                    : 'Search chords...'
+                }
+                type="text"
+                value={categoryQuery}
+                onChange={(e) => setCategoryQuery(e.target.value)}
+              />
+              {categoryQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setCategoryQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                  style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                  aria-label="Clear category search"
+                >
+                  <span className="material-symbols-rounded text-sm">close</span>
+                </button>
+              ) : null}
+            </div>
+          </section>
+
+          {/* Root Key Filter Pills */}
+          <nav
+            aria-label="Chord Root Filter"
+            className="mb-1 -mx-4 px-4 overflow-x-auto no-scrollbar flex items-center gap-1.5 py-1"
+            data-purpose="root-key-filter-pills"
           >
-            search_off
-          </span>
-          <p className="text-sm font-medium" style={{ color: 'var(--c-text-secondary, #6B7280)' }}>
-            No matching {activeCategoryObject?.label || ''} chords found.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setCategoryQuery('');
-              setSelectedRootFilter('ALL');
-            }}
-            className="px-4 py-2 rounded-full border text-xs font-bold transition-all cursor-pointer active:scale-95"
-            style={{
-              backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
-              color: 'var(--c-text-primary)',
-              borderColor: 'var(--c-border, #E3E6EB)',
-            }}
-          >
-            Reset Filters
-          </button>
-        </div>
-      ) : (
-        <main className="grid grid-cols-2 gap-2.5 sm:gap-3" data-purpose="chord-catalog-grid">
-          {filteredByType.map((c: any) => (
-            <article
-              key={c.id}
-              onClick={() => handleChordClick(c.id)}
-              className="rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between active:scale-[0.98] transition-all cursor-pointer group"
+            {CATEGORY_ROOTS.map((root) => {
+              const isSelected = selectedRootFilter.toUpperCase() === root.toUpperCase();
+              return (
+                <button
+                  key={root}
+                  type="button"
+                  onClick={() => setSelectedRootFilter(root)}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-semibold shrink-0 active:scale-95 transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: isSelected
+                      ? 'var(--c-accent-from, #2563EB)'
+                      : 'var(--surface-card-bg, #ffffff)',
+                    color: isSelected ? '#ffffff' : 'var(--c-text-secondary, #6B7280)',
+                    border: isSelected
+                      ? '1px solid transparent'
+                      : '1px solid var(--c-border, #E3E6EB)',
+                    boxShadow: isSelected
+                      ? '0 2px 8px color-mix(in srgb, var(--c-accent-from, #2563EB) 30%, transparent)'
+                      : 'none',
+                  }}
+                >
+                  {root}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Chord Cards Grid or Empty State */}
+          {filteredByType.length === 0 ? (
+            <div
+              className="rounded-3xl p-8 text-center space-y-3 border shadow-soft-card my-4"
               style={{
                 backgroundColor: 'var(--surface-card-bg, #ffffff)',
                 borderColor: 'var(--c-border, #E3E6EB)',
               }}
             >
-              <div>
-                <div className="flex items-start justify-between">
-                  <div className="min-w-0 pr-1">
-                    <h2
-                      className="text-xl font-bold tracking-tight leading-tight truncate"
-                      style={{
-                        fontFamily: 'var(--font-headline)',
-                        color: 'var(--c-text-primary)',
-                      }}
-                    >
-                      {c.name}
-                    </h2>
-                    <p
-                      className="text-[11px] font-medium mt-0.5 tracking-wide truncate"
-                      style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                    >
-                      {c.notes?.join(' · ')}
-                    </p>
-                  </div>
-                  <ChordCardMiniFretboard chordData={c.guitar} />
-                </div>
-              </div>
-              <div className="mt-3 flex items-center justify-between pt-1">
-                <span
-                  className="text-[9px] tracking-wider uppercase font-bold px-2 py-0.5 rounded-md border"
+              <span
+                className="material-symbols-rounded text-3xl"
+                style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+              >
+                search_off
+              </span>
+              <p
+                className="text-sm font-medium"
+                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+              >
+                No matching {activeCategoryObject?.label || ''} chords found.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setCategoryQuery('');
+                  setSelectedRootFilter('ALL');
+                }}
+                className="px-4 py-2 rounded-full border text-xs font-bold transition-all cursor-pointer active:scale-95"
+                style={{
+                  backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
+                  color: 'var(--c-text-primary)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                }}
+              >
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            <main className="grid grid-cols-2 gap-2.5 sm:gap-3" data-purpose="chord-catalog-grid">
+              {filteredByType.map((c: any) => (
+                <article
+                  key={c.id}
+                  onClick={() => handleChordClick(c.id)}
+                  className="rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between active:scale-[0.98] transition-all cursor-pointer group"
                   style={{
-                    color: 'var(--c-accent-from, #2563EB)',
-                    backgroundColor:
-                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
-                    borderColor:
-                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 20%, transparent)',
+                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
                   }}
                 >
-                  {c.type?.toUpperCase()}
-                </span>
-                <RelatedPlayBtn guitar={c.guitar} accent={accent} isLight={isLight} />
-              </div>
-            </article>
-          ))}
-        </main>
-      )}
+                  <div>
+                    <div className="flex items-start justify-between">
+                      <div className="min-w-0 pr-1">
+                        <h2
+                          className="text-xl font-bold tracking-tight leading-tight truncate"
+                          style={{
+                            fontFamily: 'var(--font-headline)',
+                            color: 'var(--c-text-primary)',
+                          }}
+                        >
+                          {c.name}
+                        </h2>
+                        <p
+                          className="text-[11px] font-medium mt-0.5 tracking-wide truncate"
+                          style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                        >
+                          {c.notes?.join(' · ')}
+                        </p>
+                      </div>
+                      <ChordCardMiniFretboard chordData={c.guitar} />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between pt-1">
+                    <span
+                      className="text-[9px] tracking-wider uppercase font-bold px-2 py-0.5 rounded-md border"
+                      style={{
+                        color: 'var(--c-accent-from, #2563EB)',
+                        backgroundColor:
+                          'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
+                        borderColor:
+                          'color-mix(in srgb, var(--c-accent-from, #2563EB) 20%, transparent)',
+                      }}
+                    >
+                      {c.type?.toUpperCase()}
+                    </span>
+                    <RelatedPlayBtn guitar={c.guitar} accent={accent} isLight={isLight} />
+                  </div>
+                </article>
+              ))}
+            </main>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1418,17 +1347,7 @@ export function LibraryMainView({ state }: { state: any }) {
     selectedRootFilter,
     setSelectedRootFilter,
   } = state;
-  const t = useT();
-
   const [dayChordPlaying, setDayChordPlaying] = useState(false);
-
-  const tunings = [
-    { label: t.settings.tunings.standard, value: 'Standard (EADGBE)' },
-    { label: t.settings.tunings.dropD, value: 'Drop D (DADGBE)' },
-    { label: t.settings.tunings.openG, value: 'Open G (DGDGBD)' },
-    { label: t.settings.tunings.openD, value: 'Open D (DADF#AD)' },
-    { label: 'DADGAD', value: 'DADGAD' },
-  ];
 
   const handlePlayDayChord = useCallback(
     (e: React.MouseEvent) => {
@@ -1472,6 +1391,26 @@ export function LibraryMainView({ state }: { state: any }) {
     return combined.slice(0, 6);
   }, [recentChords]);
 
+  if (activeType) {
+    return (
+      <CategoryScreenView
+        activeType={activeType}
+        setActiveType={setActiveType}
+        activeCategoryObject={activeCategoryObject}
+        filteredByType={filteredByType}
+        selectedRootFilter={selectedRootFilter}
+        setSelectedRootFilter={setSelectedRootFilter}
+        categoryQuery={categoryQuery}
+        setCategoryQuery={setCategoryQuery}
+        handleChordClick={handleChordClick}
+        accent={accent}
+        isLight={isLight}
+        tuning={settings?.tuning}
+        scrollRef={scrollRef}
+      />
+    );
+  }
+
   return (
     <div
       className="flex-1 overflow-y-auto no-scrollbar"
@@ -1479,551 +1418,447 @@ export function LibraryMainView({ state }: { state: any }) {
       style={{ background: 'var(--app-bg)' }}
     >
       <main
-        className="w-full max-w-md mx-auto pb-28 px-4 pt-3 space-y-5"
+        className="w-full max-w-md mx-auto pb-28 px-4 pt-3 space-y-6"
         style={{
           paddingTop:
             'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px))',
         }}
         data-purpose="mobile-viewport"
       >
-        {activeType ? (
-          <CategoryScreenView
-            activeType={activeType}
-            setActiveType={setActiveType}
-            activeCategoryObject={activeCategoryObject}
-            filteredByType={filteredByType}
-            selectedRootFilter={selectedRootFilter}
-            setSelectedRootFilter={setSelectedRootFilter}
-            categoryQuery={categoryQuery}
-            setCategoryQuery={setCategoryQuery}
-            handleChordClick={handleChordClick}
-            accent={accent}
-            isLight={isLight}
-            tuning={settings?.tuning}
-          />
+        {/* Header & Quick Action Buttons */}
+        <section className="mt-1" data-purpose="header-section">
+          <div className="flex items-center justify-between">
+            {/* Title & Count Subtitle */}
+            <div>
+              <h1
+                className="text-3xl font-extrabold tracking-tight leading-tight"
+                style={{
+                  fontFamily: 'var(--font-headline)',
+                  color: 'var(--c-text-primary, #111827)',
+                }}
+              >
+                Library
+              </h1>
+              <p
+                className="text-xs font-medium tracking-normal mt-1"
+                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+              >
+                Explore {allChords.length} Chords
+              </p>
+            </div>
+
+            {/* Quick Tool Shortcuts */}
+            <div className="flex items-center gap-2">
+              {/* Finder Tool */}
+              <button
+                type="button"
+                onClick={() => setShowFinder(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold shadow-sm active:scale-95 transition-transform touch-target-44 cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                  color: 'var(--c-text-primary, #111827)',
+                }}
+                data-purpose="tool-finder"
+              >
+                <span
+                  className="material-symbols-rounded text-[18px]"
+                  style={{ color: 'var(--c-accent-from, #2563EB)' }}
+                >
+                  travel_explore
+                </span>
+                <span>Finder</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative mt-4 flex items-center" data-purpose="search-bar">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <span
+                className="material-symbols-rounded text-[20px]"
+                style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+              >
+                search
+              </span>
+            </div>
+            <input
+              className="w-full pl-11 pr-10 py-3 rounded-full text-sm font-medium border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              style={{
+                backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                borderColor: 'var(--c-border, #E3E6EB)',
+                color: 'var(--c-text-primary, #111827)',
+              }}
+              placeholder="Search chords..."
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {query ? (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                aria-label="Clear search"
+              >
+                <span className="material-symbols-rounded text-sm">close</span>
+              </button>
+            ) : null}
+          </div>
+        </section>
+
+        {/* SEARCH RESULTS VIEW */}
+        {query ? (
+          <section className="space-y-4" data-purpose="search-results-section">
+            <div className="flex items-center justify-between">
+              <h3
+                className="text-base font-bold tracking-tight"
+                style={{
+                  fontFamily: 'var(--font-headline)',
+                  color: 'var(--c-text-primary, #111827)',
+                }}
+              >
+                Search Results ({searchResults.length})
+              </h3>
+            </div>
+
+            {/* Root note quick filter pills */}
+            <div className="flex overflow-x-auto no-scrollbar gap-1.5 pb-1">
+              {ROOT_NOTES.map((root) => {
+                const isSelected = selectedRootFilter === root;
+                return (
+                  <button
+                    key={root}
+                    onClick={() => setSelectedRootFilter(root)}
+                    className="px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all flex-shrink-0 cursor-pointer"
+                    style={{
+                      backgroundColor: isSelected
+                        ? 'var(--c-accent-from, #2563EB)'
+                        : 'var(--surface-card-bg, #ffffff)',
+                      color: isSelected ? '#ffffff' : 'var(--c-text-secondary, #6B7280)',
+                      border: isSelected
+                        ? '1px solid transparent'
+                        : '1px solid var(--c-border, #E3E6EB)',
+                    }}
+                  >
+                    {root}
+                  </button>
+                );
+              })}
+            </div>
+
+            {searchResults.length === 0 ? (
+              <div
+                className="rounded-3xl p-8 text-center space-y-2 border shadow-soft-card"
+                style={{
+                  backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                }}
+              >
+                <span
+                  className="material-symbols-rounded text-3xl"
+                  style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                >
+                  search_off
+                </span>
+                <p
+                  className="text-sm font-medium"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  No matching chords found for &ldquo;{query}&rdquo;
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {searchResults.map((c: any) => (
+                  <article
+                    key={c.id}
+                    onClick={() => handleChordClick(c.id)}
+                    className="rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between active:scale-[0.98] transition-all cursor-pointer group"
+                    style={{
+                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                      borderColor: 'var(--c-border, #E3E6EB)',
+                    }}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between">
+                        <div className="min-w-0 pr-1">
+                          <h4
+                            className="text-xl font-bold tracking-tight leading-tight truncate"
+                            style={{
+                              fontFamily: 'var(--font-headline)',
+                              color: 'var(--c-text-primary)',
+                            }}
+                          >
+                            {c.name}
+                          </h4>
+                          <p
+                            className="text-[11px] font-medium mt-0.5 tracking-wide truncate"
+                            style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                          >
+                            {c.notes?.join(' · ')}
+                          </p>
+                        </div>
+                        <ChordCardMiniFretboard chordData={c.guitar} />
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between pt-1">
+                      <span
+                        className="text-[9px] tracking-wider uppercase font-bold px-2 py-0.5 rounded-md border"
+                        style={{
+                          color: 'var(--c-accent-from, #2563EB)',
+                          backgroundColor:
+                            'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
+                          borderColor:
+                            'color-mix(in srgb, var(--c-accent-from, #2563EB) 20%, transparent)',
+                        }}
+                      >
+                        {c.type?.toUpperCase()}
+                      </span>
+                      <RelatedPlayBtn guitar={c.guitar} accent={accent} isLight={isLight} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
         ) : (
+          /* MAIN LIBRARY DASHBOARD */
           <>
-            {/* Header & Quick Action Buttons */}
-            <section className="mt-1" data-purpose="header-section">
-              <div className="flex items-center justify-between">
-                {/* Title & Count Subtitle */}
-                <div>
-                  <h1
-                    className="text-3xl font-extrabold tracking-tight leading-tight"
-                    style={{
-                      fontFamily: 'var(--font-headline)',
-                      color: 'var(--c-text-primary, #111827)',
-                    }}
-                  >
-                    Library
-                  </h1>
-                  <p
-                    className="text-xs font-medium tracking-normal mt-0.5"
-                    style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                  >
-                    Explore {allChords.length} Chords
-                  </p>
-                </div>
+            {/* Chord of the Day Hero Card */}
+            {chordOfTheDay && (
+              <section className="mb-2" data-purpose="chord-hero-card">
+                <article
+                  className="relative w-full rounded-3xl p-4 sm:p-5 border shadow-soft-card"
+                  style={{
+                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3.5">
+                      {/* Realistic Fretboard Diagram */}
+                      <ChordHeroFretboard chordData={chordOfTheDay.guitar} />
 
-                {/* Quick Tool Shortcuts */}
-                <div className="flex items-center gap-2">
-                  {/* Finder Tool */}
-                  <button
-                    type="button"
-                    onClick={() => setShowFinder(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-semibold shadow-sm active:scale-95 transition-transform touch-target-44 cursor-pointer"
-                    style={{
-                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                      borderColor: 'var(--c-border, #E3E6EB)',
-                      color: 'var(--c-text-primary, #111827)',
-                    }}
-                    data-purpose="tool-finder"
-                  >
-                    <span
-                      className="material-symbols-rounded text-[17px]"
-                      style={{ color: 'var(--c-accent-from, #2563EB)' }}
-                    >
-                      travel_explore
-                    </span>
-                    <span>Finder</span>
-                  </button>
+                      {/* Chord Title & Quality */}
+                      <div>
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-wider block"
+                          style={{ color: 'var(--c-accent-from, #2563EB)' }}
+                        >
+                          Chord of the Day
+                        </span>
+                        <div className="flex items-baseline gap-2 mt-1">
+                          <h2
+                            className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-none"
+                            style={{
+                              fontFamily: 'var(--font-headline)',
+                              color: 'var(--c-text-primary, #111827)',
+                            }}
+                          >
+                            {chordOfTheDay.root}
+                          </h2>
+                          <span
+                            className="text-xs font-semibold"
+                            style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                          >
+                            {chordOfTheDay.type.charAt(0).toUpperCase() +
+                              chordOfTheDay.type.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-                  {/* Generator Tool */}
-                  <button
-                    type="button"
-                    onClick={() => setShowGenerator(true)}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-semibold shadow-sm active:scale-95 transition-transform touch-target-44 cursor-pointer"
-                    style={{
-                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                      borderColor: 'var(--c-border, #E3E6EB)',
-                      color: 'var(--c-text-primary, #111827)',
-                    }}
-                    data-purpose="tool-generator"
-                  >
-                    <span
-                      className="material-symbols-rounded text-[17px]"
-                      style={{ color: 'var(--c-accent-from, #2563EB)' }}
+                    {/* Play & Practice Actions */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        aria-label={
+                          dayChordPlaying
+                            ? `Stop chord ${chordOfTheDay.name}`
+                            : `Play chord ${chordOfTheDay.name} sound`
+                        }
+                        onClick={handlePlayDayChord}
+                        className="w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-90 cursor-pointer"
+                        style={{
+                          backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
+                          color: 'var(--c-text-primary)',
+                          border: '1px solid var(--c-border, #E3E6EB)',
+                        }}
+                        type="button"
+                      >
+                        <span
+                          className="material-symbols-rounded filled text-[20px]"
+                          style={{
+                            color: dayChordPlaying
+                              ? 'var(--c-accent-from, #2563EB)'
+                              : 'var(--c-text-primary)',
+                          }}
+                        >
+                          {dayChordPlaying ? 'stop' : 'play_arrow'}
+                        </span>
+                      </button>
+                      <button
+                        onClick={() => handleChordClick(chordOfTheDay.id)}
+                        className="px-4 py-2.5 rounded-full border text-xs font-bold tracking-tight flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
+                        style={{
+                          backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
+                          color: 'var(--c-text-primary)',
+                          borderColor: 'var(--c-border, #E3E6EB)',
+                        }}
+                        data-purpose="practice-hero-button"
+                        type="button"
+                      >
+                        <span>Practice</span>
+                        <span className="material-symbols-rounded text-sm">arrow_forward</span>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              </section>
+            )}
+
+            {/* Recently Practiced Section */}
+            {recentChordList.length > 0 && (
+              <section className="mb-2" data-purpose="recently-practiced">
+                <h3
+                  className="text-sm font-bold tracking-tight mb-3 px-0.5"
+                  style={{
+                    fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                >
+                  Recently Practiced
+                </h3>
+                {/* Horizontal Scrolling List Container */}
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                  {recentChordList.map((rc: any) => (
+                    <div
+                      key={rc.id}
+                      onClick={() => handleChordClick(rc.id)}
+                      className="min-w-[136px] rounded-3xl p-4 border shadow-soft-card flex flex-col justify-between cursor-pointer active:scale-95 transition-all hover:border-studio-accent/40"
+                      style={{
+                        backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                        borderColor: 'var(--c-border, #E3E6EB)',
+                        height: '120px',
+                      }}
                     >
-                      auto_awesome
-                    </span>
-                    <span>Generator</span>
-                  </button>
+                      <div className="flex items-center justify-between mb-1">
+                        <span
+                          className="text-[10px] font-bold uppercase tracking-wider"
+                          style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                        >
+                          {rc.type?.toUpperCase()}
+                        </span>
+                        <span
+                          className="material-symbols-rounded text-[16px]"
+                          style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                        >
+                          history
+                        </span>
+                      </div>
+                      <div
+                        className="text-2xl font-black tracking-tight my-0.5"
+                        style={{
+                          fontFamily: 'var(--font-headline)',
+                          color: 'var(--c-text-primary, #111827)',
+                        }}
+                      >
+                        {rc.name}
+                      </div>
+                      <div
+                        className="text-[11px] font-medium tracking-wide truncate"
+                        style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                      >
+                        {rc.notes?.join(' · ')}
+                      </div>
+                    </div>
+                  ))}
                 </div>
+              </section>
+            )}
+
+            {/* Chord Categories 2-Column Grid */}
+            <section className="mb-2" data-purpose="categories-grid-section">
+              {/* Section Title & Meta Header */}
+              <div className="flex items-center justify-between mb-3 px-0.5">
+                <h3
+                  className="text-sm font-bold tracking-tight"
+                  style={{
+                    fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                >
+                  Categories
+                </h3>
+                <span
+                  className="text-[11px] font-medium"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  {CATEGORIES.length} Harmonic Flavors
+                </span>
               </div>
 
-              {/* Search & Filter Bar */}
-              <div className="relative mt-4 flex items-center" data-purpose="search-bar">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                  <span
-                    className="material-symbols-rounded text-[20px]"
-                    style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+              {/* Categories 2-Column Responsive Grid */}
+              <div
+                className="grid grid-cols-2 gap-3"
+                data-purpose="grid-container"
+                id="category-grid"
+              >
+                {visibleCategories.map((cat) => (
+                  <div
+                    key={cat.type}
+                    onClick={() => setActiveType(cat.type)}
+                    className="rounded-3xl p-3.5 border shadow-soft-card flex items-center justify-between hover:border-studio-accent/40 active:scale-[0.98] transition-all cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                      borderColor: 'var(--c-border, #E3E6EB)',
+                    }}
                   >
-                    search
-                  </span>
-                </div>
-                <input
-                  className="w-full pl-10 pr-20 py-2.5 rounded-full text-xs font-medium border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    <div className="min-w-0 pr-1.5">
+                      <h4
+                        className="text-sm font-bold tracking-tight truncate"
+                        style={{
+                          fontFamily: 'var(--font-headline)',
+                          color: 'var(--c-text-primary, #111827)',
+                        }}
+                      >
+                        {cat.label}
+                      </h4>
+                      <p
+                        className="text-[11px] font-medium mt-0.5 truncate"
+                        style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                      >
+                        {cat.variations}
+                      </p>
+                    </div>
+                    <CategoryMiniFretboard dots={cat.dots} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Expand / Show More Toggle Action */}
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={toggleShowAllCategories}
+                  className="w-full py-3 rounded-full border text-xs font-semibold shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
                   style={{
                     backgroundColor: 'var(--surface-card-bg, #ffffff)',
                     borderColor: 'var(--c-border, #E3E6EB)',
                     color: 'var(--c-text-primary, #111827)',
                   }}
-                  placeholder="Search chords..."
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-                {query ? (
-                  <button
-                    type="button"
-                    onClick={() => setQuery('')}
-                    className="absolute right-10 top-1/2 -translate-y-1/2 p-1.5 transition-colors cursor-pointer"
-                    style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-                    aria-label="Clear search"
-                  >
-                    <span className="material-symbols-rounded text-sm">close</span>
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  onClick={() => setShowTuningMenu((p: boolean) => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 transition-colors cursor-pointer"
-                  style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-                  aria-label="Tuning system filter"
+                  data-purpose="expand-toggle"
                 >
-                  <span className="material-symbols-rounded text-[18px]">tune</span>
+                  <span>
+                    {showAllCategories ? 'Show Less' : `Show All ${CATEGORIES.length} Categories`}
+                  </span>
+                  <span className="material-symbols-rounded text-sm">
+                    {showAllCategories ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+                  </span>
                 </button>
-
-                {/* Tuning Popover Dropdown */}
-                {showTuningMenu && (
-                  <div
-                    className="absolute right-2 top-[calc(100%+8px)] w-64 rounded-2xl p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150"
-                    style={{
-                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                      border: '1px solid var(--c-border, #E3E6EB)',
-                      boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                    }}
-                  >
-                    <div
-                      className="text-[10px] font-extrabold uppercase tracking-widest px-3 py-2"
-                      style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                    >
-                      Tuning System
-                    </div>
-                    {tunings.map((tu) => {
-                      const isCurrent = settings.tuning === tu.value;
-                      return (
-                        <button
-                          key={tu.value}
-                          type="button"
-                          onClick={() => {
-                            useSettingsStore.getState().updateSettings({ tuning: tu.value });
-                            setShowTuningMenu(false);
-                          }}
-                          className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg transition-colors cursor-pointer"
-                          style={{
-                            backgroundColor: isCurrent
-                              ? 'var(--c-surface-low, #F3F4F7)'
-                              : 'transparent',
-                            color: isCurrent
-                              ? 'var(--c-accent-from, #2563EB)'
-                              : 'var(--c-text-primary, #111827)',
-                          }}
-                        >
-                          <span>{tu.label}</span>
-                          {isCurrent && (
-                            <span
-                              className="material-symbols-rounded text-sm"
-                              style={{ color: 'var(--c-accent-from, #2563EB)' }}
-                            >
-                              check
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             </section>
-
-            {/* SEARCH RESULTS VIEW */}
-            {query ? (
-              <section className="space-y-4" data-purpose="search-results-section">
-                <div className="flex items-center justify-between">
-                  <h3
-                    className="text-base font-bold tracking-tight"
-                    style={{
-                      fontFamily: 'var(--font-headline)',
-                      color: 'var(--c-text-primary, #111827)',
-                    }}
-                  >
-                    Search Results ({searchResults.length})
-                  </h3>
-                </div>
-
-                {/* Root note quick filter pills */}
-                <div className="flex overflow-x-auto no-scrollbar gap-1.5 pb-1">
-                  {ROOT_NOTES.map((root) => {
-                    const isSelected = selectedRootFilter === root;
-                    return (
-                      <button
-                        key={root}
-                        onClick={() => setSelectedRootFilter(root)}
-                        className="px-3 py-1 rounded-full text-xs font-bold transition-all flex-shrink-0 cursor-pointer"
-                        style={{
-                          backgroundColor: isSelected
-                            ? 'var(--c-accent-from, #2563EB)'
-                            : 'var(--surface-card-bg, #ffffff)',
-                          color: isSelected ? '#ffffff' : 'var(--c-text-secondary, #6B7280)',
-                          border: isSelected
-                            ? '1px solid transparent'
-                            : '1px solid var(--c-border, #E3E6EB)',
-                        }}
-                      >
-                        {root}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {searchResults.length === 0 ? (
-                  <div
-                    className="rounded-3xl p-8 text-center space-y-2 border shadow-soft-card"
-                    style={{
-                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                      borderColor: 'var(--c-border, #E3E6EB)',
-                    }}
-                  >
-                    <span
-                      className="material-symbols-rounded text-3xl"
-                      style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-                    >
-                      search_off
-                    </span>
-                    <p
-                      className="text-sm font-medium"
-                      style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                    >
-                      No matching chords found for &ldquo;{query}&rdquo;
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                    {searchResults.map((c: any) => (
-                      <article
-                        key={c.id}
-                        onClick={() => handleChordClick(c.id)}
-                        className="rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between active:scale-[0.98] transition-all cursor-pointer group"
-                        style={{
-                          backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                          borderColor: 'var(--c-border, #E3E6EB)',
-                        }}
-                      >
-                        <div>
-                          <div className="flex items-start justify-between">
-                            <div className="min-w-0 pr-1">
-                              <h4
-                                className="text-xl font-bold tracking-tight leading-tight truncate"
-                                style={{
-                                  fontFamily: 'var(--font-headline)',
-                                  color: 'var(--c-text-primary)',
-                                }}
-                              >
-                                {c.name}
-                              </h4>
-                              <p
-                                className="text-[11px] font-medium mt-0.5 tracking-wide truncate"
-                                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                              >
-                                {c.notes?.join(' · ')}
-                              </p>
-                            </div>
-                            <ChordCardMiniFretboard chordData={c.guitar} />
-                          </div>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between pt-1">
-                          <span
-                            className="text-[9px] tracking-wider uppercase font-bold px-2 py-0.5 rounded-md border"
-                            style={{
-                              color: 'var(--c-accent-from, #2563EB)',
-                              backgroundColor:
-                                'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
-                              borderColor:
-                                'color-mix(in srgb, var(--c-accent-from, #2563EB) 20%, transparent)',
-                            }}
-                          >
-                            {c.type?.toUpperCase()}
-                          </span>
-                          <RelatedPlayBtn guitar={c.guitar} accent={accent} isLight={isLight} />
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </section>
-            ) : (
-              /* MAIN LIBRARY DASHBOARD */
-              <>
-                {/* Chord of the Day Hero Card */}
-                {chordOfTheDay && (
-                  <section className="mb-2" data-purpose="chord-hero-card">
-                    <article
-                      className="relative w-full rounded-3xl p-3.5 border shadow-soft-card"
-                      style={{
-                        backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                        borderColor: 'var(--c-border, #E3E6EB)',
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          {/* Realistic Fretboard Diagram */}
-                          <ChordHeroFretboard chordData={chordOfTheDay.guitar} />
-
-                          {/* Chord Title & Quality */}
-                          <div>
-                            <span
-                              className="text-[9px] font-bold uppercase tracking-wider block"
-                              style={{ color: 'var(--c-accent-from, #2563EB)' }}
-                            >
-                              Chord of the Day
-                            </span>
-                            <div className="flex items-baseline gap-2 mt-0.5">
-                              <h2
-                                className="text-2xl font-extrabold tracking-tight leading-none"
-                                style={{
-                                  fontFamily: 'var(--font-headline)',
-                                  color: 'var(--c-text-primary, #111827)',
-                                }}
-                              >
-                                {chordOfTheDay.root}
-                              </h2>
-                              <span
-                                className="text-[11px] font-medium"
-                                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                              >
-                                {chordOfTheDay.type.charAt(0).toUpperCase() +
-                                  chordOfTheDay.type.slice(1)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Play & Practice Actions */}
-                        <div className="flex items-center gap-2">
-                          <button
-                            aria-label={
-                              dayChordPlaying
-                                ? `Stop chord ${chordOfTheDay.name}`
-                                : `Play chord ${chordOfTheDay.name} sound`
-                            }
-                            onClick={handlePlayDayChord}
-                            className="w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-sm active:scale-90 cursor-pointer"
-                            style={{
-                              backgroundColor:
-                                'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
-                              color: 'var(--c-text-primary)',
-                              border: '1px solid var(--c-border, #E3E6EB)',
-                            }}
-                            type="button"
-                          >
-                            <span
-                              className="material-symbols-rounded filled text-[18px]"
-                              style={{
-                                color: dayChordPlaying
-                                  ? 'var(--c-accent-from, #2563EB)'
-                                  : 'var(--c-text-primary)',
-                              }}
-                            >
-                              {dayChordPlaying ? 'stop' : 'play_arrow'}
-                            </span>
-                          </button>
-                          <button
-                            onClick={() => handleChordClick(chordOfTheDay.id)}
-                            className="px-3.5 py-2 rounded-full border text-xs font-bold tracking-tight flex items-center gap-1 shadow-sm active:scale-95 transition-all cursor-pointer"
-                            style={{
-                              backgroundColor:
-                                'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
-                              color: 'var(--c-text-primary)',
-                              borderColor: 'var(--c-border, #E3E6EB)',
-                            }}
-                            data-purpose="practice-hero-button"
-                            type="button"
-                          >
-                            <span>Practice</span>
-                            <span className="material-symbols-rounded text-sm">arrow_forward</span>
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  </section>
-                )}
-
-                {/* Recently Practiced Section */}
-                {recentChordList.length > 0 && (
-                  <section className="mb-2" data-purpose="recently-practiced">
-                    <h3
-                      className="text-sm font-bold tracking-tight mb-2.5 px-0.5"
-                      style={{
-                        fontFamily: 'var(--font-headline)',
-                        color: 'var(--c-text-primary, #111827)',
-                      }}
-                    >
-                      Recently Practiced
-                    </h3>
-                    {/* Horizontal Scrolling List Container */}
-                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-                      {recentChordList.map((rc: any) => (
-                        <div
-                          key={rc.id}
-                          onClick={() => handleChordClick(rc.id)}
-                          className="min-w-[124px] rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between cursor-pointer active:scale-95 transition-all hover:border-studio-accent/40"
-                          style={{
-                            backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                            borderColor: 'var(--c-border, #E3E6EB)',
-                            height: '112px',
-                          }}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span
-                              className="text-[9px] font-bold uppercase tracking-wider"
-                              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                            >
-                              {rc.type?.toUpperCase()}
-                            </span>
-                            <span
-                              className="material-symbols-rounded text-[16px]"
-                              style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-                            >
-                              history
-                            </span>
-                          </div>
-                          <div
-                            className="text-2xl font-black tracking-tight my-0.5"
-                            style={{
-                              fontFamily: 'var(--font-headline)',
-                              color: 'var(--c-text-primary, #111827)',
-                            }}
-                          >
-                            {rc.name}
-                          </div>
-                          <div
-                            className="text-[10px] font-medium tracking-wide truncate"
-                            style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-                          >
-                            {rc.notes?.join(' · ')}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {/* Chord Categories 2-Column Grid */}
-                <section className="mb-2" data-purpose="categories-grid-section">
-                  {/* Section Title & Meta Header */}
-                  <div className="flex items-center justify-between mb-3 px-0.5">
-                    <h3
-                      className="text-sm font-bold tracking-tight"
-                      style={{
-                        fontFamily: 'var(--font-headline)',
-                        color: 'var(--c-text-primary, #111827)',
-                      }}
-                    >
-                      Categories
-                    </h3>
-                    <span
-                      className="text-[11px] font-medium"
-                      style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                    >
-                      {CATEGORIES.length} Harmonic Flavors
-                    </span>
-                  </div>
-
-                  {/* Categories 2-Column Responsive Grid */}
-                  <div
-                    className="grid grid-cols-2 gap-2.5"
-                    data-purpose="grid-container"
-                    id="category-grid"
-                  >
-                    {visibleCategories.map((cat) => (
-                      <div
-                        key={cat.type}
-                        onClick={() => setActiveType(cat.type)}
-                        className="rounded-3xl p-3 border shadow-soft-card flex items-center justify-between hover:border-studio-accent/40 active:scale-[0.98] transition-all cursor-pointer"
-                        style={{
-                          backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                          borderColor: 'var(--c-border, #E3E6EB)',
-                        }}
-                      >
-                        <div className="min-w-0 pr-1">
-                          <h4
-                            className="text-sm font-bold tracking-tight truncate"
-                            style={{
-                              fontFamily: 'var(--font-headline)',
-                              color: 'var(--c-text-primary, #111827)',
-                            }}
-                          >
-                            {cat.label}
-                          </h4>
-                          <p
-                            className="text-[10px] font-medium mt-0.5 truncate"
-                            style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                          >
-                            {cat.variations}
-                          </p>
-                        </div>
-                        <CategoryMiniFretboard dots={cat.dots} />
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Expand / Show More Toggle Action */}
-                  <div className="mt-4 flex justify-center">
-                    <button
-                      type="button"
-                      onClick={toggleShowAllCategories}
-                      className="w-full py-3 rounded-full border text-xs font-semibold shadow-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all cursor-pointer"
-                      style={{
-                        backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                        borderColor: 'var(--c-border, #E3E6EB)',
-                        color: 'var(--c-text-primary, #111827)',
-                      }}
-                      data-purpose="expand-toggle"
-                    >
-                      <span>
-                        {showAllCategories
-                          ? 'Show Less'
-                          : `Show All ${CATEGORIES.length} Categories`}
-                      </span>
-                      <span className="material-symbols-rounded text-sm">
-                        {showAllCategories ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
-                      </span>
-                    </button>
-                  </div>
-                </section>
-              </>
-            )}
           </>
         )}
       </main>

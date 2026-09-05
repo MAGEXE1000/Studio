@@ -6,7 +6,8 @@ import {
   useSettingsStore,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 import VinylLottie from '../../../shared/lottie/VinylLottie';
 import { Loader } from '../../../components/motion/loader';
 import { SONG_CATALOG } from '../services/songCatalog';
@@ -120,9 +121,20 @@ export default function GroovexPlayer() {
   const vinylRef = useRef<HTMLDivElement>(null);
   const currentAngleRef = useRef(35);
   const currentVelocityRef = useRef(0);
-  const targetVelocity = 0.55;
   const lastTimestampRef = useRef<number | null>(null);
   const lastProgressUpdateRef = useRef(0);
+  const lastTimeUpdateRef = useRef(0);
+
+  // Musical BPM -> RPM calculation
+  // One full vinyl revolution = one 4/4 musical measure (4 beats)
+  // RPM = BPM / 4
+  // Angular velocity omega = 1.5 * BPM (deg/s)
+  // Target velocity in degrees per millisecond:
+  const songBpm = song?.bpm && song.bpm > 0 ? song.bpm : 120;
+  const effectiveBpm = Math.min(200, Math.max(60, songBpm));
+  const targetVelocity = (1.5 * effectiveBpm) / 1000;
+  const targetVelocityRef = useRef(targetVelocity);
+  targetVelocityRef.current = targetVelocity;
 
   const [phase, setPhase] = useState<PlayerPhase>('loading');
   const [isPlaying, setIsPlaying] = useState(false);
@@ -157,45 +169,40 @@ export default function GroovexPlayer() {
     }
   }, []);
 
-  // Physics-based Rotational Animation loop (Smooth acceleration & graceful ~1.8s inertia spin-down)
+  // Physics-based Rotational Animation loop (Smooth acceleration & graceful ~650ms inertia spin-down)
   useEffect(() => {
     let animId: number;
-
-    const prefersReducedMotion =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    if (prefersReducedMotion) {
-      if (vinylRef.current) {
-        vinylRef.current.style.transform = `rotate(${currentAngleRef.current.toFixed(2)}deg)`;
-      }
-      return;
-    }
 
     function updateVinylRotation(timestamp: number) {
       if (!lastTimestampRef.current) lastTimestampRef.current = timestamp;
       const deltaTime = Math.min(timestamp - lastTimestampRef.current, 50);
       lastTimestampRef.current = timestamp;
 
+      const targetVel = targetVelocityRef.current;
+      // Spin-up: direct-drive motor accelerates to operating speed in ~400ms
+      const accelRate = (targetVel / 400) * deltaTime;
+      // Spin-down: platter inertia / magnetic brake coasts down gracefully in ~650ms
+      const decelRate = (targetVel / 650) * deltaTime;
+
       if (isPlaying) {
-        if (currentVelocityRef.current < targetVelocity) {
-          currentVelocityRef.current += 0.0006 * deltaTime;
-          if (currentVelocityRef.current > targetVelocity) {
-            currentVelocityRef.current = targetVelocity;
-          }
+        if (currentVelocityRef.current < targetVel) {
+          currentVelocityRef.current = Math.min(targetVel, currentVelocityRef.current + accelRate);
+        } else if (currentVelocityRef.current > targetVel) {
+          currentVelocityRef.current = Math.max(targetVel, currentVelocityRef.current - decelRate);
         }
       } else {
         if (currentVelocityRef.current > 0) {
-          currentVelocityRef.current -= 0.00032 * deltaTime;
-          if (currentVelocityRef.current < 0) {
-            currentVelocityRef.current = 0;
+          currentVelocityRef.current = Math.max(0, currentVelocityRef.current - decelRate);
+          if (currentVelocityRef.current === 0) {
+            // Platter reached complete rest: normalize angle to [0, 360)
+            currentAngleRef.current = ((currentAngleRef.current % 360) + 360) % 360;
           }
         }
       }
 
       if (currentVelocityRef.current > 0) {
-        currentAngleRef.current =
-          (currentAngleRef.current + currentVelocityRef.current * deltaTime) % 360;
+        // Continuous cumulative angle without modulo jump during active rotation
+        currentAngleRef.current += currentVelocityRef.current * deltaTime;
         if (vinylRef.current) {
           vinylRef.current.style.transform = `rotate(${currentAngleRef.current.toFixed(2)}deg)`;
         }
@@ -245,6 +252,12 @@ export default function GroovexPlayer() {
     setFailedStems([]);
     setPitchShift(0);
     setActivePreset('full');
+    currentAngleRef.current = 35;
+    currentVelocityRef.current = 0;
+    lastTimeUpdateRef.current = 0;
+    if (vinylRef.current) {
+      vinylRef.current.style.transform = 'rotate(35deg)';
+    }
     cancelAnimationFrame(rafRef.current);
 
     if (song.hasStems) {
@@ -442,9 +455,16 @@ export default function GroovexPlayer() {
     if (!engine) return;
     if (!engine.isScrubbing) {
       const t = getCurrentTime(engine);
-      setCurrentTime(t);
+      const now = performance.now();
+      // Throttle React state updates to ~40ms (~25fps) to maintain 60fps compositor budget on Android
+      if (now - lastTimeUpdateRef.current > 40 || !engine.isPlaying) {
+        lastTimeUpdateRef.current = now;
+        setCurrentTime(t);
+        setDuration(engine.duration);
+      }
+    } else {
+      setDuration(engine.duration);
     }
-    setDuration(engine.duration);
     if (engine.isPlaying) {
       rafRef.current = requestAnimationFrame(updateTime);
     } else if (isPlaying) {
@@ -679,16 +699,23 @@ export default function GroovexPlayer() {
   const prefersReducedMotion =
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Ensure vinyl transform reflects current angle upon entering ready state
+  useIsomorphicLayoutEffect(() => {
+    if (isReady && vinylRef.current && currentVelocityRef.current === 0) {
+      vinylRef.current.style.transform = `rotate(${currentAngleRef.current.toFixed(2)}deg)`;
+    }
+  }, [isReady]);
+
   // Physical Vinyl Placement Transform Calculation
   const vinylPlacementStyle = useMemo(() => {
     if (isReady) {
       return {
-        transform: `rotate(${currentAngleRef.current}deg)`,
         boxShadow:
           '0 20px 45px -10px rgba(15, 23, 42, 0.35), 0 8px 16px -4px rgba(15, 23, 42, 0.22)',
         cursor: 'pointer',
         opacity: 1,
-        transition: 'transform 320ms cubic-bezier(0.34, 1.25, 0.64, 1), box-shadow 300ms ease',
+        willChange: 'transform',
+        transition: 'box-shadow 300ms ease',
       };
     }
 

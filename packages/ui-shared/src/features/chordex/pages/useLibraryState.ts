@@ -19,7 +19,7 @@ import {
 import { useShallow } from 'zustand/react/shallow';
 import { CATEGORIES } from './LibraryCategories';
 
-export const ROOT_NOTES = ['ALL', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+export const ROOT_NOTES = ['ALL', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B'];
 
 export function useLibraryState() {
   const isWebDesktop = useIsWebDesktop();
@@ -48,6 +48,7 @@ export function useLibraryState() {
 
   const [chordPlaying, setChordPlaying] = useState(false);
   const [query, setQuery] = useState('');
+  const [categoryQuery, setCategoryQuery] = useState('');
   const [showTuningMenu, setShowTuningMenu] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [selectedRootFilter, setSelectedRootFilter] = useState<string>('ALL');
@@ -78,7 +79,21 @@ export function useLibraryState() {
     if (!query) return [];
     const results = searchChords(query);
     if (selectedRootFilter !== 'ALL') {
-      return results.filter((c) => c.root.toUpperCase() === selectedRootFilter.toUpperCase());
+      const rootUpper = selectedRootFilter.toUpperCase();
+      const enharmonics: Record<string, string[]> = {
+        'C#': ['C#', 'DB'],
+        DB: ['C#', 'DB'],
+        'D#': ['D#', 'EB'],
+        EB: ['D#', 'EB'],
+        'F#': ['F#', 'GB'],
+        GB: ['F#', 'GB'],
+        'G#': ['G#', 'AB'],
+        AB: ['G#', 'AB'],
+        'A#': ['A#', 'BB'],
+        BB: ['A#', 'BB'],
+      };
+      const targets = enharmonics[rootUpper] || [rootUpper];
+      return results.filter((c) => targets.includes(c.root.toUpperCase()));
     }
     return results;
   }, [query, selectedRootFilter]);
@@ -150,12 +165,18 @@ export function useLibraryState() {
         selectChord(null);
         return true;
       }
-      if (query) {
-        setQuery('');
+      if (categoryQuery) {
+        setCategoryQuery('');
         return true;
       }
       if (activeType) {
         setActiveType(null);
+        setCategoryQuery('');
+        setSelectedRootFilter('ALL');
+        return true;
+      }
+      if (query) {
+        setQuery('');
         return true;
       }
       return false;
@@ -164,6 +185,7 @@ export function useLibraryState() {
       activePanel,
       activePracticeSong,
       selectedChordId,
+      categoryQuery,
       query,
       activeType,
       selectChord,
@@ -175,10 +197,34 @@ export function useLibraryState() {
     if (!activeType) return [];
     let list = allChords.filter((c) => c.type === activeType);
     if (selectedRootFilter !== 'ALL') {
-      list = list.filter((c) => c.root.toUpperCase() === selectedRootFilter.toUpperCase());
+      const rootUpper = selectedRootFilter.toUpperCase();
+      const enharmonics: Record<string, string[]> = {
+        'C#': ['C#', 'DB'],
+        DB: ['C#', 'DB'],
+        'D#': ['D#', 'EB'],
+        EB: ['D#', 'EB'],
+        'F#': ['F#', 'GB'],
+        GB: ['F#', 'GB'],
+        'G#': ['G#', 'AB'],
+        AB: ['G#', 'AB'],
+        'A#': ['A#', 'BB'],
+        BB: ['A#', 'BB'],
+      };
+      const targets = enharmonics[rootUpper] || [rootUpper];
+      list = list.filter((c) => targets.includes(c.root.toUpperCase()));
+    }
+    if (categoryQuery.trim()) {
+      const q = categoryQuery.toLowerCase().trim();
+      list = list.filter((c) => {
+        return (
+          c.name.toLowerCase().includes(q) ||
+          c.root.toLowerCase().includes(q) ||
+          c.notes.some((n) => n.toLowerCase().includes(q))
+        );
+      });
     }
     return list;
-  }, [activeType, allChords, selectedRootFilter]);
+  }, [activeType, allChords, selectedRootFilter, categoryQuery]);
 
   const activeCategoryObject = CATEGORIES.find((c) => c.type === activeType);
 
@@ -202,6 +248,8 @@ export function useLibraryState() {
     setChordPlaying,
     query,
     setQuery,
+    categoryQuery,
+    setCategoryQuery,
     showTuningMenu,
     setShowTuningMenu,
     showFinder,

@@ -9,6 +9,7 @@ import {
   type SaxKeyId,
 } from '@workspace/studio-core';
 import { SaxophoneView } from '../components/SaxophoneView';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 
 export type SaxPracticeMode = 'free' | 'learn' | 'quiz' | 'playback' | 'scales' | 'exercises';
 
@@ -131,9 +132,15 @@ export const SaxophonePracticePanel: React.FC = () => {
           marginBottom: 16,
         }}
       >
-        <div style={{ fontSize: 22, fontWeight: 800, color: '#f59e0b', letterSpacing: '-0.02em' }}>
-          Saxophone Practice
-        </div>
+        <StudioHeader
+          title="Saxophone Practice"
+          subtitle="Interactive fingerings and ear training"
+          containerStyle={{ alignItems: 'center', textAlign: 'center', paddingBottom: 0 }}
+          titleStyle={{ textAlign: 'center', color: '#f59e0b' }}
+          subtitleStyle={{ textAlign: 'center' }}
+          disableTopInset={true}
+          disableHorizontalPadding={true}
+        />
 
         {/* Sax Variant Selector */}
         <div

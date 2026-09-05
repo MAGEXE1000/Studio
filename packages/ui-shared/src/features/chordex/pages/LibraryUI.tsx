@@ -20,6 +20,7 @@ import {
   ChordCardMiniRecess,
 } from '../components/MiniFretboardRecess';
 import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Button, ActionButton } from '../../../shared/design-system/buttons';
 
 export function RelatedPlayBtn({
@@ -1391,7 +1392,7 @@ export function LibraryMainView({ state }: { state: any }) {
     return combined.slice(0, 6);
   }, [recentChords]);
 
-  if (activeType) {
+  if (activeType && state.isWebDesktop) {
     return (
       <CategoryScreenView
         activeType={activeType}
@@ -1425,35 +1426,19 @@ export function LibraryMainView({ state }: { state: any }) {
         }}
         data-purpose="mobile-viewport"
       >
-        {/* Header & Quick Action Buttons */}
-        <section className="mt-1" data-purpose="header-section">
-          <div className="flex items-center justify-between">
-            {/* Title & Count Subtitle */}
-            <div>
-              <h1
-                className="text-3xl font-extrabold tracking-tight leading-tight"
-                style={{
-                  fontFamily: 'var(--font-headline)',
-                  color: 'var(--c-text-primary, #111827)',
-                }}
-              >
-                Library
-              </h1>
-              <p
-                className="text-xs font-medium tracking-normal mt-1"
-                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-              >
-                Explore {allChords.length} Chords
-              </p>
-            </div>
-
-            {/* Quick Tool Shortcuts */}
+        {/* Canonical Studio Header with Quick Action Tool Shortcuts */}
+        <StudioHeader
+          title="Library"
+          subtitle={`Explore ${allChords.length} Chords`}
+          disableHorizontalPadding={true}
+          disableTopInset={true}
+          actions={
             <div className="flex items-center gap-2">
               {/* Finder Tool */}
               <button
                 type="button"
                 onClick={() => setShowFinder(true)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full border text-xs font-semibold shadow-sm active:scale-95 transition-transform touch-target-44 cursor-pointer"
+                className="flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-xs font-semibold shadow-sm active:scale-95 transition-transform touch-target-44 cursor-pointer"
                 style={{
                   backgroundColor: 'var(--surface-card-bg, #ffffff)',
                   borderColor: 'var(--c-border, #E3E6EB)',
@@ -1470,43 +1455,43 @@ export function LibraryMainView({ state }: { state: any }) {
                 <span>Finder</span>
               </button>
             </div>
-          </div>
+          }
+        />
 
-          {/* Search Bar */}
-          <div className="relative mt-4 flex items-center" data-purpose="search-bar">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-              <span
-                className="material-symbols-rounded text-[20px]"
-                style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-              >
-                search
-              </span>
-            </div>
-            <input
-              className="w-full pl-11 pr-10 py-3 rounded-full text-sm font-medium border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-              style={{
-                backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                borderColor: 'var(--c-border, #E3E6EB)',
-                color: 'var(--c-text-primary, #111827)',
-              }}
-              placeholder="Search chords..."
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {query ? (
-              <button
-                type="button"
-                onClick={() => setQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer"
-                style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-                aria-label="Clear search"
-              >
-                <span className="material-symbols-rounded text-sm">close</span>
-              </button>
-            ) : null}
+        {/* Search Bar */}
+        <div className="relative mt-4 flex items-center" data-purpose="search-bar">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+            <span
+              className="material-symbols-rounded text-[20px]"
+              style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+            >
+              search
+            </span>
           </div>
-        </section>
+          <input
+            className="w-full pl-11 pr-10 py-3 rounded-full text-sm font-medium border shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            style={{
+              backgroundColor: 'var(--surface-card-bg, #ffffff)',
+              borderColor: 'var(--c-border, #E3E6EB)',
+              color: 'var(--c-text-primary, #111827)',
+            }}
+            placeholder="Search chords..."
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          {query ? (
+            <button
+              type="button"
+              onClick={() => setQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+              style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+              aria-label="Clear search"
+            >
+              <span className="material-symbols-rounded text-sm">close</span>
+            </button>
+          ) : null}
+        </div>
 
         {/* SEARCH RESULTS VIEW */}
         {query ? (

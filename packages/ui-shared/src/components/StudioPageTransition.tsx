@@ -120,6 +120,7 @@ interface StudioPageTransitionProps {
   className?: string;
   style?: React.CSSProperties;
   variant?: 'tab' | 'drilldown' | 'fade-through' | 'slide';
+  initial?: boolean;
 }
 
 export const StudioPageTransition: React.FC<StudioPageTransitionProps> = ({
@@ -128,6 +129,7 @@ export const StudioPageTransition: React.FC<StudioPageTransitionProps> = ({
   className = '',
   style = {},
   variant = 'tab',
+  initial,
 }) => {
   const speed = useSettingsStore((s) => s.settings?.animationSpeed);
   const prefersReduced =
@@ -147,8 +149,10 @@ export const StudioPageTransition: React.FC<StudioPageTransitionProps> = ({
           ? SLIDE_TRANSITION
           : UNIFIED_NAV_TRANSITION;
 
+  const shouldAnimateInitial = initial !== undefined ? initial : variant === 'drilldown';
+
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="wait" initial={shouldAnimateInitial}>
       <motion.div
         key={pageKey}
         initial="initial"

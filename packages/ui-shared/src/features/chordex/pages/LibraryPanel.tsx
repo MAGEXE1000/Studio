@@ -1,10 +1,12 @@
 import React, { lazy, Suspense } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { useScrollHide } from '@workspace/studio-core';
 import { EmptyState } from '../../../shared/design-system/StudioDesignSystem';
+import { StudioPageTransition } from '../../../components/StudioPageTransition';
 import { SongPracticeView } from './SongPracticeView';
 import { SaxophonePracticePanel } from './SaxophonePracticePanel';
 import { useLibraryState } from './useLibraryState';
-import { LibraryMainView, LibraryChordDetail } from './LibraryUI';
+import { LibraryMainView, LibraryChordDetail, CategoryScreenView } from './LibraryUI';
 
 const CustomChordBuilder = lazy(() => import('../components/CustomChordBuilder'));
 const ProgressionGenerator = lazy(() => import('../components/ProgressionGenerator'));
@@ -73,11 +75,50 @@ export default function LibraryPanel() {
             )}
           </div>
         </div>
-      ) : // Mobile view - either details or main list
-      selectedChordId ? (
-        <LibraryChordDetail state={state} onBack={() => selectChord(null)} />
       ) : (
-        <LibraryMainView state={state} />
+        // Mobile view - unified canonical drilldown transitions
+        (() => {
+          const activeMobileView = selectedChordId
+            ? 'detail'
+            : state.activeType
+              ? 'category'
+              : 'main';
+          return (
+            <div
+              style={{
+                flex: 1,
+                width: '100%',
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
+              <StudioPageTransition pageKey={activeMobileView} variant="drilldown">
+                {activeMobileView === 'detail' && (
+                  <LibraryChordDetail state={state} onBack={() => selectChord(null)} />
+                )}
+                {activeMobileView === 'category' && (
+                  <CategoryScreenView
+                    activeType={state.activeType!}
+                    setActiveType={state.setActiveType}
+                    activeCategoryObject={state.activeCategoryObject}
+                    filteredByType={state.filteredByType}
+                    selectedRootFilter={state.selectedRootFilter}
+                    setSelectedRootFilter={state.setSelectedRootFilter}
+                    categoryQuery={state.categoryQuery}
+                    setCategoryQuery={state.setCategoryQuery}
+                    handleChordClick={state.handleChordClick}
+                    accent={accent}
+                    isLight={state.isLight}
+                    tuning={settings?.tuning}
+                    scrollRef={state.scrollRef}
+                  />
+                )}
+                {activeMobileView === 'main' && <LibraryMainView state={state} />}
+              </StudioPageTransition>
+            </div>
+          );
+        })()
       )}
 
       {/* Floating Action Modals */}
@@ -92,9 +133,20 @@ export default function LibraryPanel() {
         </Suspense>
       )}
 
-      {activePracticeSong && (
-        <SongPracticeView song={activePracticeSong} onClose={() => setActivePracticeSong(null)} />
-      )}
+      <AnimatePresence>
+        {activePracticeSong && (
+          <StudioPageTransition
+            pageKey={activePracticeSong.id}
+            variant="drilldown"
+            style={{ position: 'fixed', inset: 0, zIndex: 100000 }}
+          >
+            <SongPracticeView
+              song={activePracticeSong}
+              onClose={() => setActivePracticeSong(null)}
+            />
+          </StudioPageTransition>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

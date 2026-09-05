@@ -29,6 +29,8 @@ import { SongCardGrid } from '../components/SongCardGrid';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
+import { StudioPageTransition } from '../../../components/StudioPageTransition';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Capacitor } from '@capacitor/core';
 import SuccessLottie from '../../../shared/lottie/SuccessLottie';
 import MusicNotesLottie from '../../../shared/lottie/MusicNotesLottie';
@@ -4752,127 +4754,66 @@ export default function SongsPanel() {
 
         {!isWebDesktop ? (
           /* ── Mobile Top Stack: Floating Header & Song Metadata Toolbar ── */
-          <div
-            className="flex-none px-4 pt-2 pb-2 flex flex-col gap-2.5 z-30"
-            style={{
-              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)',
-              background: 'var(--app-bg)',
-            }}
-          >
-            {/* BEGIN: FloatingTopHeader */}
-            <header
-              className="w-full rounded-full px-2.5 py-2 flex items-center justify-between border shadow-pill"
-              style={{
-                backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                borderColor: 'var(--c-border, #E3E6EB)',
-              }}
-              data-purpose="top-navigation"
-            >
-              {/* Back Button */}
-              <button
-                aria-label="Go back"
-                data-purpose="editor-back-btn"
-                onClick={() => setActivePreset(null)}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer"
-                style={{ color: 'var(--c-text-primary, #111827)' }}
-                type="button"
-              >
-                <span className="material-symbols-rounded text-[22px]">chevron_left</span>
-              </button>
-
-              {/* Song Title */}
-              <div
-                className="flex items-center gap-1.5 min-w-0 max-w-[55%]"
-                data-purpose="song-title-group"
-              >
-                <h1
-                  className="text-[17px] font-bold tracking-tight truncate text-center"
-                  style={{
-                    fontFamily: 'var(--font-headline)',
-                    color: 'var(--c-text-primary, #111827)',
-                  }}
-                >
-                  {activePreset.name || 'Song Editor'}
-                </h1>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1">
-                {(() => {
-                  const hasChords =
-                    activePreset.chords.length > 0 ||
-                    (activePreset.sections ?? []).some((s) => s.chords.length > 0);
-                  return hasChords ? (
-                    <button
-                      aria-label="Live Mode"
-                      onClick={() => setShowLive(true)}
-                      data-testid="enter-live-mode"
-                      className="h-8 px-2.5 rounded-full flex items-center gap-1 text-xs font-bold text-white shadow-sm transition-all active:scale-95 cursor-pointer"
-                      style={{
-                        background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                        boxShadow: `0 2px 8px ${accent.to}44`,
-                      }}
-                      type="button"
-                    >
-                      <span className="material-symbols-rounded text-sm">play_circle</span>
-                      <span>Live</span>
-                    </button>
-                  ) : null;
-                })()}
-                <button
-                  aria-label="Edit song details"
-                  data-purpose="edit-song-details-btn"
-                  onClick={() => {
-                    setEditingId(activePreset.id);
-                    setShowForm(true);
-                  }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer"
-                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                  type="button"
-                >
-                  <span className="material-symbols-rounded text-[20px]">edit</span>
-                </button>
-              </div>
-            </header>
-            {/* END: FloatingTopHeader */}
-
-            {/* BEGIN: SongMetadataToolbar */}
-            <section
-              aria-label="Song Controls and Tuning"
-              className="w-full flex items-center justify-between gap-2 px-0.5"
-              data-purpose="song-toolbar"
-            >
-              {/* Left: Key & BPM */}
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingId(activePreset.id);
-                    setShowForm(true);
-                  }}
-                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 border shadow-sm text-xs font-semibold active:scale-95 transition-all cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                    borderColor: 'var(--c-border, #E3E6EB)',
-                    color: 'var(--c-text-primary, #111827)',
-                  }}
-                  data-purpose="key-badge"
-                  title="Click to edit key"
-                >
-                  <span
-                    className="text-[11px] font-normal"
-                    style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+          <>
+            <SharedFloatingHeader
+              title={activePreset.name || 'Song Editor'}
+              onBack={() => setActivePreset(null)}
+              backBtnTestId="editor-back-btn"
+              toolbarActions={
+                <div className="flex items-center gap-1">
+                  {(() => {
+                    const hasChords =
+                      activePreset.chords.length > 0 ||
+                      (activePreset.sections ?? []).some((s) => s.chords.length > 0);
+                    return hasChords ? (
+                      <button
+                        aria-label="Live Mode"
+                        onClick={() => setShowLive(true)}
+                        data-testid="enter-live-mode"
+                        className="h-8 px-2.5 rounded-full flex items-center gap-1 text-xs font-bold text-white shadow-sm transition-all active:scale-95 cursor-pointer"
+                        style={{
+                          background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
+                          boxShadow: `0 2px 8px ${accent.to}44`,
+                        }}
+                        type="button"
+                      >
+                        <span className="material-symbols-rounded text-sm">play_circle</span>
+                        <span>Live</span>
+                      </button>
+                    ) : null;
+                  })()}
+                  <button
+                    aria-label="Edit song details"
+                    data-purpose="edit-song-details-btn"
+                    onClick={() => {
+                      setEditingId(activePreset.id);
+                      setShowForm(true);
+                    }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                    style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                    type="button"
                   >
-                    #
-                  </span>
-                  <span className="font-bold tracking-wide">
-                    {transposeOffset === 0
-                      ? activePreset.key || 'C'
-                      : transposeKeyString(activePreset.key || 'C', transposeOffset, preferFlats)}
-                  </span>
-                </button>
+                    <span className="material-symbols-rounded text-[20px]">edit</span>
+                  </button>
+                </div>
+              }
+            />
 
-                {activePreset.bpm > 0 && (
+            <div
+              className="flex-none px-4 pt-2 pb-2 flex flex-col gap-2.5 z-30"
+              style={{
+                paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
+                background: 'var(--app-bg)',
+              }}
+            >
+              {/* BEGIN: SongMetadataToolbar */}
+              <section
+                aria-label="Song Controls and Tuning"
+                className="w-full flex items-center justify-between gap-2 px-0.5"
+                data-purpose="song-toolbar"
+              >
+                {/* Left: Key & BPM */}
+                <div className="flex items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => {
@@ -4885,110 +4826,140 @@ export default function SongsPanel() {
                       borderColor: 'var(--c-border, #E3E6EB)',
                       color: 'var(--c-text-primary, #111827)',
                     }}
-                    data-purpose="bpm-badge"
-                    title="Click to edit tempo"
+                    data-purpose="key-badge"
+                    title="Click to edit key"
                   >
                     <span
-                      className="material-symbols-rounded text-sm"
+                      className="text-[11px] font-normal"
                       style={{ color: 'var(--c-text-muted, #8A92A6)' }}
                     >
-                      speed
+                      #
                     </span>
-                    <span className="font-bold">{activePreset.bpm}</span>
-                    <span
-                      className="text-[10px] font-medium"
-                      style={{ color: 'var(--c-text-muted, #8A92A6)' }}
-                    >
-                      BPM
+                    <span className="font-bold tracking-wide">
+                      {transposeOffset === 0
+                        ? activePreset.key || 'C'
+                        : transposeKeyString(activePreset.key || 'C', transposeOffset, preferFlats)}
                     </span>
                   </button>
-                )}
-              </div>
 
-              {/* Right: Transposition Controls */}
-              <div
-                className="flex items-center rounded-full px-1.5 py-1 border shadow-sm gap-0.5"
-                style={{
-                  backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                  borderColor: 'var(--c-border, #E3E6EB)',
-                }}
-                data-purpose="transpose-controls"
-              >
-                {transposeOffset !== 0 && (
+                  {activePreset.bpm > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(activePreset.id);
+                        setShowForm(true);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 border shadow-sm text-xs font-semibold active:scale-95 transition-all cursor-pointer"
+                      style={{
+                        backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                        borderColor: 'var(--c-border, #E3E6EB)',
+                        color: 'var(--c-text-primary, #111827)',
+                      }}
+                      data-purpose="bpm-badge"
+                      title="Click to edit tempo"
+                    >
+                      <span
+                        className="material-symbols-rounded text-sm"
+                        style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                      >
+                        speed
+                      </span>
+                      <span className="font-bold">{activePreset.bpm}</span>
+                      <span
+                        className="text-[10px] font-medium"
+                        style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                      >
+                        BPM
+                      </span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Right: Transposition Controls */}
+                <div
+                  className="flex items-center rounded-full px-1.5 py-1 border shadow-sm gap-0.5"
+                  style={{
+                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                  }}
+                  data-purpose="transpose-controls"
+                >
+                  {transposeOffset !== 0 && (
+                    <button
+                      type="button"
+                      onClick={() => resetTranspose(activePreset.id)}
+                      className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer"
+                      style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                      title="Reset key"
+                    >
+                      <span className="material-symbols-rounded text-sm">restart_alt</span>
+                    </button>
+                  )}
+
                   <button
                     type="button"
-                    onClick={() => resetTranspose(activePreset.id)}
+                    onClick={() =>
+                      useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })
+                    }
                     className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer"
-                    style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                    title="Reset key"
+                    style={{
+                      color: 'var(--c-text-secondary, #6B7280)',
+                      fontFamily: 'var(--font-headline)',
+                      fontWeight: 800,
+                      fontSize: '12px',
+                    }}
+                    title={
+                      preferFlats
+                        ? 'Using flats (click for sharps)'
+                        : 'Using sharps (click for flats)'
+                    }
                   >
-                    <span className="material-symbols-rounded text-sm">restart_alt</span>
+                    {preferFlats ? '♭' : '♯'}
                   </button>
-                )}
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })
-                  }
-                  className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer"
-                  style={{
-                    color: 'var(--c-text-secondary, #6B7280)',
-                    fontFamily: 'var(--font-headline)',
-                    fontWeight: 800,
-                    fontSize: '12px',
-                  }}
-                  title={
-                    preferFlats
-                      ? 'Using flats (click for sharps)'
-                      : 'Using sharps (click for flats)'
-                  }
-                >
-                  {preferFlats ? '♭' : '♯'}
-                </button>
+                  <button
+                    type="button"
+                    aria-label="Transpose down"
+                    data-testid="transpose-down"
+                    id="btn-transpose-down"
+                    disabled={transposeOffset <= -11}
+                    onClick={() => setTranspose(activePreset.id, transposeOffset - 1)}
+                    className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer disabled:opacity-40"
+                    style={{ color: 'var(--c-text-primary, #111827)' }}
+                  >
+                    <span className="material-symbols-rounded text-sm">remove</span>
+                  </button>
 
-                <button
-                  type="button"
-                  aria-label="Transpose down"
-                  data-testid="transpose-down"
-                  id="btn-transpose-down"
-                  disabled={transposeOffset <= -11}
-                  onClick={() => setTranspose(activePreset.id, transposeOffset - 1)}
-                  className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer disabled:opacity-40"
-                  style={{ color: 'var(--c-text-primary, #111827)' }}
-                >
-                  <span className="material-symbols-rounded text-sm">remove</span>
-                </button>
+                  <span
+                    id="transpose-value"
+                    className="text-xs font-bold font-mono px-1 select-none min-w-[24px] text-center"
+                    style={{
+                      color:
+                        transposeOffset !== 0
+                          ? 'var(--c-accent-from, #2563EB)'
+                          : 'var(--c-text-primary, #111827)',
+                    }}
+                  >
+                    {formatOffset(transposeOffset)}
+                  </span>
 
-                <span
-                  id="transpose-value"
-                  className="text-xs font-bold font-mono px-1 select-none min-w-[24px] text-center"
-                  style={{
-                    color:
-                      transposeOffset !== 0
-                        ? 'var(--c-accent-from, #2563EB)'
-                        : 'var(--c-text-primary, #111827)',
-                  }}
-                >
-                  {formatOffset(transposeOffset)}
-                </span>
-
-                <button
-                  type="button"
-                  aria-label="Transpose up"
-                  data-testid="transpose-up"
-                  id="btn-transpose-up"
-                  disabled={transposeOffset >= 11}
-                  onClick={() => setTranspose(activePreset.id, transposeOffset + 1)}
-                  className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer disabled:opacity-40"
-                  style={{ color: 'var(--c-text-primary, #111827)' }}
-                >
-                  <span className="material-symbols-rounded text-sm">add</span>
-                </button>
-              </div>
-            </section>
-            {/* END: SongMetadataToolbar */}
-          </div>
+                  <button
+                    type="button"
+                    aria-label="Transpose up"
+                    data-testid="transpose-up"
+                    id="btn-transpose-up"
+                    disabled={transposeOffset >= 11}
+                    onClick={() => setTranspose(activePreset.id, transposeOffset + 1)}
+                    className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer disabled:opacity-40"
+                    style={{ color: 'var(--c-text-primary, #111827)' }}
+                  >
+                    <span className="material-symbols-rounded text-sm">add</span>
+                  </button>
+                </div>
+              </section>
+              {/* END: SongMetadataToolbar */}
+            </div>
+          </>
         ) : (
           /* Desktop Title and Meta Header */
           <header
@@ -6362,9 +6333,8 @@ export default function SongsPanel() {
     );
   };
 
-  if (!isWebDesktop && activePreset && !showForm) {
-    return renderEditor();
-  }
+  const isEditingMobilePreset = !isWebDesktop && !!activePreset && !showForm;
+  const songsMobileView = isEditingMobilePreset ? 'editor' : 'list';
 
   /* â•â•â•â•â•â•â• VIEW: PRESET LIST â•â•â•â•â•â•â• */
   if (isWebDesktop) {
@@ -6671,325 +6641,342 @@ export default function SongsPanel() {
         />
       )}
 
-      {/* Main scrollable viewport */}
+      {/* Main viewport with canonical drilldown transition */}
       <div
-        ref={listScrollRef}
-        className="flex-1 overflow-y-auto no-scrollbar"
-        style={{ background: 'var(--app-bg)' }}
-        data-purpose="songs-screen"
+        style={{ flex: 1, width: '100%', height: '100%', position: 'relative', overflow: 'hidden' }}
       >
-        <main
-          className="w-full max-w-md mx-auto pb-32 px-4 pt-3 space-y-4"
-          style={{
-            paddingTop:
-              'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px))',
-          }}
-          data-purpose="mobile-viewport"
-        >
-          {/* Header */}
-          <header className="pt-2 px-1" data-purpose="header-titles">
-            <h1
-              className="text-3xl font-extrabold tracking-tight leading-tight"
+        <StudioPageTransition pageKey={songsMobileView} variant="drilldown">
+          {songsMobileView === 'editor' ? (
+            renderEditor()
+          ) : (
+            <div
               style={{
-                fontFamily: 'var(--font-headline)',
-                color: 'var(--c-text-primary, #111827)',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                height: '100%',
+                position: 'relative',
+                overflow: 'hidden',
               }}
             >
-              Songs
-            </h1>
-            <p
-              className="text-xs font-medium tracking-normal mt-0.5"
-              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-            >
-              {t.songs?.subtitle || 'Manage your song presets and perform live.'}
-            </p>
-          </header>
+              {/* Main scrollable viewport */}
+              <div
+                ref={listScrollRef}
+                className="flex-1 overflow-y-auto no-scrollbar"
+                style={{ background: 'var(--app-bg)' }}
+                data-purpose="songs-screen"
+              >
+                <main
+                  className="w-full max-w-md mx-auto pb-32 px-4 pt-3 space-y-4"
+                  style={{
+                    paddingTop:
+                      'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px))',
+                  }}
+                  data-purpose="mobile-viewport"
+                >
+                  {/* Canonical Studio Header */}
+                  <StudioHeader
+                    title="Songs"
+                    subtitle={t.songs?.subtitle || 'Manage your song presets and perform live.'}
+                    disableHorizontalPadding={true}
+                    disableTopInset={true}
+                  />
 
-          {/* Capsule Search Bar */}
-          <div className="relative flex items-center" data-purpose="search-bar">
-            <span
-              className="material-symbols-rounded absolute left-4 pointer-events-none text-lg select-none"
-              style={{ color: 'var(--c-text-muted, #94A3B8)' }}
-            >
-              search
-            </span>
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search titles, keys, or tags..."
-              className="w-full pl-10 pr-10 py-3 text-sm rounded-full border shadow-soft-card outline-none transition-all font-inter"
-              style={{
-                backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                borderColor: 'var(--c-border, #E3E6EB)',
-                color: 'var(--c-text-primary, #111827)',
-              }}
-            />
-            {searchQuery && (
-              <button
-                aria-label="Clear search"
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 p-1 rounded-full text-slate-400 hover:text-slate-600 active:scale-90 transition-transform cursor-pointer"
-                style={{ color: 'var(--c-text-muted, #94A3B8)' }}
-              >
-                <span className="material-symbols-rounded text-base">close</span>
-              </button>
-            )}
-          </div>
+                  {/* Capsule Search Bar */}
+                  <div className="relative flex items-center" data-purpose="search-bar">
+                    <span
+                      className="material-symbols-rounded absolute left-4 pointer-events-none text-lg select-none"
+                      style={{ color: 'var(--c-text-muted, #94A3B8)' }}
+                    >
+                      search
+                    </span>
+                    <input
+                      type="search"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search titles, keys, or tags..."
+                      className="w-full pl-10 pr-10 py-3 text-sm rounded-full border shadow-soft-card outline-none transition-all font-inter"
+                      style={{
+                        backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                        borderColor: 'var(--c-border, #E3E6EB)',
+                        color: 'var(--c-text-primary, #111827)',
+                      }}
+                    />
+                    {searchQuery && (
+                      <button
+                        aria-label="Clear search"
+                        type="button"
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-3.5 p-1 rounded-full text-slate-400 hover:text-slate-600 active:scale-90 transition-transform cursor-pointer"
+                        style={{ color: 'var(--c-text-muted, #94A3B8)' }}
+                      >
+                        <span className="material-symbols-rounded text-base">close</span>
+                      </button>
+                    )}
+                  </div>
 
-          {/* Empty states or song list */}
-          {filteredPresets.length === 0 ? (
-            presets.length === 0 ? (
-              /* No songs yet in library */
-              <section
-                className="flex flex-col items-center justify-center text-center px-4 py-16"
-                data-purpose="empty-state"
+                  {/* Empty states or song list */}
+                  {filteredPresets.length === 0 ? (
+                    presets.length === 0 ? (
+                      /* No songs yet in library */
+                      <section
+                        className="flex flex-col items-center justify-center text-center px-4 py-16"
+                        data-purpose="empty-state"
+                      >
+                        <div
+                          className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4 border shadow-soft-card"
+                          style={{
+                            backgroundColor:
+                              'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, var(--surface-card-bg, #ffffff))',
+                            borderColor:
+                              'color-mix(in srgb, var(--c-accent-from, #2563EB) 22%, transparent)',
+                            color: 'var(--c-accent-from, #2563EB)',
+                          }}
+                        >
+                          <span className="material-symbols-rounded text-3xl">library_music</span>
+                        </div>
+                        <h2
+                          className="text-xl font-bold tracking-tight"
+                          style={{
+                            fontFamily: 'var(--font-headline)',
+                            color: 'var(--c-text-primary, #111827)',
+                          }}
+                        >
+                          No songs yet
+                        </h2>
+                        <p
+                          className="text-xs font-normal max-w-[240px] mt-1.5 leading-relaxed"
+                          style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                        >
+                          Tap the{' '}
+                          <span
+                            className="font-semibold"
+                            style={{ color: 'var(--c-text-primary)' }}
+                          >
+                            '+'
+                          </span>{' '}
+                          button to create your first progression
+                        </p>
+                        <div className="flex items-center gap-2.5 mt-6">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingId(null);
+                              setShowForm(true);
+                            }}
+                            className="px-4 py-2 rounded-full text-xs font-bold text-white shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                            style={{
+                              backgroundColor: 'var(--c-accent-from, #2563EB)',
+                              boxShadow:
+                                '0 4px 14px color-mix(in srgb, var(--c-accent-from, #2563EB) 30%, transparent)',
+                            }}
+                            data-purpose="empty-create-song-btn"
+                          >
+                            <span className="material-symbols-rounded text-base">add</span>
+                            <span>Create Song</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowImport(true)}
+                            className="px-4 py-2 rounded-full text-xs font-semibold border shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                            style={{
+                              backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                              borderColor: 'var(--c-border, #E3E6EB)',
+                              color: 'var(--c-text-primary, #111827)',
+                            }}
+                            data-purpose="empty-import-btn"
+                          >
+                            <span className="material-symbols-rounded text-base">
+                              cloud_download
+                            </span>
+                            <span>Import</span>
+                          </button>
+                        </div>
+                      </section>
+                    ) : (
+                      /* Search yields no results */
+                      <section
+                        className="flex flex-col items-center justify-center text-center px-4 py-16"
+                        data-purpose="search-empty-state"
+                      >
+                        <div
+                          className="w-14 h-14 rounded-3xl flex items-center justify-center mb-4 border shadow-soft-card"
+                          style={{
+                            backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                            borderColor: 'var(--c-border, #E3E6EB)',
+                            color: 'var(--c-text-muted, #8A92A6)',
+                          }}
+                        >
+                          <span className="material-symbols-rounded text-2xl">search_off</span>
+                        </div>
+                        <h3
+                          className="text-lg font-bold tracking-tight"
+                          style={{
+                            fontFamily: 'var(--font-headline)',
+                            color: 'var(--c-text-primary, #111827)',
+                          }}
+                        >
+                          No matching songs
+                        </h3>
+                        <p
+                          className="text-xs font-medium mt-1 max-w-[240px]"
+                          style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                        >
+                          No songs found for &ldquo;{searchQuery}&rdquo;
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setSearchQuery('')}
+                          className="mt-4 px-3.5 py-1.5 rounded-full border text-xs font-semibold active:scale-95 transition-all cursor-pointer"
+                          style={{
+                            backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                            borderColor: 'var(--c-border, #E3E6EB)',
+                            color: 'var(--c-text-primary, #111827)',
+                          }}
+                          data-purpose="clear-search-btn"
+                        >
+                          Clear Search
+                        </button>
+                      </section>
+                    )
+                  ) : (
+                    /* Scalable Song List */
+                    <div className="space-y-2.5" data-purpose="song-list">
+                      <StaggeredReveal staggerInterval={30}>
+                        {filteredPresets.map((preset) => (
+                          <PresetCard
+                            key={preset.id}
+                            preset={preset}
+                            accent={accent}
+                            t={t}
+                            setActivePreset={setActivePreset}
+                            setShowLive={setShowLive}
+                            setExportModal={setExportModal}
+                            setEditingId={setEditingId}
+                            setShowForm={setShowForm}
+                            setShowDeleteId={setShowDeleteId}
+                          />
+                        ))}
+                      </StaggeredReveal>
+                    </div>
+                  )}
+                </main>
+              </div>
+
+              {/* Delete confirmation sheet */}
+              {showDeleteId && (
+                <Dialog
+                  open={true}
+                  onClose={() => setShowDeleteId(null)}
+                  title={t.songs.confirmDelete}
+                  footer={
+                    <>
+                      <Button onClick={() => setShowDeleteId(null)}>{t.songs.cancel}</Button>
+                      <Button
+                        onClick={() => {
+                          deletePreset(showDeleteId);
+                          setShowDeleteId(null);
+                        }}
+                        style={{
+                          backgroundColor: 'rgba(238,125,119,0.12)',
+                          color: '#ee7d77',
+                          border: '1px solid rgba(238,125,119,0.3)',
+                        }}
+                      >
+                        {t.songs.delete}
+                      </Button>
+                    </>
+                  }
+                >
+                  <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '13px' }}>
+                    Are you sure you want to delete this song preset? This action cannot be undone.
+                  </p>
+                </Dialog>
+              )}
+
+              {/* Export config modal */}
+              {exportModalPreset && (
+                <ExportModal
+                  preset={exportModalPreset}
+                  accent={accent}
+                  onClose={() => setExportModal(null)}
+                  transposeOffset={transposeOffset}
+                  storedCustomChords={customChords}
+                />
+              )}
+
+              {/* JSON export action sheet */}
+              {jsonExportPreset && (
+                <JsonExportSheet
+                  preset={jsonExportPreset}
+                  accent={accent}
+                  onClose={() => setJsonExportPreset(null)}
+                />
+              )}
+
+              {/* Import song modal */}
+              {showImport && (
+                <ImportSongModal
+                  accent={accent}
+                  existingPresets={presets}
+                  onImport={handleImport}
+                  onClose={() => setShowImport(false)}
+                />
+              )}
+
+              {/* Floating Action Buttons (FAB Stack) */}
+              <aside
+                className="fixed right-5 flex flex-col items-end gap-3 pointer-events-auto"
+                style={{
+                  bottom:
+                    'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 86px)',
+                  zIndex: 40,
+                }}
+                data-purpose="action-buttons"
               >
-                <div
-                  className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4 border shadow-soft-card"
-                  style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, var(--surface-card-bg, #ffffff))',
-                    borderColor:
-                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 22%, transparent)',
-                    color: 'var(--c-accent-from, #2563EB)',
-                  }}
-                >
-                  <span className="material-symbols-rounded text-3xl">library_music</span>
-                </div>
-                <h2
-                  className="text-xl font-bold tracking-tight"
-                  style={{
-                    fontFamily: 'var(--font-headline)',
-                    color: 'var(--c-text-primary, #111827)',
-                  }}
-                >
-                  No songs yet
-                </h2>
-                <p
-                  className="text-xs font-normal max-w-[240px] mt-1.5 leading-relaxed"
-                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                >
-                  Tap the{' '}
-                  <span className="font-semibold" style={{ color: 'var(--c-text-primary)' }}>
-                    '+'
-                  </span>{' '}
-                  button to create your first progression
-                </p>
-                <div className="flex items-center gap-2.5 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingId(null);
-                      setShowForm(true);
-                    }}
-                    className="px-4 py-2 rounded-full text-xs font-bold text-white shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
-                    style={{
-                      backgroundColor: 'var(--c-accent-from, #2563EB)',
-                      boxShadow:
-                        '0 4px 14px color-mix(in srgb, var(--c-accent-from, #2563EB) 30%, transparent)',
-                    }}
-                    data-purpose="empty-create-song-btn"
-                  >
-                    <span className="material-symbols-rounded text-base">add</span>
-                    <span>Create Song</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowImport(true)}
-                    className="px-4 py-2 rounded-full text-xs font-semibold border shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
-                    style={{
-                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                      borderColor: 'var(--c-border, #E3E6EB)',
-                      color: 'var(--c-text-primary, #111827)',
-                    }}
-                    data-purpose="empty-import-btn"
-                  >
-                    <span className="material-symbols-rounded text-base">cloud_download</span>
-                    <span>Import</span>
-                  </button>
-                </div>
-              </section>
-            ) : (
-              /* Search yields no results */
-              <section
-                className="flex flex-col items-center justify-center text-center px-4 py-16"
-                data-purpose="search-empty-state"
-              >
-                <div
-                  className="w-14 h-14 rounded-3xl flex items-center justify-center mb-4 border shadow-soft-card"
-                  style={{
-                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
-                    borderColor: 'var(--c-border, #E3E6EB)',
-                    color: 'var(--c-text-muted, #8A92A6)',
-                  }}
-                >
-                  <span className="material-symbols-rounded text-2xl">search_off</span>
-                </div>
-                <h3
-                  className="text-lg font-bold tracking-tight"
-                  style={{
-                    fontFamily: 'var(--font-headline)',
-                    color: 'var(--c-text-primary, #111827)',
-                  }}
-                >
-                  No matching songs
-                </h3>
-                <p
-                  className="text-xs font-medium mt-1 max-w-[240px]"
-                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-                >
-                  No songs found for &ldquo;{searchQuery}&rdquo;
-                </p>
+                {/* Secondary FAB: Import */}
                 <button
                   type="button"
-                  onClick={() => setSearchQuery('')}
-                  className="mt-4 px-3.5 py-1.5 rounded-full border text-xs font-semibold active:scale-95 transition-all cursor-pointer"
+                  onClick={() => setShowImport(true)}
+                  data-testid="import-preset-btn"
+                  aria-label="Import or Backup Cloud"
+                  title="Import or Backup Cloud"
+                  className="w-11 h-11 rounded-full border shadow-soft-card flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
                   style={{
                     backgroundColor: 'var(--surface-card-bg, #ffffff)',
                     borderColor: 'var(--c-border, #E3E6EB)',
-                    color: 'var(--c-text-primary, #111827)',
+                    color: 'var(--c-text-secondary, #6B7280)',
                   }}
-                  data-purpose="clear-search-btn"
                 >
-                  Clear Search
+                  <span className="material-symbols-rounded text-xl">cloud_download</span>
                 </button>
-              </section>
-            )
-          ) : (
-            /* Scalable Song List */
-            <div className="space-y-2.5" data-purpose="song-list">
-              <StaggeredReveal staggerInterval={30}>
-                {filteredPresets.map((preset) => (
-                  <PresetCard
-                    key={preset.id}
-                    preset={preset}
-                    accent={accent}
-                    t={t}
-                    setActivePreset={setActivePreset}
-                    setShowLive={setShowLive}
-                    setExportModal={setExportModal}
-                    setEditingId={setEditingId}
-                    setShowForm={setShowForm}
-                    setShowDeleteId={setShowDeleteId}
-                  />
-                ))}
-              </StaggeredReveal>
+
+                {/* Primary FAB: Create Song */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingId(null);
+                    setShowForm(true);
+                  }}
+                  data-testid="new-preset-btn"
+                  aria-label="Create new progression"
+                  title="Create new progression"
+                  className="rounded-full text-white shadow-lg flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+                  style={{
+                    width: '52px',
+                    height: '52px',
+                    backgroundColor: 'var(--c-accent-from, #2563EB)',
+                    boxShadow:
+                      '0 8px 24px color-mix(in srgb, var(--c-accent-from, #2563EB) 35%, transparent)',
+                  }}
+                >
+                  <span className="material-symbols-rounded text-2xl font-bold">add</span>
+                </button>
+              </aside>
             </div>
           )}
-        </main>
+        </StudioPageTransition>
       </div>
-
-      {/* Delete confirmation sheet */}
-      {showDeleteId && (
-        <Dialog
-          open={true}
-          onClose={() => setShowDeleteId(null)}
-          title={t.songs.confirmDelete}
-          footer={
-            <>
-              <Button onClick={() => setShowDeleteId(null)}>{t.songs.cancel}</Button>
-              <Button
-                onClick={() => {
-                  deletePreset(showDeleteId);
-                  setShowDeleteId(null);
-                }}
-                style={{
-                  backgroundColor: 'rgba(238,125,119,0.12)',
-                  color: '#ee7d77',
-                  border: '1px solid rgba(238,125,119,0.3)',
-                }}
-              >
-                {t.songs.delete}
-              </Button>
-            </>
-          }
-        >
-          <p style={{ margin: 0, fontFamily: 'var(--font-body)', fontSize: '13px' }}>
-            Are you sure you want to delete this song preset? This action cannot be undone.
-          </p>
-        </Dialog>
-      )}
-
-      {/* Export config modal */}
-      {exportModalPreset && (
-        <ExportModal
-          preset={exportModalPreset}
-          accent={accent}
-          onClose={() => setExportModal(null)}
-          transposeOffset={transposeOffset}
-          storedCustomChords={customChords}
-        />
-      )}
-
-      {/* JSON export action sheet */}
-      {jsonExportPreset && (
-        <JsonExportSheet
-          preset={jsonExportPreset}
-          accent={accent}
-          onClose={() => setJsonExportPreset(null)}
-        />
-      )}
-
-      {/* Import song modal */}
-      {showImport && (
-        <ImportSongModal
-          accent={accent}
-          existingPresets={presets}
-          onImport={handleImport}
-          onClose={() => setShowImport(false)}
-        />
-      )}
-
-      {/* Floating Action Buttons (FAB Stack) */}
-      <aside
-        className="fixed right-5 flex flex-col items-end gap-3 pointer-events-auto"
-        style={{
-          bottom: 'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 86px)',
-          zIndex: 40,
-        }}
-        data-purpose="action-buttons"
-      >
-        {/* Secondary FAB: Import */}
-        <button
-          type="button"
-          onClick={() => setShowImport(true)}
-          data-testid="import-preset-btn"
-          aria-label="Import or Backup Cloud"
-          title="Import or Backup Cloud"
-          className="w-11 h-11 rounded-full border shadow-soft-card flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
-          style={{
-            backgroundColor: 'var(--surface-card-bg, #ffffff)',
-            borderColor: 'var(--c-border, #E3E6EB)',
-            color: 'var(--c-text-secondary, #6B7280)',
-          }}
-        >
-          <span className="material-symbols-rounded text-xl">cloud_download</span>
-        </button>
-
-        {/* Primary FAB: Create Song */}
-        <button
-          type="button"
-          onClick={() => {
-            setEditingId(null);
-            setShowForm(true);
-          }}
-          data-testid="new-preset-btn"
-          aria-label="Create new progression"
-          title="Create new progression"
-          className="rounded-full text-white shadow-lg flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
-          style={{
-            width: '52px',
-            height: '52px',
-            backgroundColor: 'var(--c-accent-from, #2563EB)',
-            boxShadow:
-              '0 8px 24px color-mix(in srgb, var(--c-accent-from, #2563EB) 35%, transparent)',
-          }}
-        >
-          <span className="material-symbols-rounded text-2xl font-bold">add</span>
-        </button>
-      </aside>
     </div>
   );
 }

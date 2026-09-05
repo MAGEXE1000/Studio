@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.61';
-export const NATIVE_VERSION_CODE = 40561;
-export const WEB_VERSION = '4.5.61';
+export const NATIVE_VERSION = '4.5.62';
+export const NATIVE_VERSION_CODE = 40562;
+export const WEB_VERSION = '4.5.62';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '7a64306f';
+export const APP_COMMIT_SHA = 'df22f5ff';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/5/2026, 4:25:39 AM CST';
+export const APP_BUILD_TIMESTAMP = '9/5/2026, 1:46:13 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,20 +98,20 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Drumex Beat Editor Studio Redesign: Redesigned the mobile Beat Editor into the canonical studio visual language with high-density layout and tactile production controls.',
-      'Floating Pill Top Bar: Compact capsule header displaying pattern metadata, interactive BPM tempo pill, 4/4 time signature, kit subtitle, undo/redo buttons, and burger menu.',
-      'Fixed Left Track Column with Real-Time Mute & Solo: Added persistent 104px track column with bold titles, mini M (Mute) buttons, mini S (Solo) buttons, and clean dot-separated articulation subtitles.',
-      'Real-Time Audio Mute/Solo Synchronization: Integrated dynamic volume zeroing directly into DrumScheduler audio context without pausing playback or interrupting scheduling.',
-      '4-Button Floating Action Controls (FAB Stack): Replaced legacy floating buttons with canonical vertical FAB stack for Reset/Erase, Loop, Metronome/Tempo, and primary Play/Pause.',
+      'GrooveX Song Player Stitch Redesign: Redesigned the complete GrooveX Song Player into the canonical Stitch layout with elevated turntable plinth card, live waveform audio visualizer, timeline scrubber with section badges, 5-button transport cluster with vibrant illuminated Play/Pause FAB, semitone transposition stepper, and 6-channel multitrack stems mixer workstation.',
+      'Realistic 60fps Vinyl Turntable Simulation: Implemented requestAnimationFrame rotational physics with realistic acceleration curve, natural ~1.8s inertia deceleration on pause, and absolute rotational angle preservation across pause/resume cycles.',
+      'High-Fidelity Vinyl Styling & Tonearm Assembly: Multi-groove radial vinyl disc with center spindle label, dual conic sheen reflection, and articulated tonearm assembly with gimbal pivot base, tone arm needle, and smooth cueing transition to playing position.',
+      'Studio Floating Header Song Lockup: Added subtitle support to SharedFloatingHeader housing the song title and artist strictly in the top floating pill, eliminating duplicate page body headers.',
     ],
   },
   {
     heading: 'Improved',
     items: [
-      'Musical Subdivision Ruler: Monospace subdivision labels with subtle downbeat background tint, bar line boundaries, and semantic measure menu icon.',
-      'Notehead & Velocity Matrix Visualization: Enhanced grid stroke weights distinguishing quarter-note downbeats from 16th subdivisions, and proportional dynamic velocity bars under noteheads.',
-      'Score Canvas Space Optimization: Intelligently hid bottom navigation dock when inside Beat Editor, maximizing score height and eliminating touch target overlaps.',
-      'Widescreen Landscape Presentation: Continuous multi-measure horizontal layout, compact top bar with integrated play trigger, and hidden FAB stack.',
+      'Transposition Audio Engine Architecture: Eliminated digital buzzing and clicking in SoundTouch AudioWorklet processor by adding a 1024-sample pre-buffer threshold that guarantees full 128-sample render quantums.',
+      'Bit-Exact Master Audio Bypass: Added bit-exact passthrough path at 0 semitones bypassing WSOLA processing entirely for 100% studio master clarity with zero latency or phase coloration.',
+      'Phase-Locked Stems Synchronization: Summed all 6 multitrack stem audio channels into a unified pre-transposition bus, preventing drum WSOLA drift and ensuring sample-accurate stem synchronization across all transposition keys.',
+      'Real-Time Transposition Controls: Stepper allows -6 to +6 semitone adjustments on the fly with smooth 25ms crossfades and exponential pitch smoothing without altering audio playback tempo.',
+      'Practice Mix Presets: One-tap presets (Full Band, Minus Vox, Minus Drum, Bass & Drum) with individual channel volume sliders, exclusive Mute and Solo controls, and a master mixer reset action.',
     ],
   },
 ];
@@ -123,6 +123,18 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.62',
+    date: '2026-09-05',
+    highlights: [
+      'GrooveX Song Player Stitch Redesign: Redesigned the complete GrooveX Song Player into the canonical Stitch layout with elevated turntable plinth card, live waveform audio visualizer, timeline scrubber with section badges, 5-button transport cluster with vibrant illuminated Play/Pause FAB, semitone transposition stepper, and 6-channel multitrack stems mixer workstation.',
+      'Realistic 60fps Vinyl Turntable Simulation: Implemented requestAnimationFrame rotational physics with realistic acceleration curve, natural ~1.8s inertia deceleration on pause, and absolute rotational angle preservation across pause/resume cycles.',
+      'High-Fidelity Vinyl Styling & Tonearm Assembly: Multi-groove radial vinyl disc with center spindle label, dual conic sheen reflection, and articulated tonearm assembly with gimbal pivot base, tone arm needle, and smooth cueing transition to playing position.',
+      'Studio Floating Header Song Lockup: Added subtitle support to SharedFloatingHeader housing the song title and artist strictly in the top floating pill, eliminating duplicate page body headers.',
+      'Transposition Audio Engine Architecture: Eliminated digital buzzing and clicking in SoundTouch AudioWorklet processor by adding a 1024-sample pre-buffer threshold that guarantees full 128-sample render quantums.',
+      'Bit-Exact Master Audio Bypass: Added bit-exact passthrough path at 0 semitones bypassing WSOLA processing entirely for 100% studio master clarity with zero latency or phase coloration.',
+    ],
+  },
   {
     version: '4.5.61',
     date: '2026-09-05',
@@ -219,16 +231,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Stagex Setup Detail Sections Redesign: Re-engineered Technical Rider, Setlist, Gear Inventory, and Band & Crew subviews to match canonical Studio reference designs with compact statistics strips, rich interactive cards, clear empty states, and safe-area scroll clearance.',
       'Stagex Preferences Mobile Architecture: Redesigned the Stagex mobile Preferences experience with seamless topbar header integration, zero duplicate page titles, compact squircular cards, and full Light, Dark, and AMOLED theme parity.',
       'Navigation Dock & Safe-Area Clearance: Implemented comprehensive bottom inset protection across Stage, Setup, and Preferences pages ensuring floating navigation docks never obscure lower controls on compact Android viewports.',
-    ],
-  },
-  {
-    version: '4.5.52',
-    date: '2026-09-02',
-    highlights: [
-      'Stagex Square Stage Aspect Ratio Preference: Added a user-selectable and persisted Stage Shape preference (Rectangle vs Square) with instant reactive viewport adaptation, dedicated square stage CSS framing, and zero reload state preservation.',
-      'Canonical Studio Preferences Architecture: Redesigned the Stagex mobile Preferences view with compact charcoal surfaces, small tracked uppercase section headers (APPEARANCE, CANVAS, EDITOR), a 6-color swatch backdrop grid (SHADOW, VOID, GRAPHITE, SLATE, MIDNIGHT, FOREST), and compact segmented controls for grid sizing, stage shape, and measurement units.',
-      'Canonical Mobile Setup View Redesign: Restored the full-width vertical card stack architecture for Technical Rider, Setlist, Gear Inventory, and Band & Crew with bespoke squircle icons, dynamic item count badges, and seamless drilldown transitions.',
-      'Stagex Mobile Header & Visual Polish: Unified mobile page headers with seamless top insets, standardized 28px typography, floating action utility pills, and generous scroll clearance above the floating bottom dock.',
     ],
   },
 ];

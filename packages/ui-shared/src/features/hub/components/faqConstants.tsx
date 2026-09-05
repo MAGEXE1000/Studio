@@ -584,7 +584,7 @@ Date: ${new Date().toISOString()}
                   color: isActive ? '#ffffff' : 'var(--c-text-secondary)',
                   fontSize: 12,
                   fontWeight: isActive ? 700 : 600,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   boxShadow: isActive
                     ? '0 2px 10px rgba(0, 0, 0, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.35)'
@@ -682,7 +682,7 @@ Date: ${new Date().toISOString()}
                       fontSize: 14,
                       fontWeight: 750,
                       color: 'var(--c-text-primary)',
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                     }}
                   >
                     {t.help?.accordion?.diagnosticsCard?.title ||
@@ -743,7 +743,7 @@ Date: ${new Date().toISOString()}
                     style={{
                       fontSize: 12.5,
                       fontWeight: 700,
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                       color: audioCtxState === 'running' ? '#10b981' : 'var(--c-text-secondary)',
                     }}
                   >
@@ -792,7 +792,7 @@ Date: ${new Date().toISOString()}
                     style={{
                       fontSize: 12.5,
                       fontWeight: 700,
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                       color: 'var(--c-text-primary)',
                     }}
                   >
@@ -816,7 +816,7 @@ Date: ${new Date().toISOString()}
                   color: 'var(--c-text-primary)',
                   fontSize: 11.5,
                   fontWeight: 650,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -851,7 +851,7 @@ Date: ${new Date().toISOString()}
                   color: 'var(--c-text-primary)',
                   fontSize: 11.5,
                   fontWeight: 650,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -886,7 +886,7 @@ Date: ${new Date().toISOString()}
                   color: 'var(--c-text-primary)',
                   fontSize: 11.5,
                   fontWeight: 650,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -921,7 +921,7 @@ Date: ${new Date().toISOString()}
                   color: 'var(--c-text-primary)',
                   fontSize: 11.5,
                   fontWeight: 650,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -956,7 +956,7 @@ Date: ${new Date().toISOString()}
                   color: 'var(--c-text-primary)',
                   fontSize: 11.5,
                   fontWeight: 650,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -998,7 +998,7 @@ Date: ${new Date().toISOString()}
                   color: diagEnabled ? '#10b981' : 'var(--c-text-primary)',
                   fontSize: 11.5,
                   fontWeight: 650,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -1115,7 +1115,7 @@ Date: ${new Date().toISOString()}
                     fontSize: 14,
                     fontWeight: 750,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   }}
                 >
                   {lang === 'es' ? 'Diagnósticos de Actualización' : 'Update Session Diagnostics'}
@@ -1142,7 +1142,7 @@ Date: ${new Date().toISOString()}
                   color: '#ffffff',
                   fontSize: 11.5,
                   fontWeight: 700,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -1175,7 +1175,7 @@ Date: ${new Date().toISOString()}
                       color: 'var(--c-text-primary)',
                       fontSize: 11.5,
                       fontWeight: 650,
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -1198,7 +1198,7 @@ Date: ${new Date().toISOString()}
                       color: 'var(--c-text-primary)',
                       fontSize: 11.5,
                       fontWeight: 650,
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -1326,7 +1326,7 @@ Date: ${new Date().toISOString()}
                       color: 'var(--c-text-primary)',
                       fontSize: 13.5,
                       fontWeight: 650,
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                       gap: 12,
                       outline: 'none',
                       WebkitTapHighlightColor: 'transparent',
@@ -1388,7 +1388,7 @@ Date: ${new Date().toISOString()}
                             color: '#ffffff',
                             border: 'none',
                             fontWeight: 700,
-                            fontFamily: 'Manrope, sans-serif',
+                            fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                             fontSize: '11.5px',
                             cursor: 'pointer',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -1418,7 +1418,7 @@ Date: ${new Date().toISOString()}
                             color: '#ffffff',
                             border: 'none',
                             fontWeight: 700,
-                            fontFamily: 'Manrope, sans-serif',
+                            fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                             fontSize: '11.5px',
                             cursor: 'pointer',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -1448,7 +1448,7 @@ Date: ${new Date().toISOString()}
                             color: '#ffffff',
                             border: 'none',
                             fontWeight: 700,
-                            fontFamily: 'Manrope, sans-serif',
+                            fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                             fontSize: '11.5px',
                             cursor: 'pointer',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
@@ -1547,7 +1547,7 @@ Date: ${new Date().toISOString()}
                     fontSize: 14,
                     fontWeight: 750,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   }}
                 >
                   {lang === 'es' ? 'Reportar un Error / Incidencia' : 'Report a Bug / Issue'}
@@ -1628,7 +1628,7 @@ Date: ${new Date().toISOString()}`}
                   color: '#ffffff',
                   fontSize: 12,
                   fontWeight: 700,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   textDecoration: 'none',
                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
                 }}
@@ -1684,7 +1684,7 @@ Date: ${new Date().toISOString()}`}
               margin: 0,
               fontSize: 13.5,
               fontWeight: 750,
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-display)',
               color: 'var(--c-text-primary)',
             }}
           >
@@ -1721,7 +1721,7 @@ Date: ${new Date().toISOString()}`}
               color: 'var(--c-text-primary)',
               fontSize: 12,
               fontWeight: 650,
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--type-button-font, var(--studio-font-body))',
               textDecoration: 'none',
             }}
           >
@@ -1744,7 +1744,7 @@ Date: ${new Date().toISOString()}`}
               color: '#ffffff',
               fontSize: 12,
               fontWeight: 700,
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--type-button-font, var(--studio-font-body))',
               textDecoration: 'none',
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
             }}

@@ -248,7 +248,11 @@ export function SidebarGroupLabel({
           exit={{ opacity: 0, height: 0 }}
           transition={{ duration: 0.15 }}
           className={`px-3 py-1 text-[10px] font-extrabold tracking-wider uppercase text-[var(--c-text-primary)] ${className}`}
-          style={{ letterSpacing: '0.12em', fontFamily: 'Manrope, sans-serif', ...style }}
+          style={{
+            letterSpacing: '0.12em',
+            fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
+            ...style,
+          }}
           {...props}
         >
           {children}
@@ -322,7 +326,7 @@ export function SidebarMenuButton({
       style={{
         background: active ? 'var(--sidebar-active-bg, rgba(255, 255, 255, 0.07))' : 'transparent',
         color: active ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--type-nav-font, var(--studio-font-body))',
         fontWeight: active ? 700 : 500,
         fontSize: '13px',
         minHeight: '44px',

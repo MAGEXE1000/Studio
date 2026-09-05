@@ -84,7 +84,7 @@ export default function StudioAuthCard({
 
         <p
           className="font-extrabold text-xl tracking-tight m-0"
-          style={{ fontFamily: 'Manrope, sans-serif', color: 'var(--c-text-primary)' }}
+          style={{ fontFamily: 'var(--studio-font-display)', color: 'var(--c-text-primary)' }}
         >
           {mode === 'idle' ? t.title : mode === 'email-signin' ? t.signIn : t.register}
         </p>

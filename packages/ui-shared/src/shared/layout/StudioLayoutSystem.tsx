@@ -315,7 +315,7 @@ export function SharedFloatingHeader({
               color: 'var(--c-text-primary)',
               letterSpacing: 'var(--type-section-tracking, 0.6px)',
               fontFamily:
-                'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',

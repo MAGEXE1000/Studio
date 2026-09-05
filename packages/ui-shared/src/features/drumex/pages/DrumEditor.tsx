@@ -3345,7 +3345,7 @@ export default function DrumEditor() {
                             fontSize: 12.5,
                             fontWeight: 700,
                             color: 'var(--c-text-primary)',
-                            fontFamily: 'Manrope,sans-serif',
+                            fontFamily: 'var(--studio-font-body)',
                             lineHeight: 1.4,
                           }}
                         >
@@ -3375,7 +3375,7 @@ export default function DrumEditor() {
                               fontSize: 12,
                               fontWeight: 700,
                               color: 'var(--c-text-secondary)',
-                              fontFamily: 'Manrope,sans-serif',
+                              fontFamily: 'var(--studio-font-body)',
                             }}
                           >
                             Cancel
@@ -3396,7 +3396,7 @@ export default function DrumEditor() {
                               fontSize: 12,
                               fontWeight: 700,
                               color: '#f87171',
-                              fontFamily: 'Manrope,sans-serif',
+                              fontFamily: 'var(--studio-font-body)',
                             }}
                           >
                             Clear
@@ -3566,7 +3566,7 @@ export default function DrumEditor() {
                             fontWeight: 700,
                             cursor: 'pointer',
                             transition: 'all 160ms',
-                            fontFamily: 'Manrope,sans-serif',
+                            fontFamily: 'var(--studio-font-body)',
                           }}
                         >
                           {m.label}
@@ -3669,7 +3669,7 @@ export default function DrumEditor() {
                                     fontWeight: 600,
                                     color: 'var(--c-text-primary)',
                                     flex: 1,
-                                    fontFamily: 'Manrope,sans-serif',
+                                    fontFamily: 'var(--studio-font-body)',
                                   }}
                                 >
                                   {HOUSE_INST_LABELS[hInst]}
@@ -3685,7 +3685,7 @@ export default function DrumEditor() {
                                       border: 'none',
                                       cursor: 'pointer',
                                       padding: '0 2px',
-                                      fontFamily: 'Manrope,sans-serif',
+                                      fontFamily: 'var(--studio-font-body)',
                                       letterSpacing: '0.04em',
                                     }}
                                   >
@@ -3718,7 +3718,7 @@ export default function DrumEditor() {
                                         fontWeight: 700,
                                         cursor: 'pointer',
                                         transition: 'all 140ms',
-                                        fontFamily: 'Manrope,sans-serif',
+                                        fontFamily: 'var(--studio-font-body)',
                                         whiteSpace: 'nowrap',
                                       }}
                                     >
@@ -3741,7 +3741,7 @@ export default function DrumEditor() {
                               fontWeight: 600,
                               color: 'var(--c-text-primary)',
                               flex: 1,
-                              fontFamily: 'Manrope,sans-serif',
+                              fontFamily: 'var(--studio-font-body)',
                             }}
                           >
                             Crash Cymbal
@@ -3771,7 +3771,7 @@ export default function DrumEditor() {
                                   fontWeight: 700,
                                   cursor: 'pointer',
                                   transition: 'all 140ms',
-                                  fontFamily: 'Manrope,sans-serif',
+                                  fontFamily: 'var(--studio-font-body)',
                                   whiteSpace: 'nowrap',
                                 }}
                               >
@@ -3791,7 +3791,7 @@ export default function DrumEditor() {
                               fontWeight: 600,
                               color: 'var(--c-text-primary)',
                               flex: 1,
-                              fontFamily: 'Manrope,sans-serif',
+                              fontFamily: 'var(--studio-font-body)',
                             }}
                           >
                             Cymbal Pack
@@ -3821,7 +3821,7 @@ export default function DrumEditor() {
                                   fontWeight: 700,
                                   cursor: 'pointer',
                                   transition: 'all 140ms',
-                                  fontFamily: 'Manrope,sans-serif',
+                                  fontFamily: 'var(--studio-font-body)',
                                   whiteSpace: 'nowrap',
                                 }}
                               >
@@ -3840,7 +3840,7 @@ export default function DrumEditor() {
                             fontSize: 11.5,
                             fontWeight: 600,
                             color: 'var(--c-text-primary)',
-                            fontFamily: 'Manrope,sans-serif',
+                            fontFamily: 'var(--studio-font-body)',
                           }}
                         >
                           Random Variations
@@ -3996,7 +3996,7 @@ export default function DrumEditor() {
                   fontWeight: 800,
                   flexShrink: 0,
                   transition: 'all 200ms',
-                  fontFamily: 'Manrope,sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {humanizeFeedback ? '✓ Done' : 'Apply'}
@@ -4022,7 +4022,7 @@ export default function DrumEditor() {
                 cursor: 'pointer',
                 color: 'var(--c-text-secondary)',
                 fontSize: 13,
-                fontFamily: 'Manrope,sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 500,
                 textAlign: 'left',
               }}
@@ -4277,7 +4277,7 @@ export default function DrumEditor() {
                         {/* Desktop Secondary Toolbar */}
                         {isWebDesktop && (
                           <div
-                            className={`h-10 border-b px-5 flex items-center justify-between flex-shrink-0 text-[11px] font-manrope ${
+                            className={`h-10 border-b px-5 flex items-center justify-between flex-shrink-0 text-[11px] ${
                               isLight
                                 ? 'border-zinc-200 bg-zinc-50/50'
                                 : 'border-zinc-900 bg-[#000000]'
@@ -5532,7 +5532,7 @@ export default function DrumEditor() {
                                       fontSize: 12.5,
                                       fontWeight: 700,
                                       color: 'var(--c-text-primary)',
-                                      fontFamily: 'Manrope,sans-serif',
+                                      fontFamily: 'var(--studio-font-body)',
                                       lineHeight: 1.4,
                                     }}
                                   >
@@ -5562,7 +5562,7 @@ export default function DrumEditor() {
                                         fontSize: 12,
                                         fontWeight: 700,
                                         color: 'var(--c-text-secondary)',
-                                        fontFamily: 'Manrope,sans-serif',
+                                        fontFamily: 'var(--studio-font-body)',
                                       }}
                                     >
                                       Cancel
@@ -5582,7 +5582,7 @@ export default function DrumEditor() {
                                         fontSize: 12,
                                         fontWeight: 700,
                                         color: '#f87171',
-                                        fontFamily: 'Manrope,sans-serif',
+                                        fontFamily: 'var(--studio-font-body)',
                                       }}
                                     >
                                       Clear
@@ -7716,7 +7716,7 @@ export default function DrumEditor() {
                               value={libSearch}
                               onChange={(e) => handleLibSearchChange(e.target.value)}
                               placeholder="Search patterns, genres, or moods..."
-                              className={`w-full py-2 pl-9 pr-4 rounded-xl border text-[13px] font-manrope outline-none transition-all ${
+                              className={`w-full py-2 pl-9 pr-4 rounded-xl border text-[13px] outline-none transition-all ${
                                 isLight
                                   ? 'bg-zinc-50 border-zinc-200 text-zinc-800 placeholder-zinc-400 focus:border-zinc-350 focus:bg-white'
                                   : 'bg-zinc-950/20 border-zinc-900 text-white placeholder-zinc-600 focus:border-zinc-800 focus:bg-[#000000]'
@@ -7740,7 +7740,7 @@ export default function DrumEditor() {
                                   setLibCategory(cat);
                                   if (cat === 'My Grooves') setLibGenre('');
                                 }}
-                                className="flex-shrink-0 px-4 py-1.5 rounded-full text-[10px] font-extrabold font-manrope uppercase tracking-widest transition-all cursor-pointer"
+                                className="flex-shrink-0 px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest transition-all cursor-pointer"
                                 style={{
                                   background: active
                                     ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
@@ -7839,7 +7839,7 @@ export default function DrumEditor() {
                                       fontSize: 13,
                                       fontWeight: 700,
                                       color: accent.from,
-                                      fontFamily: 'Manrope,sans-serif',
+                                      fontFamily: 'var(--studio-font-body)',
                                     }}
                                   >
                                     Save as Groove
@@ -7881,7 +7881,7 @@ export default function DrumEditor() {
                                         borderRadius: 20,
                                         fontSize: 11,
                                         fontWeight: 700,
-                                        fontFamily: 'Manrope,sans-serif',
+                                        fontFamily: 'var(--studio-font-body)',
                                         cursor: 'pointer',
                                         border: active
                                           ? `1.5px solid ${accent.from}`
@@ -7976,7 +7976,7 @@ export default function DrumEditor() {
                                               border: '1px solid rgba(128,128,128,0.22)',
                                               color: 'var(--c-text-primary)',
                                               fontSize: 13,
-                                              fontFamily: 'Manrope,sans-serif',
+                                              fontFamily: 'var(--studio-font-body)',
                                               outline: 'none',
                                             }}
                                           />
@@ -8114,7 +8114,7 @@ export default function DrumEditor() {
                                                     fontSize: 14,
                                                     fontWeight: 700,
                                                     color: 'var(--c-text-primary)',
-                                                    fontFamily: 'Manrope,sans-serif',
+                                                    fontFamily: 'var(--studio-font-body)',
                                                     overflow: 'hidden',
                                                     textOverflow: 'ellipsis',
                                                     whiteSpace: 'nowrap',
@@ -8380,7 +8380,7 @@ export default function DrumEditor() {
                                       color: accent.from,
                                       fontSize: 13,
                                       fontWeight: 700,
-                                      fontFamily: 'Manrope,sans-serif',
+                                      fontFamily: 'var(--studio-font-body)',
                                       textAlign: 'center',
                                     }}
                                   >

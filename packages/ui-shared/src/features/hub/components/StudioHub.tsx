@@ -1106,7 +1106,7 @@ export default function StudioHub() {
         background: 'var(--app-bg)',
         display: 'flex',
         flexDirection: 'column',
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--studio-font-body)',
         transform: zooming ? 'scale(1.10)' : 'scale(1)',
         opacity: zooming ? 0 : 1,
         transition: zooming
@@ -1187,7 +1187,7 @@ export default function StudioHub() {
                         >
                           <h2
                             style={{
-                              fontFamily: 'Manrope, sans-serif',
+                              fontFamily: 'var(--studio-font-display)',
                               fontWeight: 850,
                               color: 'var(--c-text-primary)',
                               letterSpacing: 'var(--page-header-title-tracking, -0.03em)',
@@ -1691,7 +1691,7 @@ export default function StudioHub() {
                                         fontSize: '15.5px',
                                         fontWeight: 800,
                                         color: 'var(--c-text-primary)',
-                                        fontFamily: 'Manrope, sans-serif',
+                                        fontFamily: 'var(--studio-font-display)',
                                         letterSpacing: '-0.02em',
                                       }}
                                     >
@@ -1915,7 +1915,7 @@ export default function StudioHub() {
                           }
                           .success-title {
                             margin: 0 0 8px;
-                            font-family: 'Manrope', sans-serif;
+                            font-family: var(--studio-font-display);
                             font-weight: 800;
                             font-size: 20px;
                             color: var(--c-text-primary);
@@ -2063,7 +2063,7 @@ export default function StudioHub() {
             >
               <h3
                 style={{
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-display)',
                   fontSize: 16,
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
@@ -2452,7 +2452,7 @@ export default function StudioHub() {
                 background: accent.from,
                 color: '#ffffff',
                 border: 'none',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                 fontWeight: 700,
                 fontSize: 13.5,
                 cursor: 'pointer',
@@ -2548,7 +2548,7 @@ function AppRow({
               lineHeight: 'var(--type-body-lh, 18px)',
               fontWeight: 600,
               fontFamily:
-                'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                'var(--type-title-font, var(--studio-font-display, "Inter Tight", sans-serif))',
               color: 'var(--c-text-primary, var(--text))',
               margin: 0,
               letterSpacing: '-0.2px',
@@ -2561,8 +2561,7 @@ function AppRow({
               fontSize: 'var(--type-meta-size, 12px)',
               lineHeight: 'var(--type-meta-lh, 16px)',
               color: 'var(--c-text-secondary, var(--muted))',
-              fontFamily:
-                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
               margin: '2px 0 0',
               fontWeight: 400,
             }}

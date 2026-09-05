@@ -388,7 +388,7 @@ export const SectionVisibilityPopover: React.FC<SectionVisibilityPopoverProps> =
                           className="text-[12.5px] font-bold truncate leading-snug"
                           style={{
                             color: isActive ? textPrimary : textDim,
-                            fontFamily: "'Manrope', sans-serif",
+                            fontFamily: 'var(--studio-font-display)',
                           }}
                         >
                           {item.title}

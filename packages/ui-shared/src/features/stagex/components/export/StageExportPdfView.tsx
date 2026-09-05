@@ -244,7 +244,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
       style={{
         backgroundColor: bgMain,
         color: textSecondary,
-        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Manrope', sans-serif",
+        fontFamily: 'var(--studio-font-body)',
       }}
     >
       <style>{`
@@ -476,7 +476,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   <div className="min-w-0 flex-1">
                     <div
                       className="text-[13px] font-bold"
-                      style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                      style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                     >
                       {isSpanish ? 'Compartir Documento' : 'Share Document'}
                     </div>
@@ -533,7 +533,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                   <div className="min-w-0 flex-1">
                     <div
                       className="text-[13px] font-bold"
-                      style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                      style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                     >
                       {isSpanish ? 'Guardar en Descargas' : 'Save to Downloads'}
                     </div>
@@ -606,7 +606,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
               <h1
                 data-testid="export-doc-project-name"
                 className="text-3xl font-black tracking-tight uppercase"
-                style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
               >
                 {data.projectName || (isSpanish ? 'ESCENARIO PRINCIPAL' : 'MAIN STAGE')}
               </h1>
@@ -713,7 +713,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div className="flex items-center gap-2">
                   <h2
                     className="text-[14px] font-extrabold tracking-tight uppercase"
-                    style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.stagePlot} //
@@ -971,7 +971,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                           <span
                             className="absolute top-[calc(100%+2px)] left-1/2 -translate-x-1/2 text-[9.5px] font-bold uppercase tracking-[0.05em] text-center truncate max-w-[85px] leading-tight select-none whitespace-nowrap"
                             style={{
-                              fontFamily: "'Manrope', sans-serif",
+                              fontFamily: 'var(--studio-font-display)',
                               color: isLight ? '#18181b' : '#ffffff',
                             }}
                           >
@@ -1007,7 +1007,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div className="flex items-center gap-2">
                   <h2
                     className="text-[14px] font-extrabold tracking-tight uppercase"
-                    style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.inputPatch} //
@@ -1123,7 +1123,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div className="flex items-center gap-2">
                   <h2
                     className="text-[14px] font-extrabold tracking-tight uppercase"
-                    style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.technicalRequirements} //
@@ -1209,7 +1209,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div className="flex items-center gap-2">
                   <h2
                     className="text-[14px] font-extrabold tracking-tight uppercase"
-                    style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.technicalNotes} //
@@ -1242,7 +1242,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div className="flex items-center gap-2">
                   <h2
                     className="text-[14px] font-extrabold tracking-tight uppercase"
-                    style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.setlist} //
@@ -1312,7 +1312,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div className="flex items-center gap-2">
                   <h2
                     className="text-[14px] font-extrabold tracking-tight uppercase"
-                    style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.gear} //
@@ -1388,7 +1388,7 @@ export const StageExportPdfView: React.FC<StageExportPdfViewProps> = ({
                 <div className="flex items-center gap-2">
                   <h2
                     className="text-[14px] font-extrabold tracking-tight uppercase"
-                    style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     <span className="text-blue-500 font-mono text-[11px] mr-1.5">
                       {sectionNumberMap.bandCrew} //

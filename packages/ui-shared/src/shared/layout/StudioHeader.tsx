@@ -30,7 +30,7 @@ export function StudioHeader({
   containerStyle = {},
 }: StudioHeaderProps) {
   const mergedTitleStyle: React.CSSProperties = {
-    fontFamily: 'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+    fontFamily: 'var(--type-title-font, var(--font-title, "Inter Tight", sans-serif))',
     color: 'var(--c-text-primary)',
     lineHeight: 'var(--type-title-lh, 28px)',
     fontSize: 'var(--type-title-size, 22px)',
@@ -43,7 +43,7 @@ export function StudioHeader({
   };
 
   const mergedSubtitleStyle: React.CSSProperties = {
-    fontFamily: 'var(--type-body-font, var(--font-body, "Inter Tight", "Inter", sans-serif))',
+    fontFamily: 'var(--type-body-font, var(--font-body, "Inter", sans-serif))',
     color: 'var(--c-text-secondary)',
     lineHeight: 'var(--type-body-lh, 18px)',
     fontSize: 'var(--type-body-size, 14.5px)',

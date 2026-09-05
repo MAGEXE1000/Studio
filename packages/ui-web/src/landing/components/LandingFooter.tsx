@@ -34,7 +34,7 @@ export default function LandingFooter({
               </div>
               <span
                 className="font-extrabold text-base tracking-tight text-white"
-                style={{ fontFamily: 'Manrope, sans-serif', letterSpacing: '-0.02em' }}
+                style={{ fontFamily: 'var(--studio-font-display)', letterSpacing: '-0.02em' }}
               >
                 Studio
               </span>

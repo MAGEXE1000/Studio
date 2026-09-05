@@ -124,7 +124,7 @@ function StudioHubPreviewCard() {
             letterSpacing: '-0.03em',
             lineHeight: 1,
             color: '#ffffff',
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-display)',
           }}
         >
           Studio
@@ -153,7 +153,7 @@ function StudioHubPreviewCard() {
               color: '#ffffff',
               margin: 0,
               letterSpacing: '-0.02em',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-display)',
             }}
           >
             Welcome back.

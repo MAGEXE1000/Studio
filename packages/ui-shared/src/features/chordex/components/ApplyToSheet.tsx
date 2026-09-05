@@ -173,7 +173,7 @@ export default function ApplyToSheet({ show, onApply, onClose }: ApplyToSheetPro
                     margin: 0,
                     fontSize: 13,
                     fontWeight: 700,
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-display)',
                     color: active ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
                     transition: 'color 200ms ease',
                   }}

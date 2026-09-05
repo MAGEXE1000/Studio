@@ -152,7 +152,7 @@ export default function ProfileDropdown({
             ) : (
               <span
                 className="text-sm font-bold"
-                style={{ color: accent.from, fontFamily: 'Manrope' }}
+                style={{ color: accent.from, fontFamily: 'var(--studio-font-display)' }}
               >
                 {initial}
               </span>

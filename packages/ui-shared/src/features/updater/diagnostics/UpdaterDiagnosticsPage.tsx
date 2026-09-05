@@ -274,7 +274,7 @@ Platform Detected: ${updateDebugLogs.platformDetected || 'None'}
     <div
       style={{
         background: 'var(--app-surface-low, #0e0e0e)',
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--studio-font-body)',
         color: '#e7e5e4',
         minHeight: '100%',
         paddingBottom: '32px',

@@ -562,7 +562,7 @@ export default function UpdateIndicator({
             height: 40,
             background: `linear-gradient(135deg, var(--accent-from, ${accentFrom}), var(--accent-to, ${accentTo}))`,
             color: '#fff',
-            fontFamily: 'Manrope, Inter, sans-serif',
+            fontFamily: 'var(--studio-font-body)',
             fontSize: 13,
             fontWeight: 600,
             letterSpacing: '-0.01em',
@@ -745,7 +745,7 @@ export default function UpdateIndicator({
               >
                 <span
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-body)',
                     fontWeight: 800,
                     fontSize: 13,
                     color: 'var(--c-text-primary)',
@@ -773,7 +773,7 @@ export default function UpdateIndicator({
                   background: 'transparent',
                   border: 'none',
                   color: `var(--accent-from, ${accentFrom})`,
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 700,
                   fontSize: 11.5,
                   cursor: 'pointer',
@@ -947,7 +947,7 @@ const DownloadProgressIndicator = React.memo(
             justifyContent: 'space-between',
             fontSize: 13,
             fontWeight: 700,
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-body)',
             color: isLight ? 'rgba(0, 0, 0, 0.85)' : 'rgba(255, 255, 255, 0.95)',
           }}
         >
@@ -1609,7 +1609,7 @@ function UpdateModal({
     background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
     border: 'none',
     color: '#ffffff',
-    fontFamily: 'Manrope, sans-serif',
+    fontFamily: 'var(--studio-font-body)',
     fontWeight: 700,
     fontSize: 15,
     cursor: 'pointer',
@@ -1644,7 +1644,7 @@ function UpdateModal({
     background: isLight ? 'var(--c-surface-low)' : '#131313',
     border: isLight ? '1px solid var(--c-border)' : '1px solid rgba(72, 72, 72, 0.2)',
     color: isLight ? 'var(--c-text-primary)' : '#e7e5e4',
-    fontFamily: 'Manrope, sans-serif',
+    fontFamily: 'var(--studio-font-body)',
     fontWeight: 600,
     fontSize: 13,
     cursor: 'pointer',
@@ -1675,7 +1675,7 @@ function UpdateModal({
     width: '100%',
     borderRadius: 9999,
     background: 'linear-gradient(135deg, #679cff 0%, #007aff 100%)',
-    fontFamily: 'Manrope, sans-serif',
+    fontFamily: 'var(--studio-font-body)',
     fontWeight: 700,
     fontSize: 15,
     cursor: 'pointer',
@@ -1937,7 +1937,7 @@ function UpdateModal({
                 fontSize: 13,
                 fontWeight: 800,
                 color: 'var(--c-text-primary)',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-body)',
                 alignSelf: 'flex-start',
               }}
             >
@@ -2001,7 +2001,7 @@ function UpdateModal({
               fontSize: 13,
               fontWeight: 800,
               color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               alignSelf: 'flex-start',
             }}
           >
@@ -2091,7 +2091,7 @@ function UpdateModal({
             justifyContent: 'space-between',
             fontSize: 12,
             fontWeight: 700,
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             color: 'var(--c-text-primary)',
           }}
         >
@@ -2397,7 +2397,7 @@ function UpdateModal({
             textTransform: 'uppercase',
             letterSpacing: '0.08em',
             color: `var(--c-accent-from, ${accentFrom || '#679cff'})`,
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-body)',
           }}
         >
           {updaterTr?.whatsNew || "What's New"}
@@ -2453,7 +2453,7 @@ function UpdateModal({
                     alignItems: 'center',
                     fontSize: 10,
                     fontWeight: 700,
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                     letterSpacing: '0.03em',
                     padding: '1.5px 6px',
                     borderRadius: 5,

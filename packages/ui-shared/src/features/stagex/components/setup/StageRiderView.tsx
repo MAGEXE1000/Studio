@@ -388,7 +388,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
                 <h2
                   data-testid="rider-hero-title"
                   className="text-xl font-black uppercase tracking-tight"
-                  style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+                  style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                 >
                   {projectName || 'MAIN STAGE'}
                 </h2>
@@ -421,7 +421,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
               </p>
               <p
                 className="text-base font-black mt-0.5"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
               >
                 {patchList.length} / 32
               </p>
@@ -438,7 +438,7 @@ export const StageRiderView: React.FC<StageRiderViewProps> = ({
               </p>
               <p
                 className="text-base font-black mt-0.5"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
               >
                 {elements.length}
               </p>

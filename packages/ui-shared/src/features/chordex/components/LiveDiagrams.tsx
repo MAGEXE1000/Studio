@@ -61,7 +61,7 @@ export function LiveDiagram({
         <text
           x={pL - 8}
           y={pT + cH * 0.5}
-          fontFamily="Manrope"
+          fontFamily="var(--studio-font-body)"
           fontSize={11}
           fontWeight="bold"
           fill="#acabaa"
@@ -156,7 +156,7 @@ export function LiveDiagram({
             x={cx}
             y={cy + 4}
             textAnchor="middle"
-            fontFamily="Manrope"
+            fontFamily="var(--studio-font-body)"
             fontSize={11}
             fill="rgba(255,255,255,0.3)"
           >
@@ -169,7 +169,13 @@ export function LiveDiagram({
 }
 
 /* ── Mini diagram for context chords ──────────────────────── */
-export function MiniLiveDiagram({ data, accentFrom }: { data: GuitarChordData; accentFrom: string }) {
+export function MiniLiveDiagram({
+  data,
+  accentFrom,
+}: {
+  data: GuitarChordData;
+  accentFrom: string;
+}) {
   const W = 72,
     H = 82;
   const numS = 6,
@@ -257,4 +263,3 @@ export function MiniLiveDiagram({ data, accentFrom }: { data: GuitarChordData; a
     </svg>
   );
 }
-

@@ -98,7 +98,7 @@ export const Toggle: React.FC<ToggleProps> = ({
           style={{
             fontSize: 13,
             color: 'var(--c-text-primary)',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--type-body-font, var(--studio-font-body))',
             fontWeight: 500,
           }}
         >

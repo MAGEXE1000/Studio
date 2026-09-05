@@ -199,7 +199,7 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
             {badge && (
               <span
                 style={{
-                  fontFamily: 'Inter, sans-serif',
+                  fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                   fontSize: 9.5,
                   fontWeight: 800,
                   color: 'var(--c-text-tertiary, #808080)',
@@ -219,7 +219,7 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
               <p
                 style={{
                   fontFamily:
-                    'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                    'var(--type-title-font, var(--studio-font-display, "Inter Tight", sans-serif))',
                   fontWeight: 600,
                   fontSize: 'var(--type-title-size, 22px)',
                   color: 'var(--c-text-primary)',
@@ -234,8 +234,7 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
             {subtitle && (
               <p
                 style={{
-                  fontFamily:
-                    'var(--type-body-font, var(--font-body, "Inter Tight", "Inter", sans-serif))',
+                  fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
                   fontSize: 'var(--type-body-size, 14.5px)',
                   color: 'var(--muted, var(--c-text-secondary))',
                   margin: '3px 0 0',

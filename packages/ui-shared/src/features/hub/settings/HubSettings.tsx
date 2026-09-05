@@ -351,7 +351,7 @@ function SettingsNavRow({
             color: 'var(--c-text-primary)',
             margin: 0,
             letterSpacing: '-0.01em',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-display)',
           }}
         >
           {title}
@@ -376,7 +376,7 @@ function SettingsNavRow({
           style={{
             fontSize: 10,
             fontWeight: 700,
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
             padding: '3px 7px',
             borderRadius: 999,
             background: 'rgba(128,128,128,0.12)',
@@ -424,7 +424,7 @@ function SettingsSectionLabel({
           color: 'var(--c-text-secondary)',
           letterSpacing: '0.15em',
           textTransform: 'uppercase',
-          fontFamily: 'Manrope',
+          fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
         }}
       >
         {children}
@@ -1652,7 +1652,7 @@ export function HubSettings({
                 margin: '0 0 4px 0',
                 fontSize: 14.5,
                 fontWeight: 800,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 letterSpacing: '-0.015em',
               }}
             >
@@ -1681,7 +1681,7 @@ export function HubSettings({
                 margin: '0 0 4px 0',
                 fontSize: 14.5,
                 fontWeight: 800,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 letterSpacing: '-0.015em',
               }}
             >
@@ -1709,7 +1709,7 @@ export function HubSettings({
                 margin: '0 0 4px 0',
                 fontSize: 14.5,
                 fontWeight: 800,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 letterSpacing: '-0.015em',
               }}
             >
@@ -1774,7 +1774,7 @@ export function HubSettings({
                 margin: '0 0 4px 0',
                 fontSize: 14.5,
                 fontWeight: 800,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 letterSpacing: '-0.015em',
               }}
             >
@@ -1802,7 +1802,7 @@ export function HubSettings({
                 margin: '0 0 4px 0',
                 fontSize: 14.5,
                 fontWeight: 800,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 letterSpacing: '-0.015em',
               }}
             >
@@ -1830,7 +1830,7 @@ export function HubSettings({
                 margin: '0 0 4px 0',
                 fontSize: 14.5,
                 fontWeight: 800,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 letterSpacing: '-0.015em',
               }}
             >
@@ -2096,7 +2096,7 @@ export function HubSettings({
                   fontSize: 'var(--font-base)',
                   fontWeight: 600,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-display)',
                   margin: 0,
                 }}
               >
@@ -2166,7 +2166,7 @@ export function HubSettings({
                   fontSize: 'var(--font-base)',
                   fontWeight: 600,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-display)',
                   margin: 0,
                 }}
               >
@@ -2201,7 +2201,7 @@ export function HubSettings({
                   border: '1px solid rgba(128,128,128,0.15)',
                   color: 'var(--c-text-primary)',
                   fontSize: '11px',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                   fontWeight: 600,
                   cursor: 'pointer',
                 }}
@@ -2265,7 +2265,7 @@ export function HubSettings({
                     fontSize: 'var(--font-base)',
                     fontWeight: 600,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-display)',
                     margin: 0,
                   }}
                 >
@@ -2300,7 +2300,7 @@ export function HubSettings({
                     border: '1px solid rgba(128,128,128,0.15)',
                     color: 'var(--c-text-primary)',
                     fontSize: '11px',
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--type-button-font, var(--studio-font-body))',
                     fontWeight: 600,
                     cursor: 'pointer',
                   }}
@@ -2807,7 +2807,7 @@ export function HubSettings({
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                     fontWeight: 800,
                     fontSize: 'var(--font-section-label)',
                     padding: '4px 0',
@@ -2842,7 +2842,7 @@ export function HubSettings({
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                     fontWeight: 800,
                     fontSize: 'var(--font-section-label)',
                     padding: '4px 0',
@@ -2885,7 +2885,7 @@ export function HubSettings({
                 <div style={{ height: 1, background: 'rgba(128,128,128,0.12)', margin: '8px 0' }} />
                 <div
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                     fontWeight: 800,
                     fontSize: 'var(--font-section-label)',
                     padding: '4px 0',
@@ -3291,7 +3291,7 @@ export function HubSettings({
           style={{
             padding: '24px 0',
             color: 'var(--c-text-secondary)',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--type-body-font, var(--studio-font-body))',
             textAlign: 'center',
           }}
         >
@@ -3348,7 +3348,7 @@ export function HubSettings({
           <p
             style={{
               margin: 'var(--space-4) 0 0',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-display)',
               fontWeight: 800,
               fontSize: 'var(--font-display-sm)',
               letterSpacing: '-0.03em',
@@ -3446,7 +3446,7 @@ export function HubSettings({
                 </div>
                 <span
                   style={{
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--type-body-font, var(--studio-font-body))',
                     fontWeight: 750,
                     fontSize: 14,
                     letterSpacing: '-0.01em',
@@ -3515,7 +3515,7 @@ export function HubSettings({
               </div>
               <span
                 style={{
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-body-font, var(--studio-font-body))',
                   fontWeight: 750,
                   fontSize: 14,
                   letterSpacing: '-0.01em',
@@ -3566,7 +3566,7 @@ export function HubSettings({
           <p
             style={{
               color: 'var(--c-text-muted)',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--type-body-font, var(--studio-font-body))',
               fontWeight: 700,
               fontSize: 'var(--font-xs)',
               textTransform: 'uppercase',
@@ -3625,7 +3625,7 @@ export function HubSettings({
               >
                 <span
                   style={{
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--type-body-font, var(--studio-font-body))',
                     fontWeight: 800,
                     fontSize: 14,
                     color: 'var(--c-text-primary)',
@@ -3774,7 +3774,7 @@ export function HubSettings({
                 style={{
                   fontSize: 22,
                   fontWeight: 850,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-display)',
                   color: '#ffffff',
                   textShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 }}
@@ -3800,7 +3800,7 @@ export function HubSettings({
                   color: 'var(--c-text-primary)',
                   margin: 0,
                   letterSpacing: '-0.025em',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-display)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -3813,7 +3813,7 @@ export function HubSettings({
                   style={{
                     fontSize: 9.5,
                     fontWeight: 800,
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                     padding: '2px 8px',
                     borderRadius: 6,
                     background: `linear-gradient(135deg, ${accent.from}30, ${accent.to}25)`,
@@ -4423,7 +4423,7 @@ export function HubSettings({
                                   fontSize: 15,
                                   fontWeight: 800,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Manrope, sans-serif',
+                                  fontFamily: 'var(--studio-font-display)',
                                   letterSpacing: '-0.02em',
                                 }}
                               >
@@ -4574,7 +4574,7 @@ export function HubSettings({
                                   fontSize: 14.5,
                                   fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Manrope, sans-serif',
+                                  fontFamily: 'var(--studio-font-display)',
                                   letterSpacing: '-0.015em',
                                 }}
                               >
@@ -4702,7 +4702,7 @@ export function HubSettings({
                                   fontSize: 14.5,
                                   fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Manrope, sans-serif',
+                                  fontFamily: 'var(--studio-font-display)',
                                   letterSpacing: '-0.015em',
                                 }}
                               >
@@ -4831,7 +4831,7 @@ export function HubSettings({
                                   fontSize: 14.5,
                                   fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Manrope, sans-serif',
+                                  fontFamily: 'var(--studio-font-display)',
                                   letterSpacing: '-0.015em',
                                 }}
                               >
@@ -4933,7 +4933,7 @@ export function HubSettings({
                                   fontSize: 14.5,
                                   fontWeight: 750,
                                   color: 'var(--c-text-primary)',
-                                  fontFamily: 'Manrope, sans-serif',
+                                  fontFamily: 'var(--studio-font-display)',
                                   letterSpacing: '-0.015em',
                                 }}
                               >
@@ -5031,7 +5031,7 @@ export function HubSettings({
                                     fontSize: 14.5,
                                     fontWeight: 750,
                                     color: 'var(--c-text-primary)',
-                                    fontFamily: 'Manrope, sans-serif',
+                                    fontFamily: 'var(--studio-font-display)',
                                     letterSpacing: '-0.015em',
                                   }}
                                 >
@@ -5210,7 +5210,7 @@ export function HubSettings({
                 color: 'var(--c-text-primary)',
                 margin: 0,
                 letterSpacing: '-0.02em',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-display)',
               }}
             >
               {lang === 'es' ? 'Ajustes de Studio' : 'Studio Settings'}
@@ -5264,7 +5264,7 @@ export function HubSettings({
                         color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
                         fontWeight: isActive ? 700 : 500,
                         fontSize: 13,
-                        fontFamily: 'Manrope, sans-serif',
+                        fontFamily: 'var(--type-nav-font, var(--studio-font-body))',
                       }}
                     >
                       <AnimatedIcon
@@ -5325,7 +5325,7 @@ export function HubSettings({
                   color: 'var(--c-text-primary)',
                   margin: 0,
                   letterSpacing: '-0.03em',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-display)',
                 }}
               >
                 {getPageTitle(activePageId)}

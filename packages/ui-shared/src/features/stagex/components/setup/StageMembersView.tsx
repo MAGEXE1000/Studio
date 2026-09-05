@@ -386,7 +386,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                             style={{
                               color: textPrimary,
                               fontFamily:
-                                'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                                'var(--type-title-font, var(--studio-font-display, "Inter Tight", sans-serif))',
                               fontSize: 'var(--type-body-size, 14.5px)',
                               lineHeight: 'var(--type-body-lh, 18px)',
                               fontWeight: 600,
@@ -400,7 +400,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                             style={{
                               color: isAssigned ? (isLight ? '#2563eb' : '#60a5fa') : textMuted,
                               fontFamily:
-                                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                                'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
                             }}
                           >
                             {isAssigned
@@ -438,7 +438,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                                       color: isLight ? '#27272a' : '#d4d4d8',
                                       border: '1px solid var(--track, var(--c-border))',
                                       fontFamily:
-                                        'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                                        'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
                                       fontSize: 'var(--type-meta-size, 12px)',
                                       lineHeight: 'var(--type-meta-lh, 16px)',
                                       letterSpacing: 'var(--type-meta-tracking, 0.2px)',
@@ -569,8 +569,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   borderWidth: '1px',
                   borderStyle: 'solid',
                   color: textPrimary,
-                  fontFamily:
-                    'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                  fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
                   fontSize: 'var(--type-body-size, 14.5px)',
                 }}
                 data-testid="input-member-name"
@@ -585,7 +584,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                   backgroundColor: isLight ? '#09090b' : '#ffffff',
                   color: isLight ? '#ffffff' : '#09090b',
                   fontFamily:
-                    'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                    'var(--type-button-font, var(--studio-font-body, "Inter", sans-serif))',
                 }}
                 id="btn-add-member"
                 data-testid="btn-add-member"
@@ -683,7 +682,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                     style={{
                       borderRadius: 'var(--radius-compact, 12px)',
                       fontFamily:
-                        'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                        'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
                       fontSize: 'var(--type-meta-size, 12px)',
                       lineHeight: 'var(--type-meta-lh, 16px)',
                       letterSpacing: 'var(--type-meta-tracking, 0.2px)',

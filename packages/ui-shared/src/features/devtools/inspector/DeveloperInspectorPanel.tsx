@@ -262,7 +262,14 @@ export const DeveloperInspectorPanel: React.FC = () => {
             size="sm"
           />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: 800, fontSize: '12px', color: 'var(--c-text-primary)', fontFamily: 'Manrope, sans-serif' }}>
+            <span
+              style={{
+                fontWeight: 800,
+                fontSize: '12px',
+                color: 'var(--c-text-primary)',
+                fontFamily: 'var(--studio-font-body)',
+              }}
+            >
               Developer Inspector
             </span>
             <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>
@@ -504,10 +511,13 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   cursor: 'pointer',
                   padding: '2px 6px',
                   borderRadius: '4px',
-                  fontFamily: crumb.isReact ? 'Manrope, sans-serif' : 'monospace',
+                  fontFamily: crumb.isReact ? 'var(--studio-font-body)' : 'monospace',
                   background:
                     crumb.element === selectedElement ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                  border: crumb.element === selectedElement ? '1px solid rgba(16, 185, 129, 0.3)' : 'none',
+                  border:
+                    crumb.element === selectedElement
+                      ? '1px solid rgba(16, 185, 129, 0.3)'
+                      : 'none',
                 }}
               >
                 {crumb.isReact ? `<${crumb.name}>` : crumb.name}
@@ -537,7 +547,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
               flex: 1,
               padding: '10px 8px',
               border: 'none',
-              background: activeTab === t.id ? 'var(--app-surface-high, var(--app-surface))' : 'transparent',
+              background:
+                activeTab === t.id ? 'var(--app-surface-high, var(--app-surface))' : 'transparent',
               color:
                 activeTab === t.id
                   ? 'var(--studio-accent-from, #2563eb)'
@@ -554,7 +565,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
               justifyContent: 'center',
               gap: 5,
               whiteSpace: 'nowrap',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-body)',
             }}
           >
             <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
@@ -566,7 +577,15 @@ export const DeveloperInspectorPanel: React.FC = () => {
       </div>
 
       {/* 5. Tab Content Body */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px', minWidth: 0, boxSizing: 'border-box' }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '12px',
+          minWidth: 0,
+          boxSizing: 'border-box',
+        }}
+      >
         {notification && (
           <div
             style={{
@@ -618,7 +637,15 @@ export const DeveloperInspectorPanel: React.FC = () => {
                     minWidth: 0,
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexWrap: 'wrap',
+                      gap: 6,
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                       <span
                         className="material-symbols-outlined"
@@ -631,13 +658,15 @@ export const DeveloperInspectorPanel: React.FC = () => {
                           fontSize: '15px',
                           fontWeight: 800,
                           color: '#10b981',
-                          fontFamily: 'Manrope, sans-serif',
+                          fontFamily: 'var(--studio-font-body)',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        &lt;{selectedFiberInfo?.displayName || selectedElement.tagName.toLowerCase()}&gt;
+                        &lt;
+                        {selectedFiberInfo?.displayName || selectedElement.tagName.toLowerCase()}
+                        &gt;
                       </span>
                     </div>
                     <span
@@ -646,22 +675,53 @@ export const DeveloperInspectorPanel: React.FC = () => {
                         fontWeight: 800,
                         padding: '2px 6px',
                         borderRadius: '4px',
-                        background: selectedFiberInfo?.memoized ? 'rgba(168, 85, 247, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                        color: selectedFiberInfo?.memoized ? '#c084fc' : 'var(--studio-accent-from, #679cff)',
+                        background: selectedFiberInfo?.memoized
+                          ? 'rgba(168, 85, 247, 0.15)'
+                          : 'rgba(59, 130, 246, 0.15)',
+                        color: selectedFiberInfo?.memoized
+                          ? '#c084fc'
+                          : 'var(--studio-accent-from, #679cff)',
                         textTransform: 'uppercase',
                       }}
                     >
-                      {selectedFiberInfo?.memoized ? 'React.memo' : selectedFiberInfo ? 'React Component' : 'DOM Element'}
+                      {selectedFiberInfo?.memoized
+                        ? 'React.memo'
+                        : selectedFiberInfo
+                          ? 'React Component'
+                          : 'DOM Element'}
                     </span>
                   </div>
 
-                  <div style={{ fontSize: '11px', color: 'var(--c-text-secondary)', display: 'flex', flexWrap: 'wrap', gap: '4px 12px' }}>
-                    <span>Tag: <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{selectedElement.tagName.toLowerCase()}</strong></span>
+                  <div
+                    style={{
+                      fontSize: '11px',
+                      color: 'var(--c-text-secondary)',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: '4px 12px',
+                    }}
+                  >
+                    <span>
+                      Tag:{' '}
+                      <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>
+                        {selectedElement.tagName.toLowerCase()}
+                      </strong>
+                    </span>
                     {selectedFiberInfo?.ownerName && (
-                      <span>Owner: <strong style={{ color: 'var(--c-text-primary)' }}>&lt;{selectedFiberInfo.ownerName}&gt;</strong></span>
+                      <span>
+                        Owner:{' '}
+                        <strong style={{ color: 'var(--c-text-primary)' }}>
+                          &lt;{selectedFiberInfo.ownerName}&gt;
+                        </strong>
+                      </span>
                     )}
                     {selectedFiberInfo?.sourceFile && (
-                      <span>Source: <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>{selectedFiberInfo.sourceFile}:{selectedFiberInfo.lineNumber}</strong></span>
+                      <span>
+                        Source:{' '}
+                        <strong style={{ color: 'var(--c-text-primary)', fontFamily: 'monospace' }}>
+                          {selectedFiberInfo.sourceFile}:{selectedFiberInfo.lineNumber}
+                        </strong>
+                      </span>
                     )}
                   </div>
                 </div>
@@ -672,19 +732,22 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   <div style={rowStyle}>
                     <span style={labelStyle}>Rendered Box:</span>
                     <span style={{ ...valStyle, fontFamily: 'monospace' }}>
-                      {Math.round(selectedElement.getBoundingClientRect().width)} × {Math.round(selectedElement.getBoundingClientRect().height)} px
+                      {Math.round(selectedElement.getBoundingClientRect().width)} ×{' '}
+                      {Math.round(selectedElement.getBoundingClientRect().height)} px
                     </span>
                   </div>
                   <div style={rowStyle}>
                     <span style={labelStyle}>Viewport Position:</span>
                     <span style={{ ...valStyle, fontFamily: 'monospace' }}>
-                      X: {Math.round(selectedElement.getBoundingClientRect().left)}px, Y: {Math.round(selectedElement.getBoundingClientRect().top)}px
+                      X: {Math.round(selectedElement.getBoundingClientRect().left)}px, Y:{' '}
+                      {Math.round(selectedElement.getBoundingClientRect().top)}px
                     </span>
                   </div>
                   <div style={rowStyle}>
                     <span style={labelStyle}>Children Count:</span>
                     <span style={valStyle}>
-                      {selectedFiberInfo?.childrenCount ?? selectedElement.children.length} direct children
+                      {selectedFiberInfo?.childrenCount ?? selectedElement.children.length} direct
+                      children
                     </span>
                   </div>
                   <div style={rowStyle}>
@@ -737,15 +800,22 @@ export const DeveloperInspectorPanel: React.FC = () => {
               <>
                 {/* React Props */}
                 <div style={cardStyle}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={cardTitleStyle}>React Fiber Props</div>
-                    {selectedFiberInfo?.props && Object.keys(selectedFiberInfo.props).length > 0 && (
-                      <CopyButton
-                        getTextToCopy={() => JSON.stringify(selectedFiberInfo.props, null, 2)}
-                        label="Copy Props"
-                        size="sm"
-                      />
-                    )}
+                    {selectedFiberInfo?.props &&
+                      Object.keys(selectedFiberInfo.props).length > 0 && (
+                        <CopyButton
+                          getTextToCopy={() => JSON.stringify(selectedFiberInfo.props, null, 2)}
+                          label="Copy Props"
+                          size="sm"
+                        />
+                      )}
                   </div>
                   {selectedFiberInfo?.props && Object.keys(selectedFiberInfo.props).length > 0 ? (
                     <pre style={codeBlockStyle}>
@@ -760,15 +830,22 @@ export const DeveloperInspectorPanel: React.FC = () => {
 
                 {/* React State */}
                 <div style={cardStyle}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
                     <div style={cardTitleStyle}>React Component State</div>
-                    {selectedFiberInfo?.state && Object.keys(selectedFiberInfo.state).length > 0 && (
-                      <CopyButton
-                        getTextToCopy={() => JSON.stringify(selectedFiberInfo.state, null, 2)}
-                        label="Copy State"
-                        size="sm"
-                      />
-                    )}
+                    {selectedFiberInfo?.state &&
+                      Object.keys(selectedFiberInfo.state).length > 0 && (
+                        <CopyButton
+                          getTextToCopy={() => JSON.stringify(selectedFiberInfo.state, null, 2)}
+                          label="Copy State"
+                          size="sm"
+                        />
+                      )}
                   </div>
                   {selectedFiberInfo?.state && Object.keys(selectedFiberInfo.state).length > 0 ? (
                     <pre style={codeBlockStyle}>
@@ -783,8 +860,16 @@ export const DeveloperInspectorPanel: React.FC = () => {
 
                 {/* DOM Attributes */}
                 <div style={cardStyle}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={cardTitleStyle}>DOM Attributes & Dataset ({domAttributes.length})</div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div style={cardTitleStyle}>
+                      DOM Attributes & Dataset ({domAttributes.length})
+                    </div>
                     {domAttributes.length > 0 && (
                       <CopyButton
                         getTextToCopy={() =>
@@ -799,7 +884,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                       {domAttributes.map((attr, i) => (
                         <div key={i} style={rowStyle}>
-                          <span style={{ ...labelStyle, fontFamily: 'monospace', color: '#38bdf8' }}>
+                          <span
+                            style={{ ...labelStyle, fontFamily: 'monospace', color: '#38bdf8' }}
+                          >
                             {attr.name}
                           </span>
                           <span
@@ -953,7 +1040,8 @@ export const DeveloperInspectorPanel: React.FC = () => {
                                       fontWeight: 800,
                                     }}
                                   >
-                                    {Math.round(boxModel.content.width)} × {Math.round(boxModel.content.height)}
+                                    {Math.round(boxModel.content.width)} ×{' '}
+                                    {Math.round(boxModel.content.height)}
                                   </div>
 
                                   <span>{boxModel.padding.right}</span>
@@ -978,7 +1066,13 @@ export const DeveloperInspectorPanel: React.FC = () => {
                 {computedStyles && (
                   <>
                     <div style={cardStyle}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                        }}
+                      >
                         <div style={cardTitleStyle}>Layout & Flow</div>
                         <CopyButton
                           getTextToCopy={() => JSON.stringify(computedStyles, null, 2)}
@@ -992,7 +1086,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
                       </div>
                       <div style={rowStyle}>
                         <span style={labelStyle}>position:</span>
-                        <span style={valStyle}>{computedStyles.position} (z-index: {computedStyles.zIndex})</span>
+                        <span style={valStyle}>
+                          {computedStyles.position} (z-index: {computedStyles.zIndex})
+                        </span>
                       </div>
                       {computedStyles.display.includes('flex') && (
                         <>
@@ -1028,18 +1124,39 @@ export const DeveloperInspectorPanel: React.FC = () => {
                       <div style={cardTitleStyle}>Typography & Text</div>
                       <div style={rowStyle}>
                         <span style={labelStyle}>font-family:</span>
-                        <span style={{ ...valStyle, maxWidth: '65%', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        <span
+                          style={{
+                            ...valStyle,
+                            maxWidth: '65%',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
                           {computedStyles.fontFamily}
                         </span>
                       </div>
                       <div style={rowStyle}>
                         <span style={labelStyle}>font-size / weight:</span>
-                        <span style={valStyle}>{computedStyles.fontSize} ({computedStyles.fontWeight})</span>
+                        <span style={valStyle}>
+                          {computedStyles.fontSize} ({computedStyles.fontWeight})
+                        </span>
                       </div>
                       <div style={rowStyle}>
                         <span style={labelStyle}>color:</span>
-                        <span style={{ ...valStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ width: 10, height: 10, borderRadius: 2, background: computedStyles.color, border: '1px solid var(--c-border)', display: 'inline-block' }} />
+                        <span
+                          style={{ ...valStyle, display: 'flex', alignItems: 'center', gap: 6 }}
+                        >
+                          <span
+                            style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: 2,
+                              background: computedStyles.color,
+                              border: '1px solid var(--c-border)',
+                              display: 'inline-block',
+                            }}
+                          />
                           {computedStyles.color}
                         </span>
                       </div>
@@ -1049,8 +1166,19 @@ export const DeveloperInspectorPanel: React.FC = () => {
                       <div style={cardTitleStyle}>Surface & Styling</div>
                       <div style={rowStyle}>
                         <span style={labelStyle}>background-color:</span>
-                        <span style={{ ...valStyle, display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ width: 10, height: 10, borderRadius: 2, background: computedStyles.backgroundColor, border: '1px solid var(--c-border)', display: 'inline-block' }} />
+                        <span
+                          style={{ ...valStyle, display: 'flex', alignItems: 'center', gap: 6 }}
+                        >
+                          <span
+                            style={{
+                              width: 10,
+                              height: 10,
+                              borderRadius: 2,
+                              background: computedStyles.backgroundColor,
+                              border: '1px solid var(--c-border)',
+                              display: 'inline-block',
+                            }}
+                          />
                           {computedStyles.backgroundColor}
                         </span>
                       </div>
@@ -1086,7 +1214,15 @@ export const DeveloperInspectorPanel: React.FC = () => {
               style={inputStyle}
             />
 
-            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 2, scrollbarWidth: 'none' }}>
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                overflowX: 'auto',
+                paddingBottom: 2,
+                scrollbarWidth: 'none',
+              }}
+            >
               {filterPills.map((p) => (
                 <button
                   key={p.id}
@@ -1105,7 +1241,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
                     fontWeight: 700,
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                   }}
                 >
                   {p.label}
@@ -1115,7 +1251,9 @@ export const DeveloperInspectorPanel: React.FC = () => {
 
             {/* Subtree Hierarchy View */}
             <div style={cardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
                 <div style={cardTitleStyle}>Inspectable Subtree Hierarchy</div>
                 <span style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>
                   Tap row to inspect
@@ -1123,7 +1261,15 @@ export const DeveloperInspectorPanel: React.FC = () => {
               </div>
 
               {elementTree ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 360, overflowY: 'auto' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2,
+                    maxHeight: 360,
+                    overflowY: 'auto',
+                  }}
+                >
                   <TreeNodeRow
                     node={elementTree}
                     selectedElement={selectedElement}
@@ -1154,7 +1300,11 @@ export const DeveloperInspectorPanel: React.FC = () => {
               </div>
               <div style={rowStyle}>
                 <span style={labelStyle}>Show Children Outlines (Cyan):</span>
-                <StudioToggle value={showChildrenOutline} onChange={setShowChildrenOutline} size="sm" />
+                <StudioToggle
+                  value={showChildrenOutline}
+                  onChange={setShowChildrenOutline}
+                  size="sm"
+                />
               </div>
               <div style={rowStyle}>
                 <span style={labelStyle}>Route Tracer HUD:</span>
@@ -1164,7 +1314,13 @@ export const DeveloperInspectorPanel: React.FC = () => {
 
             <div style={cardStyle}>
               <div style={cardTitleStyle}>Grid Overlay Mode</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                  gap: 8,
+                }}
+              >
                 {(
                   [
                     { id: 'none', label: 'None' },
@@ -1193,7 +1349,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
                       fontWeight: 700,
                       cursor: 'pointer',
                       fontSize: '11px',
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--studio-font-body)',
                     }}
                   >
                     {item.label}
@@ -1232,7 +1388,7 @@ export const DeveloperInspectorPanel: React.FC = () => {
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '12px',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -1294,11 +1450,27 @@ const EmptyInspectorState: React.FC<{
           </span>
         </div>
         <div>
-          <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--c-text-primary)', fontFamily: 'Manrope, sans-serif' }}>
+          <h4
+            style={{
+              margin: 0,
+              fontSize: '14px',
+              fontWeight: 800,
+              color: 'var(--c-text-primary)',
+              fontFamily: 'var(--studio-font-body)',
+            }}
+          >
             Ready to Inspect
           </h4>
-          <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--c-text-secondary)', lineHeight: 1.4 }}>
-            Tap <strong>Select</strong> in the toolbar to tap any UI element, long-press (500ms) on screen, or choose a quick container below.
+          <p
+            style={{
+              margin: '4px 0 0',
+              fontSize: '11px',
+              color: 'var(--c-text-secondary)',
+              lineHeight: 1.4,
+            }}
+          >
+            Tap <strong>Select</strong> in the toolbar to tap any UI element, long-press (500ms) on
+            screen, or choose a quick container below.
           </p>
         </div>
         <button
@@ -1316,7 +1488,7 @@ const EmptyInspectorState: React.FC<{
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-body)',
           }}
         >
           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
@@ -1347,14 +1519,24 @@ const EmptyInspectorState: React.FC<{
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '11.5px', color: '#10b981', fontFamily: 'monospace' }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: '11.5px',
+                      color: '#10b981',
+                      fontFamily: 'monospace',
+                    }}
+                  >
                     {qt.name}
                   </div>
                   <div style={{ fontSize: '10px', color: 'var(--c-text-secondary)' }}>
                     {qt.type} • {qt.description}
                   </div>
                 </div>
-                <span className="material-symbols-outlined" style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: 16, color: 'var(--c-text-secondary)' }}
+                >
                   arrow_forward
                 </span>
               </div>
@@ -1430,7 +1612,7 @@ const TreeNodeRow: React.FC<{
             style={{
               color: node.isReact ? '#10b981' : 'var(--c-text-primary)',
               fontWeight: isSelected ? 800 : node.isReact ? 700 : 500,
-              fontFamily: node.isReact ? 'Manrope, sans-serif' : 'monospace',
+              fontFamily: node.isReact ? 'var(--studio-font-body)' : 'monospace',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -1442,7 +1624,16 @@ const TreeNodeRow: React.FC<{
 
         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
           {node.isInteractive && (
-            <span style={{ fontSize: '8.5px', background: 'rgba(59,130,246,0.15)', color: 'var(--studio-accent-from, #679cff)', padding: '1px 4px', borderRadius: 3, fontWeight: 700 }}>
+            <span
+              style={{
+                fontSize: '8.5px',
+                background: 'rgba(59,130,246,0.15)',
+                color: 'var(--studio-accent-from, #679cff)',
+                padding: '1px 4px',
+                borderRadius: 3,
+                fontWeight: 700,
+              }}
+            >
               ACTION
             </span>
           )}
@@ -1487,7 +1678,7 @@ const cardTitleStyle: React.CSSProperties = {
   textTransform: 'uppercase',
   letterSpacing: '0.06em',
   color: 'var(--c-text-secondary)',
-  fontFamily: 'Manrope, sans-serif',
+  fontFamily: 'var(--studio-font-body)',
 };
 
 const rowStyle: React.CSSProperties = {
@@ -1521,7 +1712,7 @@ const navBtnStyle: React.CSSProperties = {
   fontWeight: 700,
   cursor: 'pointer',
   whiteSpace: 'nowrap',
-  fontFamily: 'Manrope, sans-serif',
+  fontFamily: 'var(--studio-font-body)',
   flexShrink: 0,
 };
 

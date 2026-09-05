@@ -1,5 +1,11 @@
-import { useT, useChordStore, authRepository, userRepository, useSettingsStore } from "@workspace/studio-core";
-import { useState } from "react";
+import {
+  useT,
+  useChordStore,
+  authRepository,
+  userRepository,
+  useSettingsStore,
+} from '@workspace/studio-core';
+import { useState } from 'react';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
 
 type Props = {
@@ -98,7 +104,7 @@ export default function DisabledAccountScreen({ user }: Props) {
         {/* Title */}
         <p
           style={{
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-display)',
             fontWeight: 800,
             fontSize: 22,
             color: 'var(--c-text-primary)',

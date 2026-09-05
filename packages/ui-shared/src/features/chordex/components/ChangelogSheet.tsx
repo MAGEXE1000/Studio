@@ -1,5 +1,11 @@
 import { Dialog } from '../../../shared/design-system/dialogs';
-import { useChordStore, ACCENT_COLORS, useT, useBackHandler, useSettingsStore } from '@workspace/studio-core';
+import {
+  useChordStore,
+  ACCENT_COLORS,
+  useT,
+  useBackHandler,
+  useSettingsStore,
+} from '@workspace/studio-core';
 import React from 'react';
 import {
   APP_VERSION,
@@ -9,8 +15,6 @@ import {
   type ChangelogSection,
   sanitizeUTF8String,
 } from '@workspace/studio-core';
-;
-
 type Props = {
   open: boolean;
   onClose: () => void;
@@ -98,7 +102,7 @@ export default function ChangelogSheet({
               <h3
                 style={{
                   margin: '0 0 10px',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-display)',
                   fontWeight: 700,
                   fontSize: 11,
                   color: 'var(--c-text-muted)',

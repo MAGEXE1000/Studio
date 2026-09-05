@@ -660,7 +660,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
             <div className="flex items-end justify-between mt-auto">
               <span
                 className="text-2xl font-extrabold leading-none"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
               >
                 {gear.length}
               </span>
@@ -698,7 +698,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
                 className="text-2xl font-extrabold leading-none"
                 style={{
                   color: packedCount > 0 ? '#10b981' : textPrimary,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-display)',
                 }}
               >
                 {packedCount}
@@ -733,7 +733,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
             <div className="flex items-end justify-between mt-auto">
               <span
                 className="text-2xl font-extrabold leading-none"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
               >
                 {remainingCount}
               </span>
@@ -769,7 +769,7 @@ export const StageGearView: React.FC<StageGearViewProps> = ({
             <div className="flex items-end justify-between mt-auto">
               <span
                 className="text-2xl font-extrabold leading-none"
-                style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+                style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
               >
                 {totalUnits}
               </span>

@@ -309,7 +309,7 @@ function VocalexPreferences() {
                 lineHeight: 'var(--type-body-lh, 18px)',
                 fontWeight: 600,
                 fontFamily:
-                  'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                  'var(--type-title-font, var(--studio-font-display, "Inter Tight", sans-serif))',
                 letterSpacing: '-0.2px',
                 color: 'var(--c-text-primary, var(--text))',
               }}
@@ -323,8 +323,7 @@ function VocalexPreferences() {
                 lineHeight: 'var(--type-meta-lh, 16px)',
                 letterSpacing: 'var(--type-meta-tracking, 0.2px)',
                 color: 'var(--c-text-secondary, var(--muted))',
-                fontFamily:
-                  'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
               }}
             >
               Choose which screen opens when you launch Vocalex.

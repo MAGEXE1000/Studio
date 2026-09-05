@@ -477,7 +477,7 @@ export default function ChordexPreferencesPanel() {
                             fontWeight: 700,
                             fontSize: 'var(--font-base)',
                             color: isActive ? '#f59e0b' : 'var(--c-text-primary)',
-                            fontFamily: 'Manrope',
+                            fontFamily: 'var(--type-body-font, var(--studio-font-body))',
                           }}
                         >
                           {instName}
@@ -547,7 +547,7 @@ export default function ChordexPreferencesPanel() {
                   <p
                     style={{
                       color: 'var(--c-text-primary)',
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--type-body-font, var(--studio-font-body))',
                       fontWeight: 600,
                       fontSize: 'var(--font-base)',
                     }}

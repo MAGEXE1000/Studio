@@ -324,7 +324,7 @@ export function AccentColorPicker() {
                 fontSize: 14,
                 fontWeight: 750,
                 color: 'var(--c-text-primary)',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--type-body-font, var(--studio-font-body))',
                 letterSpacing: '-0.015em',
                 display: 'flex',
                 alignItems: 'center',
@@ -523,7 +523,7 @@ export function AccentColorPicker() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span
                 style={{
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                   fontSize: 'var(--font-section-label)',
                   fontWeight: 800,
                   textTransform: 'uppercase',
@@ -664,7 +664,7 @@ export function AccentColorPicker() {
                     background: 'var(--app-surface-low, rgba(255, 255, 255, 0.04))',
                     border: '1px solid var(--c-border)',
                     borderRadius: 10,
-                    fontFamily: 'Manrope, monospace',
+                    fontFamily: 'var(--studio-font-mono)',
                     fontSize: 13,
                     fontWeight: 750,
                     color: 'var(--c-text-primary)',

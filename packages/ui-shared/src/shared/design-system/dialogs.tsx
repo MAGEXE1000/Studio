@@ -200,7 +200,7 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
               lineHeight: 'var(--type-section-lh, 24px)',
               fontWeight: 'var(--type-section-weight, 600)' as any,
               fontFamily:
-                'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
               letterSpacing: 'var(--type-section-tracking, 0.6px)',
               color: 'var(--c-text-primary, var(--text))',
             }}
@@ -239,7 +239,7 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
           fontSize: 'var(--type-body-size, 14.5px)',
           lineHeight: 'var(--type-body-lh, 18px)',
           color: 'var(--c-text-secondary, var(--muted))',
-          fontFamily: 'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+          fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
           letterSpacing: 'var(--type-body-tracking, 0.3px)',
         }}
       >

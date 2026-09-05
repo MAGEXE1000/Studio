@@ -51,7 +51,7 @@ export const StageSetupStatsStrip: React.FC<StageSetupStatsStripProps> = ({
             className="text-[19px] font-black tracking-tight mt-0.5 leading-tight truncate"
             style={{
               color: item.accentColor || (isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff'),
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-display)',
             }}
           >
             {item.value}

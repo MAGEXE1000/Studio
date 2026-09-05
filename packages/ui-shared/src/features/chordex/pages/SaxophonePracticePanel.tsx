@@ -21,7 +21,9 @@ export const SaxophonePracticePanel: React.FC = () => {
   // Quiz Mode state
   const [quizScore, setQuizScore] = useState(0);
   const [quizStreak, setQuizStreak] = useState(0);
-  const [quizTargetIdx, setQuizTargetIdx] = useState<number>(() => Math.floor(Math.random() * SAX_FINGERINGS.length));
+  const [quizTargetIdx, setQuizTargetIdx] = useState<number>(() =>
+    Math.floor(Math.random() * SAX_FINGERINGS.length)
+  );
   const [quizFeedback, setQuizFeedback] = useState<'correct' | 'wrong' | null>(null);
 
   // Playback Mode state
@@ -113,7 +115,7 @@ export const SaxophonePracticePanel: React.FC = () => {
         width: '100%',
         background: 'var(--c-background)',
         color: 'var(--c-text-primary)',
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--studio-font-display)',
         overflowY: 'auto',
         padding: '16px 20px 100px 20px',
         boxSizing: 'border-box',
@@ -270,7 +272,14 @@ export const SaxophonePracticePanel: React.FC = () => {
             }}
           >
             <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#a1a1aa', textTransform: 'uppercase' }}>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: '#a1a1aa',
+                  textTransform: 'uppercase',
+                }}
+              >
                 Written Pitch
               </div>
               <div style={{ fontSize: 28, fontWeight: 800, color: '#fff' }}>

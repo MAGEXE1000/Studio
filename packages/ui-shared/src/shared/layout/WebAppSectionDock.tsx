@@ -102,7 +102,7 @@ function DockItem({
               color: isLight ? '#09090b' : '#ffffff',
               fontSize: '12px',
               fontWeight: 700,
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--type-nav-font, var(--studio-font-body))',
               whiteSpace: 'nowrap',
               pointerEvents: 'none',
               zIndex: 1000,

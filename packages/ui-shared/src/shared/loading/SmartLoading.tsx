@@ -60,7 +60,7 @@ export function AppLoadingScreen({ app }: { app: AppKey }) {
         height: '100%',
         background: 'var(--c-background)', // Responsive background token
         color: 'var(--c-text-primary)', // Responsive text token
-        fontFamily: 'Inter, sans-serif',
+        fontFamily: 'var(--studio-font-body, "Inter", sans-serif)',
         animation: 'fade-in 200ms ease-out forwards',
       }}
     >
@@ -153,7 +153,9 @@ export default function SmartLoading({
     return subtleLoading ? (
       <>{subtleLoading}</>
     ) : (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}>
+      <div
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '12px' }}
+      >
         <Loader variant="spinner" size={24} />
       </div>
     );
@@ -175,4 +177,3 @@ export default function SmartLoading({
     </div>
   );
 }
-

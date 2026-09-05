@@ -70,7 +70,7 @@ function MiniDotN({
         <text
           x={pL + (numStrings - 1) * cW + 4}
           y={pT + cH * 0.5}
-          fontFamily="Manrope"
+          fontFamily="var(--studio-font-body)"
           fontSize={8}
           fontWeight="bold"
           fill="#999"
@@ -148,7 +148,7 @@ function MiniDotN({
               key={si}
               x={cx}
               y={pT - 6}
-              fontFamily="Manrope"
+              fontFamily="var(--studio-font-body)"
               fontSize={7}
               fill="#ee7d77"
               textAnchor="middle"
@@ -391,7 +391,7 @@ function FretboardBuilder({
         </button>
         <span
           style={{
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 800,
             fontSize: '12px',
             color: 'var(--c-text-secondary)',
@@ -416,7 +416,7 @@ function FretboardBuilder({
               : 'var(--app-surface-high)',
             border: barreMode ? 'none' : '1px solid rgba(72,72,72,0.15)',
             color: barreMode ? '#fff' : 'var(--c-text-secondary)',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 800,
             fontSize: '11px',
             display: 'flex',
@@ -476,7 +476,7 @@ function FretboardBuilder({
             style={{
               flex: 1,
               textAlign: 'center',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: '10px',
               color: 'var(--c-text-muted)',
@@ -518,7 +518,7 @@ function FretboardBuilder({
                 style={{
                   width: LABEL_W,
                   textAlign: 'center',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 800,
                   fontSize: '11px',
                   color: 'var(--c-text-secondary)',
@@ -544,7 +544,7 @@ function FretboardBuilder({
                       ? 'rgba(74,222,128,0.14)'
                       : 'rgba(72,72,72,0.1)',
                   color: isMuted ? '#ee7d77' : isOpen ? '#4ade80' : 'var(--c-text-muted)',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 900,
                   fontSize: '13px',
                   transition: 'background 150ms ease, color 150ms ease',
@@ -660,7 +660,7 @@ function FretboardBuilder({
                         >
                           <span
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 900,
                               fontSize: '8px',
                               color: '#fff',
@@ -688,7 +688,7 @@ function FretboardBuilder({
             borderRadius: '9999px',
             background: 'var(--app-surface-high)',
             color: 'var(--c-text-muted)',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 700,
             fontSize: '11px',
             display: 'flex',
@@ -749,7 +749,7 @@ function PianoKeyboard({
           <span
             key={i}
             style={{
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: '10px',
               color: 'var(--c-text-muted)',
@@ -794,7 +794,7 @@ function PianoKeyboard({
                 {isOn && (
                   <span
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 900,
                       fontSize: '8px',
                       color: '#fff',
@@ -846,7 +846,7 @@ function PianoKeyboard({
                 {isOn && (
                   <span
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 900,
                       fontSize: '7px',
                       color: '#fff',
@@ -884,7 +884,7 @@ function PianoKeyboard({
                 background: `${accent.from}20`,
                 border: `1px solid ${accent.from}44`,
                 color: accent.from,
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 800,
                 fontSize: '11px',
               }}
@@ -908,7 +908,7 @@ function PianoKeyboard({
             borderRadius: '9999px',
             background: 'var(--app-surface-high)',
             color: 'var(--c-text-muted)',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 700,
             fontSize: '11px',
             display: 'flex',
@@ -1169,7 +1169,7 @@ export default function CustomChordBuilder({
           <div style={{ flex: 1 }}>
             <p
               style={{
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 900,
                 fontSize: '18px',
                 color: 'var(--c-text-primary)',
@@ -1216,7 +1216,7 @@ export default function CustomChordBuilder({
           <div style={{ marginBottom: '14px' }}>
             <p
               style={{
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 700,
                 fontSize: '11px',
                 color: 'var(--c-text-muted)',
@@ -1303,7 +1303,7 @@ export default function CustomChordBuilder({
                     >
                       <span
                         style={{
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           fontWeight: 800,
                           fontSize: '10px',
                           color: active ? '#fff' : 'var(--c-text-secondary)',
@@ -1364,7 +1364,7 @@ export default function CustomChordBuilder({
                   <>
                     <p
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 900,
                         fontSize: '22px',
                         color: 'var(--c-text-primary)',
@@ -1391,7 +1391,7 @@ export default function CustomChordBuilder({
                   <>
                     <p
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 700,
                         fontSize: '13px',
                         color: 'var(--c-text-secondary)',
@@ -1430,7 +1430,7 @@ export default function CustomChordBuilder({
                 >
                   <span
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 800,
                       fontSize: '10px',
                       color: resolvedAccent.from,
@@ -1470,7 +1470,7 @@ export default function CustomChordBuilder({
                   </span>
                   <span
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 800,
                       fontSize: '13px',
                       color: resolvedAccent.from,
@@ -1494,7 +1494,7 @@ export default function CustomChordBuilder({
               )}
               <p
                 style={{
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 700,
                   fontSize: '11px',
                   color: 'var(--c-text-muted)',
@@ -1524,7 +1524,7 @@ export default function CustomChordBuilder({
                     borderRadius: '12px',
                     padding: '12px 14px',
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-body)',
                     fontWeight: 700,
                     fontSize: '15px',
                     outline: 'none',
@@ -1555,7 +1555,7 @@ export default function CustomChordBuilder({
             >
               <p
                 style={{
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 700,
                   fontSize: '11px',
                   color: 'var(--c-text-muted)',
@@ -1649,7 +1649,7 @@ export default function CustomChordBuilder({
             >
               <p
                 style={{
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 700,
                   fontSize: '10px',
                   color: 'var(--c-text-muted)',
@@ -1669,7 +1669,7 @@ export default function CustomChordBuilder({
                       borderRadius: '9999px',
                       background: `${resolvedAccent.from}18`,
                       color: resolvedAccent.from,
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 800,
                       fontSize: '12px',
                       border: `1px solid ${resolvedAccent.from}30`,

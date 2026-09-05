@@ -120,7 +120,7 @@ export function HubAppGrid() {
                 fontSize: 15.5,
                 fontWeight: 800,
                 color: 'var(--c-text-primary)',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 letterSpacing: '-0.02em',
               }}
             >
@@ -130,7 +130,7 @@ export function HubAppGrid() {
               style={{
                 fontSize: '12px',
                 color: 'var(--c-text-secondary)',
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 500,
                 opacity: 0.82,
                 lineHeight: 1.3,

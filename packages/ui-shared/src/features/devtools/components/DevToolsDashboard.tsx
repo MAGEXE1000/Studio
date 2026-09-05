@@ -136,7 +136,7 @@ const AccordionSection = ({
             fontWeight: 700,
             fontSize: 14,
             color: 'var(--c-text-primary)',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-display)',
           }}
         >
           {title}
@@ -1108,7 +1108,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
           background: 'transparent',
           border: 'none',
           color: 'var(--c-text-primary)',
-          fontFamily: 'Manrope',
+          fontFamily: 'var(--studio-font-display)',
           fontWeight: 800,
           fontSize: '13px',
           cursor: 'pointer',
@@ -1154,7 +1154,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
       <label
         style={{
           display: 'block',
-          fontFamily: 'Manrope',
+          fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
           fontWeight: 700,
           fontSize: 10,
           color: 'var(--c-text-secondary)',
@@ -1221,7 +1221,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               background: 'rgba(239, 68, 68, 0.1)',
               border: '1px solid rgba(239, 68, 68, 0.2)',
               color: '#ef4444',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--type-button-font, var(--studio-font-body))',
               fontWeight: 700,
               fontSize: '11px',
               cursor: 'pointer',
@@ -1583,7 +1583,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
     background: activeTab === tab ? accent.from : 'var(--app-surface-high, var(--app-surface))',
     border: activeTab === tab ? 'none' : '1px solid var(--c-border)',
     color: activeTab === tab ? '#fff' : 'var(--c-text-secondary)',
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--type-button-font, var(--studio-font-body))',
     fontWeight: 700,
     fontSize: '12px',
     cursor: 'pointer',
@@ -2346,7 +2346,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               fontSize: '14px',
               fontWeight: 800,
               color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-body)',
             }}
           >
             Captured Exceptions ({errors.length})
@@ -2362,7 +2362,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               fontWeight: 700,
               padding: '5px 12px',
               cursor: 'pointer',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-body)',
             }}
           >
             Clear Errors
@@ -2495,7 +2495,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                           style={{
                             fontWeight: 800,
                             color: '#748ffc',
-                            fontFamily: 'Manrope, sans-serif',
+                            fontFamily: 'var(--studio-font-body)',
                           }}
                         >
                           Decoded React Error #{code}:
@@ -2526,7 +2526,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                             fontSize: '10.5px',
                             padding: '4px 10px',
                             cursor: 'pointer',
-                            fontFamily: 'Manrope, sans-serif',
+                            fontFamily: 'var(--studio-font-body)',
                             fontWeight: 700,
                             marginTop: 4,
                           }}
@@ -2591,7 +2591,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 fontSize: '14px',
                 fontWeight: 800,
                 color: 'var(--c-text-primary)',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
               }}
             >
               UI Gesture Events ({events.length})
@@ -2630,7 +2630,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               fontWeight: 700,
               padding: '5px 12px',
               cursor: 'pointer',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-body)',
             }}
           >
             Clear Events
@@ -2848,7 +2848,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   color: 'var(--c-text-primary)',
                   background: innerCardBg,
                   flexShrink: 0,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {score}
@@ -2869,7 +2869,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       fontSize: '15px',
                       fontWeight: 800,
                       color: 'var(--c-text-primary)',
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--studio-font-body)',
                       wordBreak: 'break-word',
                       minWidth: 0,
                     }}
@@ -2942,7 +2942,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '24px',
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                   }}
                 >
                   {metrics.currentFps}
@@ -3012,7 +3012,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '24px',
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                   }}
                 >
                   {metrics.frameTime}
@@ -3086,7 +3086,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '24px',
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                   }}
                 >
                   {metrics.eventLoopDelay.toFixed(1)}
@@ -3154,7 +3154,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: hasMemoryAPI ? '24px' : '18px',
                     fontWeight: 800,
                     color: hasMemoryAPI ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                   }}
                 >
                   {hasMemoryAPI ? metrics.usedHeap : 'Restricted'}
@@ -3226,7 +3226,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '14px',
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                     wordBreak: 'break-word',
                   }}
                 >
@@ -3448,7 +3448,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '14px',
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                     wordBreak: 'break-word',
                   }}
                 >
@@ -3636,7 +3636,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 background: isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid var(--c-border)',
                 color: 'var(--c-text-primary)',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 700,
                 fontSize: 11,
                 cursor: 'pointer',
@@ -3696,7 +3696,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                     fontSize: '14px',
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-body)',
                     wordBreak: 'break-word',
                   }}
                 >
@@ -3732,7 +3732,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   alignItems: 'center',
                   gap: 4,
                   transition: 'all 0.15s ease',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 13, opacity: 0.7 }}>
@@ -3877,7 +3877,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: '#ee7d77',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                   wordBreak: 'break-word',
                 }}
               >
@@ -4115,7 +4115,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 OS & Runtime Architecture
@@ -4153,7 +4153,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {androidVer}
@@ -4190,7 +4190,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   color: nativeDeviceInfo?.apiLevel
                     ? 'var(--c-text-primary)'
                     : 'var(--c-text-secondary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {apiLevel}
@@ -4225,7 +4225,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {deviceModel}
@@ -4295,7 +4295,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {isNative ? 'Android Native Bridge' : 'Web Browser Portal'}
@@ -4330,7 +4330,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -4372,7 +4372,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 Screen & Display Metrics
@@ -4511,7 +4511,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {colorDepth} • {orientation}
@@ -4549,7 +4549,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 App Runtime State & Settings
@@ -4586,7 +4586,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--studio-accent-from, #2563eb)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                   textTransform: 'capitalize',
                 }}
               >
@@ -4621,7 +4621,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {useNavigationStore.getState().history.length} active routes
@@ -4655,7 +4655,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                   textTransform: 'capitalize',
                 }}
               >
@@ -4690,7 +4690,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {settings.language || 'en'}
@@ -4724,7 +4724,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: settings.syncAcrossDevices ? '#10b981' : 'var(--c-text-secondary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {settings.syncAcrossDevices ? 'Enabled' : 'Disabled'}
@@ -4758,7 +4758,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: settings.developerMode ? '#10b981' : 'var(--c-text-secondary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {settings.developerMode ? 'Active (Verbose)' : 'Disabled'}
@@ -5152,7 +5152,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '14px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 Storage Engine & Quota Profile
@@ -5273,7 +5273,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: '15px',
                   fontWeight: 800,
                   color: storageEstimate?.persisted ? '#10b981' : 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 {storageEstimate?.persisted !== null
@@ -5319,7 +5319,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                 fontSize: '14px',
                 fontWeight: 800,
                 color: 'var(--c-text-primary)',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
               }}
             >
               LocalStorage Keys ({storageMetrics.keysCount})
@@ -5347,7 +5347,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   display: 'flex',
                   alignItems: 'center',
                   gap: 4,
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
@@ -5484,7 +5484,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
               fontSize: '14px',
               fontWeight: 800,
               color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-body)',
             }}
           >
             App-Specific Debug Panels ({activeProviders.length})
@@ -5539,7 +5539,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       fontWeight: 800,
                       margin: 0,
                       color: 'var(--studio-accent-from, #2563eb)',
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--studio-font-body)',
                     }}
                   >
                     {prov.name}
@@ -5578,7 +5578,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                           fontSize: '11px',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
-                          fontFamily: 'Manrope, sans-serif',
+                          fontFamily: 'var(--studio-font-body)',
                         }}
                       >
                         {act.label}
@@ -5877,7 +5877,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   fontSize: 14,
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                 }}
               >
                 App Runtime Manager
@@ -6025,7 +6025,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                           fontWeight: 800,
                           color: 'var(--c-text-primary)',
                           margin: 0,
-                          fontFamily: 'Manrope, sans-serif',
+                          fontFamily: 'var(--studio-font-body)',
                           letterSpacing: '-0.01em',
                         }}
                       >
@@ -6135,7 +6135,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                       background: isLightMode ? 'rgba(0, 0, 0, 0.04)' : 'rgba(255, 255, 255, 0.05)',
                       border: '1px solid var(--c-border)',
                       color: 'var(--c-text-primary)',
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 700,
                       fontSize: 11,
                       cursor: 'pointer',
@@ -6165,7 +6165,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                         background: 'rgba(37, 99, 235, 0.12)',
                         border: '1px solid rgba(37, 99, 235, 0.25)',
                         color: 'var(--studio-accent-from, #2563eb)',
-                        fontFamily: 'Manrope, sans-serif',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 700,
                         fontSize: 11,
                         cursor: 'pointer',
@@ -7252,7 +7252,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
                   : 'var(--app-surface-high, var(--app-surface))',
                 border: toggle.active ? '1px solid transparent' : '1px solid var(--c-border)',
                 color: toggle.active ? '#fff' : 'var(--c-text-secondary)',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 700,
                 fontSize: '12px',
                 cursor: 'pointer',
@@ -7512,7 +7512,7 @@ export default function DevToolsDashboard({ accent, onBack, hideHeader }: Props)
         flexDirection: 'column',
         background: 'var(--c-background)',
         color: 'var(--c-text-primary)',
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--studio-font-body)',
         overflowX: 'hidden',
         zIndex: 99990,
       }}

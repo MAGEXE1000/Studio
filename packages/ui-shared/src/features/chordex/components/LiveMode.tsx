@@ -1,7 +1,13 @@
 import React from 'react';
 import type { SongPreset } from '@workspace/studio-core';
 import { useLiveModeState } from './useLiveModeState';
-import { LiveModeHeader, LiveModeVisualizer, LiveModeProgress, LiveModeControls, LiveModeSettings } from './LiveModeUI';
+import {
+  LiveModeHeader,
+  LiveModeVisualizer,
+  LiveModeProgress,
+  LiveModeControls,
+  LiveModeSettings,
+} from './LiveModeUI';
 
 interface LiveModeProps {
   preset: SongPreset;
@@ -27,13 +33,24 @@ export default function LiveMode({ preset, onClose, transposeOffset = 0 }: LiveM
           ...state.overlayAnim,
         }}
       >
-        <p style={{ color: 'var(--c-text-secondary)', fontFamily: 'Manrope', fontSize: '18px' }}>
+        <p
+          style={{
+            color: 'var(--c-text-secondary)',
+            fontFamily: 'var(--studio-font-body)',
+            fontSize: '18px',
+          }}
+        >
           No chords in this preset
         </p>
         <button
           onClick={state.handleClose}
           className="btn-smooth"
-          style={{ marginTop: '24px', color: state.accent.from, fontFamily: 'Manrope', fontWeight: 700 }}
+          style={{
+            marginTop: '24px',
+            color: state.accent.from,
+            fontFamily: 'var(--studio-font-body)',
+            fontWeight: 700,
+          }}
         >
           Close
         </button>

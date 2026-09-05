@@ -112,7 +112,7 @@ export function Badge({
         padding: size === 'sm' ? '2px 7px' : '4px 10px',
         fontSize: size === 'sm' ? '9.5px' : '11.5px',
         fontWeight: 800,
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
         textTransform: 'uppercase',
         letterSpacing: '0.06em',
         borderRadius: size === 'sm' ? '6px' : '8px',
@@ -179,7 +179,7 @@ export function Chip({
         boxShadow: selected
           ? `0 2px 10px ${accentColor}30, inset 0 1px 1px rgba(255, 255, 255, 0.25)`
           : '0 2px 6px rgba(0, 0, 0, 0.08)',
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--type-body-font, var(--studio-font-body))',
         fontSize: '12px',
         fontWeight: 750,
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -230,7 +230,7 @@ export function Loading({ statusText = 'Loading...', overlay = false }: LoadingP
             fontSize: '13px',
             fontWeight: 750,
             color: 'var(--c-text-secondary)',
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--type-body-font, var(--studio-font-body))',
             letterSpacing: '-0.01em',
           }}
         >
@@ -310,7 +310,7 @@ export function Error({ message, onRetry }: ErrorProps) {
           fontSize: '13.5px',
           fontWeight: 700,
           color: '#ef4444',
-          fontFamily: 'Manrope, sans-serif',
+          fontFamily: 'var(--type-body-font, var(--studio-font-body))',
         }}
       >
         {message}
@@ -374,7 +374,7 @@ export function EmptyState({ message, icon = 'folder_open', description }: Empty
           fontSize: '16px',
           fontWeight: 850,
           letterSpacing: '-0.02em',
-          fontFamily: 'Manrope, sans-serif',
+          fontFamily: 'var(--studio-font-display)',
           color: 'var(--c-text-primary)',
         }}
       >
@@ -386,7 +386,7 @@ export function EmptyState({ message, icon = 'folder_open', description }: Empty
             margin: 0,
             fontSize: '12.5px',
             color: 'var(--c-text-secondary)',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--studio-font-body)',
             maxWidth: '280px',
             lineHeight: 1.4,
             opacity: 0.82,

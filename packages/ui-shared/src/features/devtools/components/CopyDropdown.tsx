@@ -66,7 +66,7 @@ export const CopyDropdown: React.FC<CopyDropdownProps> = ({
           color: isCopied ? '#10b981' : 'var(--c-text-primary, #ffffff)',
           fontSize: isSmall ? '11px' : '12px',
           fontWeight: 700,
-          fontFamily: 'Manrope, system-ui, sans-serif',
+          fontFamily: 'var(--type-button-font, var(--studio-font-body))',
           cursor: 'pointer',
           boxShadow: isCopied
             ? '0 2px 10px rgba(16, 185, 129, 0.2)'
@@ -153,7 +153,7 @@ const itemStyle: React.CSSProperties = {
   color: 'var(--c-text-primary)',
   fontSize: '12px',
   fontWeight: 600,
-  fontFamily: 'Manrope, system-ui, sans-serif',
+  fontFamily: 'var(--type-button-font, var(--studio-font-body))',
   cursor: 'pointer',
   textAlign: 'left',
   width: '100%',

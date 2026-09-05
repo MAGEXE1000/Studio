@@ -346,7 +346,7 @@ export function HubHelp({
                     fontSize: 15,
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-display)',
                   }}
                 >
                   Android App (APK)
@@ -416,7 +416,7 @@ export function HubHelp({
                     fontSize: 15,
                     fontWeight: 800,
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'Manrope, sans-serif',
+                    fontFamily: 'var(--studio-font-display)',
                   }}
                 >
                   Web Version (PWA)
@@ -954,7 +954,7 @@ export function HubHelp({
                 color: 'var(--c-text-primary)',
                 margin: 0,
                 letterSpacing: '-0.02em',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-display)',
               }}
             >
               {lang === 'es' ? 'Ayuda de Studio' : 'Studio Help'}
@@ -1007,7 +1007,7 @@ export function HubHelp({
                         color: isActive ? 'var(--c-text-primary)' : 'var(--c-text-secondary)',
                         fontWeight: isActive ? 700 : 500,
                         fontSize: 13,
-                        fontFamily: 'Manrope, sans-serif',
+                        fontFamily: 'var(--type-nav-font, var(--studio-font-body))',
                       }}
                     >
                       <AnimatedIcon
@@ -1056,7 +1056,7 @@ export function HubHelp({
                   color: 'var(--c-text-primary)',
                   margin: 0,
                   letterSpacing: '-0.03em',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-display)',
                 }}
               >
                 {getPageTitle(activePageId)}

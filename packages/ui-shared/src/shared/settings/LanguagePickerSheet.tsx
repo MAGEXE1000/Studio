@@ -80,7 +80,7 @@ export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps)
             >
               <span
                 style={{
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--type-body-font, var(--studio-font-body))',
                   fontSize: 14,
                   fontWeight: isSelected ? 800 : 600,
                   letterSpacing: isSelected ? '-0.01em' : '0',
@@ -113,7 +113,7 @@ export function LanguagePickerSheet({ open, onClose }: LanguagePickerSheetProps)
               {!isAvailable && (
                 <span
                   style={{
-                    fontFamily: 'Inter, sans-serif',
+                    fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                     fontSize: 10.5,
                     fontWeight: 700,
                     padding: '3px 8px',

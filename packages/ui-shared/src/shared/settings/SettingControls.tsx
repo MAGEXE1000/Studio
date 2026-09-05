@@ -25,7 +25,7 @@ export const SectionHeader = memo(function SectionHeader({
           style={{
             color: 'var(--c-text-primary, var(--text, #ffffff))',
             fontFamily:
-              'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+              'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
             fontWeight: 'var(--type-section-weight, 600)' as any,
             fontSize: 'var(--type-section-size, 19px)',
             lineHeight: 'var(--type-section-lh, 24px)',
@@ -85,8 +85,7 @@ export function SettingRow({
             color: indent
               ? 'var(--c-text-secondary, var(--muted))'
               : 'var(--c-text-primary, var(--text))',
-            fontFamily:
-              'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+            fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
             letterSpacing: 'var(--type-body-tracking, 0.3px)',
             margin: 0,
           }}
@@ -100,8 +99,7 @@ export function SettingRow({
               marginTop: '2px',
               lineHeight: 'var(--type-meta-lh, 16px)',
               color: 'var(--c-text-secondary, var(--muted))',
-              fontFamily:
-                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
               fontWeight: 400,
               letterSpacing: 'var(--type-meta-tracking, 0.2px)',
               opacity: indent ? 0.75 : 0.82,
@@ -156,8 +154,7 @@ export function SegmentedControl<T extends string | number>({
             style={{
               padding: '6px 14px',
               borderRadius: '9999px',
-              fontFamily:
-                'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
               fontSize: '12px',
               fontWeight: 600,
               display: 'flex',
@@ -303,8 +300,7 @@ export function BentoSettingCard({
               color: 'var(--c-text-primary, var(--text))',
               margin: 0,
               letterSpacing: '-0.2px',
-              fontFamily:
-                'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
             }}
           >
             {title}
@@ -316,8 +312,7 @@ export function BentoSettingCard({
                 color: 'var(--c-text-secondary, var(--muted))',
                 margin: '2px 0 0',
                 fontWeight: 400,
-                fontFamily:
-                  'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
                 lineHeight: 'var(--type-meta-lh, 16px)',
                 letterSpacing: 'var(--type-meta-tracking, 0.2px)',
                 opacity: 0.85,
@@ -335,8 +330,7 @@ export function BentoSettingCard({
               fontSize: 11,
               fontWeight: 600,
               color: 'var(--studio-accent-from, #679cff)',
-              fontFamily:
-                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
               opacity: 0.85,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -350,8 +344,7 @@ export function BentoSettingCard({
             style={{
               fontSize: 9.5,
               fontWeight: 600,
-              fontFamily:
-                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
               padding: '2px 8px',
               borderRadius: 'var(--radius-compact, 12px)',
               background: 'var(--c-border)',
@@ -474,8 +467,7 @@ export function BentoSettingRow({
               color: 'var(--c-text-primary, var(--text))',
               margin: 0,
               letterSpacing: '-0.2px',
-              fontFamily:
-                'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
             }}
           >
             {title}
@@ -487,8 +479,7 @@ export function BentoSettingRow({
                 color: 'var(--c-text-secondary, var(--muted))',
                 margin: '2px 0 0',
                 fontWeight: 400,
-                fontFamily:
-                  'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
                 lineHeight: 'var(--type-meta-lh, 16px)',
                 letterSpacing: 'var(--type-meta-tracking, 0.2px)',
                 opacity: 0.85,
@@ -506,8 +497,7 @@ export function BentoSettingRow({
               fontSize: 11,
               fontWeight: 600,
               color: 'var(--studio-accent-from, #679cff)',
-              fontFamily:
-                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
               opacity: 0.85,
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -521,8 +511,7 @@ export function BentoSettingRow({
             style={{
               fontSize: 9.5,
               fontWeight: 600,
-              fontFamily:
-                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
               padding: '2px 8px',
               borderRadius: 'var(--radius-compact, 12px)',
               background: 'var(--c-border)',
@@ -578,7 +567,7 @@ export function SettingSection({
           letterSpacing: 'var(--type-section-tracking, 0.6px)',
           color: 'var(--c-text-primary, var(--text))',
           fontFamily:
-            'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+            'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
           paddingLeft: '4px',
         }}
       >

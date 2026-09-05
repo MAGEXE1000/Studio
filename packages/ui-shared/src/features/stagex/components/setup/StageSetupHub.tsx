@@ -183,7 +183,7 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
                         ? 'var(--c-text-primary, #09090b)'
                         : 'var(--c-text-primary, var(--text))',
                       fontFamily:
-                        'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                        'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
                       fontSize: 'var(--type-section-size, 19px)',
                       lineHeight: 'var(--type-section-lh, 24px)',
                       fontWeight: 'var(--type-section-weight, 600)' as any,
@@ -199,7 +199,7 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
                         ? 'var(--c-text-secondary, #71717a)'
                         : 'var(--c-text-secondary, var(--muted))',
                       fontFamily:
-                        'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                        'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
                       fontSize: 'var(--type-body-size, 14.5px)',
                       lineHeight: 'var(--type-body-lh, 18px)',
                       fontWeight: 'var(--type-body-weight, 400)' as any,
@@ -225,7 +225,7 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
                         ? 'var(--c-text-secondary, #71717a)'
                         : 'var(--c-text-secondary, var(--muted))',
                       fontFamily:
-                        'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                        'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
                       fontSize: 'var(--type-meta-size, 12px)',
                       lineHeight: 'var(--type-meta-lh, 16px)',
                       fontWeight: 500,

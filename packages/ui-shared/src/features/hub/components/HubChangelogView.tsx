@@ -360,7 +360,7 @@ export function ChangelogView({
                   fontSize: '18px',
                   fontWeight: 800,
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-display)',
                   letterSpacing: '-0.02em',
                 }}
               >
@@ -371,7 +371,7 @@ export function ChangelogView({
                   style={{
                     fontSize: 9,
                     fontWeight: 800,
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                     padding: '2px 6px',
                     borderRadius: 4,
                     background: `linear-gradient(135deg, ${accent.from}1a, ${accent.to}1a)`,
@@ -388,7 +388,7 @@ export function ChangelogView({
                   style={{
                     fontSize: 9,
                     fontWeight: 800,
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                     padding: '2px 6px',
                     borderRadius: 4,
                     background: 'rgba(52, 211, 153, 0.12)',
@@ -404,7 +404,7 @@ export function ChangelogView({
                 style={{
                   fontSize: 'var(--font-section-label)',
                   color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
+                  fontFamily: 'var(--studio-font-body)',
                   opacity: 0.8,
                   marginLeft: 'auto',
                 }}
@@ -419,7 +419,7 @@ export function ChangelogView({
                 style={{
                   fontSize: 13,
                   color: 'var(--c-text-secondary)',
-                  fontFamily: 'Inter',
+                  fontFamily: 'var(--studio-font-body)',
                   fontStyle: 'italic',
                   paddingLeft: 4,
                 }}
@@ -439,7 +439,7 @@ export function ChangelogView({
                           style={{
                             fontSize: 9,
                             fontWeight: 800,
-                            fontFamily: 'Manrope',
+                            fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
                             padding: '2px 8px',
                             borderRadius: 999,
                             background: cStyle.bg,

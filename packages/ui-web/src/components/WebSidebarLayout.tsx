@@ -100,7 +100,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
     color: 'var(--c-text-primary)',
     fontSize: '12.5px',
     fontWeight: 600,
-    fontFamily: 'Manrope, sans-serif',
+    fontFamily: 'var(--studio-font-body)',
     cursor: 'pointer',
     textAlign: 'left',
     outline: 'none',
@@ -193,7 +193,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
             transition={isReduced ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }}
             className="font-extrabold text-base tracking-tight text-[var(--c-text-primary)]"
             style={{
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-display)',
               letterSpacing: '-0.02em',
               whiteSpace: 'nowrap',
             }}
@@ -336,7 +336,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                 >
                   <span
                     className="truncate font-bold text-xs text-[var(--c-text-primary)]"
-                    style={{ fontFamily: 'Manrope, sans-serif' }}
+                    style={{ fontFamily: 'var(--studio-font-display)' }}
                   >
                     {authUser ? authUser.displayName || 'Studio User' : 'Guest User'}
                   </span>
@@ -401,7 +401,7 @@ export default function WebSidebarLayout({ shouldHideSidebar }: { shouldHideSide
                           fontSize: 13,
                           fontWeight: 700,
                           color: 'var(--c-text-primary)',
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-display)',
                         }}
                         className="truncate"
                       >

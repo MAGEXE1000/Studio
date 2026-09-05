@@ -1,7 +1,7 @@
-import { useT, useChordStore, authRepository, useSettingsStore } from "@workspace/studio-core";
-import { useEffect, useState } from "react";
+import { useT, useChordStore, authRepository, useSettingsStore } from '@workspace/studio-core';
+import { useEffect, useState } from 'react';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
-import { type AccountState, userRepository } from "@workspace/studio-core";
+import { type AccountState, userRepository } from '@workspace/studio-core';
 
 type Props = Extract<AccountState, { phase: 'pending' }>;
 
@@ -139,7 +139,7 @@ export default function PendingDeletionScreen({ user, scheduledAtMs }: Props) {
         {/* Title */}
         <p
           style={{
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-display)',
             fontWeight: 800,
             fontSize: 22,
             color: 'var(--c-text-primary)',
@@ -167,7 +167,7 @@ export default function PendingDeletionScreen({ user, scheduledAtMs }: Props) {
         >
           <p
             style={{
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-display)',
               fontWeight: 800,
               fontSize: 28,
               color: '#ff6b6b',

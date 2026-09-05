@@ -6,7 +6,16 @@ import { type LiveModeState } from './useLiveModeState';
 import { useSettingsStore } from '@workspace/studio-core';
 
 export function LiveModeHeader({ state }: { state: LiveModeState }) {
-  const { preset, accent, autoPlay, setAutoPlay, showSettings, setShowSettings, bpmOverride, handleClose } = state;
+  const {
+    preset,
+    accent,
+    autoPlay,
+    setAutoPlay,
+    showSettings,
+    setShowSettings,
+    bpmOverride,
+    handleClose,
+  } = state;
   return (
     <div
       style={{
@@ -42,7 +51,7 @@ export function LiveModeHeader({ state }: { state: LiveModeState }) {
         <p
           style={{
             color: 'var(--c-text-primary)',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 800,
             fontSize: '15px',
           }}
@@ -117,9 +126,19 @@ export function LiveModeHeader({ state }: { state: LiveModeState }) {
 }
 
 export function LiveModeVisualizer({ state }: { state: LiveModeState }) {
-  const { showContext, prevChord, nextChord, visualStyle, accent, shownIdx, sectionLabels, shownChord, chordStyle } = state;
+  const {
+    showContext,
+    prevChord,
+    nextChord,
+    visualStyle,
+    accent,
+    shownIdx,
+    sectionLabels,
+    shownChord,
+    chordStyle,
+  } = state;
   const settings = useSettingsStore((s) => s.settings);
-  
+
   return (
     <div
       style={{
@@ -160,7 +179,7 @@ export function LiveModeVisualizer({ state }: { state: LiveModeState }) {
           <p
             style={{
               color: 'var(--c-text-secondary)',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: '12px',
             }}
@@ -198,7 +217,7 @@ export function LiveModeVisualizer({ state }: { state: LiveModeState }) {
           <p
             style={{
               color: 'var(--c-text-secondary)',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: '12px',
             }}
@@ -224,7 +243,7 @@ export function LiveModeVisualizer({ state }: { state: LiveModeState }) {
           <p
             style={{
               color: accent.from,
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: '11px',
               textTransform: 'uppercase',
@@ -271,7 +290,7 @@ export function LiveModeVisualizer({ state }: { state: LiveModeState }) {
           <div style={{ textAlign: 'center' }}>
             <p
               style={{
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 900,
                 fontSize: visualStyle === 'name' ? '100px' : '48px',
                 lineHeight: 1,
@@ -306,7 +325,8 @@ export function LiveModeVisualizer({ state }: { state: LiveModeState }) {
 }
 
 export function LiveModeProgress({ state }: { state: LiveModeState }) {
-  const { total, chords, currentIdx, accent, autoPlay, msPerChord, setDirection, setCurrentIdx } = state;
+  const { total, chords, currentIdx, accent, autoPlay, msPerChord, setDirection, setCurrentIdx } =
+    state;
   return (
     <div
       style={{
@@ -349,9 +369,7 @@ export function LiveModeProgress({ state }: { state: LiveModeState }) {
                   background: `linear-gradient(90deg, ${accent.from}, ${accent.to})`,
                   borderRadius: '9999px',
                   transformOrigin: 'left center',
-                  animation: autoPlay
-                    ? `chord-countdown ${msPerChord}ms linear forwards`
-                    : 'none',
+                  animation: autoPlay ? `chord-countdown ${msPerChord}ms linear forwards` : 'none',
                 }}
               />
             </div>
@@ -445,7 +463,18 @@ export function LiveModeControls({ state }: { state: LiveModeState }) {
 }
 
 export function LiveModeSettings({ state }: { state: LiveModeState }) {
-  const { setShowSettings, visualStyle, setVisualStyle, bpmOverride, setBpmOverride, beatsPerChord, setBeatsPerChord, showContext, setShowContext, accent } = state;
+  const {
+    setShowSettings,
+    visualStyle,
+    setVisualStyle,
+    bpmOverride,
+    setBpmOverride,
+    beatsPerChord,
+    setBeatsPerChord,
+    showContext,
+    setShowContext,
+    accent,
+  } = state;
   return (
     <>
       <div
@@ -498,7 +527,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
           <p
             style={{
               color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 800,
               fontSize: '18px',
             }}
@@ -526,7 +555,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
             <p
               style={{
                 color: 'var(--c-text-secondary)',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 700,
                 fontSize: '10px',
                 textTransform: 'uppercase',
@@ -566,8 +595,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
                     style={{
                       fontSize: '20px',
                       color: visualStyle === opt.value ? accent.from : '#acabaa',
-                      fontVariationSettings:
-                        visualStyle === opt.value ? "'FILL' 1" : "'FILL' 0",
+                      fontVariationSettings: visualStyle === opt.value ? "'FILL' 1" : "'FILL' 0",
                     }}
                   >
                     {opt.icon}
@@ -575,7 +603,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
                   <p
                     style={{
                       color: visualStyle === opt.value ? '#e7e5e4' : '#6b6b6b',
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 700,
                       fontSize: '10px',
                       textAlign: 'center',
@@ -601,7 +629,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
               <p
                 style={{
                   color: 'var(--c-text-secondary)',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 700,
                   fontSize: '10px',
                   textTransform: 'uppercase',
@@ -613,7 +641,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
               <p
                 style={{
                   color: accent.from,
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 800,
                   fontSize: '14px',
                 }}
@@ -680,7 +708,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
             <p
               style={{
                 color: 'var(--c-text-secondary)',
-                fontFamily: 'Manrope',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 700,
                 fontSize: '10px',
                 textTransform: 'uppercase',
@@ -705,7 +733,7 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
                         ? `linear-gradient(135deg, ${accent.from}, ${accent.to})`
                         : 'rgba(255,255,255,0.06)',
                     color: beatsPerChord === b ? '#fff' : '#acabaa',
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-body)',
                     fontWeight: 800,
                     fontSize: '14px',
                     border: 'none',
@@ -719,14 +747,12 @@ export function LiveModeSettings({ state }: { state: LiveModeState }) {
             </div>
           </div>
 
-          <div
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-          >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <p
                 style={{
                   color: 'var(--c-text-primary)',
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 700,
                   fontSize: '14px',
                 }}

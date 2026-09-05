@@ -173,7 +173,7 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
         <h3
           style={{
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-display)',
             fontWeight: 800,
             fontSize: '1.6rem',
             color: 'var(--c-text-primary)',
@@ -251,7 +251,7 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
                     borderRadius: 9999,
                     fontSize: '10px',
                     fontWeight: 800,
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-display)',
                     letterSpacing: '0.08em',
                     boxShadow: `0 4px 12px color-mix(in srgb, ${accent.to} 35%, transparent)`,
                   }}
@@ -282,7 +282,7 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
                   )}
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-display)',
                       fontWeight: 800,
                       fontSize: '1.25rem',
                       color: 'var(--c-text-primary)',
@@ -328,7 +328,7 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
               >
                 <span
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-display)',
                     fontWeight: 900,
                     fontSize: '1.75rem',
                     color: plan.isRecommended ? accent.from : 'var(--c-text-primary)',
@@ -419,7 +419,7 @@ function StudioPricingSection({ accent, lang = 'en', profile, user, onShowToast 
                   width: '100%',
                   height: 40,
                   borderRadius: 12,
-                  fontFamily: 'Manrope',
+                  fontFamily: 'var(--studio-font-display)',
                   fontWeight: 800,
                   fontSize: '12.5px',
                   display: 'flex',

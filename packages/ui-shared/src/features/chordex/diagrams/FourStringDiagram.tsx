@@ -95,7 +95,7 @@ const FourStringDiagram = memo(function FourStringDiagram({
         fill="#acabaa"
         textAnchor="middle"
         dominantBaseline="middle"
-        fontFamily="Manrope, sans-serif"
+        fontFamily="var(--studio-font-body)"
         fontWeight="700"
         letterSpacing="0.1em"
       >

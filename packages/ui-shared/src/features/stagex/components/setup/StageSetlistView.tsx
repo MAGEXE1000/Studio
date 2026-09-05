@@ -225,7 +225,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
           <div>
             <h2
               className="font-extrabold text-[22px] tracking-tight leading-none"
-              style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+              style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
             >
               {setlistTr?.currentArrangement ||
                 (isSpanish ? 'Repertorio Actual' : 'Current Arrangement')}
@@ -297,7 +297,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               </svg>
               <span
                 className="text-xs font-bold tracking-wider uppercase"
-                style={{ fontFamily: 'Manrope, sans-serif' }}
+                style={{ fontFamily: 'var(--studio-font-display)' }}
               >
                 {isSpanish ? 'SECCIONES' : 'SECTIONS'}
               </span>
@@ -321,7 +321,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               <div className="flex items-center justify-between">
                 <span
                   className="text-xs font-bold uppercase tracking-wider"
-                  style={{ color: textSecondary, fontFamily: 'Manrope, sans-serif' }}
+                  style={{ color: textSecondary, fontFamily: 'var(--studio-font-display)' }}
                 >
                   Add New Track
                 </span>
@@ -506,7 +506,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
           >
             <p
               className="text-[12px] font-extrabold tracking-[0.08em] max-w-[270px] leading-relaxed uppercase mb-4"
-              style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+              style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
             >
               {isSpanish
                 ? 'NO HAY CANCIONES — TOCA AÑADIR CANCIÓN PARA INICIAR TU REPERTORIO.'
@@ -537,7 +537,10 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                   strokeWidth="2"
                 />
               </svg>
-              <span className="tracking-[0.06em]" style={{ fontFamily: 'Manrope, sans-serif' }}>
+              <span
+                className="tracking-[0.06em]"
+                style={{ fontFamily: 'var(--studio-font-display)' }}
+              >
                 {isSpanish ? 'AÑADIR CANCIÓN' : 'ADD NEW TRACK'}
               </span>
             </button>
@@ -553,7 +556,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
               <div className="flex items-center justify-between px-2 pt-1 pb-1">
                 <span
                   className="text-[11px] font-extrabold uppercase tracking-wider"
-                  style={{ color: textSecondary, fontFamily: 'Manrope, sans-serif' }}
+                  style={{ color: textSecondary, fontFamily: 'var(--studio-font-display)' }}
                 >
                   SET 1 — MAIN PERFORMANCE ({displayList.length})
                 </span>
@@ -719,7 +722,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             </span>
             <span
               className="block font-black text-4xl mt-1 leading-none"
-              style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+              style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
             >
               {setlist.length}
             </span>
@@ -739,7 +742,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             </span>
             <span
               className="block font-black text-4xl mt-1 leading-none tracking-tight"
-              style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+              style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
             >
               {totalDuration}
             </span>
@@ -775,7 +778,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
                   </div>
                   <span
                     className="font-black text-base"
-                    style={{ color: textPrimary, fontFamily: 'Manrope, sans-serif' }}
+                    style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                   >
                     {avgEnergy}%
                   </span>
@@ -800,7 +803,7 @@ export const StageSetlistView: React.FC<StageSetlistViewProps> = ({
             className="text-[11px] font-extrabold tracking-wider uppercase mb-4"
             style={{
               color: textPrimary,
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-display)',
               letterSpacing: '0.08em',
             }}
           >

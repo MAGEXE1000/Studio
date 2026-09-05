@@ -25,7 +25,7 @@ export default function NavDiagnosticsWidget() {
         border: '1px solid rgba(128,128,128,0.15)',
         borderRadius: '16px',
         padding: '20px',
-        fontFamily: 'Manrope, sans-serif',
+        fontFamily: 'var(--studio-font-body)',
         color: '#fff',
         display: 'flex',
         flexDirection: 'column',

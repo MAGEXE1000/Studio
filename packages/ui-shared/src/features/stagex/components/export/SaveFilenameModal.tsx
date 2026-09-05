@@ -122,7 +122,7 @@ export const SaveFilenameModal: React.FC<SaveFilenameModalProps> = ({
                 </span>
                 <h3
                   className="text-lg font-bold tracking-tight"
-                  style={{ color: textPrimary, fontFamily: "'Manrope', sans-serif" }}
+                  style={{ color: textPrimary, fontFamily: 'var(--studio-font-display)' }}
                 >
                   {isSpanish ? 'Exportar Documento de Producción' : 'Export Production Document'}
                 </h3>

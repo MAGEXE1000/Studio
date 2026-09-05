@@ -55,7 +55,7 @@ export function AccountProfileHeader({
               justifyContent: 'center',
               fontSize: 22,
               fontWeight: 800,
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-display)',
             }}
           >
             {name.charAt(0).toUpperCase()}
@@ -68,7 +68,7 @@ export function AccountProfileHeader({
             fontSize: 17,
             fontWeight: 800,
             color: 'var(--c-text-primary)',
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-display)',
             letterSpacing: '-0.02em',
             overflow: 'hidden',
             textOverflow: 'ellipsis',

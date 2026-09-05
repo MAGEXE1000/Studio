@@ -155,7 +155,7 @@ function renderRoleBadge(role: UserRole | undefined, lang: string, accent: any) 
     borderRadius: '6px',
     fontSize: '11px',
     fontWeight: 600,
-    fontFamily: 'Manrope, sans-serif',
+    fontFamily: 'var(--studio-font-body)',
     letterSpacing: '-0.015em',
     boxShadow: 'none',
     border: '1px solid transparent',
@@ -1087,7 +1087,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
         <p
           style={{
             color: '#ff6b6b',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 700,
             fontSize: 'var(--font-xs)',
             letterSpacing: '0.2em',
@@ -1144,7 +1144,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
               >
                 <p
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-body)',
                     fontWeight: 800,
                     fontSize: 18,
                     color: 'var(--c-text-primary)',
@@ -1210,7 +1210,7 @@ export function AccountDangerZone({ accent, cardStyle }: DangerZoneProps) {
               >
                 <p
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-body)',
                     fontWeight: 800,
                     fontSize: 18,
                     color: '#ff6b6b',
@@ -1386,7 +1386,7 @@ function pillBtn(accent: { from: string; to: string }, danger?: boolean): React.
     background: danger ? 'rgba(255,107,107,0.12)' : `${accent.from}1f`,
     border: `1px solid ${danger ? 'rgba(255,107,107,0.3)' : accent.from + '55'}`,
     color: danger ? '#ff6b6b' : accent.from,
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--studio-font-body)',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     flexShrink: 0,
@@ -1402,7 +1402,7 @@ function primaryBtn(accent: { from: string; to: string }): React.CSSProperties {
     background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
     border: 'none',
     color: '#fff',
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--studio-font-body)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -1420,7 +1420,7 @@ function secondaryBtn(): React.CSSProperties {
     background: 'rgba(128,128,128,0.10)',
     border: '1px solid rgba(128,128,128,0.18)',
     color: 'var(--c-text-primary)',
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--studio-font-body)',
     cursor: 'pointer',
   };
 }
@@ -1434,7 +1434,7 @@ function textBtn(): React.CSSProperties {
     background: 'transparent',
     border: 'none',
     color: 'var(--c-text-secondary)',
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--studio-font-body)',
     cursor: 'pointer',
     textAlign: 'center' as const,
   };
@@ -1449,7 +1449,7 @@ function dangerOutlineBtn(): React.CSSProperties {
     background: 'rgba(255,107,107,0.06)',
     border: '1px solid rgba(255,107,107,0.35)',
     color: '#ff6b6b',
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--studio-font-body)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -1467,7 +1467,7 @@ function dangerSolidBtn(): React.CSSProperties {
     background: 'linear-gradient(135deg, #ff6b6b, #ee5253)',
     border: '1px solid rgba(255,107,107,0.6)',
     color: '#fff',
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--studio-font-body)',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
@@ -1511,7 +1511,7 @@ function inputStyle(accent: { from: string }): React.CSSProperties {
     fontSize: 13,
     fontWeight: 500,
     color: 'var(--c-text-primary)',
-    fontFamily: 'Manrope',
+    fontFamily: 'var(--studio-font-body)',
     outline: 'none',
     transition: 'border-color 200ms ease',
     accentColor: accent.from,
@@ -1645,7 +1645,7 @@ function SheetHeader({
     >
       <p
         style={{
-          fontFamily: 'Manrope',
+          fontFamily: 'var(--studio-font-body)',
           fontWeight: 800,
           fontSize: 18,
           color: titleColor ?? 'var(--c-text-primary)',
@@ -2384,7 +2384,7 @@ export function AccountSettingsPage({
         <span
           style={{
             flex: 1,
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 750,
             fontSize: 14.5,
             letterSpacing: '-0.015em',
@@ -2396,7 +2396,7 @@ export function AccountSettingsPage({
         {badge && (
           <span
             style={{
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 800,
               fontSize: 9.5,
               color: 'var(--c-text-secondary)',
@@ -2463,7 +2463,7 @@ export function AccountSettingsPage({
             color: '#fff',
             padding: '8px 18px',
             borderRadius: 999,
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 700,
             fontSize: 13,
             boxShadow: '0 4px 16px rgba(16,185,129,0.4)',
@@ -2544,7 +2544,7 @@ export function AccountSettingsPage({
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <span style={{ fontFamily: 'Manrope, sans-serif' }}>{initial}</span>
+              <span style={{ fontFamily: 'var(--studio-font-body)' }}>{initial}</span>
             )}
           </div>
 
@@ -2576,7 +2576,7 @@ export function AccountSettingsPage({
         <div style={{ textAlign: 'center', marginTop: 14 }}>
           <p
             style={{
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 850,
               fontSize: 22,
               color: 'var(--c-text-primary)',
@@ -2672,7 +2672,7 @@ export function AccountSettingsPage({
             </div>
             <p
               style={{
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 850,
                 fontSize: 28,
                 color: 'var(--c-text-primary)',
@@ -2742,7 +2742,7 @@ export function AccountSettingsPage({
             </div>
             <p
               style={{
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 850,
                 fontSize: 28,
                 color: 'var(--c-text-primary)',
@@ -2812,7 +2812,7 @@ export function AccountSettingsPage({
             </div>
             <p
               style={{
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 850,
                 fontSize: 28,
                 color: 'var(--c-text-primary)',
@@ -2927,7 +2927,7 @@ export function AccountSettingsPage({
             <div style={{ marginTop: 8 }}>
               <p
                 style={{
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 800,
                   fontSize: 13,
                   color: 'var(--c-text-primary)',
@@ -3025,7 +3025,7 @@ export function AccountSettingsPage({
               </div>
               <p
                 style={{
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-body)',
                   fontWeight: 800,
                   fontSize: 14.5,
                   color: 'var(--c-text-primary)',
@@ -3047,7 +3047,7 @@ export function AccountSettingsPage({
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p
                           style={{
-                            fontFamily: 'Manrope, sans-serif',
+                            fontFamily: 'var(--studio-font-body)',
                             fontWeight: 750,
                             fontSize: 13,
                             color: 'var(--c-text-primary)',
@@ -3323,7 +3323,7 @@ export function AccountSettingsPage({
                   </span>
                   <span
                     style={{
-                      fontFamily: 'Manrope, sans-serif',
+                      fontFamily: 'var(--studio-font-body)',
                       fontSize: 14,
                       color: 'var(--c-text-primary)',
                       fontWeight: 750,
@@ -3401,7 +3401,7 @@ export function AccountSettingsPage({
             justifyContent: 'center',
             gap: 8,
             color: '#ef4444',
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-body)',
             fontWeight: 800,
             fontSize: 14.5,
             cursor: 'pointer',
@@ -3716,7 +3716,7 @@ export function AccountSettingsPage({
                       : 'rgba(245,158,11,0.12)',
                     border: '1px solid rgba(245,158,11,0.35)',
                     color: canConfirmEmail ? '#fff' : '#f59e0b',
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-body)',
                     cursor: canConfirmEmail ? 'pointer' : 'not-allowed',
                     display: 'flex',
                     alignItems: 'center',
@@ -3915,7 +3915,7 @@ export function AccountSettingsPage({
                       background: `${accent.from}18`,
                       border: `1px solid ${accent.from}30`,
                       color: accent.from,
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -3941,7 +3941,7 @@ export function AccountSettingsPage({
                       background: 'rgba(128,128,128,0.10)',
                       border: '1px solid rgba(128,128,128,0.18)',
                       color: 'var(--c-text-primary)',
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -4011,7 +4011,7 @@ export function AccountSettingsPage({
                   </p>
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 600,
                       fontSize: 15,
                       color: 'var(--c-text-primary)',
@@ -4045,7 +4045,7 @@ export function AccountSettingsPage({
                   </p>
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 600,
                       fontSize: 15,
                       color: 'var(--c-text-primary)',
@@ -4119,7 +4119,7 @@ export function AccountSettingsPage({
                   <div>
                     <p
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 600,
                         fontSize: 14,
                         color: 'var(--c-text-primary)',
@@ -4165,7 +4165,7 @@ export function AccountSettingsPage({
                   <p
                     style={{
                       flex: 1,
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-body)',
                       fontWeight: 600,
                       fontSize: 14,
                       color: 'var(--c-text-primary)',
@@ -4194,7 +4194,7 @@ export function AccountSettingsPage({
                         background: `${accent.from}18`,
                         border: `1px solid ${accent.from}30`,
                         color: accent.from,
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         cursor: 'pointer',
                       }}
                     >
@@ -4232,7 +4232,7 @@ export function AccountSettingsPage({
                   <div style={{ flex: 1 }}>
                     <p
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 600,
                         fontSize: 15,
                         color: 'var(--c-text-primary)',
@@ -4264,7 +4264,7 @@ export function AccountSettingsPage({
               <div style={{ padding: '14px 22px 28px' }}>
                 <p
                   style={{
-                    fontFamily: 'Manrope',
+                    fontFamily: 'var(--studio-font-body)',
                     fontWeight: 700,
                     fontSize: 11,
                     color: 'var(--c-text-secondary)',
@@ -4318,7 +4318,7 @@ export function AccountSettingsPage({
                     <div style={{ flex: 1 }}>
                       <p
                         style={{
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           fontWeight: 600,
                           fontSize: 14.5,
                           color: 'var(--c-text-primary)',
@@ -4380,7 +4380,7 @@ export function AccountSettingsPage({
                     <div style={{ flex: 1 }}>
                       <p
                         style={{
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           fontWeight: 600,
                           fontSize: 14.5,
                           color: '#ff6b6b',
@@ -4466,7 +4466,7 @@ export function AccountSettingsPage({
                   <div>
                     <p
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 700,
                         fontSize: 14,
                         color: 'var(--c-text-primary)',
@@ -4587,7 +4587,7 @@ export function AccountSettingsPage({
                     </span>
                     <h4
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-display)',
                         fontWeight: 800,
                         fontSize: 16,
                         color: 'var(--c-text-primary)',
@@ -4657,7 +4657,7 @@ export function AccountSettingsPage({
                                 sync.deviceRegistrationStatus === 'failed'
                                   ? '#ff6b6b'
                                   : 'var(--c-text-primary)',
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                             }}
                           >
                             {sync.deviceRegistrationStatus === 'failed'
@@ -4792,7 +4792,7 @@ export function AccountSettingsPage({
                                     <div>
                                       <p
                                         style={{
-                                          fontFamily: 'Manrope',
+                                          fontFamily: 'var(--studio-font-body)',
                                           fontWeight: 700,
                                           fontSize: 13.5,
                                           color: 'var(--c-text-primary)',
@@ -4885,7 +4885,7 @@ export function AccountSettingsPage({
                                           cursor: 'pointer',
                                           padding: '4px 8px',
                                           borderRadius: 6,
-                                          fontFamily: 'Manrope',
+                                          fontFamily: 'var(--studio-font-body)',
                                         }}
                                       >
                                         {showDetails
@@ -5015,7 +5015,7 @@ export function AccountSettingsPage({
                                       textTransform: 'uppercase',
                                       color: 'var(--c-text-secondary)',
                                       letterSpacing: '0.05em',
-                                      fontFamily: 'Manrope',
+                                      fontFamily: 'var(--studio-font-body)',
                                     }}
                                   >
                                     {lang === 'es'
@@ -5039,7 +5039,7 @@ export function AccountSettingsPage({
                                       textTransform: 'uppercase',
                                       color: 'var(--c-text-secondary)',
                                       letterSpacing: '0.05em',
-                                      fontFamily: 'Manrope',
+                                      fontFamily: 'var(--studio-font-body)',
                                     }}
                                   >
                                     {lang === 'es'
@@ -5063,7 +5063,7 @@ export function AccountSettingsPage({
                                       color: 'var(--c-text-secondary)',
                                       fontSize: 12,
                                       fontWeight: 700,
-                                      fontFamily: 'Manrope',
+                                      fontFamily: 'var(--studio-font-body)',
                                       cursor: 'pointer',
                                       padding: '4px 0',
                                       display: 'flex',
@@ -5113,7 +5113,7 @@ export function AccountSettingsPage({
                           color: accent.from,
                           fontSize: 12,
                           fontWeight: 700,
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           cursor: 'pointer',
                           padding: 0,
                           display: 'flex',
@@ -5259,7 +5259,7 @@ export function AccountSettingsPage({
                               fontSize: 10,
                               fontWeight: 700,
                               color: 'var(--accent-to, #a855f7)',
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               ...codeBreakStyle,
                             }}
                           >
@@ -5418,7 +5418,7 @@ export function AccountSettingsPage({
                               color: 'var(--c-text-primary)',
                               border: '1px solid rgba(128, 128, 128, 0.15)',
                               fontWeight: 700,
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontSize: 11,
                               cursor: 'pointer',
                               display: 'flex',
@@ -5444,7 +5444,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -5538,7 +5538,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -5636,7 +5636,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -5701,7 +5701,7 @@ export function AccountSettingsPage({
                               />
                               <div
                                 style={{
-                                  fontFamily: 'Manrope',
+                                  fontFamily: 'var(--studio-font-body)',
                                   fontWeight: 800,
                                   fontSize: 11,
                                   padding: '4px 0',
@@ -5771,7 +5771,7 @@ export function AccountSettingsPage({
                               />
                               <div
                                 style={{
-                                  fontFamily: 'Manrope',
+                                  fontFamily: 'var(--studio-font-body)',
                                   fontWeight: 800,
                                   fontSize: 11,
                                   padding: '4px 0',
@@ -5803,7 +5803,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -6134,7 +6134,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -6179,7 +6179,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -6217,7 +6217,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -6281,7 +6281,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -6374,7 +6374,7 @@ export function AccountSettingsPage({
                           />
                           <div
                             style={{
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                               fontWeight: 800,
                               fontSize: 11,
                               padding: '4px 0',
@@ -6515,7 +6515,7 @@ export function AccountSettingsPage({
                                   fontWeight: 800,
                                   fontSize: 10,
                                   opacity: 0.7,
-                                  fontFamily: 'Manrope',
+                                  fontFamily: 'var(--studio-font-body)',
                                 }}
                               >
                                 Probe Documents Received:
@@ -6612,7 +6612,7 @@ export function AccountSettingsPage({
                                 color: 'var(--accent-to, #a855f7)',
                                 border: '1px solid rgba(168, 85, 247, 0.25)',
                                 fontWeight: 700,
-                                fontFamily: 'Manrope',
+                                fontFamily: 'var(--studio-font-body)',
                                 fontSize: 11,
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -6650,7 +6650,7 @@ export function AccountSettingsPage({
                                 color: '#ff6b6b',
                                 border: '1px solid rgba(239, 68, 68, 0.2)',
                                 fontWeight: 700,
-                                fontFamily: 'Manrope',
+                                fontFamily: 'var(--studio-font-body)',
                                 fontSize: 11,
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -6696,7 +6696,7 @@ export function AccountSettingsPage({
                                 color: '#22c55e',
                                 border: '1px solid rgba(34, 197, 94, 0.25)',
                                 fontWeight: 700,
-                                fontFamily: 'Manrope',
+                                fontFamily: 'var(--studio-font-body)',
                                 fontSize: 11,
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -6753,7 +6753,7 @@ export function AccountSettingsPage({
                                 color: '#fff',
                                 border: 'none',
                                 fontWeight: 700,
-                                fontFamily: 'Manrope',
+                                fontFamily: 'var(--studio-font-body)',
                                 fontSize: 11,
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -6802,7 +6802,7 @@ export function AccountSettingsPage({
                                 color: 'var(--c-text-primary)',
                                 border: '1px solid rgba(128,128,128,0.15)',
                                 fontWeight: 700,
-                                fontFamily: 'Manrope',
+                                fontFamily: 'var(--studio-font-body)',
                                 fontSize: 11,
                                 cursor: 'pointer',
                                 display: 'flex',
@@ -6842,7 +6842,7 @@ export function AccountSettingsPage({
                         justifyContent: 'center',
                         gap: 8,
                         color: '#ff6b6b',
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 700,
                         fontSize: 14,
                         cursor: 'pointer',
@@ -6902,7 +6902,7 @@ export function AccountSettingsPage({
                 >
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-display)',
                       fontWeight: 800,
                       fontSize: 15,
                       color: 'var(--c-text-primary)',
@@ -6962,7 +6962,7 @@ export function AccountSettingsPage({
                       </p>
                       <p
                         style={{
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           fontWeight: 700,
                           fontSize: 13,
                           margin: 0,
@@ -7003,7 +7003,7 @@ export function AccountSettingsPage({
                       </p>
                       <p
                         style={{
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           fontWeight: 700,
                           fontSize: 13,
                           margin: 0,
@@ -7048,7 +7048,7 @@ export function AccountSettingsPage({
                       </p>
                       <p
                         style={{
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           fontWeight: 700,
                           fontSize: 13,
                           margin: 0,
@@ -7088,7 +7088,7 @@ export function AccountSettingsPage({
                       </p>
                       <p
                         style={{
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           fontWeight: 700,
                           fontSize: 13,
                           margin: 0,
@@ -7141,7 +7141,7 @@ export function AccountSettingsPage({
                   >
                     <p
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-display)',
                         fontWeight: 800,
                         fontSize: 15,
                         color: 'var(--c-text-primary)',
@@ -7159,7 +7159,7 @@ export function AccountSettingsPage({
                         style={{
                           fontSize: 10,
                           fontWeight: 700,
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           padding: '3px 7px',
                           borderRadius: 999,
                           background: 'rgba(128,128,128,0.12)',
@@ -7432,7 +7432,7 @@ export function AccountSettingsPage({
                 >
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-display)',
                       fontWeight: 800,
                       fontSize: 15,
                       color: 'var(--c-text-primary)',
@@ -7528,7 +7528,7 @@ export function AccountSettingsPage({
                 >
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-display)',
                       fontWeight: 800,
                       fontSize: 15,
                       color: 'var(--c-text-primary)',
@@ -7619,7 +7619,7 @@ export function AccountSettingsPage({
                 >
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-display)',
                       fontWeight: 800,
                       fontSize: 15,
                       color: 'var(--c-text-primary)',
@@ -7664,7 +7664,7 @@ export function AccountSettingsPage({
                             fontSize: 13.5,
                             fontWeight: 600,
                             color: 'var(--c-text-primary)',
-                            fontFamily: 'Manrope',
+                            fontFamily: 'var(--studio-font-body)',
                           }}
                         >
                           Google
@@ -7674,7 +7674,7 @@ export function AccountSettingsPage({
                         style={{
                           fontSize: 10.5,
                           fontWeight: 700,
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           color: isGoogleUser ? '#10b981' : 'var(--c-text-secondary)',
                           background: isGoogleUser
                             ? 'rgba(16,185,129,0.12)'
@@ -7718,7 +7718,7 @@ export function AccountSettingsPage({
                               fontSize: 13.5,
                               fontWeight: 600,
                               color: 'var(--c-text-primary)',
-                              fontFamily: 'Manrope',
+                              fontFamily: 'var(--studio-font-body)',
                             }}
                           >
                             {service.name}
@@ -7728,7 +7728,7 @@ export function AccountSettingsPage({
                           style={{
                             fontSize: 9,
                             fontWeight: 700,
-                            fontFamily: 'Manrope',
+                            fontFamily: 'var(--studio-font-body)',
                             color: 'var(--c-text-secondary)',
                             background: 'rgba(128,128,128,0.12)',
                             border: '1px solid rgba(128,128,128,0.18)',
@@ -7779,7 +7779,7 @@ export function AccountSettingsPage({
                   >
                     <p
                       style={{
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-display)',
                         fontWeight: 800,
                         fontSize: 15,
                         color: 'var(--c-text-primary)',
@@ -7797,7 +7797,7 @@ export function AccountSettingsPage({
                         style={{
                           fontSize: 10,
                           fontWeight: 700,
-                          fontFamily: 'Manrope',
+                          fontFamily: 'var(--studio-font-body)',
                           padding: '3px 7px',
                           borderRadius: 999,
                           background: 'rgba(128,128,128,0.12)',
@@ -7877,7 +7877,7 @@ export function AccountSettingsPage({
                                 fontSize: 13.5,
                                 fontWeight: 600,
                                 color: 'var(--c-text-primary)',
-                                fontFamily: 'Manrope',
+                                fontFamily: 'var(--studio-font-body)',
                                 margin: 0,
                               }}
                             >
@@ -7959,7 +7959,7 @@ export function AccountSettingsPage({
                 >
                   <p
                     style={{
-                      fontFamily: 'Manrope',
+                      fontFamily: 'var(--studio-font-display)',
                       fontWeight: 800,
                       fontSize: 15,
                       color: 'var(--c-text-primary)',
@@ -8034,7 +8034,7 @@ export function AccountSettingsPage({
                         background: 'rgba(255,107,107,0.08)',
                         border: '1px solid rgba(255,107,107,0.20)',
                         color: '#ff6b6b',
-                        fontFamily: 'Manrope',
+                        fontFamily: 'var(--studio-font-body)',
                         fontWeight: 700,
                         fontSize: 13,
                         display: 'flex',
@@ -8143,7 +8143,7 @@ export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptS
               background: `var(--c-accent-from)`,
               border: 'none',
               color: '#fff',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: 13,
               cursor: 'pointer',
@@ -8185,7 +8185,7 @@ export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptS
               background: 'rgba(128,128,128,0.06)',
               border: '1px solid rgba(128,128,128,0.1)',
               color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: 13,
               cursor: 'pointer',
@@ -8212,7 +8212,7 @@ export function MigrationPromptSheet({ accent, lang, onClose }: MigrationPromptS
               background: 'rgba(128,128,128,0.06)',
               border: '1px solid rgba(128,128,128,0.1)',
               color: 'var(--c-text-primary)',
-              fontFamily: 'Manrope',
+              fontFamily: 'var(--studio-font-body)',
               fontWeight: 700,
               fontSize: 13,
               cursor: 'pointer',
@@ -8262,7 +8262,7 @@ function SettingRowUI({
             fontSize: 13.5,
             fontWeight: 600,
             color: 'var(--c-text-primary)',
-            fontFamily: 'Manrope',
+            fontFamily: 'var(--studio-font-body)',
             margin: 0,
           }}
         >
@@ -8312,7 +8312,7 @@ function SelectControl<T extends string>({
           borderRadius: '8px',
           padding: '6px 32px 6px 12px',
           fontSize: '13px',
-          fontFamily: 'Manrope',
+          fontFamily: 'var(--studio-font-body)',
           fontWeight: 700,
           color: 'var(--c-text-primary)',
           outline: 'none',

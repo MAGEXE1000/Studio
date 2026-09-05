@@ -110,7 +110,7 @@ export default function StudioHubSettingsPanel() {
                 background: 'var(--app-surface-low)',
                 color: 'var(--c-text-primary)',
                 cursor: 'pointer',
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 fontSize: 13,
                 fontWeight: 700,
               }}

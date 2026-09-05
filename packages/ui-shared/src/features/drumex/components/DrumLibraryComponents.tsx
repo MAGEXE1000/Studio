@@ -144,7 +144,7 @@ const LibCard = memo(function LibCard({
                 fontSize: 13,
                 fontWeight: 800,
                 color: isLight ? '#09090b' : '#ffffff',
-                fontFamily: 'Manrope,sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.04em',
               }}
@@ -158,11 +158,11 @@ const LibCard = memo(function LibCard({
                 marginTop: 3,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
-                fontFamily: 'Inter,sans-serif',
+                fontFamily: 'var(--studio-font-body)',
                 fontWeight: 700,
               }}
             >
-              {lp.category} Â· {lp.genre} Â· {lp.bpm} BPM
+              {lp.category} · {lp.genre} · {lp.bpm} BPM
             </div>
           </div>
           <button
@@ -210,7 +210,7 @@ const LibCard = memo(function LibCard({
             color: isLight ? '#27272a' : '#e4e4e7',
             fontSize: 10.5,
             fontWeight: 800,
-            fontFamily: 'Manrope,sans-serif',
+            fontFamily: 'var(--type-button-font, var(--studio-font-body))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -236,7 +236,7 @@ const LibCard = memo(function LibCard({
             color: isLight ? '#27272a' : '#e4e4e7',
             fontSize: 10.5,
             fontWeight: 800,
-            fontFamily: 'Manrope,sans-serif',
+            fontFamily: 'var(--type-button-font, var(--studio-font-body))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

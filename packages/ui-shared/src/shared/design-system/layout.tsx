@@ -39,7 +39,7 @@ export function Toolbar({
           style={{
             fontSize: '16px',
             fontWeight: 800,
-            fontFamily: 'Manrope, sans-serif',
+            fontFamily: 'var(--studio-font-display)',
             letterSpacing: '-0.02em',
             color: 'var(--c-text-primary)',
           }}
@@ -297,7 +297,7 @@ export const ListRow = forwardRef<HTMLButtonElement, ListRowProps>(
         <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <span
             style={{
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--type-body-font, var(--studio-font-body))',
               fontWeight: 750,
               fontSize: 14.5,
               letterSpacing: '-0.015em',
@@ -312,7 +312,7 @@ export const ListRow = forwardRef<HTMLButtonElement, ListRowProps>(
           {subtitle && (
             <span
               style={{
-                fontFamily: 'Inter, sans-serif',
+                fontFamily: 'var(--type-meta-font, var(--studio-font-body))',
                 fontSize: 12,
                 color: 'var(--c-text-secondary)',
                 opacity: 0.8,
@@ -328,7 +328,7 @@ export const ListRow = forwardRef<HTMLButtonElement, ListRowProps>(
         {badge && (
           <span
             style={{
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
               fontWeight: 800,
               fontSize: 9.5,
               color: 'var(--c-text-secondary)',

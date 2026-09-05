@@ -23,7 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               color: 'var(--c-text-secondary)',
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--type-caption-font, var(--studio-font-body))',
             }}
           >
             {label}
@@ -43,7 +43,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             padding: '11px 14px',
             borderRadius: '14px',
             fontSize: '13.5px',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--type-body-font, var(--studio-font-body))',
             backgroundColor: 'var(--c-surface-lowest)',
             border: error
               ? '1px solid var(--c-error, #ef4444)'
@@ -69,7 +69,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             style={{
               fontSize: '11px',
               color: 'var(--c-text-secondary)',
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body))',
               opacity: 0.8,
             }}
           >
@@ -82,7 +82,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               fontSize: '11px',
               color: 'var(--c-error, #ef4444)',
               fontWeight: 600,
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: 'var(--type-meta-font, var(--studio-font-body))',
             }}
           >
             {error}
@@ -179,7 +179,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
             border: focused ? `1px solid ${activeAccent}` : '1px solid var(--c-border)',
             color: 'var(--c-text-primary)',
             fontSize: '13.5px',
-            fontFamily: 'Inter, sans-serif',
+            fontFamily: 'var(--type-body-font, var(--studio-font-body))',
             outline: 'none',
             transition: 'all 240ms cubic-bezier(0.2, 0, 0, 1)',
             boxShadow: focused

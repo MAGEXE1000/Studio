@@ -261,7 +261,7 @@ export default memo(function StudioUpdateScreen({
             id="updater-dialog-title"
             style={{
               margin: 0,
-              fontFamily: 'Manrope, sans-serif',
+              fontFamily: 'var(--studio-font-display)',
               fontWeight: 700,
               fontSize: 'var(--font-display-sm)',
               color: isLight ? '#0f172a' : '#e7e5e4',
@@ -323,7 +323,7 @@ export default memo(function StudioUpdateScreen({
                   fontSize: 14,
                   fontWeight: 500,
                   color: isLight ? '#0f172a' : '#e7e5e4',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-display)',
                 }}
               >
                 {fromVersion}
@@ -350,7 +350,7 @@ export default memo(function StudioUpdateScreen({
                   fontSize: 14,
                   fontWeight: 700,
                   color: isLight ? '#0f172a' : '#e7e5e4',
-                  fontFamily: 'Manrope, sans-serif',
+                  fontFamily: 'var(--studio-font-display)',
                 }}
               >
                 {toVersion}
@@ -392,7 +392,7 @@ export default memo(function StudioUpdateScreen({
               style={{
                 margin: 0,
                 fontSize: 12,
-                fontFamily: 'Manrope, sans-serif',
+                fontFamily: 'var(--studio-font-display)',
                 fontWeight: 700,
                 color: '#f59e0b',
                 overflow: 'hidden',

@@ -103,7 +103,7 @@ export const StageHistorySurface: React.FC<StageHistorySurfaceProps> = ({
             className="text-[13px] font-bold tracking-tight whitespace-nowrap"
             style={{
               color: isLight ? '#09090b' : '#ffffff',
-              fontFamily: "'Manrope', sans-serif",
+              fontFamily: 'var(--studio-font-display)',
             }}
           >
             {isSpanish ? 'Historial de Edición' : 'History'}

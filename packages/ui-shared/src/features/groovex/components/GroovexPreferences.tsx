@@ -48,7 +48,8 @@ export function sliderPosToDb(pos: number): number {
 
 export default function GroovexPreferences() {
   const t = useT();
-  const { preferences, updatePreferences } = useGroovexStore();
+  const preferences = useGroovexStore((s) => s.preferences);
+  const updatePreferences = useGroovexStore((s) => s.updatePreferences);
   const scrollRef = useRef<HTMLDivElement>(null);
   useScrollHide(scrollRef);
 

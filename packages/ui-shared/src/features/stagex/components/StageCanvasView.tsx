@@ -257,23 +257,6 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
     }
   }, []);
 
-  // Sync orientation changes with iframe and bottom navigation
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const mql = window.matchMedia('(orientation: landscape)');
-    const handleMql = (e: MediaQueryListEvent) => {
-      setIsLandscape(e.matches);
-      callIframe('sc-landscape', { isLandscape: e.matches });
-      const shouldHide = e.matches || liveMode;
-      setNavLocked(shouldHide);
-      setNavHidden(shouldHide);
-      useBottomNavigationStore.getState().setLocked(shouldHide);
-    };
-    setIsLandscape(mql.matches);
-    mql.addEventListener('change', handleMql);
-    return () => mql.removeEventListener('change', handleMql);
-  }, [liveMode, callIframe]);
-
   // Dismiss Specs editor, bottom panel (drawer/history), or selection on Android hardware back button
   // In landscape editing mode, intercept back events to safely consume them and prevent accidental exit
   useBackHandler(

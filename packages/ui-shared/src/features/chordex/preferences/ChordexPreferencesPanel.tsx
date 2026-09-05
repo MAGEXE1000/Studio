@@ -1,7 +1,4 @@
-import { Capacitor } from '@capacitor/core';
 import {
-  useChordStore,
-  ACCENT_COLORS,
   resolveAccent,
   type ActivePanel,
   useScrollHide,
@@ -21,7 +18,6 @@ import {
   SettingSection,
 } from '../../../shared/settings/SettingControls';
 import { IconSongs, IconLibrary, IconSettings } from '../../hub/icons/NavIcons';
-import { ThemeToggle } from '../../../components/motion/theme-toggle';
 import { AnimatedIcon } from '../../../shared/icons/AnimatedIcon';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Button } from '../../../shared/design-system/buttons';

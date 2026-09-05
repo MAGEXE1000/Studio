@@ -5,18 +5,8 @@ import { subscribeIntroDone } from '../../../shared/typography/StudioTitleReveal
 import {
   useBackHandler,
   type AuthUser,
-  subscribeSyncStatus,
-  type SyncStatus,
-  deviceId,
-  getConflictLogs,
-  clearConflictLogs,
-  createCloudBackup,
-  getSyncDiagnostics,
   pushLocalSettingsToCloud,
   pullCloudSettingsFromCloud,
-  registerDevice,
-  registerCurrentDevice,
-  reconnectDevices,
   useChordStore,
   ACCENT_COLORS,
   resolveAccent,
@@ -25,7 +15,6 @@ import {
   type AppKey,
   type PerAppVisuals,
   useNavHidden,
-  useNavCollapsed,
   useScrollHide,
   setNavHidden,
   useT,
@@ -73,16 +62,7 @@ import {
   getUserCover,
   subscribeUserCover,
 } from '@workspace/studio-core';
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  lazy,
-  Suspense,
-  useMemo,
-  useCallback,
-} from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   motion,
@@ -92,7 +72,6 @@ import {
   animate,
   Reorder,
 } from 'motion/react';
-import { HubAppGrid } from './HubAppGrid';
 import {
   StudioLogo,
   ChordexLogo,
@@ -114,11 +93,6 @@ import {
   BentoSettingRow,
   SettingSection,
 } from '../../../shared/settings/SettingControls';
-import ApplyToSheet from '../../chordex/components/ApplyToSheet';
-import ChangelogSheet from '../../chordex/components/ChangelogSheet';
-import GradientBorderCard from '../../../shared/cards/GradientBorderCard';
-import StudioTitleReveal from '../../../shared/typography/StudioTitleReveal';
-import { EncryptedText } from '../../../shared/ui/encrypted-text';
 import {
   SHARED_NAV_TRANSITION,
   getSharedNavTransform,
@@ -126,17 +100,9 @@ import {
 } from '../navigation/navStyles';
 import ProfileDropdown from '../../auth/components/ProfileDropdown';
 import SmartLoading from '../../../shared/loading/SmartLoading';
-import { StudioSkeletonProfile, StudioSkeletonList } from '../../../shared/loading/StudioSkeleton';
-import {
-  SettingsScaffold,
-  SettingsContentContainer,
-} from '../../../shared/layout/StudioLayoutSystem';
 import { StudioHeader } from '../../../shared/layout/StudioHeader';
-import { ProgressiveBlur } from '../../../shared/design-system/ProgressiveBlur';
 import { SharedNavigationBar } from '../navigation/SharedNavigationBar';
-import { StaggeredReveal } from '../../../shared/animation';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
-import StudioHubSettingsPanel from '../settings/StudioHubSettingsPanel';
 import PremiumThemeSwitcher from '../settings/PremiumThemeSwitcher';
 
 const isHoverable = typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
@@ -540,62 +506,6 @@ export default function StudioHub() {
       setNavHidden(false);
     };
   }, [shortcutPickerOpen, isEditMode]);
-
-  // Usage-based suggestions engine
-  const getSuggestedActions = () => {
-    const activityLog = useChordStore.getState().activityLog || [];
-    const candidates = [
-      { id: 'chords-songs', score: 0 },
-      { id: 'chords-practice', score: 0 },
-      { id: 'drumex', score: 0 },
-      { id: 'stagex', score: 0 },
-      { id: 'groovex', score: 0 },
-      { id: 'vocalex-coach', score: 0 },
-      { id: 'vocalex-pitch', score: 0 },
-      { id: 'developer', score: 0 },
-      { id: 'notifications', score: 0 },
-      { id: 'help', score: 0 },
-      { id: 'settings', score: 0 },
-      { id: 'updater', score: 0 },
-      { id: 'sync', score: 0 },
-      { id: 'backup', score: 0 },
-    ];
-
-    activityLog.forEach((event, idx) => {
-      const recencyWeight = 25 - idx;
-      let matchedId = '';
-      if (event.type === 'app_launch') {
-        if (event.subtitle?.includes('Chordex')) matchedId = 'chords-songs';
-        else if (event.subtitle?.includes('Drumex')) matchedId = 'drumex';
-        else if (event.subtitle?.includes('Stagex')) matchedId = 'stagex';
-        else if (event.subtitle?.includes('Groovex')) matchedId = 'groovex';
-        else if (event.subtitle?.includes('Vocalex')) matchedId = 'vocalex-coach';
-      } else if (event.type === 'cloud_sync') {
-        matchedId = 'sync';
-      } else if (event.type === 'backup') {
-        matchedId = 'backup';
-      } else if (event.type === 'ota_install' || event.type === 'apk_install') {
-        matchedId = 'updater';
-      }
-      if (matchedId) {
-        const cand = candidates.find((c) => c.id === matchedId);
-        if (cand) cand.score += recencyWeight;
-      }
-    });
-
-    const suggested = candidates
-      .filter((c) => !shortcuts.includes(c.id))
-      .sort((a, b) => b.score - a.score);
-
-    const defaults = ['chords-practice', 'notifications', 'settings', 'help', 'updater', 'sync'];
-    for (const defId of defaults) {
-      if (suggested.length >= 4) break;
-      if (!shortcuts.includes(defId) && !suggested.some((s) => s.id === defId)) {
-        suggested.push({ id: defId, score: -1 });
-      }
-    }
-    return suggested.slice(0, 4).map((s) => s.id);
-  };
 
   const activeRouteApp = useNavigationStore((s) => s.history[s.history.length - 1]?.app ?? 'hub');
 

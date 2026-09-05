@@ -180,5 +180,3 @@ export default function GroovexApp() {
     </div>
   );
 }
-
-const NAV_ORDER: GroovexView[] = ['library', 'preferences'];

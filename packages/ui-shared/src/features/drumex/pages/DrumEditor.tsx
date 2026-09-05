@@ -103,6 +103,7 @@ import {
   type InstPlugin,
   type LoopRange,
   useBottomNavigationStore,
+  defaultPattern,
 } from '@workspace/studio-core';
 
 import { NoteHead } from '../components/DrumNoteHeads';
@@ -110,6 +111,7 @@ import { InstrumentRow } from '../components/InstrumentRow';
 import DrumPaperPreview, { type DrumExportConfig } from '../components/DrumPaperPreview';
 import DrumExportModal from '../components/DrumExportModal';
 import DrumImportModal from '../components/DrumImportModal';
+import { DrumBeatsPanel } from '../components/DrumBeatsPanel';
 import {
   LIB_INSTS,
   LibMiniGrid,
@@ -750,7 +752,7 @@ export default function DrumEditor() {
   } = useDrumStore();
 
   const pattern = useMemo(
-    () => patterns.find((p) => p.id === activePatternId) ?? patterns[0],
+    () => patterns.find((p) => p.id === activePatternId) ?? patterns[0] ?? defaultPattern(),
     [patterns, activePatternId]
   );
   const accent = resolveAccent(settings.accentColor);
@@ -1034,6 +1036,7 @@ export default function DrumEditor() {
   const [songKitFilter, setSongKitFilter] = useState('all');
   const [songSort, setSongSort] = useState<'recent' | 'name' | 'bpm'>('recent');
   const [songMenuId, setSongMenuId] = useState<string | null>(null);
+  const [previewingSongId, setPreviewingSongId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!songMenuId) return;
@@ -2286,6 +2289,7 @@ export default function DrumEditor() {
         drumScheduler.stop();
         setPlaying(false);
       }
+      setPreviewingSongId(null);
       loadDrumSong(song.id);
       if (song.kitType) {
         setKitType(song.kitType, KIT_DEFAULTS[song.kitType].soundMap);
@@ -2311,6 +2315,41 @@ export default function DrumEditor() {
     });
     setEditingSong(null);
   }, [editingSong, editingName, editingArtist, updateDrumSong]);
+
+  const handleSongPreview = useCallback(
+    (song: DrumSong) => {
+      if (previewingSongId === song.id && drumScheduler.isPlaying) {
+        drumScheduler.stop();
+        setPreviewingSongId(null);
+        setPlaying(false);
+        return;
+      }
+      if (drumScheduler.isPlaying) {
+        drumScheduler.stop();
+        setPlaying(false);
+      }
+      const activePat =
+        song.patterns.find((p) => p.id === song.activePatternId) ?? song.patterns[0];
+      if (!activePat) return;
+
+      const songKit = song.kitType || kit;
+      const sm = { ...KIT_DEFAULTS[songKit]?.soundMap, ...soundMap };
+      const vol: Partial<Record<DrumInstrument, number>> = {};
+      activeInstruments.forEach((i) => {
+        vol[i] = volumeMap[i] ?? 1.0;
+      });
+
+      if (songKit === 'house') {
+        loadHouseKit(houseKitMic);
+      } else {
+        loadDrumSamples(songKit);
+      }
+      drumScheduler.start(activePat, sm, vol, masterVolume, true, songKit);
+      setPreviewingSongId(song.id);
+      setPlaying(false);
+    },
+    [previewingSongId, kit, soundMap, volumeMap, activeInstruments, masterVolume, houseKitMic]
+  );
 
   // â”€â”€ Humanize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Applies subtle variation to note types across the active pattern,
@@ -4312,6 +4351,25 @@ export default function DrumEditor() {
               {(viewId) => {
                 switch (viewId) {
                   case 'songs-list':
+                    if (!isWebDesktop) {
+                      return (
+                        <DrumBeatsPanel
+                          drumSongs={drumSongs}
+                          onSelectSong={handleLoadSong}
+                          onCreateSong={() => setShowCreateForm(true)}
+                          onImportSong={() => setShowImportDrum(true)}
+                          onDeleteSong={deleteDrumSong}
+                          onUpdateSong={(id, data) => updateDrumSong(id, data)}
+                          previewingSongId={previewingSongId}
+                          onTogglePreview={handleSongPreview}
+                          accent={accent}
+                          isLight={isLight}
+                          isAmoled={isAmoled}
+                          isWebDesktop={isWebDesktop}
+                          onScroll={drumScrollHide}
+                        />
+                      );
+                    }
                     return (
                       <div
                         onScroll={drumScrollHide}
@@ -8386,8 +8444,8 @@ export default function DrumEditor() {
         hidden={isWebDesktop || (isLandscape && inEditor)}
       />
 
-      {/* â”€â”€ Floating buttons (songs list only): import above + add â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {!inEditor && activeTab === 'songs' && !isWebDesktop && (
+      {/* Old floating buttons replaced by canonical FAB stack in DrumBeatsPanel */}
+      {false && !inEditor && activeTab === 'songs' && !isWebDesktop && (
         <div
           style={{
             position: 'fixed',

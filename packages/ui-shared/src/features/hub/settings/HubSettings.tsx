@@ -737,11 +737,12 @@ export function HubSettings({
   const [changelogOpen, setChangelogOpen] = useState(false);
 
   function requestChange(patch: Partial<PerAppVisuals>) {
-    const ALL_APPS: AppKey[] = ['hub', 'chordex', 'drumex', 'stagex', 'groovex', 'vocalex'];
-    updatePerApp(ALL_APPS, patch);
-    if (patch.theme) settingsController.updateSettings({ theme: patch.theme });
-    if (patch.amoledMode !== undefined)
-      settingsController.updateSettings({ amoledMode: patch.amoledMode });
+    const globalPatch: Record<string, any> = {};
+    if (patch.theme) globalPatch.theme = patch.theme;
+    if (patch.amoledMode !== undefined) globalPatch.amoledMode = patch.amoledMode;
+    if (Object.keys(globalPatch).length > 0) {
+      settingsController.updateSettings(globalPatch);
+    }
   }
 
   // Scroll-position memory per sub-page. Without this, navigating

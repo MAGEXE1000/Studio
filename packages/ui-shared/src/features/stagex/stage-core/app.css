@@ -355,6 +355,9 @@ html[data-amoled='1'] .sc-help-card {
   pointer-events: auto;
   cursor: move;
 }
+#stage-canvas.hide-labels .el-label {
+  display: none !important;
+}
 .el-icon img {
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;

@@ -13,6 +13,8 @@ export interface ToggleProps {
   accentTo?: string;
   style?: React.CSSProperties;
   className?: string;
+  testId?: string;
+  'data-testid'?: string;
 }
 
 /**
@@ -31,13 +33,22 @@ export const Toggle: React.FC<ToggleProps> = ({
   style,
   accentFrom,
   accentTo,
+  testId,
+  'data-testid': dataTestId,
 }) => {
   const isChecked = checked !== undefined ? checked : (value ?? false);
   const activeColor = accentFrom || 'var(--c-accent-from, #7c3aed)';
+  const resolvedTestId = testId || dataTestId;
 
   return (
     <label
       aria-label={ariaLabel || label}
+      data-testid={resolvedTestId}
+      onClick={(e) => {
+        if (disabled) return;
+        e.preventDefault();
+        onChange(!isChecked);
+      }}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -50,13 +61,9 @@ export const Toggle: React.FC<ToggleProps> = ({
       className={className}
     >
       <motion.div
+        data-testid={resolvedTestId ? `${resolvedTestId}-knob` : undefined}
         whileTap={disabled ? undefined : { scale: 0.92 }}
         transition={{ type: 'spring', stiffness: 500, damping: 28 }}
-        onClick={(e) => {
-          if (disabled) return;
-          e.preventDefault();
-          onChange(!isChecked);
-        }}
         style={{
           width: 44,
           height: 26,

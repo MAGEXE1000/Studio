@@ -61,7 +61,6 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
         : '1px solid var(--c-border, rgba(255, 255, 255, 0.08))',
     borderRadius: '1.5rem',
     overflow: 'hidden',
-    transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
   };
 
   const gridSizes = [
@@ -128,184 +127,15 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
         <StudioHeader title={title} subtitle={subtitle} />
 
         <div className="px-6 max-w-3xl mx-auto">
-          {/* ── 1. CANVAS ── */}
+          {/* ── 1. DISPLAY & OVERLAYS ── */}
           <SectionHeader
-            icon="grid_4x4"
-            title={tr.stagex?.canvas || (isSpanish ? 'Lienzo' : 'Canvas')}
+            icon="layers"
+            title={
+              tr.stagex?.displayAndOverlays ||
+              (isSpanish ? 'Visualización y Capas' : 'Display & Overlays')
+            }
           />
           <div style={cardStyle} className="mb-6">
-            <SettingRow
-              label={tr.stagex?.gridSize || (isSpanish ? 'Tamaño de cuadrícula' : 'Grid Size')}
-              desc={
-                tr.stagex?.gridSizeDesc ||
-                (isSpanish
-                  ? 'Controla el espaciado de las líneas de la cuadrícula.'
-                  : 'Controls the spacing of the stage grid lines.')
-              }
-            >
-              <SegmentedControl
-                options={gridSizes}
-                value={preferences.gridSize || 80}
-                onChange={(val) => updatePreferences({ gridSize: val })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
-                layoutId="stagex-grid-size"
-              />
-            </SettingRow>
-
-            <SettingRow
-              label={
-                tr.stagex?.stagePlotShape || (isSpanish ? 'Forma del plano' : 'Stage Plot Shape')
-              }
-              desc={
-                tr.stagex?.stagePlotShapeDesc ||
-                (isSpanish
-                  ? 'Relación de aspecto y geometría del plano de escenario.'
-                  : 'Aspect ratio and geometry of the stage canvas plot.')
-              }
-            >
-              <SegmentedControl
-                options={stageShapes}
-                value={preferences.stageShape || 'rectangular'}
-                onChange={(val) =>
-                  updatePreferences({ stageShape: val as 'rectangular' | 'square' })
-                }
-                accentFrom={acc.from}
-                accentTo={acc.to}
-                layoutId="stagex-shape"
-              />
-            </SettingRow>
-
-            <SettingRow
-              label={tr.stagex?.snapToGrid || (isSpanish ? 'Ajustar a cuadrícula' : 'Snap to Grid')}
-              desc={
-                tr.stagex?.snapToGridDesc ||
-                (isSpanish
-                  ? 'Los elementos se ajustan a la cuadrícula al arrastrar.'
-                  : 'Elements snap to grid when dragging.')
-              }
-            >
-              <Toggle
-                value={preferences.snapToGrid}
-                onChange={(val) => updatePreferences({ snapToGrid: val })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
-              />
-            </SettingRow>
-
-            <SettingRow
-              label={
-                tr.stagex?.showCableLength ||
-                (isSpanish ? 'Mostrar longitud de cables' : 'Show Cable Length')
-              }
-              desc={
-                tr.stagex?.showCableLengthDesc ||
-                (isSpanish
-                  ? 'Muestra la distancia aproximada de cada conexión en metros.'
-                  : 'Display the approximate length of every connection in meters.')
-              }
-            >
-              <Toggle
-                value={Boolean(preferences.showCableLength)}
-                onChange={(val) => updatePreferences({ showCableLength: val })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
-              />
-            </SettingRow>
-
-            <SettingRow
-              label={tr.stagex?.autoWire || (isSpanish ? 'Conexión automática' : 'Auto Wire')}
-              desc={
-                tr.stagex?.autoWireDesc ||
-                (isSpanish
-                  ? 'Conectar automáticamente elementos compatibles al colocarlos.'
-                  : 'Automatically connect compatible elements when placed.')
-              }
-            >
-              <Toggle
-                value={Boolean(preferences.autoWire)}
-                onChange={(val) => updatePreferences({ autoWire: val })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
-              />
-            </SettingRow>
-
-            <SettingRow
-              label={
-                tr.stagex?.stageBalanceVisualizer ||
-                (isSpanish ? 'Visualizador de balance' : 'Stage Balance Visualizer')
-              }
-              desc={
-                tr.stagex?.stageBalanceVisualizerDesc ||
-                (isSpanish
-                  ? 'Muestra la distribución de peso en el escenario al colocar elementos.'
-                  : 'Show stage weight distribution when elements are placed.')
-              }
-            >
-              <Toggle
-                value={Boolean(preferences.stageBalanceVisible)}
-                onChange={(val) => updatePreferences({ stageBalanceVisible: val })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
-              />
-            </SettingRow>
-          </div>
-
-          {/* ── 2. EDITOR ── */}
-          <SectionHeader
-            icon="tune"
-            title={tr.stagex?.editor || (isSpanish ? 'Editor' : 'Editor')}
-          />
-          <div style={cardStyle} className="mb-6">
-            <SettingRow
-              label={
-                tr.stagex?.measurementUnits ||
-                (isSpanish ? 'Unidades de medida' : 'Measurement Units')
-              }
-              desc={
-                tr.stagex?.measurementUnitsDesc ||
-                (isSpanish
-                  ? 'Unidades usadas para ancho, fondo e indicadores de distancia.'
-                  : 'Units used for stage width, depth, and distance indicators.')
-              }
-            >
-              <SegmentedControl
-                options={stageUnitsList}
-                value={preferences.stageUnits || 'meters'}
-                onChange={(val) => updatePreferences({ stageUnits: val as 'meters' | 'feet' })}
-                accentFrom={acc.from}
-                accentTo={acc.to}
-                layoutId="stagex-units"
-              />
-            </SettingRow>
-
-            <SettingRow
-              label={
-                tr.stagex?.reducedAnimations ||
-                (isSpanish ? 'Reducir animaciones' : 'Reduced Animations')
-              }
-              desc={
-                tr.stagex?.reducedAnimationsDesc ||
-                (isSpanish
-                  ? 'Minimiza transiciones y movimientos para mayor rendimiento.'
-                  : 'Minimize transitions and layout motions for performance.')
-              }
-            >
-              <Toggle
-                value={Boolean(
-                  preferences.reducedAnimations || settings.animationSpeed === 'reduced'
-                )}
-                onChange={(val) => {
-                  updatePreferences({ reducedAnimations: val });
-                  settingsController.updateSettings({
-                    animationSpeed: val ? 'reduced' : 'normal',
-                  });
-                }}
-                accentFrom={acc.from}
-                accentTo={acc.to}
-              />
-            </SettingRow>
-
             <SettingRow
               label={tr.stagex?.gridOverlay || (isSpanish ? 'Cuadrícula visible' : 'Grid Overlay')}
               desc={
@@ -345,19 +175,201 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
 
             <SettingRow
               label={
-                tr.stagex?.elementLabels ||
-                (isSpanish ? 'Etiquetas de elementos' : 'Element Labels')
+                tr.stagex?.audioCoverage ||
+                (isSpanish ? 'Cobertura de audio' : 'Audio Coverage Cones')
               }
               desc={
-                tr.stagex?.elementLabelsDesc ||
+                tr.stagex?.audioCoverageDesc ||
                 (isSpanish
-                  ? 'Muestra nombre y etiqueta de canal debajo de instrumentos y cajas.'
-                  : 'Show name and channel tag below instruments and audio boxes.')
+                  ? 'Muestra los conos de dispersión y alcance de monitores y altavoces PA.'
+                  : 'Show dispersion cones and coverage range for audio speakers and wedges.')
               }
             >
               <Toggle
+                testId="toggle-pref-audio-coverage"
+                ariaLabel="Audio Coverage Cones"
+                value={preferences.audioCoverageVisible !== false}
+                onChange={(val) => updatePreferences({ audioCoverageVisible: val })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+              />
+            </SettingRow>
+
+            <SettingRow
+              label={
+                tr.stagex?.elementNames || (isSpanish ? 'Nombres de elementos' : 'Element Names')
+              }
+              desc={
+                tr.stagex?.elementNamesDesc ||
+                (isSpanish
+                  ? 'Muestra u oculta los nombres de cada elemento en el escenario.'
+                  : 'Show or hide element name labels on the stage canvas.')
+              }
+            >
+              <Toggle
+                testId="toggle-pref-element-names"
+                ariaLabel="Element Names"
                 value={preferences.labelsVisible !== false}
                 onChange={(val) => updatePreferences({ labelsVisible: val })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+              />
+            </SettingRow>
+
+            <SettingRow
+              label={
+                tr.stagex?.stageGuides ||
+                (isSpanish ? 'Guías y zona segura' : 'Stage Guides & Safe Area')
+              }
+              desc={
+                tr.stagex?.stageGuidesDesc ||
+                (isSpanish
+                  ? 'Muestra el límite de área segura (8%) y las líneas de centro del escenario.'
+                  : 'Show performance safe area boundary (8%) and alignment crosshairs.')
+              }
+            >
+              <Toggle
+                testId="toggle-pref-stage-guides"
+                ariaLabel="Stage Guides & Safe Area"
+                value={preferences.stageGuidesVisible !== false}
+                onChange={(val) => updatePreferences({ stageGuidesVisible: val })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+              />
+            </SettingRow>
+          </div>
+
+          {/* ── 2. STAGE GEOMETRY ── */}
+          <SectionHeader
+            icon="aspect_ratio"
+            title={
+              tr.stagex?.stageGeometry || (isSpanish ? 'Geometría del Escenario' : 'Stage Geometry')
+            }
+          />
+          <div style={cardStyle} className="mb-6">
+            <SettingRow
+              label={
+                tr.stagex?.stagePlotShape || (isSpanish ? 'Forma del plano' : 'Stage Plot Shape')
+              }
+              desc={
+                tr.stagex?.stagePlotShapeDesc ||
+                (isSpanish
+                  ? 'Relación de aspecto y geometría del plano de escenario.'
+                  : 'Aspect ratio and geometry of the stage canvas plot.')
+              }
+            >
+              <SegmentedControl
+                options={stageShapes}
+                value={preferences.stageShape || 'rectangular'}
+                onChange={(val) =>
+                  updatePreferences({ stageShape: val as 'rectangular' | 'square' })
+                }
+                accentFrom={acc.from}
+                accentTo={acc.to}
+                layoutId="stagex-shape"
+              />
+            </SettingRow>
+
+            <SettingRow
+              label={tr.stagex?.gridSize || (isSpanish ? 'Tamaño de cuadrícula' : 'Grid Size')}
+              desc={
+                tr.stagex?.gridSizeDesc ||
+                (isSpanish
+                  ? 'Controla el espaciado de las líneas de la cuadrícula.'
+                  : 'Controls the spacing of the stage grid lines.')
+              }
+            >
+              <SegmentedControl
+                options={gridSizes}
+                value={preferences.gridSize || 80}
+                onChange={(val) => updatePreferences({ gridSize: val })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+                layoutId="stagex-grid-size"
+              />
+            </SettingRow>
+
+            <SettingRow
+              label={
+                tr.stagex?.measurementUnits ||
+                (isSpanish ? 'Unidades de medida' : 'Measurement Units')
+              }
+              desc={
+                tr.stagex?.measurementUnitsDesc ||
+                (isSpanish
+                  ? 'Unidades usadas para ancho, fondo e indicadores de distancia.'
+                  : 'Units used for stage width, depth, and distance indicators.')
+              }
+            >
+              <SegmentedControl
+                options={stageUnitsList}
+                value={preferences.stageUnits || 'meters'}
+                onChange={(val) => updatePreferences({ stageUnits: val as 'meters' | 'feet' })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+                layoutId="stagex-units"
+              />
+            </SettingRow>
+          </div>
+
+          {/* ── 3. SNAPPING & LAYOUT ── */}
+          <SectionHeader
+            icon="tune"
+            title={
+              tr.stagex?.snappingAndLayout ||
+              (isSpanish ? 'Ajuste y Alineación' : 'Snapping & Layout')
+            }
+          />
+          <div style={cardStyle} className="mb-6">
+            <SettingRow
+              label={tr.stagex?.snapToGrid || (isSpanish ? 'Ajustar a cuadrícula' : 'Snap to Grid')}
+              desc={
+                tr.stagex?.snapToGridDesc ||
+                (isSpanish
+                  ? 'Los elementos se ajustan a la cuadrícula al arrastrar.'
+                  : 'Elements snap to grid when dragging.')
+              }
+            >
+              <Toggle
+                value={preferences.snapToGrid}
+                onChange={(val) => updatePreferences({ snapToGrid: val })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+              />
+            </SettingRow>
+
+            <SettingRow
+              label={
+                tr.stagex?.cableDistances ||
+                (isSpanish ? 'Distancia de cables' : 'Show Cable Distances')
+              }
+              desc={
+                tr.stagex?.cableDistancesDesc ||
+                (isSpanish
+                  ? 'Muestra las distancias calculadas a lo largo de las conexiones de cable.'
+                  : 'Display calculated cable distance labels along connection routes.')
+              }
+            >
+              <Toggle
+                value={Boolean(preferences.showCableLength)}
+                onChange={(val) => updatePreferences({ showCableLength: val })}
+                accentFrom={acc.from}
+                accentTo={acc.to}
+              />
+            </SettingRow>
+
+            <SettingRow
+              label={tr.stagex?.autoWire || (isSpanish ? 'Conexión automática' : 'Auto Wire')}
+              desc={
+                tr.stagex?.autoWireDesc ||
+                (isSpanish
+                  ? 'Conectar automáticamente elementos compatibles al colocarlos.'
+                  : 'Automatically connect compatible elements when placed.')
+              }
+            >
+              <Toggle
+                value={Boolean(preferences.autoWire)}
+                onChange={(val) => updatePreferences({ autoWire: val })}
                 accentFrom={acc.from}
                 accentTo={acc.to}
               />

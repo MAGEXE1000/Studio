@@ -37,6 +37,8 @@ export type StageWin = Window & {
   setStageBalanceVisible?: (val: boolean) => void;
   setStageUnits?: (units: 'meters' | 'feet') => void;
   setReducedAnimations?: (val: boolean) => void;
+  setAudioCoverageVisible?: (val: boolean) => void;
+  setStageGuidesVisible?: (val: boolean) => void;
   syncAllPreferences?: (prefs: any) => void;
   state?: any;
 };

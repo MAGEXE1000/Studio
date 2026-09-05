@@ -1306,7 +1306,7 @@ const PA_COVERAGE_TYPES = new Set(Object.keys(PA_SPEAKER_CONFIGS));
 function renderPACoverage() {
   const overlay = document.getElementById('pa-coverage-overlay');
   if (!overlay) return;
-  if (typeof state === 'undefined' || !state.elements) {
+  if (typeof state === 'undefined' || !state.elements || state.audioCoverageVisible === false) {
     if (overlay.hasChildNodes()) overlay.innerHTML = '';
     return;
   }
@@ -3151,6 +3151,13 @@ function _renderZones() {
 function _renderStageLayout() {
   const svg = document.getElementById('stage-layout-svg');
   if (!svg) return;
+
+  if (typeof state !== 'undefined' && state.stageGuidesVisible === false) {
+    svg.style.display = 'none';
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    return;
+  }
+  svg.style.display = '';
 
   const canvasEl = document.getElementById('stage-canvas');
   const W = canvasEl && canvasEl.clientWidth > 0 ? canvasEl.clientWidth : (typeof state !== 'undefined' && state.canvasW ? state.canvasW : 800);

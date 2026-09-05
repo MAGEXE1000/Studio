@@ -187,6 +187,16 @@ export const StageBridge = {
     win?.setReducedAnimations?.(reduced);
   },
 
+  setAudioCoverageVisible(iframe: HTMLIFrameElement | null, visible: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setAudioCoverageVisible?.(visible);
+  },
+
+  setStageGuidesVisible(iframe: HTMLIFrameElement | null, visible: boolean): void {
+    const win = this.getWin(iframe);
+    win?.setStageGuidesVisible?.(visible);
+  },
+
   syncAllPreferences(iframe: HTMLIFrameElement | null, prefs: any): void {
     const win = this.getWin(iframe);
     win?.syncAllPreferences?.(prefs);

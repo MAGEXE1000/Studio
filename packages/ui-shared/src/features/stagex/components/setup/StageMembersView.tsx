@@ -21,6 +21,78 @@ const MEMBER_COLORS = [
   '#6366f1', // indigo
 ];
 
+export interface PredefinedTag {
+  id: string;
+  key: string;
+  fallbackEn: string;
+  fallbackEs: string;
+}
+
+export const PREDEFINED_TAGS: PredefinedTag[] = [
+  {
+    id: 'lead_vocals',
+    key: 'tagLeadVocals',
+    fallbackEn: 'Lead Vocals',
+    fallbackEs: 'Voz Principal',
+  },
+  {
+    id: 'backing_vocals',
+    key: 'tagBackingVocals',
+    fallbackEn: 'Backing Vocals',
+    fallbackEs: 'Coros',
+  },
+  { id: 'guitar', key: 'tagGuitar', fallbackEn: 'Guitar', fallbackEs: 'Guitarra' },
+  { id: 'bass', key: 'tagBass', fallbackEn: 'Bass', fallbackEs: 'Bajo' },
+  { id: 'drums', key: 'tagDrums', fallbackEn: 'Drums', fallbackEs: 'Batería' },
+  { id: 'keys', key: 'tagKeys', fallbackEn: 'Keys', fallbackEs: 'Teclados' },
+  {
+    id: 'foh_engineer',
+    key: 'tagFohEngineer',
+    fallbackEn: 'FOH Engineer',
+    fallbackEs: 'Ingeniero FOH',
+  },
+  {
+    id: 'monitor_engineer',
+    key: 'tagMonitorEngineer',
+    fallbackEn: 'Monitor Engineer',
+    fallbackEs: 'Ingeniero de Monitores',
+  },
+  {
+    id: 'stage_tech',
+    key: 'tagStageTech',
+    fallbackEn: 'Stage Technician',
+    fallbackEs: 'Técnico de Escenario',
+  },
+  { id: 'lighting', key: 'tagLighting', fallbackEn: 'Lighting', fallbackEs: 'Iluminación' },
+  { id: 'backline', key: 'tagBackline', fallbackEn: 'Backline', fallbackEs: 'Backline' },
+  { id: 'production', key: 'tagProduction', fallbackEn: 'Production', fallbackEs: 'Producción' },
+  {
+    id: 'tour_manager',
+    key: 'tagTourManager',
+    fallbackEn: 'Tour Manager',
+    fallbackEs: 'Tour Manager',
+  },
+  {
+    id: 'musical_director',
+    key: 'tagMusicalDirector',
+    fallbackEn: 'Musical Director',
+    fallbackEs: 'Director Musical',
+  },
+];
+
+export function getTagLabel(tagIdOrLabel: string, isSpanish: boolean, membersTr?: any): string {
+  const match = PREDEFINED_TAGS.find(
+    (t) =>
+      t.id === tagIdOrLabel ||
+      t.fallbackEn.toLowerCase() === tagIdOrLabel.toLowerCase() ||
+      t.fallbackEs.toLowerCase() === tagIdOrLabel.toLowerCase()
+  );
+  if (match) {
+    return membersTr?.[match.key] || (isSpanish ? match.fallbackEs : match.fallbackEn);
+  }
+  return tagIdOrLabel;
+}
+
 export const StageMembersView: React.FC<StageMembersViewProps> = ({
   onBack,
   isLight: isLightProp,
@@ -32,23 +104,12 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
   const settings = useSettingsStore((s) => s.settings);
   const isSpanish = (settings.language ?? 'en') === 'es';
 
-  const QUICK_ROLES = useMemo(
-    () => [
-      membersTr?.roleLeadVocals || (isSpanish ? 'Voz Principal' : 'Lead Vocals'),
-      membersTr?.roleGuitar || (isSpanish ? 'Guitarra' : 'Guitar'),
-      membersTr?.roleBass || (isSpanish ? 'Bajo' : 'Bass'),
-      membersTr?.roleDrums || (isSpanish ? 'Batería' : 'Drums'),
-      membersTr?.roleKeys || (isSpanish ? 'Teclados' : 'Keys'),
-      membersTr?.roleFohEngineer || (isSpanish ? 'Ingeniero FOH' : 'FOH Engineer'),
-      membersTr?.roleStageTech || (isSpanish ? 'Técnico de Escenario' : 'Stage Tech'),
-    ],
-    [membersTr, isSpanish]
-  );
   const activeVis = settings.perApp?.stagex;
   const isLight =
     isLightProp !== undefined ? isLightProp : activeVis ? activeVis.theme === 'light' : false;
 
-  const { members, addMember, removeMember, elements, preferences } = useStagexStore();
+  const { members, addMember, updateMember, removeMember, elements, preferences } =
+    useStagexStore();
   const isAmoled =
     isAmoledProp !== undefined
       ? isAmoledProp
@@ -59,13 +120,30 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
 
   // Form State
   const [name, setName] = useState('');
-  const [selectedRole, setSelectedRole] = useState('Lead Vocals');
+  const [selectedTags, setSelectedTags] = useState<string[]>(['lead_vocals']);
+  const [tagLimitWarning, setTagLimitWarning] = useState(false);
   const [customRole, setCustomRole] = useState('');
   const [color, setColor] = useState(MEMBER_COLORS[0]);
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [notes, setNotes] = useState('');
   const [showExtraDetails, setShowExtraDetails] = useState(false);
+
+  const handleToggleTag = (tagId: string) => {
+    setSelectedTags((prev) => {
+      if (prev.includes(tagId)) {
+        setTagLimitWarning(false);
+        return prev.filter((t) => t !== tagId);
+      }
+      if (prev.length >= 3) {
+        setTagLimitWarning(true);
+        setTimeout(() => setTagLimitWarning(false), 2600);
+        return prev;
+      }
+      setTagLimitWarning(false);
+      return [...prev, tagId];
+    });
+  };
 
   const isAtLimit = members.length >= 8;
 
@@ -87,10 +165,15 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
     e.preventDefault();
     if (!name.trim() || isAtLimit) return;
 
-    const resolvedRole = customRole.trim() || selectedRole || 'Band Member';
+    const firstTagLabel =
+      selectedTags.length > 0 ? getTagLabel(selectedTags[0], isSpanish, membersTr) : '';
+    const resolvedRole =
+      customRole.trim() || firstTagLabel || (isSpanish ? 'Miembro de Banda' : 'Band Member');
+
     const ok = addMember({
       name: name.trim(),
       role: resolvedRole,
+      tags: selectedTags.length > 0 ? [...selectedTags] : [resolvedRole],
       color,
       phone: phone.trim() || undefined,
       email: email.trim() || undefined,
@@ -99,6 +182,8 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
 
     if (ok) {
       setName('');
+      setSelectedTags(['lead_vocals']);
+      setTagLimitWarning(false);
       setCustomRole('');
       setPhone('');
       setEmail('');
@@ -274,7 +359,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                         borderColor: cardBorder,
                       }}
                     >
-                      <div className="flex items-center space-x-3 min-w-0 pr-2">
+                      <div className="flex items-center space-x-3 min-w-0 pr-2 flex-1">
                         {/* Avatar */}
                         <div
                           className="w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs"
@@ -292,7 +377,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                         </div>
 
                         {/* Info */}
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <p
                             className="font-bold text-sm leading-tight truncate"
                             style={{ color: textPrimary }}
@@ -306,14 +391,69 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                             }}
                           >
                             {isAssigned
-                              ? `Assigned: ${assignedLabels}`
+                              ? `${isSpanish ? 'Asignado' : 'Assigned'}: ${assignedLabels}`
                               : member.role
-                                ? `${member.role} • Unassigned`
-                                : 'Unassigned position'}
+                                ? `${member.role} • ${isSpanish ? 'Sin asignar' : 'Unassigned'}`
+                                : isSpanish
+                                  ? 'Posición sin asignar'
+                                  : 'Unassigned position'}
                           </p>
+
+                          {/* Member Tags Badges (Up to 3) */}
+                          {(() => {
+                            const displayTags =
+                              member.tags && member.tags.length > 0
+                                ? member.tags
+                                : member.role
+                                  ? [member.role]
+                                  : [];
+                            if (displayTags.length === 0) return null;
+                            return (
+                              <div
+                                className="flex flex-wrap gap-1 mt-1.5"
+                                data-testid={`member-tags-${member.id}`}
+                              >
+                                {displayTags.map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold tracking-wide"
+                                    style={{
+                                      backgroundColor: isLight
+                                        ? 'rgba(0, 0, 0, 0.05)'
+                                        : 'rgba(255, 255, 255, 0.08)',
+                                      color: isLight ? '#27272a' : '#d4d4d8',
+                                      border: `1px solid ${
+                                        isLight
+                                          ? 'rgba(0, 0, 0, 0.08)'
+                                          : 'rgba(255, 255, 255, 0.12)'
+                                      }`,
+                                    }}
+                                    data-testid={`member-tag-badge-${tag}`}
+                                  >
+                                    <span>{getTagLabel(tag, isSpanish, membersTr)}</span>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const nextTags = displayTags.filter((t) => t !== tag);
+                                        updateMember(member.id, { tags: nextTags });
+                                      }}
+                                      className="ml-0.5 hover:text-red-500 transition-colors cursor-pointer text-xs leading-none"
+                                      title={isSpanish ? 'Eliminar etiqueta' : 'Remove tag'}
+                                      aria-label={`Remove tag ${tag}`}
+                                      data-testid={`btn-remove-tag-${member.id}-${tag}`}
+                                    >
+                                      ×
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                            );
+                          })()}
+
                           {(member.phone || member.email) && (
                             <p
-                              className="text-[10px] truncate mt-0.5"
+                              className="text-[10px] truncate mt-1"
                               style={{ color: textSecondary }}
                             >
                               {[member.phone, member.email].filter(Boolean).join(' • ')}
@@ -413,19 +553,80 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               </button>
             </div>
 
-            {/* Quick Role Selector Tags */}
-            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-              {QUICK_ROLES.map((r) => {
-                const isSelected = selectedRole === r && !customRole;
+            {/* Tag Selection Header */}
+            <div className="flex items-center justify-between pt-1">
+              <span
+                className="text-[11px] font-bold tracking-wider uppercase font-sans"
+                style={{ color: textSecondary }}
+              >
+                {membersTr?.memberTags ||
+                  (isSpanish ? 'Etiquetas del miembro (máx. 3)' : 'Member Tags (Max 3)')}
+              </span>
+              <span
+                className="text-xs font-semibold font-mono"
+                style={{
+                  color:
+                    selectedTags.length === 3 ? (isLight ? '#b45309' : '#facc15') : textSecondary,
+                }}
+                data-testid="selected-tags-count"
+              >
+                {selectedTags.length} / 3
+              </span>
+            </div>
+
+            {/* Tag Limit Warning Banner */}
+            <AnimatePresence>
+              {tagLimitWarning && (
+                <motion.div
+                  initial={prefersReducedMotion ? undefined : { opacity: 0, y: -4, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={prefersReducedMotion ? undefined : { opacity: 0, y: -4, scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
+                  className="p-2.5 rounded-xl text-xs font-semibold flex items-center gap-2 border"
+                  style={{
+                    backgroundColor: isLight
+                      ? 'rgba(245, 158, 11, 0.1)'
+                      : 'rgba(245, 158, 11, 0.15)',
+                    borderColor: 'rgba(245, 158, 11, 0.35)',
+                    color: isLight ? '#b45309' : '#fbbf24',
+                  }}
+                  data-testid="tag-limit-warning"
+                >
+                  <svg
+                    className="w-4 h-4 shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  <span>
+                    {membersTr?.maxTagsReached ||
+                      (isSpanish
+                        ? 'Se alcanzó el límite de 3 etiquetas por miembro'
+                        : 'Maximum 3 tags per member reached')}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Predefined Tag Selector Chips */}
+            <div
+              className="flex items-center gap-1.5 flex-wrap pt-0.5"
+              data-testid="tag-selector-container"
+            >
+              {PREDEFINED_TAGS.map((tag) => {
+                const isSelected = selectedTags.includes(tag.id);
+                const label = getTagLabel(tag.id, isSpanish, membersTr);
                 return (
                   <button
-                    key={r}
+                    key={tag.id}
                     type="button"
-                    onClick={() => {
-                      setSelectedRole(r);
-                      setCustomRole('');
-                    }}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border active:scale-95"
+                    onClick={() => handleToggleTag(tag.id)}
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border active:scale-95 flex items-center gap-1"
                     style={{
                       backgroundColor: isSelected
                         ? isLight
@@ -437,9 +638,23 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       borderColor: isSelected ? (isLight ? '#09090b' : '#ffffff') : inputBorder,
                       color: isSelected ? (isLight ? '#ffffff' : '#09090b') : textSecondary,
                     }}
-                    data-testid={`role-tag-${r.toLowerCase().replace(/\s+/g, '-')}`}
+                    data-testid={`tag-chip-${tag.id}`}
+                    aria-pressed={isSelected}
                   >
-                    {r}
+                    {isSelected && (
+                      <svg
+                        className="w-3 h-3 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                    <span>{label}</span>
                   </button>
                 );
               })}

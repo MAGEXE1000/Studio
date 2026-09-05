@@ -12,7 +12,13 @@ export interface ThemeConfig {
   dynamicLightEnd?: number;
 }
 
-let _lastAppliedThemeKey = '';
+let _lastThemeClassKey = '';
+let _lastAccentKey = '';
+let _lastDensityKey = '';
+let _lastTypographyKey = '';
+let _lastMotionKey = '';
+let _lastPerfKey = '';
+let _lastStatusBarKey = '';
 
 export function applyThemeTokens(settings: any) {
   if (typeof document === 'undefined' || !document.documentElement) return;
@@ -29,248 +35,257 @@ export function applyThemeTokens(settings: any) {
     amoledMode: Boolean(perAppVis?.amoledMode || globalAmoled),
   };
 
-  const key = [
-    activeVis.theme,
-    activeVis.amoledMode,
-    settings?.accentColor,
-    settings?.displayDensity,
-    settings?.fontSize,
-    settings?.animationSpeed,
-    settings?.performanceMode,
-    settings?.highRefreshRate,
-    settings?.dynamicLightStart,
-    settings?.dynamicLightEnd,
-    appMode,
-  ].join('|');
-
-  if (key === _lastAppliedThemeKey) return;
-  _lastAppliedThemeKey = key;
-
   const root = document.documentElement;
 
   // 1. Resolve Light/Dark Mode
-  const systemIsLight =
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-color-scheme: light)').matches;
-  let isLightMode = false;
-  const theme = activeVis.theme;
-  if (theme === 'light') {
-    isLightMode = true;
-  } else if (theme === 'system') {
-    isLightMode = systemIsLight;
-  } else if (theme === 'dynamic') {
-    const h = new Date().getHours();
-    const start = settings?.dynamicLightStart ?? 7;
-    const end = settings?.dynamicLightEnd ?? 20;
-    isLightMode = h >= start && h < end;
-  }
+  const themeClassKey = `${activeVis.theme}|${activeVis.amoledMode}|${settings?.dynamicLightStart ?? 7}|${settings?.dynamicLightEnd ?? 20}`;
+  if (themeClassKey !== _lastThemeClassKey) {
+    _lastThemeClassKey = themeClassKey;
+    const systemIsLight =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-color-scheme: light)').matches;
+    let isLightMode = false;
+    const theme = activeVis.theme;
+    if (theme === 'light') {
+      isLightMode = true;
+    } else if (theme === 'system') {
+      isLightMode = systemIsLight;
+    } else if (theme === 'dynamic') {
+      const h = new Date().getHours();
+      const start = settings?.dynamicLightStart ?? 7;
+      const end = settings?.dynamicLightEnd ?? 20;
+      isLightMode = h >= start && h < end;
+    }
 
-  // Update HTML theme classes
-  if (isLightMode) {
-    root.classList.add('light');
-    root.classList.remove('dark');
-  } else {
-    root.classList.add('dark');
-    root.classList.remove('light');
-  }
+    // Update HTML theme classes
+    if (isLightMode) {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    } else {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    }
 
-  if (activeVis.amoledMode) {
-    root.classList.add('amoled');
-  } else {
-    root.classList.remove('amoled');
+    if (activeVis.amoledMode) {
+      root.classList.add('amoled');
+    } else {
+      root.classList.remove('amoled');
+    }
   }
 
   // 2. Global Accent Color Tokens
-  const accent = resolveAccent(settings?.accentColor);
-  root.style.setProperty('--studio-accent-from', accent.from);
-  root.style.setProperty('--studio-accent-to', accent.to);
-  root.style.setProperty('--studio-accent-mid', accent.mid);
-  root.style.setProperty('--studio-accent', accent.to);
-  root.style.setProperty('--studio-accent-rgb', accent.rgb);
-  root.style.setProperty(
-    '--studio-accent-gradient',
-    `linear-gradient(135deg, ${accent.from}, ${accent.to})`
-  );
-  root.style.setProperty('--studio-accent-soft', accent.soft);
-  root.style.setProperty('--studio-accent-subtle', accent.subtle);
-  root.style.setProperty('--studio-accent-glow', accent.glow);
-  root.style.setProperty('--studio-accent-border', accent.border);
-  root.style.setProperty('--studio-accent-contrast', accent.contrast);
-  root.style.setProperty('--studio-accent-hover', accent.hover);
-  root.style.setProperty('--studio-accent-active', accent.active);
+  const accentKey = String(settings?.accentColor ?? '');
+  if (accentKey !== _lastAccentKey) {
+    _lastAccentKey = accentKey;
+    const accent = resolveAccent(settings?.accentColor);
+    root.style.setProperty('--studio-accent-from', accent.from);
+    root.style.setProperty('--studio-accent-to', accent.to);
+    root.style.setProperty('--studio-accent-mid', accent.mid);
+    root.style.setProperty('--studio-accent', accent.to);
+    root.style.setProperty('--studio-accent-rgb', accent.rgb);
+    root.style.setProperty(
+      '--studio-accent-gradient',
+      `linear-gradient(135deg, ${accent.from}, ${accent.to})`
+    );
+    root.style.setProperty('--studio-accent-soft', accent.soft);
+    root.style.setProperty('--studio-accent-subtle', accent.subtle);
+    root.style.setProperty('--studio-accent-glow', accent.glow);
+    root.style.setProperty('--studio-accent-border', accent.border);
+    root.style.setProperty('--studio-accent-contrast', accent.contrast);
+    root.style.setProperty('--studio-accent-hover', accent.hover);
+    root.style.setProperty('--studio-accent-active', accent.active);
 
-  // Sync alias variables
-  root.style.setProperty('--c-accent-from', accent.from);
-  root.style.setProperty('--c-accent-to', accent.to);
-  root.style.setProperty('--c-accent-mid', accent.mid);
-  root.style.setProperty('--c-accent-rgb', accent.rgb);
-  root.style.setProperty('--c-accent-soft', accent.soft);
-  root.style.setProperty('--c-accent-glow', accent.glow);
-  root.style.setProperty('--c-accent-border', accent.border);
-  root.style.setProperty('--c-brand', accent.from);
-  root.setAttribute('data-accent-id', accent.id);
-
-  // 3. Spacing Tokens & Density System
-  const spacingDefs = {
-    compact: { xs: '3px', sm: '6px', md: '12px', lg: '18px', xl: '24px' },
-    comfortable: { xs: '4px', sm: '8px', md: '16px', lg: '24px', xl: '32px' },
-    spacious: { xs: '5px', sm: '10px', md: '20px', lg: '28px', xl: '38px' },
-  };
-  const sp =
-    spacingDefs[settings.displayDensity as keyof typeof spacingDefs] || spacingDefs.comfortable;
-  root.style.setProperty('--spacing-xs', sp.xs);
-  root.style.setProperty('--spacing-sm', sp.sm);
-  root.style.setProperty('--spacing-md', sp.md);
-  root.style.setProperty('--spacing-lg', sp.lg);
-  root.style.setProperty('--spacing-xl', sp.xl);
-
-  // Sync density-aware layout spacing
-  const densities = {
-    compact: {
-      pad: '12px',
-      rowPad: '10px 16px',
-      gap: '10px',
-      cardGap: '8px',
-      btnPadding: '8px 14px',
-      btnFontSize: '12px',
-      iconSize: '20px',
-      listItemPadding: '10px 14px',
-      listItemGap: '10px',
-      sectionGap: '12px',
-      cardRadius: '10px',
-      sheetPadding: '14px 18px',
-      navItemPadding: '8px',
-      navGap: '10px',
-    },
-    comfortable: {
-      pad: '16px',
-      rowPad: '14px 20px',
-      gap: '12px',
-      cardGap: '10px',
-      btnPadding: '10px 16px',
-      btnFontSize: '13px',
-      iconSize: '22px',
-      listItemPadding: '12px 18px',
-      listItemGap: '12px',
-      sectionGap: '16px',
-      cardRadius: '12px',
-      sheetPadding: '16px 20px',
-      navItemPadding: '10px',
-      navGap: '12px',
-    },
-    spacious: {
-      pad: '18px',
-      rowPad: '16px 22px',
-      gap: '14px',
-      cardGap: '12px',
-      btnPadding: '12px 18px',
-      btnFontSize: '14px',
-      iconSize: '24px',
-      listItemPadding: '14px 20px',
-      listItemGap: '14px',
-      sectionGap: '20px',
-      cardRadius: '14px',
-      sheetPadding: '18px 22px',
-      navItemPadding: '12px',
-      navGap: '14px',
-    },
-  };
-  const d = (densities as any)[settings.displayDensity] || densities.comfortable;
-  root.style.setProperty('--c-space-pad', d.pad);
-  root.style.setProperty('--c-space-row-pad', d.rowPad);
-  root.style.setProperty('--c-space-gap', d.gap);
-  root.style.setProperty('--c-space-card-gap', d.cardGap);
-
-  root.style.setProperty('--density-pad', d.pad);
-  root.style.setProperty('--density-row-pad', d.rowPad);
-  root.style.setProperty('--density-gap', d.gap);
-  root.style.setProperty('--density-card-gap', d.cardGap);
-
-  // Advanced Density system variables
-  root.style.setProperty('--density-button-padding', d.btnPadding);
-  root.style.setProperty('--density-button-font-size', d.btnFontSize);
-  root.style.setProperty('--density-icon-size', d.iconSize);
-  root.style.setProperty('--density-list-item-padding', d.listItemPadding);
-  root.style.setProperty('--density-list-item-gap', d.listItemGap);
-  root.style.setProperty('--density-section-gap', d.sectionGap);
-  root.style.setProperty('--density-card-radius', d.cardRadius);
-  root.style.setProperty('--density-bottom-sheet-padding', d.sheetPadding);
-  root.style.setProperty('--density-nav-item-padding', d.navItemPadding);
-  root.style.setProperty('--density-nav-gap', d.navGap);
-
-  root.setAttribute('data-density', settings.displayDensity);
-
-  // 4. Radius Tokens
-  root.style.setProperty('--radius-xs', '0.25rem');
-  root.style.setProperty('--radius-sm', '0.5rem');
-  root.style.setProperty('--radius-md', '0.75rem');
-  root.style.setProperty('--radius-lg', d.cardRadius); // Make standard radius adaptive
-  root.style.setProperty('--radius-xl', '1.25rem');
-  root.style.setProperty('--radius-2xl', '1.5rem');
-  root.style.setProperty('--radius-3xl', '2rem');
-  root.style.setProperty('--radius-full', '9999px');
-
-  // 5. Elevation Tokens (Moved to tokens.css)
-
-  // 6. Typography Tokens
-  root.style.setProperty('--font-headline', 'Manrope, sans-serif');
-  root.style.setProperty('--font-body', 'Inter, sans-serif');
-
-  const sizes = {
-    small: { base: '13px', sm: '11px', xs: '9px', lg: '16px', xl: '20px', hero: '2.2rem' },
-    medium: { base: '14px', sm: '12px', xs: '10px', lg: '18px', xl: '24px', hero: '2.8rem' },
-    large: { base: '16px', sm: '13px', xs: '11px', lg: '20px', xl: '26px', hero: '3.2rem' },
-  };
-  const s = (sizes as any)[settings.fontSize] || sizes.medium;
-  const densityFontScale = {
-    compact: 0.94,
-    comfortable: 1.0,
-    spacious: 1.06,
-  };
-  const dfs = densityFontScale[settings.displayDensity as keyof typeof densityFontScale] || 1.0;
-
-  root.style.setProperty('--font-base', `calc(${s.base} * ${dfs})`);
-  root.style.setProperty('--font-sm', `calc(${s.sm} * ${dfs})`);
-  root.style.setProperty('--font-xs', `calc(${s.xs} * ${dfs})`);
-  root.style.setProperty('--font-lg', `calc(${s.lg} * ${dfs})`);
-  root.style.setProperty('--font-xl', `calc(${s.xl} * ${dfs})`);
-  root.style.setProperty('--font-hero', `calc(${s.hero} * ${dfs})`);
-  root.style.fontSize = `calc(${s.base} * ${dfs})`;
-  root.setAttribute('data-text-scale', settings.fontSize);
-
-  if (root) {
-    (root.style as any).zoom = '';
-    root.style.width = '';
-    root.style.height = '';
-    root.style.minHeight = '';
+    // Sync alias variables
+    root.style.setProperty('--c-accent-from', accent.from);
+    root.style.setProperty('--c-accent-to', accent.to);
+    root.style.setProperty('--c-accent-mid', accent.mid);
+    root.style.setProperty('--c-accent-rgb', accent.rgb);
+    root.style.setProperty('--c-accent-soft', accent.soft);
+    root.style.setProperty('--c-accent-glow', accent.glow);
+    root.style.setProperty('--c-accent-border', accent.border);
+    root.style.setProperty('--c-brand', accent.from);
+    root.setAttribute('data-accent-id', accent.id);
   }
 
-  if (typeof document !== 'undefined' && document.body) {
-    document.body.style.zoom = '';
-    document.body.style.width = '';
-    document.body.style.height = '';
-    document.body.style.minHeight = '';
+  // 3. Spacing Tokens & Density System
+  const densityKey = String(settings?.displayDensity ?? 'comfortable');
+  if (densityKey !== _lastDensityKey) {
+    _lastDensityKey = densityKey;
+    const spacingDefs = {
+      compact: { xs: '3px', sm: '6px', md: '12px', lg: '18px', xl: '24px' },
+      comfortable: { xs: '4px', sm: '8px', md: '16px', lg: '24px', xl: '32px' },
+      spacious: { xs: '5px', sm: '10px', md: '20px', lg: '28px', xl: '38px' },
+    };
+    const sp =
+      spacingDefs[settings.displayDensity as keyof typeof spacingDefs] || spacingDefs.comfortable;
+    root.style.setProperty('--spacing-xs', sp.xs);
+    root.style.setProperty('--spacing-sm', sp.sm);
+    root.style.setProperty('--spacing-md', sp.md);
+    root.style.setProperty('--spacing-lg', sp.lg);
+    root.style.setProperty('--spacing-xl', sp.xl);
+
+    // Sync density-aware layout spacing
+    const densities = {
+      compact: {
+        pad: '12px',
+        rowPad: '10px 16px',
+        gap: '10px',
+        cardGap: '8px',
+        btnPadding: '8px 14px',
+        btnFontSize: '12px',
+        iconSize: '20px',
+        listItemPadding: '10px 14px',
+        listItemGap: '10px',
+        sectionGap: '12px',
+        cardRadius: '10px',
+        sheetPadding: '14px 18px',
+        navItemPadding: '8px',
+        navGap: '10px',
+      },
+      comfortable: {
+        pad: '16px',
+        rowPad: '14px 20px',
+        gap: '12px',
+        cardGap: '10px',
+        btnPadding: '10px 16px',
+        btnFontSize: '13px',
+        iconSize: '22px',
+        listItemPadding: '12px 18px',
+        listItemGap: '12px',
+        sectionGap: '16px',
+        cardRadius: '12px',
+        sheetPadding: '16px 20px',
+        navItemPadding: '10px',
+        navGap: '12px',
+      },
+      spacious: {
+        pad: '18px',
+        rowPad: '16px 22px',
+        gap: '14px',
+        cardGap: '12px',
+        btnPadding: '12px 18px',
+        btnFontSize: '14px',
+        iconSize: '24px',
+        listItemPadding: '14px 20px',
+        listItemGap: '14px',
+        sectionGap: '20px',
+        cardRadius: '14px',
+        sheetPadding: '18px 22px',
+        navItemPadding: '12px',
+        navGap: '14px',
+      },
+    };
+    const d = (densities as any)[settings.displayDensity] || densities.comfortable;
+    root.style.setProperty('--c-space-pad', d.pad);
+    root.style.setProperty('--c-space-row-pad', d.rowPad);
+    root.style.setProperty('--c-space-gap', d.gap);
+    root.style.setProperty('--c-space-card-gap', d.cardGap);
+
+    root.style.setProperty('--density-pad', d.pad);
+    root.style.setProperty('--density-row-pad', d.rowPad);
+    root.style.setProperty('--density-gap', d.gap);
+    root.style.setProperty('--density-card-gap', d.cardGap);
+
+    // Advanced Density system variables
+    root.style.setProperty('--density-button-padding', d.btnPadding);
+    root.style.setProperty('--density-button-font-size', d.btnFontSize);
+    root.style.setProperty('--density-icon-size', d.iconSize);
+    root.style.setProperty('--density-list-item-padding', d.listItemPadding);
+    root.style.setProperty('--density-list-item-gap', d.listItemGap);
+    root.style.setProperty('--density-section-gap', d.sectionGap);
+    root.style.setProperty('--density-card-radius', d.cardRadius);
+    root.style.setProperty('--density-bottom-sheet-padding', d.sheetPadding);
+    root.style.setProperty('--density-nav-item-padding', d.navItemPadding);
+    root.style.setProperty('--density-nav-gap', d.navGap);
+
+    root.setAttribute('data-density', settings.displayDensity);
+
+    // 4. Radius Tokens
+    root.style.setProperty('--radius-xs', '0.25rem');
+    root.style.setProperty('--radius-sm', '0.5rem');
+    root.style.setProperty('--radius-md', '0.75rem');
+    root.style.setProperty('--radius-lg', d.cardRadius); // Make standard radius adaptive
+    root.style.setProperty('--radius-xl', '1.25rem');
+    root.style.setProperty('--radius-2xl', '1.5rem');
+    root.style.setProperty('--radius-3xl', '2rem');
+    root.style.setProperty('--radius-full', '9999px');
+  }
+
+  // 6. Typography Tokens
+  const typoKey = `${settings?.fontSize ?? 'medium'}|${settings?.displayDensity ?? 'comfortable'}`;
+  if (typoKey !== _lastTypographyKey) {
+    _lastTypographyKey = typoKey;
+    root.style.setProperty('--font-headline', 'Manrope, sans-serif');
+    root.style.setProperty('--font-body', 'Inter, sans-serif');
+
+    const sizes = {
+      small: { base: '13px', sm: '11px', xs: '9px', lg: '16px', xl: '20px', hero: '2.2rem' },
+      medium: { base: '14px', sm: '12px', xs: '10px', lg: '18px', xl: '24px', hero: '2.8rem' },
+      large: { base: '16px', sm: '13px', xs: '11px', lg: '20px', xl: '26px', hero: '3.2rem' },
+    };
+    const s = (sizes as any)[settings.fontSize] || sizes.medium;
+    const densityFontScale = {
+      compact: 0.94,
+      comfortable: 1.0,
+      spacious: 1.06,
+    };
+    const dfs = densityFontScale[settings.displayDensity as keyof typeof densityFontScale] || 1.0;
+
+    root.style.setProperty('--font-base', `calc(${s.base} * ${dfs})`);
+    root.style.setProperty('--font-sm', `calc(${s.sm} * ${dfs})`);
+    root.style.setProperty('--font-xs', `calc(${s.xs} * ${dfs})`);
+    root.style.setProperty('--font-lg', `calc(${s.lg} * ${dfs})`);
+    root.style.setProperty('--font-xl', `calc(${s.xl} * ${dfs})`);
+    root.style.setProperty('--font-hero', `calc(${s.hero} * ${dfs})`);
+    root.style.fontSize = `calc(${s.base} * ${dfs})`;
+    root.setAttribute('data-text-scale', settings.fontSize);
+
+    if (root) {
+      (root.style as any).zoom = '';
+      root.style.width = '';
+      root.style.height = '';
+      root.style.minHeight = '';
+    }
+
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.style.zoom = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.minHeight = '';
+    }
   }
 
   // 7. Motion Tokens
-  const isReduced = settings.animationSpeed === 'reduced';
-  const speedScale = settings.animationSpeed === 'fast' ? 0.6 : 1.0;
-  root.style.setProperty('--motion-speed-scale', isReduced ? '0' : String(speedScale));
-  root.style.setProperty('--motion-duration', isReduced ? '0s' : '0.3s');
-  root.style.setProperty('--motion-easing', 'cubic-bezier(0.25, 1, 0.5, 1)');
-  root.setAttribute('data-anim', isReduced ? 'reduced' : settings.animationSpeed);
+  const motionKey = String(settings?.animationSpeed ?? 'normal');
+  if (motionKey !== _lastMotionKey) {
+    _lastMotionKey = motionKey;
+    const isReduced = settings.animationSpeed === 'reduced';
+    const speedScale = settings.animationSpeed === 'fast' ? 0.6 : 1.0;
+    root.style.setProperty('--motion-speed-scale', isReduced ? '0' : String(speedScale));
+    root.style.setProperty('--motion-duration', isReduced ? '0s' : '0.3s');
+    root.style.setProperty('--motion-easing', 'cubic-bezier(0.25, 1, 0.5, 1)');
+    root.setAttribute('data-anim', isReduced ? 'reduced' : settings.animationSpeed);
+  }
 
   // Performance / High refresh
-  if (settings.performanceMode) root.setAttribute('data-perf-mode', 'on');
-  else root.removeAttribute('data-perf-mode');
+  const perfKey = `${Boolean(settings?.performanceMode)}|${Boolean(settings?.highRefreshRate)}`;
+  if (perfKey !== _lastPerfKey) {
+    _lastPerfKey = perfKey;
+    if (settings.performanceMode) root.setAttribute('data-perf-mode', 'on');
+    else root.removeAttribute('data-perf-mode');
 
-  if (settings.highRefreshRate) {
-    root.setAttribute('data-hifps', 'on');
-  } else {
-    root.removeAttribute('data-hifps');
+    if (settings.highRefreshRate) {
+      root.setAttribute('data-hifps', 'on');
+    } else {
+      root.removeAttribute('data-hifps');
+    }
   }
 
   // StatusBar Sync
-  void syncStatusBar(activeVis.theme, activeVis.amoledMode);
+  const statusBarKey = `${activeVis.theme}|${activeVis.amoledMode}`;
+  if (statusBarKey !== _lastStatusBarKey) {
+    _lastStatusBarKey = statusBarKey;
+    void syncStatusBar(activeVis.theme, activeVis.amoledMode);
+  }
 }

@@ -50,6 +50,8 @@ const state = {
   smartSuggestionsEnabled: false,
   timeline: [],
   stageBalanceVisible: false,
+  audioCoverageVisible: true,
+  stageGuidesVisible: true,
   smIntelligenceEnabled: true,
   smAutoOptEnabled: true,
   smConflictEnabled: true,
@@ -3632,9 +3634,35 @@ window.setConnectionsVisible = function (val) {
 
 window.setLabelsVisible = function (val) {
   state.labelsVisible = Boolean(val);
+  var sc = document.getElementById('stage-canvas');
+  if (sc) sc.classList.toggle('hide-labels', !state.labelsVisible);
   document.querySelectorAll('.el-label').forEach(function (el) {
     el.style.display = state.labelsVisible ? '' : 'none';
   });
+  saveSettings();
+};
+
+window.setAudioCoverageVisible = function (val) {
+  state.audioCoverageVisible = Boolean(val);
+  var overlay = document.getElementById('pa-coverage-overlay');
+  if (overlay) {
+    overlay.style.display = state.audioCoverageVisible ? '' : 'none';
+  }
+  if (typeof renderPACoverage === 'function') {
+    renderPACoverage();
+  }
+  saveSettings();
+};
+
+window.setStageGuidesVisible = function (val) {
+  state.stageGuidesVisible = Boolean(val);
+  var guides = document.getElementById('stage-layout-svg');
+  if (guides) {
+    guides.style.display = state.stageGuidesVisible ? '' : 'none';
+  }
+  if (typeof _renderStageLayout === 'function') {
+    _renderStageLayout();
+  }
   saveSettings();
 };
 
@@ -3702,6 +3730,12 @@ window.syncAllPreferences = function (prefs) {
   }
   if (prefs.autoWire !== undefined && typeof window.setAutoWire === 'function') {
     window.setAutoWire(prefs.autoWire);
+  }
+  if (prefs.audioCoverageVisible !== undefined && typeof window.setAudioCoverageVisible === 'function') {
+    window.setAudioCoverageVisible(prefs.audioCoverageVisible);
+  }
+  if (prefs.stageGuidesVisible !== undefined && typeof window.setStageGuidesVisible === 'function') {
+    window.setStageGuidesVisible(prefs.stageGuidesVisible);
   }
   if (prefs.stageBalanceVisible !== undefined && typeof window.setStageBalanceVisible === 'function') {
     window.setStageBalanceVisible(prefs.stageBalanceVisible);
@@ -10253,6 +10287,8 @@ function saveSettings() {
         gigMode: state.gigMode,
         smartSuggestionsEnabled: state.smartSuggestionsEnabled,
         stageBalanceVisible: Boolean(state.stageBalanceVisible),
+        audioCoverageVisible: state.audioCoverageVisible !== false,
+        stageGuidesVisible: state.stageGuidesVisible !== false,
         showCableLength: typeof scCableLengthVisible !== 'undefined' ? Boolean(scCableLengthVisible) : false,
         autoWire: typeof autoWireEnabled !== 'undefined' ? Boolean(autoWireEnabled) : false,
         stageUnits: state.stageUnits || 'meters',
@@ -10286,6 +10322,8 @@ function loadSettings() {
     if (s.smartSuggestionsEnabled !== undefined)
       state.smartSuggestionsEnabled = s.smartSuggestionsEnabled;
     if (s.stageBalanceVisible !== undefined) state.stageBalanceVisible = s.stageBalanceVisible;
+    if (s.audioCoverageVisible !== undefined) state.audioCoverageVisible = s.audioCoverageVisible;
+    if (s.stageGuidesVisible !== undefined) state.stageGuidesVisible = s.stageGuidesVisible;
     if (s.showCableLength !== undefined && typeof scCableLengthVisible !== 'undefined') {
       scCableLengthVisible = Boolean(s.showCableLength);
     }
@@ -10678,11 +10716,21 @@ function applySettings() {
   if (snapToggle) snapToggle.classList.toggle('on', state.snapToGrid);
 
   // Labels visibility
+  if (sc) sc.classList.toggle('hide-labels', state.labelsVisible === false);
   document.querySelectorAll('.el-label').forEach((el) => {
     el.style.display = state.labelsVisible ? '' : 'none';
   });
   const lblToggle = document.getElementById('settings-labels-toggle');
   if (lblToggle) lblToggle.classList.toggle('on', state.labelsVisible);
+
+  // Audio Coverage Cones
+  const paOverlay = document.getElementById('pa-coverage-overlay');
+  if (paOverlay) paOverlay.style.display = state.audioCoverageVisible !== false ? '' : 'none';
+  if (typeof renderPACoverage === 'function') renderPACoverage();
+
+  // Stage Guides (Safe Area & Crosshairs)
+  const guidesSvg = document.getElementById('stage-layout-svg');
+  if (guidesSvg) guidesSvg.style.display = state.stageGuidesVisible !== false ? '' : 'none';
 
   // Connection line style chips
   document.querySelectorAll('.setting-chip[data-ls]').forEach((btn) => {

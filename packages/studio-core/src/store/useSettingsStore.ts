@@ -300,3 +300,8 @@ export const settingsController = {
     return { theme: nextTheme, amoledMode: nextAmoled };
   },
 };
+
+if (typeof window !== 'undefined') {
+  (window as any).useSettingsStore = useSettingsStore;
+  (window as any).settingsController = settingsController;
+}

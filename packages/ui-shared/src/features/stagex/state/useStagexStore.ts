@@ -63,6 +63,7 @@ export interface BandMember {
   id: string;
   name: string;
   role: string;
+  tags?: string[];
   color?: string;
   email?: string;
   phone?: string;
@@ -76,7 +77,7 @@ export interface StagexPreferences {
   connectionsVisible: boolean;
   connLineStyle: 'solid' | 'dashed' | 'dotted';
   labelsVisible: boolean;
-  reducedAnimations: boolean;
+  reducedAnimations?: boolean;
   stageUnits: 'meters' | 'feet';
   stageWidth: number;
   stageDepth: number;
@@ -85,6 +86,8 @@ export interface StagexPreferences {
   showCableLength?: boolean;
   autoWire?: boolean;
   stageBalanceVisible?: boolean;
+  audioCoverageVisible?: boolean;
+  stageGuidesVisible?: boolean;
 }
 
 export type StagexSubView = 'hub' | 'rider' | 'setlist' | 'gear' | 'members';
@@ -163,7 +166,8 @@ const DEFAULT_PREFERENCES: StagexPreferences = {
   stageShape: 'rectangular',
   showCableLength: false,
   autoWire: false,
-  stageBalanceVisible: false,
+  audioCoverageVisible: true,
+  stageGuidesVisible: true,
 };
 
 function readProjectStorage(): Record<string, any> {

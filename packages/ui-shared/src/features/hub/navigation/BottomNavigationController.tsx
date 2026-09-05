@@ -434,7 +434,8 @@ export function BottomNavigationController() {
     toggleProfileMenu,
   ]);
 
-  const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible;
+  const isDrumexEditor = currentApp === 'drumex' && (currentRoute as any)?.subView === 'editor';
+  const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible && !isDrumexEditor;
 
   return (
     <NavigationAnimationProvider activeTab={activeTab} items={computedItems}>

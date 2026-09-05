@@ -839,8 +839,7 @@ export function loadDrumSamples(kit: KitType) {
   try {
     const { ctx } = getCtx();
     samplePool.loadForKit(kit, ctx);
-  } catch (e) {
-  }
+  } catch (e) {}
 }
 
 // ── House Kit — multi-velocity local Opus sample pool ───────────────────────
@@ -1041,8 +1040,7 @@ export function loadHouseKit(mic: HouseMic) {
     _houseKitMic = mic;
     houseKitPool.load(mic, ctx);
     cymbalPool.load(ctx);
-  } catch (e) {
-  }
+  } catch (e) {}
 }
 
 // ── House Kit Cymbal Pool — hi-hat, crash, ride WAV samples ─────────────────
@@ -2703,6 +2701,10 @@ class DrumScheduler {
     if (this._currentStep >= this._totalSteps) this._currentStep = 0;
   }
 
+  setVolumeMap(volMap: Partial<Record<DrumInstrument, number>>) {
+    this._volMap = volMap;
+  }
+
   setMasterVolume(vol: number) {
     this._masterVol = vol;
     if (_masterGain && _ctx) _masterGain.gain.linearRampToValueAtTime(vol, _ctx.currentTime + 0.05);
@@ -2723,7 +2725,10 @@ let _lastActivePatternRef: unknown = null;
 useDrumStore.subscribe((state) => {
   const activePattern =
     state.patterns.find((p) => p.id === state.activePatternId) ?? state.patterns[0];
-  if (activePattern && (activePattern.id !== _lastActivePatternId || activePattern !== _lastActivePatternRef)) {
+  if (
+    activePattern &&
+    (activePattern.id !== _lastActivePatternId || activePattern !== _lastActivePatternRef)
+  ) {
     _lastActivePatternId = activePattern.id;
     _lastActivePatternRef = activePattern;
     drumScheduler.updatePattern(activePattern);

@@ -153,15 +153,15 @@ import {
   SegmentedControl,
 } from '../../../shared/settings/SettingControls';
 
-// â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const LABEL_W = 72;
-const ROW_H = 40;
-const RULER_H = 20;
+// ── Layout ──────────────────────────────────────────────────────────────────
+const LABEL_W = 104;
+const ROW_H = 44;
+const RULER_H = 28;
 const SYS_SEP = 10;
 const MIN_STEP = 16;
 
 // Core instruments always visible; extras are collapsible.
-// Order mirrors KIT_INSTRUMENTS display order: high â†’ low pitch.
+// Order mirrors KIT_INSTRUMENTS display order: high → low pitch.
 const CORE_INSTS: DrumInstrument[] = ['hihat-closed', 'snare', 'kick', 'crash'];
 
 const getInstrumentColor = (inst: DrumInstrument, isLight: boolean, noteColor: string): string => {
@@ -191,7 +191,7 @@ const getInstrumentColor = (inst: DrumInstrument, isLight: boolean, noteColor: s
 // Staff lines within each row (fraction of ROW_H)
 const STAFF_YF = [0.29, 0.52, 0.75] as const;
 
-// Notehead vertical position within ROW_H â€” mirrors real notation positions
+// Notehead vertical position within ROW_H — mirrors real notation positions
 const NOTE_YF: Record<DrumInstrument, number> = {
   crash: 0.12,
   'hihat-closed': 0.12,
@@ -230,21 +230,21 @@ const INST_LABEL: Record<DrumInstrument, string> = {
   ride: 'Ride',
 };
 const KIT_LABEL: Record<KitType, string> = {
-  ludwig: 'Acoustic â€” House Kit',
-  jazz: 'Acoustic â€” House Kit',
-  rock: 'Acoustic â€” House Kit',
-  vintage: 'Acoustic â€” House Kit',
-  studio: 'Acoustic â€” House Kit',
-  r8: 'Acoustic â€” House Kit',
-  linn: 'Acoustic â€” House Kit',
-  funk: 'Acoustic â€” House Kit',
-  cr78: 'Acoustic â€” House Kit',
-  tr808: 'Acoustic â€” House Kit',
-  techno: 'Acoustic â€” House Kit',
-  stark: 'Acoustic â€” House Kit',
-  rmm: 'Acoustic â€” House Kit',
-  chrome: 'Acoustic â€” House Kit',
-  house: 'Acoustic â€” House Kit',
+  ludwig: 'Acoustic • House Kit',
+  jazz: 'Acoustic • House Kit',
+  rock: 'Acoustic • House Kit',
+  vintage: 'Acoustic • House Kit',
+  studio: 'Acoustic • House Kit',
+  r8: 'Acoustic • House Kit',
+  linn: 'Acoustic • House Kit',
+  funk: 'Acoustic • House Kit',
+  cr78: 'Acoustic • House Kit',
+  tr808: 'Acoustic • House Kit',
+  techno: 'Acoustic • House Kit',
+  stark: 'Acoustic • House Kit',
+  rmm: 'Acoustic • House Kit',
+  chrome: 'Acoustic • House Kit',
+  house: 'Acoustic • House Kit',
 };
 
 // â”€â”€ Per-instrument character presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -789,7 +789,7 @@ export default function DrumEditor() {
   const barColor = isLight ? 'rgba(9, 9, 11, 0.25)' : 'rgba(255, 255, 255, 0.15)';
   const altBg = isLight ? 'rgba(9, 9, 11, 0.015)' : 'rgba(255, 255, 255, 0.008)';
 
-  const ROW_H = isWebDesktop ? 68 : 42;
+  const ROW_H = isWebDesktop ? 68 : 44;
   const rowGap = isWebDesktop ? 8 : 0;
 
   // â”€â”€ Landscape detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1018,6 +1018,10 @@ export default function DrumEditor() {
   const [showSoundCharacter, setShowSoundCharacter] = useState(false);
   const [expandedCats, setExpandedCats] = useState<Set<string>>(() => new Set(['acoustic']));
   const [focusedInst, setFocusedInst] = useState<DrumInstrument | null>(null);
+  const [soloInst, setSoloInst] = useState<DrumInstrument | null>(null);
+  const handleToggleSolo = useCallback((inst: DrumInstrument) => {
+    setSoloInst((prev) => (prev === inst ? null : inst));
+  }, []);
   const [sideTab, setSideTab] = useState<'kit' | 'mixer' | 'fx'>('kit');
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
   // Songs panel state
@@ -1254,9 +1258,8 @@ export default function DrumEditor() {
     [pattern.mutedInstruments]
   );
   const visibleInsts = useMemo(() => {
-    const base = showExtraRows ? ALL_INSTS : ALL_INSTS.filter((i) => CORE_INSTS.includes(i));
-    return base.filter((i) => !patternMuted.has(i));
-  }, [ALL_INSTS, showExtraRows, patternMuted]);
+    return showExtraRows ? ALL_INSTS : ALL_INSTS.filter((i) => CORE_INSTS.includes(i));
+  }, [ALL_INSTS, showExtraRows]);
 
   // â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const availableW = containerW - LABEL_W;
@@ -1675,13 +1678,44 @@ export default function DrumEditor() {
     const sm = { ...KIT_DEFAULTS[kit].soundMap, ...soundMap };
     const vol: Partial<Record<DrumInstrument, number>> = {};
     activeInstruments.forEach((i) => {
-      vol[i] = volumeMap[i] ?? 1.0;
+      if (soloInst) {
+        vol[i] = i === soloInst ? (volumeMap[i] ?? 1.0) : 0;
+      } else if (pattern.mutedInstruments?.includes(i)) {
+        vol[i] = 0;
+      } else {
+        vol[i] = volumeMap[i] ?? 1.0;
+      }
     });
     if (kit === 'house') loadHouseKit(houseKitMic);
     else loadDrumSamples(kit);
     drumScheduler.start(pattern, sm, vol, masterVolume, looping, kit);
     setPlaying(true);
-  }, [pattern, kit, soundMap, volumeMap, activeInstruments, masterVolume, looping, houseKitMic]);
+  }, [
+    pattern,
+    kit,
+    soundMap,
+    volumeMap,
+    activeInstruments,
+    masterVolume,
+    looping,
+    houseKitMic,
+    soloInst,
+  ]);
+
+  useEffect(() => {
+    if (!drumScheduler.isPlaying) return;
+    const vol: Partial<Record<DrumInstrument, number>> = {};
+    activeInstruments.forEach((i) => {
+      if (soloInst) {
+        vol[i] = i === soloInst ? (volumeMap[i] ?? 1.0) : 0;
+      } else if (pattern.mutedInstruments?.includes(i)) {
+        vol[i] = 0;
+      } else {
+        vol[i] = volumeMap[i] ?? 1.0;
+      }
+    });
+    drumScheduler.setVolumeMap(vol);
+  }, [soloInst, pattern.mutedInstruments, volumeMap, activeInstruments]);
 
   const handlePlay = useCallback(() => {
     if (drumScheduler.isPlaying || countingIn) {
@@ -2488,217 +2522,239 @@ export default function DrumEditor() {
         WebkitUserSelect: 'none',
       }}
     >
-      {/* â”€â”€ Safe-area spacer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {inEditor && !isLandscape && (
-        <div
-          style={{ height: 'env(safe-area-inset-top)', background: 'var(--app-bg)', flexShrink: 0 }}
-        />
-      )}
-
-      {/* â”€â”€ Top bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
-      {!isWebDesktop ? (
-        <div
-          style={{
-            flexShrink: 0,
-            height: inEditor ? (isLandscape ? 40 : 58) : 0,
-            display: inEditor ? 'flex' : 'none',
-            alignItems: 'center',
-            padding: isLandscape && inEditor ? '0 10px' : inEditor ? '0 20px' : '0',
-            gap: isLandscape && inEditor ? 6 : 8,
-            background: 'var(--app-bg)',
-            borderBottom: isLandscape && inEditor ? '1px solid rgba(128,128,128,0.06)' : 'none',
-          }}
-        >
-          {inEditor ? (
-            <>
-              <button
-                onClick={handleBack}
-                className="btn-smooth"
-                aria-label="Back"
-                style={{
-                  width: isLandscape ? 30 : 40,
-                  height: isLandscape ? 30 : 40,
-                  borderRadius: '50%',
-                  background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.08)',
-                  border: isLight
-                    ? '1px solid rgba(0,0,0,0.08)'
-                    : '1px solid rgba(255,255,255,0.10)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
-                <span
-                  className="material-symbols-outlined"
-                  style={{ color: 'var(--c-text-primary)', fontSize: isLandscape ? 17 : 20 }}
-                >
-                  arrow_back
-                </span>
-              </button>
-              {activeSong && (
-                <p
+      {/* ── Floating Pill Top Bar (Canonical Studio Language) ───────── */}
+      {!isWebDesktop
+        ? inEditor && (
+            <header
+              className={`fixed left-3 right-3 z-50 rounded-full px-3.5 ${
+                isLandscape ? 'py-1.5' : 'py-2'
+              } backdrop-blur-md shadow-[0_6px_28px_rgba(0,0,0,0.08)] border flex items-center justify-between select-none ${
+                isAmoled
+                  ? 'bg-black/92 border-zinc-800 text-white'
+                  : isLight
+                    ? 'bg-white/95 border-slate-200/80 text-slate-800'
+                    : 'bg-zinc-900/92 border-zinc-800 text-zinc-100'
+              }`}
+              style={{
+                top: isLandscape
+                  ? 'calc(env(safe-area-inset-top, 0px) + 6px)'
+                  : 'calc(env(safe-area-inset-top, 0px) + 10px)',
+              }}
+            >
+              {/* Left: Back Button */}
+              <div className="flex items-center gap-1.5 w-16 sm:w-20">
+                <button
+                  onClick={handleBack}
+                  className="w-8 h-8 rounded-full flex items-center justify-center transition active:scale-95 cursor-pointer"
                   style={{
-                    flex: 1,
+                    background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.08)',
                     color: 'var(--c-text-primary)',
-                    fontFamily: 'var(--font-headline)',
-                    fontWeight: 700,
-                    fontSize: isLandscape ? 12 : 13,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    margin: 0,
-                    minWidth: 0,
+                  }}
+                  aria-label="Back"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                </button>
+              </div>
+
+              {/* Center: Pattern Metadata & Info */}
+              <div className="flex flex-col items-center justify-center text-center flex-1 min-w-0 px-1">
+                <div className="flex items-center gap-1.5 justify-center max-w-full">
+                  <span className="text-xs sm:text-sm font-bold tracking-tight truncate max-w-[110px] sm:max-w-[160px]">
+                    {activeSong?.name ?? pattern.name ?? '01'}
+                  </span>
+                  <button
+                    onClick={() => setShowBpmPanel((s) => !s)}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border transition active:scale-95 cursor-pointer"
+                    style={{
+                      background: isLight ? '#eff6ff' : 'rgba(0,122,255,0.15)',
+                      color: '#007aff',
+                      borderColor: isLight ? '#dbeafe' : 'rgba(0,122,255,0.35)',
+                    }}
+                    title="Adjust BPM & Swing"
+                  >
+                    {pattern.bpm} BPM
+                  </button>
+                  <span className="text-[11px] font-semibold text-slate-400 dark:text-zinc-500">
+                    {pattern.timeSignature[0]}/{pattern.timeSignature[1]}
+                  </span>
+                </div>
+                {!isLandscape && (
+                  <p className="text-[9px] text-slate-400 dark:text-zinc-500 font-medium tracking-wide truncate mt-0.5 max-w-[220px]">
+                    {KIT_LABEL[kit] ?? 'Acoustic • House Kit'} • {pattern.subdivision}th Master
+                  </p>
+                )}
+              </div>
+
+              {/* Right: Actions (Undo, Redo, Landscape Play, Menu) */}
+              <div className="flex items-center justify-end gap-1 w-16 sm:w-20">
+                {isLandscape && (
+                  <button
+                    onClick={handlePlay}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white bg-[#007aff] transition active:scale-95 cursor-pointer"
+                    aria-label={playing ? 'Pause' : 'Play'}
+                    title={playing ? 'Pause' : 'Play'}
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      {playing ? 'pause' : 'play_arrow'}
+                    </span>
+                  </button>
+                )}
+                <button
+                  onClick={handleUndo}
+                  disabled={historyCount === 0}
+                  className="w-7 h-7 rounded-full flex items-center justify-center transition active:scale-95 cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
+                  style={{ color: 'var(--c-text-secondary)' }}
+                  title="Undo (Ctrl+Z)"
+                  aria-label="Undo"
+                >
+                  <span className="material-symbols-outlined text-[17px]">undo</span>
+                </button>
+                <button
+                  onClick={handleRedo}
+                  disabled={redoStack.current.length === 0}
+                  className="w-7 h-7 rounded-full flex items-center justify-center transition active:scale-95 cursor-pointer disabled:opacity-30 disabled:pointer-events-none"
+                  style={{ color: 'var(--c-text-secondary)' }}
+                  title="Redo (Ctrl+Y)"
+                  aria-label="Redo"
+                >
+                  <span className="material-symbols-outlined text-[17px]">redo</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (showHamburger) {
+                      setHamburgerClosing(true);
+                      setTimeout(() => {
+                        setShowHamburger(false);
+                        setHamburgerClosing(false);
+                      }, 170);
+                    } else {
+                      setShowHamburger(true);
+                    }
+                  }}
+                  className="w-7 h-7 rounded-full flex items-center justify-center transition active:scale-95 cursor-pointer"
+                  style={{
+                    background: showHamburger
+                      ? `${accent.from}1e`
+                      : isLight
+                        ? 'rgba(0,0,0,0.05)'
+                        : 'rgba(255,255,255,0.08)',
+                    color: showHamburger ? accent.from : 'var(--c-text-primary)',
+                  }}
+                  title="Toggle Menu"
+                  aria-label="Toggle Menu"
+                >
+                  <span className="material-symbols-outlined text-[18px]">menu</span>
+                </button>
+              </div>
+            </header>
+          )
+        : inEditor && (
+            <div
+              className={`h-12 border-b px-5 flex items-center justify-between flex-shrink-0 select-none ${
+                isLight ? 'border-zinc-200 bg-zinc-50' : 'border-zinc-900 bg-[#000000]'
+              }`}
+            >
+              {/* Left Group: App Logo + Section + Title */}
+              <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                {/* Module Brand */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span
+                    className={`text-[10px] font-black uppercase tracking-[0.2em] ${isLight ? 'text-zinc-900' : 'text-white'}`}
+                  >
+                    DRUMEX
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold ${isLight ? 'text-zinc-300' : 'text-zinc-800'}`}
+                  >
+                    |
+                  </span>
+                  <span
+                    className={`text-[9.5px] font-extrabold uppercase tracking-widest ${isLight ? 'text-zinc-500' : 'text-zinc-450'}`}
+                  >
+                    STEP SEQUENCER
+                  </span>
+                </div>
+                <div className={`h-4.5 w-[1px] ${isLight ? 'bg-zinc-200' : 'bg-zinc-850'}`} />
+                {/* Back button */}
+                <button
+                  onClick={handleBack}
+                  className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border ${
+                    isLight
+                      ? 'bg-transparent text-zinc-700 border-zinc-200 hover:border-zinc-350 hover:text-black'
+                      : 'bg-transparent text-zinc-405 border-zinc-900 hover:text-white hover:border-zinc-800'
+                  }`}
+                  title="Back to Beats"
+                  aria-label="Back"
+                >
+                  <span className="material-symbols-outlined text-[15px]">arrow_back</span>
+                </button>
+
+                {/* Beat title */}
+                <div className="flex flex-col min-w-0">
+                  <span
+                    className={`text-[11px] font-extrabold uppercase tracking-widest ${isLight ? 'text-zinc-800' : 'text-white'} truncate`}
+                  >
+                    {activeSong?.name || 'Untitled Beat'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Center Group: Transport Controls */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
+                    border: isLight
+                      ? '1px solid rgba(0,0,0,0.08)'
+                      : '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: '12px',
+                    padding: '4px 12px',
+                    height: 40,
                   }}
                 >
-                  {activeSong.name}
-                </p>
-              )}
-              {!activeSong && <div style={{ flex: 1 }} />}
-              {/* Editor controls â€” only on the grid tab */}
-              {activeTab === 'songs' && (
-                <>
-                  {/* Landscape inline BPM + Play */}
-                  {isLandscape && (
-                    <>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 3,
-                          background: 'rgba(128,128,128,0.06)',
-                          borderRadius: 8,
-                          padding: '0 4px',
-                          height: 28,
-                        }}
-                      >
-                        <button
-                          onClick={() => adjustBpm(-1)}
-                          className="btn-smooth"
-                          title="Decrease BPM by 1"
-                          aria-label="Decrease BPM by 1"
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 6,
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'var(--c-text-muted)',
-                            fontSize: 14,
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          âˆ’
-                        </button>
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 800,
-                            fontFamily: 'Manrope,sans-serif',
-                            color: accent.from,
-                            minWidth: 28,
-                            textAlign: 'center',
-                          }}
-                        >
-                          {pattern.bpm}
-                        </span>
-                        <button
-                          onClick={() => adjustBpm(1)}
-                          className="btn-smooth"
-                          title="Increase BPM by 1"
-                          aria-label="Increase BPM by 1"
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 6,
-                            background: 'transparent',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'var(--c-text-muted)',
-                            fontSize: 14,
-                            fontWeight: 700,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          +
-                        </button>
-                      </div>
-                      <div style={{ width: 1, height: 18, background: 'rgba(128,128,128,0.12)' }} />
-                      <button
-                        onClick={handlePlay}
-                        className="btn-smooth"
-                        title={playing ? 'Stop Playback' : 'Start Playback'}
-                        aria-label={playing ? 'Stop' : 'Play'}
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: '50%',
-                          border: 'none',
-                          background: playing
-                            ? 'rgba(128,128,128,0.12)'
-                            : `linear-gradient(135deg,${accent.from},${accent.to})`,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 11,
-                          color: playing ? 'var(--c-text-secondary)' : '#fff',
-                          transition: 'all 150ms',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {playing ? 'â¹' : 'â–¶'}
-                      </button>
-                      <div style={{ width: 1, height: 18, background: 'rgba(128,128,128,0.12)' }} />
-                    </>
-                  )}
-                  {/* Undo / Redo */}
+                  {/* Undo */}
                   <button
                     onClick={handleUndo}
                     disabled={historyCount === 0}
                     title="Undo (Ctrl+Z)"
+                    aria-label="Undo"
+                    className="btn-smooth"
                     style={{
-                      height: 30,
-                      width: 30,
-                      borderRadius: 8,
-                      background: historyCount > 0 ? 'rgba(128,128,128,0.08)' : 'transparent',
-                      border: `1px solid ${historyCount > 0 ? 'rgba(128,128,128,0.18)' : 'transparent'}`,
+                      height: 28,
+                      width: 28,
+                      borderRadius: 6,
+                      background: 'transparent',
+                      border: 'none',
                       cursor: historyCount > 0 ? 'pointer' : 'default',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: historyCount > 0 ? 'var(--c-text-secondary)' : 'var(--c-text-muted)',
                       opacity: historyCount > 0 ? 1 : 0.35,
-                      flexShrink: 0,
-                      transition: 'all 180ms',
-                      padding: 0,
+                      transition: 'all 150ms',
                     }}
                   >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 17, lineHeight: 1 }}
-                    >
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                       undo
                     </span>
                   </button>
+
+                  {/* Redo */}
                   <button
                     onClick={handleRedo}
                     disabled={redoStack.current.length === 0}
                     title="Redo (Ctrl+Y)"
+                    aria-label="Redo"
+                    className="btn-smooth"
                     style={{
-                      height: 30,
-                      width: 30,
-                      borderRadius: 8,
-                      background:
-                        redoStack.current.length > 0 ? 'rgba(128,128,128,0.08)' : 'transparent',
-                      border: `1px solid ${redoStack.current.length > 0 ? 'rgba(128,128,128,0.18)' : 'transparent'}`,
+                      height: 28,
+                      width: 28,
+                      borderRadius: 6,
+                      background: 'transparent',
+                      border: 'none',
                       cursor: redoStack.current.length > 0 ? 'pointer' : 'default',
                       display: 'flex',
                       alignItems: 'center',
@@ -2708,718 +2764,657 @@ export default function DrumEditor() {
                           ? 'var(--c-text-secondary)'
                           : 'var(--c-text-muted)',
                       opacity: redoStack.current.length > 0 ? 1 : 0.35,
-                      flexShrink: 0,
-                      transition: 'all 180ms',
-                      padding: 0,
+                      transition: 'all 150ms',
                     }}
                   >
-                    <span
-                      className="material-symbols-outlined"
-                      style={{ fontSize: 17, lineHeight: 1 }}
-                    >
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
                       redo
                     </span>
                   </button>
-                  <button
-                    onClick={() => {
-                      if (showHamburger) {
-                        setHamburgerClosing(true);
-                        setTimeout(() => {
-                          setShowHamburger(false);
-                          setHamburgerClosing(false);
-                        }, 170);
-                      } else {
-                        setShowHamburger(true);
-                      }
-                    }}
-                    title="Toggle Menu"
-                    aria-label="Toggle Menu"
+
+                  <div
                     style={{
-                      height: 30,
-                      width: 38,
-                      borderRadius: 8,
-                      background: showHamburger ? `${accent.from}1e` : 'rgba(128,128,128,0.08)',
-                      border: `1px solid ${showHamburger ? accent.from + '33' : 'rgba(128,128,128,0.1)'}`,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px',
-                      flexShrink: 0,
-                      transition: 'all 180ms',
+                      width: 1,
+                      height: 18,
+                      background: isLight ? 'rgba(9, 9, 11, 0.12)' : 'rgba(255, 255, 255, 0.08)',
                     }}
-                  >
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        style={{
-                          display: 'block',
-                          width: i === 1 ? 10 : 14,
-                          height: 1.5,
-                          background: showHamburger ? accent.from : 'var(--c-text-secondary)',
-                          borderRadius: 2,
-                          transition: 'all 200ms',
-                        }}
-                      />
-                    ))}
-                  </button>
-                </>
-              )}
-            </>
-          ) : (
-            <div style={{ flex: 1 }} />
-          )}
-        </div>
-      ) : (
-        inEditor && (
-          <div
-            className={`h-12 border-b px-5 flex items-center justify-between flex-shrink-0 select-none ${
-              isLight ? 'border-zinc-200 bg-zinc-50' : 'border-zinc-900 bg-[#000000]'
-            }`}
-          >
-            {/* Left Group: App Logo + Section + Title */}
-            <div className="flex items-center gap-3.5 flex-1 min-w-0">
-              {/* Module Brand */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span
-                  className={`text-[10px] font-black uppercase tracking-[0.2em] ${isLight ? 'text-zinc-900' : 'text-white'}`}
-                >
-                  DRUMEX
-                </span>
-                <span
-                  className={`text-[10px] font-bold ${isLight ? 'text-zinc-300' : 'text-zinc-800'}`}
-                >
-                  |
-                </span>
-                <span
-                  className={`text-[9.5px] font-extrabold uppercase tracking-widest ${isLight ? 'text-zinc-500' : 'text-zinc-450'}`}
-                >
-                  STEP SEQUENCER
-                </span>
-              </div>
-              <div className={`h-4.5 w-[1px] ${isLight ? 'bg-zinc-200' : 'bg-zinc-850'}`} />
-              {/* Back button */}
-              <button
-                onClick={handleBack}
-                className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer border ${
-                  isLight
-                    ? 'bg-transparent text-zinc-700 border-zinc-200 hover:border-zinc-350 hover:text-black'
-                    : 'bg-transparent text-zinc-405 border-zinc-900 hover:text-white hover:border-zinc-800'
-                }`}
-                title="Back to Beats"
-                aria-label="Back"
-              >
-                <span className="material-symbols-outlined text-[15px]">arrow_back</span>
-              </button>
+                  />
 
-              {/* Beat title */}
-              <div className="flex flex-col min-w-0">
-                <span
-                  className={`text-[11px] font-extrabold uppercase tracking-widest ${isLight ? 'text-zinc-800' : 'text-white'} truncate`}
-                >
-                  {activeSong?.name || 'Untitled Beat'}
-                </span>
-              </div>
-            </div>
-
-            {/* Center Group: Transport Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: '0 0 auto' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  background: isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)',
-                  border: isLight
-                    ? '1px solid rgba(0,0,0,0.08)'
-                    : '1px solid rgba(255,255,255,0.08)',
-                  borderRadius: '12px',
-                  padding: '4px 12px',
-                  height: 40,
-                }}
-              >
-                {/* Undo */}
-                <button
-                  onClick={handleUndo}
-                  disabled={historyCount === 0}
-                  title="Undo (Ctrl+Z)"
-                  aria-label="Undo"
-                  className="btn-smooth"
-                  style={{
-                    height: 28,
-                    width: 28,
-                    borderRadius: 6,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: historyCount > 0 ? 'pointer' : 'default',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: historyCount > 0 ? 'var(--c-text-secondary)' : 'var(--c-text-muted)',
-                    opacity: historyCount > 0 ? 1 : 0.35,
-                    transition: 'all 150ms',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                    undo
-                  </span>
-                </button>
-
-                {/* Redo */}
-                <button
-                  onClick={handleRedo}
-                  disabled={redoStack.current.length === 0}
-                  title="Redo (Ctrl+Y)"
-                  aria-label="Redo"
-                  className="btn-smooth"
-                  style={{
-                    height: 28,
-                    width: 28,
-                    borderRadius: 6,
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: redoStack.current.length > 0 ? 'pointer' : 'default',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color:
-                      redoStack.current.length > 0
-                        ? 'var(--c-text-secondary)'
-                        : 'var(--c-text-muted)',
-                    opacity: redoStack.current.length > 0 ? 1 : 0.35,
-                    transition: 'all 150ms',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                    redo
-                  </span>
-                </button>
-
-                <div
-                  style={{
-                    width: 1,
-                    height: 18,
-                    background: isLight ? 'rgba(9, 9, 11, 0.12)' : 'rgba(255, 255, 255, 0.08)',
-                  }}
-                />
-
-                {/* Play/Stop */}
-                <button
-                  onClick={handlePlay}
-                  className="btn-smooth"
-                  title={playing ? 'Stop Playback' : 'Start Playback'}
-                  aria-label={playing ? 'Stop' : 'Play'}
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: '50%',
-                    border: 'none',
-                    background: playing ? '#ef4444' : isLight ? '#18181b' : '#ffffff',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: playing ? '#ffffff' : isLight ? '#ffffff' : '#18181b',
-                    transition: 'all 150ms',
-                    flexShrink: 0,
-                  }}
-                >
-                  {playing ? 'â¹' : 'â–¶'}
-                </button>
-
-                <div
-                  style={{
-                    width: 1,
-                    height: 18,
-                    background: isLight ? 'rgba(9, 9, 11, 0.12)' : 'rgba(255, 255, 255, 0.08)',
-                  }}
-                />
-
-                {/* Subdivision */}
-                <button
-                  onClick={toggleSub}
-                  className="btn-smooth"
-                  title="Step Resolution (Subdivision)"
-                  aria-label="Step Resolution (Subdivision)"
-                  style={{
-                    height: 24,
-                    padding: '0 8px',
-                    borderRadius: 6,
-                    background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
-                    border: isLight
-                      ? '1px solid rgba(0,0,0,0.08)'
-                      : '1px solid rgba(255,255,255,0.08)',
-                    cursor: 'pointer',
-                    color: 'var(--c-text-secondary)',
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                  }}
-                >
-                  1/{pattern.subdivision}
-                </button>
-
-                <div
-                  style={{
-                    width: 1,
-                    height: 18,
-                    background: isLight ? 'rgba(9, 9, 11, 0.12)' : 'rgba(255, 255, 255, 0.08)',
-                  }}
-                />
-
-                {/* Tempo & Metronome */}
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  {/* Play/Stop */}
                   <button
-                    ref={metronomeBtnRef}
-                    onClick={() => setShowBpmPopover((s) => !s)}
+                    onClick={handlePlay}
                     className="btn-smooth"
+                    title={playing ? 'Stop Playback' : 'Start Playback'}
+                    aria-label={playing ? 'Stop' : 'Play'}
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 6,
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
                       border: 'none',
-                      background:
-                        showBpmPopover || drumPrefs.metronome ? `${accent.from}1a` : 'transparent',
+                      background: playing ? '#ef4444' : isLight ? '#18181b' : '#ffffff',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color:
-                        showBpmPopover || drumPrefs.metronome
-                          ? accent.from
-                          : 'var(--c-text-secondary)',
+                      color: playing ? '#ffffff' : isLight ? '#ffffff' : '#18181b',
                       transition: 'all 150ms',
+                      flexShrink: 0,
                     }}
-                    title="Tempo & Metronome"
-                    aria-label="Tempo and Metronome"
                   >
-                    <MetronomeIcon size={16} />
+                    {playing ? 'â¹' : 'â–¶'}
                   </button>
 
-                  {showBpmPopover &&
-                    createPortal(
-                      <>
-                        {/* Click-away overlay */}
-                        <div
-                          onClick={() => {
-                            commitBpm(bpmInputVal);
-                            setShowBpmPopover(false);
-                          }}
-                          style={{
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 998,
-                            cursor: 'default',
-                          }}
-                        />
-                        {/* Popover Card */}
-                        <div
-                          style={{
-                            position: 'fixed',
-                            top: popoverCoords?.top ?? 0,
-                            left: popoverCoords?.left ?? 0,
-                            background: isLight ? '#ffffff' : '#18181b',
-                            border: isLight
-                              ? '1px solid rgba(0,0,0,0.1)'
-                              : '1px solid rgba(255,255,255,0.1)',
-                            borderRadius: 12,
-                            padding: '16px',
-                            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-                            backdropFilter: 'blur(20px)',
-                            minWidth: 260,
-                            width: 260,
-                            zIndex: 999,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 12,
-                          }}
-                        >
-                          {/* Title / Header */}
+                  <div
+                    style={{
+                      width: 1,
+                      height: 18,
+                      background: isLight ? 'rgba(9, 9, 11, 0.12)' : 'rgba(255, 255, 255, 0.08)',
+                    }}
+                  />
+
+                  {/* Subdivision */}
+                  <button
+                    onClick={toggleSub}
+                    className="btn-smooth"
+                    title="Step Resolution (Subdivision)"
+                    aria-label="Step Resolution (Subdivision)"
+                    style={{
+                      height: 24,
+                      padding: '0 8px',
+                      borderRadius: 6,
+                      background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.04)',
+                      border: isLight
+                        ? '1px solid rgba(0,0,0,0.08)'
+                        : '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer',
+                      color: 'var(--c-text-secondary)',
+                      fontSize: 10.5,
+                      fontWeight: 700,
+                    }}
+                  >
+                    1/{pattern.subdivision}
+                  </button>
+
+                  <div
+                    style={{
+                      width: 1,
+                      height: 18,
+                      background: isLight ? 'rgba(9, 9, 11, 0.12)' : 'rgba(255, 255, 255, 0.08)',
+                    }}
+                  />
+
+                  {/* Tempo & Metronome */}
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <button
+                      ref={metronomeBtnRef}
+                      onClick={() => setShowBpmPopover((s) => !s)}
+                      className="btn-smooth"
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 6,
+                        border: 'none',
+                        background:
+                          showBpmPopover || drumPrefs.metronome
+                            ? `${accent.from}1a`
+                            : 'transparent',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color:
+                          showBpmPopover || drumPrefs.metronome
+                            ? accent.from
+                            : 'var(--c-text-secondary)',
+                        transition: 'all 150ms',
+                      }}
+                      title="Tempo & Metronome"
+                      aria-label="Tempo and Metronome"
+                    >
+                      <MetronomeIcon size={16} />
+                    </button>
+
+                    {showBpmPopover &&
+                      createPortal(
+                        <>
+                          {/* Click-away overlay */}
                           <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              borderBottom: isLight
-                                ? '1px solid rgba(0,0,0,0.06)'
-                                : '1px solid rgba(255,255,255,0.06)',
-                              paddingBottom: 8,
+                            onClick={() => {
+                              commitBpm(bpmInputVal);
+                              setShowBpmPopover(false);
                             }}
-                          >
-                            <span
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 800,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.05em',
-                                color: 'var(--c-text-secondary)',
-                              }}
-                            >
-                              Tempo & Metronome
-                            </span>
-                            <span style={{ fontSize: 11, fontWeight: 700, color: accent.from }}>
-                              {pattern.bpm} BPM
-                            </span>
-                          </div>
-
-                          {/* Tempo Section */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <input
-                                type="text"
-                                value={bpmInputVal}
-                                onChange={(e) => setBpmInputVal(e.target.value)}
-                                onBlur={(e) => commitBpm(e.target.value)}
-                                onKeyDown={handleBpmKeyDown}
-                                style={{
-                                  width: 56,
-                                  height: 32,
-                                  borderRadius: 6,
-                                  border: isLight
-                                    ? '1px solid rgba(0,0,0,0.15)'
-                                    : '1px solid rgba(255,255,255,0.15)',
-                                  background: 'transparent',
-                                  textAlign: 'center',
-                                  fontSize: 14,
-                                  fontWeight: 850,
-                                  color: 'var(--c-text-primary)',
-                                  fontFamily: 'monospace',
-                                }}
-                              />
-                              <div style={{ display: 'flex', gap: 3, flex: 1 }}>
-                                <button
-                                  onClick={() => changeBpmBy(-5)}
-                                  style={{
-                                    flex: 1,
-                                    height: 32,
-                                    borderRadius: 6,
-                                    border: 'none',
-                                    background: isLight
-                                      ? 'rgba(0,0,0,0.05)'
-                                      : 'rgba(255,255,255,0.05)',
-                                    color: 'var(--c-text-secondary)',
-                                    cursor: 'pointer',
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  -5
-                                </button>
-                                <button
-                                  onClick={() => changeBpmBy(-1)}
-                                  style={{
-                                    flex: 1,
-                                    height: 32,
-                                    borderRadius: 6,
-                                    border: 'none',
-                                    background: isLight
-                                      ? 'rgba(0,0,0,0.05)'
-                                      : 'rgba(255,255,255,0.05)',
-                                    color: 'var(--c-text-secondary)',
-                                    cursor: 'pointer',
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  -1
-                                </button>
-                                <button
-                                  onClick={() => changeBpmBy(1)}
-                                  style={{
-                                    flex: 1,
-                                    height: 32,
-                                    borderRadius: 6,
-                                    border: 'none',
-                                    background: isLight
-                                      ? 'rgba(0,0,0,0.05)'
-                                      : 'rgba(255,255,255,0.05)',
-                                    color: 'var(--c-text-secondary)',
-                                    cursor: 'pointer',
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  +1
-                                </button>
-                                <button
-                                  onClick={() => changeBpmBy(5)}
-                                  style={{
-                                    flex: 1,
-                                    height: 32,
-                                    borderRadius: 6,
-                                    border: 'none',
-                                    background: isLight
-                                      ? 'rgba(0,0,0,0.05)'
-                                      : 'rgba(255,255,255,0.05)',
-                                    color: 'var(--c-text-secondary)',
-                                    cursor: 'pointer',
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  +5
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Range Slider */}
-                            <input
-                              type="range"
-                              min={40}
-                              max={280}
-                              step={1}
-                              value={pattern.bpm}
-                              onChange={(e) => {
-                                const val = Number(e.target.value);
-                                setBpmInputVal(val.toString());
-                                updatePattern(pattern.id, { bpm: val });
-                              }}
-                              style={{
-                                width: '100%',
-                                cursor: 'pointer',
-                                accentColor: accent.from,
-                                height: 16,
-                              }}
-                            />
-
-                            {/* Tap Tempo Button */}
-                            <button
-                              onClick={handleTapTempo}
-                              style={{
-                                width: '100%',
-                                height: 32,
-                                borderRadius: 6,
-                                border: isLight
-                                  ? '1px solid rgba(0,0,0,0.1)'
-                                  : '1px solid rgba(255,255,255,0.1)',
-                                background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.03)',
-                                color: 'var(--c-text-primary)',
-                                cursor: 'pointer',
-                                fontSize: 11.5,
-                                fontWeight: 700,
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 6,
-                                transition: 'background 100ms',
-                              }}
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: 15 }}>
-                                touch_app
-                              </span>
-                              <span>Tap Tempo</span>
-                            </button>
-                          </div>
-
-                          <div
                             style={{
-                              height: 1,
-                              background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
+                              position: 'fixed',
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              zIndex: 998,
+                              cursor: 'default',
                             }}
                           />
-
-                          {/* Metronome Settings */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                          {/* Popover Card */}
+                          <div
+                            style={{
+                              position: 'fixed',
+                              top: popoverCoords?.top ?? 0,
+                              left: popoverCoords?.left ?? 0,
+                              background: isLight ? '#ffffff' : '#18181b',
+                              border: isLight
+                                ? '1px solid rgba(0,0,0,0.1)'
+                                : '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: 12,
+                              padding: '16px',
+                              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                              backdropFilter: 'blur(20px)',
+                              minWidth: 260,
+                              width: 260,
+                              zIndex: 999,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 12,
+                            }}
+                          >
+                            {/* Title / Header */}
                             <div
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
+                                borderBottom: isLight
+                                  ? '1px solid rgba(0,0,0,0.06)'
+                                  : '1px solid rgba(255,255,255,0.06)',
+                                paddingBottom: 8,
                               }}
                             >
                               <span
                                 style={{
                                   fontSize: 11,
-                                  fontWeight: 700,
-                                  color: 'var(--c-text-muted)',
+                                  fontWeight: 800,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.05em',
+                                  color: 'var(--c-text-secondary)',
                                 }}
                               >
-                                METRONOME
+                                Tempo & Metronome
                               </span>
-                              <button
-                                onClick={() => updateDrumPrefs({ metronome: !drumPrefs.metronome })}
+                              <span style={{ fontSize: 11, fontWeight: 700, color: accent.from }}>
+                                {pattern.bpm} BPM
+                              </span>
+                            </div>
+
+                            {/* Tempo Section */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <input
+                                  type="text"
+                                  value={bpmInputVal}
+                                  onChange={(e) => setBpmInputVal(e.target.value)}
+                                  onBlur={(e) => commitBpm(e.target.value)}
+                                  onKeyDown={handleBpmKeyDown}
+                                  style={{
+                                    width: 56,
+                                    height: 32,
+                                    borderRadius: 6,
+                                    border: isLight
+                                      ? '1px solid rgba(0,0,0,0.15)'
+                                      : '1px solid rgba(255,255,255,0.15)',
+                                    background: 'transparent',
+                                    textAlign: 'center',
+                                    fontSize: 14,
+                                    fontWeight: 850,
+                                    color: 'var(--c-text-primary)',
+                                    fontFamily: 'monospace',
+                                  }}
+                                />
+                                <div style={{ display: 'flex', gap: 3, flex: 1 }}>
+                                  <button
+                                    onClick={() => changeBpmBy(-5)}
+                                    style={{
+                                      flex: 1,
+                                      height: 32,
+                                      borderRadius: 6,
+                                      border: 'none',
+                                      background: isLight
+                                        ? 'rgba(0,0,0,0.05)'
+                                        : 'rgba(255,255,255,0.05)',
+                                      color: 'var(--c-text-secondary)',
+                                      cursor: 'pointer',
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    -5
+                                  </button>
+                                  <button
+                                    onClick={() => changeBpmBy(-1)}
+                                    style={{
+                                      flex: 1,
+                                      height: 32,
+                                      borderRadius: 6,
+                                      border: 'none',
+                                      background: isLight
+                                        ? 'rgba(0,0,0,0.05)'
+                                        : 'rgba(255,255,255,0.05)',
+                                      color: 'var(--c-text-secondary)',
+                                      cursor: 'pointer',
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    -1
+                                  </button>
+                                  <button
+                                    onClick={() => changeBpmBy(1)}
+                                    style={{
+                                      flex: 1,
+                                      height: 32,
+                                      borderRadius: 6,
+                                      border: 'none',
+                                      background: isLight
+                                        ? 'rgba(0,0,0,0.05)'
+                                        : 'rgba(255,255,255,0.05)',
+                                      color: 'var(--c-text-secondary)',
+                                      cursor: 'pointer',
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    +1
+                                  </button>
+                                  <button
+                                    onClick={() => changeBpmBy(5)}
+                                    style={{
+                                      flex: 1,
+                                      height: 32,
+                                      borderRadius: 6,
+                                      border: 'none',
+                                      background: isLight
+                                        ? 'rgba(0,0,0,0.05)'
+                                        : 'rgba(255,255,255,0.05)',
+                                      color: 'var(--c-text-secondary)',
+                                      cursor: 'pointer',
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                    }}
+                                  >
+                                    +5
+                                  </button>
+                                </div>
+                              </div>
+
+                              {/* Range Slider */}
+                              <input
+                                type="range"
+                                min={40}
+                                max={280}
+                                step={1}
+                                value={pattern.bpm}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  setBpmInputVal(val.toString());
+                                  updatePattern(pattern.id, { bpm: val });
+                                }}
                                 style={{
-                                  padding: '4px 10px',
-                                  borderRadius: 6,
-                                  border: 'none',
-                                  background: drumPrefs.metronome
-                                    ? `${accent.from}1a`
-                                    : isLight
-                                      ? 'rgba(0,0,0,0.05)'
-                                      : 'rgba(255,255,255,0.05)',
-                                  color: drumPrefs.metronome
-                                    ? accent.from
-                                    : 'var(--c-text-secondary)',
-                                  fontSize: 10.5,
-                                  fontWeight: 700,
+                                  width: '100%',
                                   cursor: 'pointer',
+                                  accentColor: accent.from,
+                                  height: 16,
+                                }}
+                              />
+
+                              {/* Tap Tempo Button */}
+                              <button
+                                onClick={handleTapTempo}
+                                style={{
+                                  width: '100%',
+                                  height: 32,
+                                  borderRadius: 6,
+                                  border: isLight
+                                    ? '1px solid rgba(0,0,0,0.1)'
+                                    : '1px solid rgba(255,255,255,0.1)',
+                                  background: isLight
+                                    ? 'rgba(0,0,0,0.03)'
+                                    : 'rgba(255,255,255,0.03)',
+                                  color: 'var(--c-text-primary)',
+                                  cursor: 'pointer',
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.04em',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: 6,
+                                  transition: 'background 100ms',
                                 }}
                               >
-                                {drumPrefs.metronome ? 'ON' : 'OFF'}
+                                <span
+                                  className="material-symbols-outlined"
+                                  style={{ fontSize: 15 }}
+                                >
+                                  touch_app
+                                </span>
+                                <span>Tap Tempo</span>
                               </button>
                             </div>
 
-                            {/* Sound Choices */}
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                              <span
+                            <div
+                              style={{
+                                height: 1,
+                                background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
+                              }}
+                            />
+
+                            {/* Metronome Settings */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                              <div
                                 style={{
-                                  fontSize: 9.5,
-                                  fontWeight: 750,
-                                  color: 'var(--c-text-muted)',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.04em',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
                                 }}
                               >
-                                Sound Character
-                              </span>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                {[
-                                  { id: 'classic', label: 'Classic Mechanical' },
-                                  { id: 'wood', label: 'Wood Block' },
-                                  { id: 'studio', label: 'Studio Click' },
-                                  { id: 'digital', label: 'Soft Digital' },
-                                  { id: 'rim', label: 'Rim Click' },
-                                ].map((choice) => {
-                                  const isSel =
-                                    (drumPrefs.metronomeSound || 'classic') === choice.id;
-                                  return (
-                                    <div
-                                      key={choice.id}
-                                      style={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'space-between',
-                                        width: '100%',
-                                        height: 28,
-                                        borderRadius: 6,
-                                        background: isSel ? `${accent.from}15` : 'transparent',
-                                        padding: '0 4px 0 8px',
-                                      }}
-                                    >
-                                      <button
-                                        onClick={() => {
-                                          updateDrumPrefs({ metronomeSound: choice.id });
-                                          playMetronomeClick(true, choice.id);
-                                        }}
+                                <span
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    color: 'var(--c-text-muted)',
+                                  }}
+                                >
+                                  METRONOME
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    updateDrumPrefs({ metronome: !drumPrefs.metronome })
+                                  }
+                                  style={{
+                                    padding: '4px 10px',
+                                    borderRadius: 6,
+                                    border: 'none',
+                                    background: drumPrefs.metronome
+                                      ? `${accent.from}1a`
+                                      : isLight
+                                        ? 'rgba(0,0,0,0.05)'
+                                        : 'rgba(255,255,255,0.05)',
+                                    color: drumPrefs.metronome
+                                      ? accent.from
+                                      : 'var(--c-text-secondary)',
+                                    fontSize: 10.5,
+                                    fontWeight: 700,
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  {drumPrefs.metronome ? 'ON' : 'OFF'}
+                                </button>
+                              </div>
+
+                              {/* Sound Choices */}
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <span
+                                  style={{
+                                    fontSize: 9.5,
+                                    fontWeight: 750,
+                                    color: 'var(--c-text-muted)',
+                                    textTransform: 'uppercase',
+                                    letterSpacing: '0.04em',
+                                  }}
+                                >
+                                  Sound Character
+                                </span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                  {[
+                                    { id: 'classic', label: 'Classic Mechanical' },
+                                    { id: 'wood', label: 'Wood Block' },
+                                    { id: 'studio', label: 'Studio Click' },
+                                    { id: 'digital', label: 'Soft Digital' },
+                                    { id: 'rim', label: 'Rim Click' },
+                                  ].map((choice) => {
+                                    const isSel =
+                                      (drumPrefs.metronomeSound || 'classic') === choice.id;
+                                    return (
+                                      <div
+                                        key={choice.id}
                                         style={{
-                                          flex: 1,
-                                          height: '100%',
-                                          border: 'none',
-                                          background: 'transparent',
-                                          color: isSel ? accent.from : 'var(--c-text-secondary)',
-                                          cursor: 'pointer',
-                                          fontSize: 11,
-                                          fontWeight: isSel ? 750 : 500,
-                                          textAlign: 'left',
-                                          padding: 0,
                                           display: 'flex',
                                           alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          width: '100%',
+                                          height: 28,
+                                          borderRadius: 6,
+                                          background: isSel ? `${accent.from}15` : 'transparent',
+                                          padding: '0 4px 0 8px',
                                         }}
                                       >
-                                        {choice.label}
-                                      </button>
-                                      <div
-                                        style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-                                      >
                                         <button
-                                          title={`Preview ${choice.label}`}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
+                                          onClick={() => {
+                                            updateDrumPrefs({ metronomeSound: choice.id });
                                             playMetronomeClick(true, choice.id);
                                           }}
                                           style={{
+                                            flex: 1,
+                                            height: '100%',
                                             border: 'none',
                                             background: 'transparent',
-                                            color: 'var(--c-text-muted)',
+                                            color: isSel ? accent.from : 'var(--c-text-secondary)',
                                             cursor: 'pointer',
-                                            padding: 4,
-                                            borderRadius: 4,
+                                            fontSize: 11,
+                                            fontWeight: isSel ? 750 : 500,
+                                            textAlign: 'left',
+                                            padding: 0,
                                             display: 'flex',
                                             alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontSize: 9,
                                           }}
                                         >
-                                          â–¶
+                                          {choice.label}
                                         </button>
-                                        {isSel && (
-                                          <span
+                                        <div
+                                          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                                        >
+                                          <button
+                                            title={`Preview ${choice.label}`}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              playMetronomeClick(true, choice.id);
+                                            }}
                                             style={{
-                                              fontSize: 11,
-                                              color: accent.from,
-                                              paddingRight: 4,
+                                              border: 'none',
+                                              background: 'transparent',
+                                              color: 'var(--c-text-muted)',
+                                              cursor: 'pointer',
+                                              padding: 4,
+                                              borderRadius: 4,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'center',
+                                              fontSize: 9,
                                             }}
                                           >
-                                            âœ“
-                                          </span>
-                                        )}
+                                            â–¶
+                                          </button>
+                                          {isSel && (
+                                            <span
+                                              style={{
+                                                fontSize: 11,
+                                                color: accent.from,
+                                                paddingRight: 4,
+                                              }}
+                                            >
+                                              âœ“
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </>,
-                      document.body
-                    )}
+                        </>,
+                        document.body
+                      )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Right Group: Actions */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                gap: 12,
-                flex: '1 1 0%',
-                minWidth: 0,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {/* Add Bar */}
-                <button
-                  onClick={handleAddBar}
-                  title="Add new measure (bar)"
-                  aria-label="Add Bar"
-                  className="btn-smooth"
-                  style={{
-                    height: 30,
-                    padding: '0 12px',
-                    borderRadius: 8,
-                    background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
-                    border: isLight
-                      ? '1px solid rgba(0,0,0,0.1)'
-                      : '1px solid rgba(255,255,255,0.1)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                    color: 'var(--c-text-primary)',
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                    add
-                  </span>
-                  <span>Add Bar</span>
-                </button>
-
-                {/* Clear */}
-                <div style={{ position: 'relative' }}>
+              {/* Right Group: Actions */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  gap: 12,
+                  flex: '1 1 0%',
+                  minWidth: 0,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {/* Add Bar */}
                   <button
-                    onClick={() => setShowClearConfirm((s) => !s)}
-                    title="Clear pattern"
-                    aria-label="Clear pattern"
+                    onClick={handleAddBar}
+                    title="Add new measure (bar)"
+                    aria-label="Add Bar"
+                    className="btn-smooth"
+                    style={{
+                      height: 30,
+                      padding: '0 12px',
+                      borderRadius: 8,
+                      background: isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.04)',
+                      border: isLight
+                        ? '1px solid rgba(0,0,0,0.1)'
+                        : '1px solid rgba(255,255,255,0.1)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      color: 'var(--c-text-primary)',
+                      fontSize: 11,
+                      fontWeight: 700,
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                      add
+                    </span>
+                    <span>Add Bar</span>
+                  </button>
+
+                  {/* Clear */}
+                  <div style={{ position: 'relative' }}>
+                    <button
+                      onClick={() => setShowClearConfirm((s) => !s)}
+                      title="Clear pattern"
+                      aria-label="Clear pattern"
+                      className="btn-smooth"
+                      style={{
+                        height: 30,
+                        width: 30,
+                        borderRadius: 8,
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ee7d77',
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                        delete
+                      </span>
+                    </button>
+                    {showClearConfirm && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: 'calc(100% + 8px)',
+                          right: 0,
+                          background: 'rgba(10, 10, 12, 0.98)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: 12,
+                          padding: '12px 14px',
+                          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                          backdropFilter: 'blur(20px)',
+                          minWidth: 190,
+                          zIndex: 100,
+                        }}
+                      >
+                        <p
+                          style={{
+                            margin: '0 0 10px',
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            color: 'var(--c-text-primary)',
+                            fontFamily: 'Manrope,sans-serif',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          Reset pattern?
+                        </p>
+                        <p
+                          style={{
+                            margin: '0 0 12px',
+                            fontSize: 11,
+                            color: 'var(--c-text-muted)',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          All hits will be removed, preserving your bar count. You can undo after.
+                        </p>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button
+                            onClick={() => setShowClearConfirm(false)}
+                            className="btn-smooth"
+                            style={{
+                              flex: 1,
+                              padding: '7px 0',
+                              borderRadius: 9,
+                              background: 'rgba(128,128,128,0.12)',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: 'var(--c-text-secondary)',
+                              fontFamily: 'Manrope,sans-serif',
+                            }}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={() => {
+                              handleClear();
+                              setShowClearConfirm(false);
+                            }}
+                            className="btn-smooth"
+                            style={{
+                              flex: 1,
+                              padding: '7px 0',
+                              borderRadius: 9,
+                              background: 'rgba(239,68,68,0.15)',
+                              border: '1px solid rgba(239,68,68,0.3)',
+                              cursor: 'pointer',
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: '#f87171',
+                              fontFamily: 'Manrope,sans-serif',
+                            }}
+                          >
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Save Groove */}
+                  <button
+                    onClick={() => {
+                      setSavGrName(pattern.name);
+                      setSavGrTag('');
+                      setShowSaveGroove(true);
+                    }}
+                    title="Save pattern to Groove Library"
+                    aria-label="Save pattern to Groove Library"
                     className="btn-smooth"
                     style={{
                       height: 30,
@@ -3431,186 +3426,75 @@ export default function DrumEditor() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#ee7d77',
+                      color: accent.from,
                     }}
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                      delete
+                      bookmark
                     </span>
                   </button>
-                  {showClearConfirm && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: 'calc(100% + 8px)',
-                        right: 0,
-                        background: 'rgba(10, 10, 12, 0.98)',
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        borderRadius: 12,
-                        padding: '12px 14px',
-                        boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                        backdropFilter: 'blur(20px)',
-                        minWidth: 190,
-                        zIndex: 100,
-                      }}
-                    >
-                      <p
-                        style={{
-                          margin: '0 0 10px',
-                          fontSize: 12.5,
-                          fontWeight: 700,
-                          color: 'var(--c-text-primary)',
-                          fontFamily: 'Manrope,sans-serif',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        Reset pattern?
-                      </p>
-                      <p
-                        style={{
-                          margin: '0 0 12px',
-                          fontSize: 11,
-                          color: 'var(--c-text-muted)',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        All hits will be removed, preserving your bar count. You can undo after.
-                      </p>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button
-                          onClick={() => setShowClearConfirm(false)}
-                          className="btn-smooth"
-                          style={{
-                            flex: 1,
-                            padding: '7px 0',
-                            borderRadius: 9,
-                            background: 'rgba(128,128,128,0.12)',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: 'var(--c-text-secondary)',
-                            fontFamily: 'Manrope,sans-serif',
-                          }}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => {
-                            handleClear();
-                            setShowClearConfirm(false);
-                          }}
-                          className="btn-smooth"
-                          style={{
-                            flex: 1,
-                            padding: '7px 0',
-                            borderRadius: 9,
-                            background: 'rgba(239,68,68,0.15)',
-                            border: '1px solid rgba(239,68,68,0.3)',
-                            cursor: 'pointer',
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: '#f87171',
-                            fontFamily: 'Manrope,sans-serif',
-                          }}
-                        >
-                          Clear
-                        </button>
-                      </div>
-                    </div>
-                  )}
+
+                  <div
+                    style={{
+                      width: 1,
+                      height: 18,
+                      background: 'rgba(255,255,255,0.08)',
+                      margin: '0 2px',
+                    }}
+                  />
+
+                  {/* Export JSON / PDF */}
+                  <button
+                    onClick={() => {
+                      exportDrumSongJSON(patterns, activeSong);
+                    }}
+                    title="Export pattern as JSON file"
+                    aria-label="Export pattern as JSON file"
+                    className="btn-smooth"
+                    style={{
+                      height: 30,
+                      width: 30,
+                      borderRadius: 8,
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--c-text-secondary)',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                      data_object
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowExportModal(true);
+                    }}
+                    title="Export as PDF"
+                    className="btn-smooth"
+                    style={{
+                      height: 30,
+                      width: 30,
+                      borderRadius: 8,
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--c-text-secondary)',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
+                      picture_as_pdf
+                    </span>
+                  </button>
                 </div>
-
-                {/* Save Groove */}
-                <button
-                  onClick={() => {
-                    setSavGrName(pattern.name);
-                    setSavGrTag('');
-                    setShowSaveGroove(true);
-                  }}
-                  title="Save pattern to Groove Library"
-                  aria-label="Save pattern to Groove Library"
-                  className="btn-smooth"
-                  style={{
-                    height: 30,
-                    width: 30,
-                    borderRadius: 8,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: accent.from,
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                    bookmark
-                  </span>
-                </button>
-
-                <div
-                  style={{
-                    width: 1,
-                    height: 18,
-                    background: 'rgba(255,255,255,0.08)',
-                    margin: '0 2px',
-                  }}
-                />
-
-                {/* Export JSON / PDF */}
-                <button
-                  onClick={() => {
-                    exportDrumSongJSON(patterns, activeSong);
-                  }}
-                  title="Export pattern as JSON file"
-                  aria-label="Export pattern as JSON file"
-                  className="btn-smooth"
-                  style={{
-                    height: 30,
-                    width: 30,
-                    borderRadius: 8,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--c-text-secondary)',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                    data_object
-                  </span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowExportModal(true);
-                  }}
-                  title="Export as PDF"
-                  className="btn-smooth"
-                  style={{
-                    height: 30,
-                    width: 30,
-                    borderRadius: 8,
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'var(--c-text-secondary)',
-                  }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
-                    picture_as_pdf
-                  </span>
-                </button>
               </div>
             </div>
-          </div>
-        )
-      )}
+          )}
 
       {/* â”€â”€ Hamburger panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {inEditor && (showHamburger || hamburgerClosing) && (
@@ -4852,57 +4736,63 @@ export default function DrumEditor() {
                             flexDirection: 'column',
                             overflow: 'hidden',
                             position: 'relative',
+                            paddingTop: !isWebDesktop
+                              ? isLandscape
+                                ? 'calc(env(safe-area-inset-top, 0px) + 48px)'
+                                : 'calc(env(safe-area-inset-top, 0px) + 58px)'
+                              : undefined,
                           }}
                         >
-                          {/* Row visibility toggle */}
-                          {extraInsts.length > 0 && (
-                            <div
-                              style={{
-                                flexShrink: 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '0 14px',
-                                height: 30,
-                                borderBottom: `1px solid ${barColor}`,
-                                background: 'var(--app-bg)',
-                              }}
-                            >
+                          {/* ── Grid Toolbar ── */}
+                          <section
+                            className="flex items-center justify-between px-3 sm:px-4 flex-shrink-0"
+                            style={{
+                              height: 34,
+                              borderBottom: `1px solid ${barColor}`,
+                              background: 'var(--app-bg)',
+                            }}
+                          >
+                            <div className="flex items-center gap-2">
                               <span
                                 style={{
                                   color: 'var(--c-text-muted)',
-                                  fontSize: 9.5,
+                                  fontSize: 10,
                                   fontFamily: 'var(--font-headline)',
                                   fontWeight: 700,
-                                  letterSpacing: '0.1em',
+                                  letterSpacing: '0.08em',
                                   textTransform: 'uppercase',
                                 }}
                               >
                                 {showExtraRows
-                                  ? `All rows (${visibleInsts.length})`
-                                  : `Core rows (${visibleInsts.length})`}
+                                  ? `ALL ROWS (${visibleInsts.length})`
+                                  : `CORE ROWS (${visibleInsts.length})`}
                               </span>
                               <button
+                                onClick={() => setSideTab('kit')}
+                                className="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded shadow-sm hover:bg-slate-50 dark:hover:bg-zinc-750 transition cursor-pointer"
+                                type="button"
+                              >
+                                Preset
+                                <svg
+                                  className="w-2.5 h-2.5 text-slate-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    d="M19 9l-7 7-7-7"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                            {extraInsts.length > 0 && (
+                              <button
                                 onClick={() => setShowExtraRows((v) => !v)}
-                                className="btn-smooth"
-                                style={{
-                                  height: 22,
-                                  padding: '0 10px',
-                                  borderRadius: 999,
-                                  background: showExtraRows
-                                    ? `${accent.from}15`
-                                    : 'rgba(128,128,128,0.10)',
-                                  border: `1px solid ${showExtraRows ? accent.from + '30' : 'rgba(128,128,128,0.16)'}`,
-                                  cursor: 'pointer',
-                                  color: showExtraRows ? accent.from : 'var(--c-text-secondary)',
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  fontFamily: 'var(--font-headline)',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: 4,
-                                  transition: 'all 180ms',
-                                }}
+                                className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-[#007aff] hover:bg-blue-100/80 dark:hover:bg-blue-900/50 border border-blue-200/60 dark:border-blue-800/40 rounded-full text-[10px] font-semibold shadow-sm transition active:scale-95 cursor-pointer"
+                                type="button"
                               >
                                 {showExtraRows ? (
                                   <>
@@ -4936,8 +4826,8 @@ export default function DrumEditor() {
                                   </>
                                 )}
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </section>
                           <div
                             ref={scrollRef}
                             onScroll={drumScrollHide}
@@ -5045,12 +4935,43 @@ export default function DrumEditor() {
                                           flexShrink: 0,
                                           position: 'sticky',
                                           left: 0,
-                                          zIndex: 10,
-                                          background: 'var(--app-bg)',
+                                          zIndex: 25,
+                                          background: isLight
+                                            ? 'rgba(248,250,252,0.95)'
+                                            : isAmoled
+                                              ? '#000000'
+                                              : 'rgba(18,18,22,0.95)',
                                           borderRight: `1px solid ${barColor}`,
                                           height: '100%',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          padding: '0 8px',
+                                          boxSizing: 'border-box',
                                         }}
-                                      />
+                                      >
+                                        <span
+                                          style={{
+                                            fontSize: 10,
+                                            fontWeight: 800,
+                                            fontFamily: 'var(--font-headline)',
+                                            color: 'var(--c-text-primary)',
+                                            letterSpacing: '0.02em',
+                                          }}
+                                        >
+                                          BAR {mStartIdx + 1}
+                                        </span>
+                                        <span
+                                          style={{
+                                            fontSize: 9,
+                                            fontFamily: 'monospace',
+                                            color: 'var(--c-text-muted)',
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          {pattern.subdivision}th
+                                        </span>
+                                      </div>
                                       {rowMeasures.map((m, mi) => {
                                         const globalM = mStartIdx + mi;
                                         const canDelete = pattern.measures.length > 2;
@@ -5064,10 +4985,9 @@ export default function DrumEditor() {
                                               flexShrink: 0,
                                               display: 'flex',
                                               alignItems: 'center',
-                                              paddingLeft: 6,
-                                              paddingRight: 2,
-                                              borderLeft: mi > 0 ? `1px solid ${barColor}` : 'none',
-                                              gap: 4,
+                                              height: '100%',
+                                              borderLeft:
+                                                mi > 0 ? `1.5px solid ${barColor}` : 'none',
                                               position: 'relative',
                                               background: isFlash
                                                 ? `${accent.from}22`
@@ -5079,7 +4999,7 @@ export default function DrumEditor() {
                                               transition: 'background 400ms',
                                             }}
                                           >
-                                            {/* Loop range bracket markers â€” small â–¸ at startBar, â—‚ at endBar */}
+                                            {/* Loop range bracket markers */}
                                             {loopActive && globalM === effectiveLoop.startBar && (
                                               <span
                                                 aria-hidden
@@ -5092,9 +5012,10 @@ export default function DrumEditor() {
                                                   color: accent.from,
                                                   lineHeight: 1,
                                                   pointerEvents: 'none',
+                                                  zIndex: 15,
                                                 }}
                                               >
-                                                â–¸
+                                                ▶
                                               </span>
                                             )}
                                             {loopActive && globalM === effectiveLoop.endBar && (
@@ -5109,80 +5030,87 @@ export default function DrumEditor() {
                                                   color: accent.from,
                                                   lineHeight: 1,
                                                   pointerEvents: 'none',
+                                                  zIndex: 15,
                                                 }}
                                               >
-                                                â—‚
+                                                ◀
                                               </span>
                                             )}
-                                            <span
-                                              style={{
-                                                color:
-                                                  loopActive &&
-                                                  globalM >= effectiveLoop.startBar &&
-                                                  globalM <= effectiveLoop.endBar
-                                                    ? accent.from
-                                                    : 'var(--c-text-primary)',
-                                                fontSize: 10,
-                                                fontWeight: 700,
-                                                fontFamily: 'var(--font-headline)',
-                                                opacity:
-                                                  loopActive &&
-                                                  globalM >= effectiveLoop.startBar &&
-                                                  globalM <= effectiveLoop.endBar
-                                                    ? 0.95
-                                                    : 0.65,
-                                                flexShrink: 0,
-                                              }}
-                                            >
-                                              {globalM + 1}
-                                            </span>
-                                            <svg
-                                              style={{
-                                                position: 'absolute',
-                                                bottom: 0,
-                                                left: 0,
-                                                width: MEASURE_W,
-                                                height: 13,
-                                                pointerEvents: 'none',
-                                              }}
-                                              viewBox={`0 0 ${MEASURE_W} 13`}
-                                              preserveAspectRatio="none"
-                                            >
-                                              {Array.from({ length: spm }, (_, s) => {
-                                                const x = s * STEP_W;
-                                                const isBeat = s % stepsPerBeat === 0;
-                                                const isDown = s === 0;
-                                                const h = isDown ? 11 : isBeat ? 7 : 4;
-                                                const op = isDown ? 0.55 : isBeat ? 0.3 : 0.14;
-                                                return (
-                                                  <line
-                                                    key={s}
-                                                    x1={x}
-                                                    y1={13 - h}
-                                                    x2={x}
-                                                    y2={13}
-                                                    stroke="var(--c-text-primary)"
-                                                    strokeWidth={isDown ? 1.2 : 0.8}
-                                                    opacity={op}
-                                                  />
-                                                );
-                                              })}
-                                            </svg>
-                                            {/* Â·Â·Â· menu button */}
+
+                                            {/* Subdivision Ruler Cells */}
+                                            {Array.from({ length: spm }, (_, s) => {
+                                              const isBeat = s % stepsPerBeat === 0;
+                                              const beatIdx = Math.floor(s / stepsPerBeat) + 1;
+                                              const isBarBoundary = (s + 1) % stepsPerBeat === 0;
+                                              let subLabel = '';
+                                              if (stepsPerBeat === 4) {
+                                                subLabel =
+                                                  s % 4 === 0
+                                                    ? globalM === 0
+                                                      ? `${beatIdx}`
+                                                      : `${globalM + 1}•${beatIdx}`
+                                                    : s % 4 === 1
+                                                      ? 'e'
+                                                      : s % 4 === 2
+                                                        ? '&'
+                                                        : 'a';
+                                              } else {
+                                                subLabel =
+                                                  s % 2 === 0
+                                                    ? globalM === 0
+                                                      ? `${beatIdx}`
+                                                      : `${globalM + 1}•${beatIdx}`
+                                                    : '&';
+                                              }
+                                              return (
+                                                <div
+                                                  key={s}
+                                                  style={{
+                                                    width: STEP_W,
+                                                    height: '100%',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    fontSize: isBeat ? 10 : 9,
+                                                    fontWeight: isBeat ? 700 : 500,
+                                                    fontFamily: 'monospace',
+                                                    color: isBeat
+                                                      ? 'var(--c-text-primary)'
+                                                      : 'var(--c-text-muted)',
+                                                    background: isBeat
+                                                      ? isLight
+                                                        ? 'rgba(0,0,0,0.035)'
+                                                        : 'rgba(255,255,255,0.04)'
+                                                      : 'transparent',
+                                                    borderRight: isBarBoundary
+                                                      ? `1.5px solid ${barColor}`
+                                                      : `1px solid ${isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)'}`,
+                                                    userSelect: 'none',
+                                                  }}
+                                                >
+                                                  {subLabel}
+                                                </div>
+                                              );
+                                            })}
+
+                                            {/* ··· measure menu button */}
                                             <button
                                               onPointerDown={(e) => e.stopPropagation()}
-                                              onPointerUp={(e) => {
+                                              onClick={(e) => {
                                                 e.stopPropagation();
                                                 setOpenBarMenu(menuOpen ? null : m.id);
                                               }}
                                               style={{
+                                                position: 'absolute',
+                                                right: 3,
+                                                top: 5,
                                                 width: 18,
                                                 height: 18,
                                                 borderRadius: 4,
                                                 flexShrink: 0,
                                                 background: menuOpen
                                                   ? `${accent.from}22`
-                                                  : 'transparent',
+                                                  : 'rgba(128,128,128,0.12)',
                                                 border: `1px solid ${menuOpen ? accent.from + '44' : 'rgba(128,128,128,0.22)'}`,
                                                 cursor: 'pointer',
                                                 display: 'flex',
@@ -5191,7 +5119,7 @@ export default function DrumEditor() {
                                                 color: menuOpen
                                                   ? accent.from
                                                   : 'var(--c-text-muted)',
-                                                fontSize: 8,
+                                                fontSize: 9,
                                                 letterSpacing: '0.05em',
                                                 fontWeight: 900,
                                                 lineHeight: 1,
@@ -5199,7 +5127,9 @@ export default function DrumEditor() {
                                                 transition: 'all 140ms',
                                               }}
                                             >
-                                              Â·Â·Â·
+                                              <span className="material-symbols-outlined text-[13px] leading-none">
+                                                more_horiz
+                                              </span>
                                             </button>
                                             {/* Dropdown menu */}
                                             {menuOpen && (
@@ -5375,6 +5305,9 @@ export default function DrumEditor() {
                                     {visibleInsts.map((inst, instIdx) => {
                                       const isFoc = focusedInst === inst;
                                       const varList = INST_VARIATIONS[inst];
+                                      const isMuted =
+                                        pattern.mutedInstruments?.includes(inst) ?? false;
+                                      const isSoloed = soloInst === inst;
                                       return (
                                         <div
                                           key={inst}
@@ -5413,9 +5346,9 @@ export default function DrumEditor() {
                                               flexShrink: 0,
                                               display: 'flex',
                                               flexDirection: 'column',
-                                              alignItems: 'flex-start',
+                                              alignItems: 'stretch',
                                               justifyContent: 'center',
-                                              paddingLeft: 12,
+                                              paddingLeft: 8,
                                               paddingRight: 6,
                                               borderRight: isWebDesktop
                                                 ? isLight
@@ -5433,44 +5366,89 @@ export default function DrumEditor() {
                                                   : isWebDesktop
                                                     ? 'var(--app-surface)'
                                                     : 'var(--app-bg)',
+                                              opacity: isMuted ? 0.55 : 1,
+                                              transition: 'opacity 150ms, background 200ms',
                                             }}
                                           >
-                                            <span
-                                              style={{
-                                                fontSize: 8,
-                                                fontWeight: 700,
-                                                fontFamily: 'var(--font-headline)',
-                                                color:
-                                                  isFoc && drumPrefs.highlightActiveInst
-                                                    ? 'var(--c-text-primary)'
-                                                    : 'var(--c-text-muted)',
-                                                letterSpacing: '0.03em',
-                                                textTransform: 'uppercase',
-                                                whiteSpace: 'nowrap',
-                                                transition: 'color 200ms',
-                                              }}
-                                            >
-                                              {INST_LABEL[inst]}
-                                            </span>
-                                            {varList && varList.length > 1 && (
+                                            <div className="flex items-center justify-between w-full min-w-0">
                                               <span
+                                                className="text-[10px] font-bold uppercase tracking-tight truncate flex-1 min-w-0"
                                                 style={{
-                                                  fontSize: 6.5,
                                                   fontFamily: 'var(--font-headline)',
-                                                  color: 'var(--c-text-muted)',
-                                                  opacity: 0.55,
-                                                  letterSpacing: '0.02em',
-                                                  whiteSpace: 'normal',
-                                                  lineHeight: 1.35,
-                                                  marginTop: 1,
-                                                  width: '100%',
-                                                  display: '-webkit-box',
-                                                  WebkitLineClamp: 2,
-                                                  WebkitBoxOrient: 'vertical',
-                                                  overflow: 'hidden',
+                                                  color:
+                                                    isFoc && drumPrefs.highlightActiveInst
+                                                      ? 'var(--c-text-primary)'
+                                                      : isMuted
+                                                        ? 'var(--c-text-muted)'
+                                                        : 'var(--c-text-primary)',
                                                 }}
                                               >
-                                                {varList.join(' Â· ')}
+                                                {INST_LABEL[inst]}
+                                              </span>
+                                              <div className="flex items-center gap-1 flex-shrink-0 ml-1">
+                                                <button
+                                                  type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    togglePatternMute(pattern.id, inst);
+                                                  }}
+                                                  title={isMuted ? 'Unmute track' : 'Mute track'}
+                                                  aria-label={
+                                                    isMuted
+                                                      ? `Unmute ${INST_LABEL[inst]}`
+                                                      : `Mute ${INST_LABEL[inst]}`
+                                                  }
+                                                  className={`w-4 h-4 rounded text-[9px] font-extrabold flex items-center justify-center cursor-pointer transition active:scale-95 ${
+                                                    isMuted
+                                                      ? 'bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)]'
+                                                      : isLight
+                                                        ? 'bg-slate-200/70 text-slate-500 hover:bg-slate-300 hover:text-slate-800'
+                                                        : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                                                  }`}
+                                                >
+                                                  M
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleToggleSolo(inst);
+                                                  }}
+                                                  title={isSoloed ? 'Clear solo' : 'Solo track'}
+                                                  aria-label={
+                                                    isSoloed
+                                                      ? `Unsolo ${INST_LABEL[inst]}`
+                                                      : `Solo ${INST_LABEL[inst]}`
+                                                  }
+                                                  className={`w-4 h-4 rounded text-[9px] font-extrabold flex items-center justify-center cursor-pointer transition active:scale-95 ${
+                                                    isSoloed
+                                                      ? 'bg-[#007aff] text-white shadow-[0_0_8px_rgba(0,122,255,0.4)]'
+                                                      : isLight
+                                                        ? 'bg-slate-200/70 text-slate-500 hover:bg-slate-300 hover:text-slate-800'
+                                                        : 'bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'
+                                                  }`}
+                                                >
+                                                  S
+                                                </button>
+                                              </div>
+                                            </div>
+                                            {varList && varList.length > 1 ? (
+                                              <span
+                                                className="text-[7.5px] font-mono tracking-tight truncate w-full mt-0.5 opacity-60"
+                                                style={{
+                                                  color: 'var(--c-text-muted)',
+                                                }}
+                                              >
+                                                {varList.join(' • ')}
+                                              </span>
+                                            ) : (
+                                              <span
+                                                className="text-[7.5px] font-mono tracking-tight truncate w-full mt-0.5 opacity-40"
+                                                style={{
+                                                  color: 'var(--c-text-muted)',
+                                                }}
+                                              >
+                                                norm
                                               </span>
                                             )}
                                           </div>
@@ -5499,26 +5477,22 @@ export default function DrumEditor() {
                                 );
                               })}
                           </div>
-                          {/* BPM + Play (hidden in landscape / desktop â€” controls are in the top bar) */}
-                          <div
+                          {/* ── Floating Action Controls (Canonical FAB Stack) ── */}
+                          <aside
+                            aria-label="Drum sequencer actions"
+                            className="fixed bottom-5 right-4 z-40 flex flex-col items-center gap-2.5"
                             style={{
-                              position: 'fixed',
-                              right: 14,
-                              bottom: 'calc(env(safe-area-inset-bottom, 0px) + 90px)',
-                              zIndex: 60,
                               display: isWebDesktop || isLandscape ? 'none' : 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              gap: 8,
+                              bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
                             }}
                           >
-                            {/* Clear button â€” black bg, red trash icon */}
+                            {/* 1. Erase / Trash action */}
                             <div style={{ position: 'relative' }}>
                               {showClearConfirm && (
                                 <div
                                   style={{
                                     position: 'absolute',
-                                    bottom: 'calc(100% + 8px)',
+                                    bottom: 'calc(100% + 10px)',
                                     right: 0,
                                     background: isAmoled
                                       ? 'rgba(4,4,4,0.98)'
@@ -5564,14 +5538,13 @@ export default function DrumEditor() {
                                   <div style={{ display: 'flex', gap: 6 }}>
                                     <button
                                       onClick={() => setShowClearConfirm(false)}
-                                      className="btn-smooth"
+                                      className="btn-smooth cursor-pointer"
                                       style={{
                                         flex: 1,
                                         padding: '7px 0',
                                         borderRadius: 9,
                                         background: 'rgba(128,128,128,0.12)',
                                         border: 'none',
-                                        cursor: 'pointer',
                                         fontSize: 12,
                                         fontWeight: 700,
                                         color: 'var(--c-text-secondary)',
@@ -5585,14 +5558,13 @@ export default function DrumEditor() {
                                         handleClear();
                                         setShowClearConfirm(false);
                                       }}
-                                      className="btn-smooth"
+                                      className="btn-smooth cursor-pointer"
                                       style={{
                                         flex: 1,
                                         padding: '7px 0',
                                         borderRadius: 9,
                                         background: 'rgba(239,68,68,0.15)',
                                         border: '1px solid rgba(239,68,68,0.3)',
-                                        cursor: 'pointer',
                                         fontSize: 12,
                                         fontWeight: 700,
                                         color: '#f87171',
@@ -5606,58 +5578,32 @@ export default function DrumEditor() {
                               )}
                               <button
                                 onClick={() => setShowClearConfirm((s) => !s)}
-                                title="Clear pattern"
-                                className="btn-smooth"
+                                aria-label="Delete / Reset pattern"
+                                title="Reset pattern"
+                                className="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
                                 style={{
-                                  width: 44,
-                                  height: 44,
-                                  borderRadius: '50%',
-                                  border: 'none',
                                   background: showClearConfirm
                                     ? 'rgba(239,68,68,0.18)'
                                     : isAmoled
-                                      ? 'rgba(4,4,4,0.92)'
+                                      ? '#111111'
                                       : isLight
-                                        ? 'rgba(220,220,224,0.92)'
-                                        : 'rgba(14,14,16,0.88)',
-                                  backdropFilter: 'blur(20px)',
-                                  WebkitBackdropFilter: 'blur(20px)',
-                                  boxShadow: showClearConfirm
-                                    ? '0 2px 12px rgba(239,68,68,0.3)'
-                                    : isLight
-                                      ? '0 2px 12px rgba(0,0,0,0.12)'
-                                      : '0 2px 12px rgba(0,0,0,0.55)',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  outline: showClearConfirm
-                                    ? '1.5px solid rgba(239,68,68,0.4)'
-                                    : isLight
-                                      ? '1.5px solid rgba(0,0,0,0.12)'
-                                      : '1.5px solid rgba(255,255,255,0.08)',
-                                  transition: 'all 160ms',
+                                        ? '#ffffff'
+                                        : '#1e1e24',
+                                  color: '#ef4444',
+                                  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+                                  border: isLight
+                                    ? '1px solid rgba(226,232,240,0.8)'
+                                    : '1px solid rgba(255,255,255,0.1)',
                                 }}
+                                type="button"
                               >
-                                <svg
-                                  width="17"
-                                  height="17"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="#ef4444"
-                                  strokeWidth="2.2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <polyline points="3 6 5 6 21 6" />
-                                  <path d="M19 6l-1 14H6L5 6" />
-                                  <path d="M10 11v6" />
-                                  <path d="M14 11v6" />
-                                  <path d="M9 6V4h6v2" />
-                                </svg>
+                                <span className="material-symbols-outlined text-[19px]">
+                                  delete
+                                </span>
                               </button>
                             </div>
-                            {/* â”€â”€ Smart Loop button + popover â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+
+                            {/* 2. Loop / Pattern Repeat action */}
                             <div
                               style={{
                                 position: 'relative',
@@ -5742,6 +5688,7 @@ export default function DrumEditor() {
                                         animation:
                                           'drumHamburgerIn 160ms cubic-bezier(0.22,1,0.36,1)',
                                         minWidth: 232,
+                                        zIndex: 80,
                                       }}
                                     >
                                       {/* Header: label + on/off toggle */}
@@ -5826,7 +5773,6 @@ export default function DrumEditor() {
                                         >
                                           Bars
                                         </span>
-                                        {/* Start bar -/+ */}
                                         <button
                                           onPointerDown={() => pushUndo()}
                                           onClick={() =>
@@ -5845,7 +5791,7 @@ export default function DrumEditor() {
                                             lineHeight: 1,
                                           }}
                                         >
-                                          âˆ’
+                                          −
                                         </button>
                                         <span
                                           style={{
@@ -5889,9 +5835,8 @@ export default function DrumEditor() {
                                             padding: '0 2px',
                                           }}
                                         >
-                                          â€“
+                                          –
                                         </span>
-                                        {/* End bar -/+ */}
                                         <button
                                           onPointerDown={() => pushUndo()}
                                           onClick={() =>
@@ -5910,7 +5855,7 @@ export default function DrumEditor() {
                                             lineHeight: 1,
                                           }}
                                         >
-                                          âˆ’
+                                          −
                                         </button>
                                         <span
                                           style={{
@@ -5996,57 +5941,34 @@ export default function DrumEditor() {
                                 onClick={() => setShowLoopPanel((s) => !s)}
                                 title="Smart loop"
                                 aria-label="Smart loop"
-                                className="btn-smooth"
+                                className="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
                                 style={{
-                                  width: 44,
-                                  height: 44,
-                                  borderRadius: '50%',
-                                  border: 'none',
                                   background: loopActive
-                                    ? `${accent.from}26`
+                                    ? `${accent.from}22`
                                     : showLoopPanel
-                                      ? `${accent.from}18`
+                                      ? `${accent.from}15`
                                       : isAmoled
-                                        ? 'rgba(4,4,4,0.88)'
+                                        ? '#111111'
                                         : isLight
-                                          ? 'rgba(240,240,242,0.82)'
-                                          : 'rgba(26,26,30,0.82)',
-                                  boxShadow: isLight
-                                    ? '0 2px 12px rgba(0,0,0,0.10)'
-                                    : '0 2px 12px rgba(0,0,0,0.50)',
-                                  backdropFilter: 'blur(20px)',
-                                  WebkitBackdropFilter: 'blur(20px)',
-                                  cursor: 'pointer',
-                                  transition: 'all 160ms',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  outline: loopActive
+                                          ? '#ffffff'
+                                          : '#1e1e24',
+                                  color: loopActive ? accent.from : isLight ? '#334155' : '#cbd5e1',
+                                  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+                                  border: loopActive
                                     ? `1.5px solid ${accent.from}88`
-                                    : showLoopPanel
-                                      ? `1.5px solid ${accent.from}66`
-                                      : isLight
-                                        ? '1.5px solid rgba(0,0,0,0.10)'
-                                        : '1.5px solid rgba(255,255,255,0.08)',
+                                    : isLight
+                                      ? '1px solid rgba(226,232,240,0.8)'
+                                      : '1px solid rgba(255,255,255,0.1)',
                                 }}
+                                type="button"
                               >
-                                <svg
-                                  width="20"
-                                  height="20"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke={loopActive ? accent.from : 'var(--c-text-secondary)'}
-                                  strokeWidth="2.2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                >
-                                  <path d="M17 1l4 4-4 4" />
-                                  <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                                  <path d="M7 23l-4-4 4-4" />
-                                  <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-                                </svg>
+                                <span className="material-symbols-outlined text-[19px]">
+                                  repeat
+                                </span>
                               </button>
                             </div>
+
+                            {/* 3. Metronome / Tempo action */}
                             <div
                               style={{
                                 position: 'relative',
@@ -6093,6 +6015,7 @@ export default function DrumEditor() {
                                         whiteSpace: 'nowrap',
                                         animation:
                                           'drumHamburgerIn 160ms cubic-bezier(0.22,1,0.36,1)',
+                                        zIndex: 80,
                                       }}
                                     >
                                       {/* BPM row */}
@@ -6138,7 +6061,7 @@ export default function DrumEditor() {
                                           {pattern.bpm}
                                         </span>
                                       </div>
-                                      {/* Swing row â€” label, slider, value, preset chips */}
+                                      {/* Swing row */}
                                       <div
                                         style={{
                                           height: 1,
@@ -6244,92 +6167,51 @@ export default function DrumEditor() {
                               <button
                                 onClick={() => setShowBpmPanel((s) => !s)}
                                 title="BPM & Swing"
+                                aria-label="Metronome and Tempo"
+                                className="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
                                 style={{
-                                  width: 44,
-                                  height: 44,
-                                  borderRadius: '50%',
-                                  border: 'none',
                                   background: showBpmPanel
                                     ? `${accent.from}22`
                                     : isAmoled
-                                      ? 'rgba(4,4,4,0.88)'
+                                      ? '#111111'
                                       : isLight
-                                        ? 'rgba(240,240,242,0.82)'
-                                        : 'rgba(26,26,30,0.82)',
-                                  boxShadow: isLight
-                                    ? '0 2px 12px rgba(0,0,0,0.10)'
-                                    : '0 2px 12px rgba(0,0,0,0.50)',
-                                  backdropFilter: 'blur(20px)',
-                                  WebkitBackdropFilter: 'blur(20px)',
-                                  cursor: 'pointer',
-                                  transition: 'all 160ms',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  outline: showBpmPanel
-                                    ? `1.5px solid ${accent.from}66`
-                                    : '1.5px solid rgba(255,255,255,0.10)',
+                                        ? '#ffffff'
+                                        : '#1e1e24',
+                                  color: showBpmPanel
+                                    ? accent.from
+                                    : isLight
+                                      ? '#334155'
+                                      : '#cbd5e1',
+                                  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+                                  border: showBpmPanel
+                                    ? `1.5px solid ${accent.from}88`
+                                    : isLight
+                                      ? '1px solid rgba(226,232,240,0.8)'
+                                      : '1px solid rgba(255,255,255,0.1)',
                                 }}
+                                type="button"
                               >
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                                  <path
-                                    d="M9 4h6l1.5 12H7.5L9 4Z"
-                                    stroke={showBpmPanel ? accent.from : 'var(--c-text-secondary)'}
-                                    strokeWidth="1.7"
-                                    strokeLinejoin="round"
-                                  />
-                                  <line
-                                    x1="12"
-                                    y1="4"
-                                    x2="17"
-                                    y2="13"
-                                    stroke={showBpmPanel ? accent.from : 'var(--c-text-secondary)'}
-                                    strokeWidth="1.7"
-                                    strokeLinecap="round"
-                                  />
-                                  <rect
-                                    x="10"
-                                    y="2"
-                                    width="4"
-                                    height="2.5"
-                                    rx="1"
-                                    fill={showBpmPanel ? accent.from : 'var(--c-text-secondary)'}
-                                  />
-                                </svg>
+                                <span className="material-symbols-outlined text-[19px]">timer</span>
                               </button>
                             </div>
+
+                            {/* 4. Primary Play FAB */}
                             <button
                               onClick={handlePlay}
-                              title={playing ? 'Stop' : 'Play'}
+                              title={playing ? 'Pause' : 'Play'}
+                              aria-label={playing ? 'Pause drum pattern' : 'Play drum pattern'}
+                              className="w-12 h-12 rounded-full flex items-center justify-center text-white transition active:scale-95 focus:outline-none cursor-pointer"
                               style={{
-                                width: 44,
-                                height: 44,
-                                borderRadius: '50%',
-                                border: 'none',
-                                background: playing
-                                  ? isAmoled
-                                    ? 'rgba(4,4,4,0.88)'
-                                    : isLight
-                                      ? 'rgba(240,240,242,0.82)'
-                                      : 'rgba(26,26,30,0.82)'
-                                  : `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: playing ? 13 : 14,
-                                color: playing ? 'var(--c-text-secondary)' : '#fff',
-                                boxShadow: playing
-                                  ? '0 4px 20px rgba(0,0,0,0.40), 0 0 0 1.5px rgba(255,255,255,0.08)'
-                                  : `0 4px 20px ${accent.from}55, 0 0 0 1.5px rgba(255,255,255,0.12)`,
-                                backdropFilter: 'blur(20px)',
-                                WebkitBackdropFilter: 'blur(20px)',
-                                transition: 'all 170ms',
+                                background: '#007aff',
+                                boxShadow: '0 6px 24px rgba(0,122,255,0.4)',
                               }}
+                              type="button"
                             >
-                              {playing ? 'â¹' : 'â–¶'}
+                              <span className="material-symbols-outlined text-[26px]">
+                                {playing ? 'pause' : 'play_arrow'}
+                              </span>
                             </button>
-                          </div>
+                          </aside>
                         </div>
 
                         {isWebDesktop && (
@@ -8496,7 +8378,7 @@ export default function DrumEditor() {
         accent={accent}
         isLight={isLight}
         isAmoled={isAmoled}
-        hidden={isWebDesktop || (isLandscape && inEditor)}
+        hidden={isWebDesktop || inEditor}
       />
 
       {/* Old floating buttons replaced by canonical FAB stack in DrumBeatsPanel */}

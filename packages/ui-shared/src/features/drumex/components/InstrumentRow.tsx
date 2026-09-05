@@ -158,14 +158,14 @@ export const InstrumentRow = memo(
                 stroke={
                   isLight
                     ? onBeat
-                      ? 'rgba(9, 9, 11, 0.50)'
-                      : 'rgba(9, 9, 11, 0.25)'
+                      ? 'rgba(15, 23, 42, 0.45)'
+                      : 'rgba(15, 23, 42, 0.12)'
                     : onBeat
-                      ? 'rgba(255, 255, 255, 0.15)'
-                      : 'rgba(255, 255, 255, 0.08)'
+                      ? 'rgba(255, 255, 255, 0.22)'
+                      : 'rgba(255, 255, 255, 0.07)'
                 }
-                strokeWidth={onBeat ? 1.0 : 0.7}
-                opacity={onBeat ? (gridEmphasis ? 1.0 : 0.75) : gridEmphasis ? 0.6 : 0.4}
+                strokeWidth={onBeat ? 1.2 : 0.8}
+                opacity={onBeat ? 1.0 : 0.6}
               />
             );
           })
@@ -176,7 +176,7 @@ export const InstrumentRow = memo(
           y1={0}
           x2={totalW}
           y2={0}
-          stroke={isLight ? 'rgba(9, 9, 11, 0.35)' : 'rgba(255, 255, 255, 0.06)'}
+          stroke={isLight ? 'rgba(15, 23, 42, 0.20)' : 'rgba(255, 255, 255, 0.08)'}
           strokeWidth={0.8}
         />
         <line
@@ -184,7 +184,7 @@ export const InstrumentRow = memo(
           y1={ROW_H}
           x2={totalW}
           y2={ROW_H}
-          stroke={isLight ? 'rgba(9, 9, 11, 0.35)' : 'rgba(255, 255, 255, 0.06)'}
+          stroke={isLight ? 'rgba(15, 23, 42, 0.20)' : 'rgba(255, 255, 255, 0.08)'}
           strokeWidth={0.8}
         />
         {/* Measure bar lines */}
@@ -196,10 +196,10 @@ export const InstrumentRow = memo(
             x2={mi * MEASURE_W}
             y2={ROW_H}
             stroke={barColor}
-            strokeWidth={mi === 0 ? 1.5 : 1.2}
+            strokeWidth={mi === 0 ? 1.8 : 1.5}
           />
         ))}
-        <line x1={totalW} y1={0} x2={totalW} y2={ROW_H} stroke={barColor} strokeWidth={1.5} />
+        <line x1={totalW} y1={0} x2={totalW} y2={ROW_H} stroke={barColor} strokeWidth={1.8} />
         {/* Velocity bars */}
         {rowMeasures.map((m, mi) => {
           const hits = m.hits[inst] ?? [];
@@ -207,19 +207,19 @@ export const InstrumentRow = memo(
             const hit = hits.find((h) => h.step === s);
             if (!hit) return null;
             const vel = typeof hit.velocity === 'number' ? hit.velocity : DEFAULT_VELOCITY;
-            const cellW = STEP_W - 3;
-            const frac = Math.max(0.06, Math.min(1, vel / MAX_VELOCITY));
+            const cellW = STEP_W - 4;
+            const frac = Math.max(0.1, Math.min(1, vel / MAX_VELOCITY));
             const w = cellW * frac;
             const x = (mi * spm + s) * STEP_W + (STEP_W - w) / 2;
-            const op = 0.32 + frac * 0.45;
+            const op = 0.4 + frac * 0.5;
             return (
               <rect
                 key={`v-${mi}-${s}`}
                 x={x}
-                y={ROW_H - 2.4}
+                y={ROW_H - 3.5}
                 width={w}
-                height={1.4}
-                rx={0.7}
+                height={2}
+                rx={1}
                 fill={accentFrom}
                 opacity={op}
                 pointerEvents="none"

@@ -77,12 +77,278 @@ export function RelatedPlayBtn({
   );
 }
 
+function capitalize(str: string): string {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function getHarmonicDegree(tonic: string, relatedRoot: string, relatedType: string): string {
+  const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const normalize = (n: string) =>
+    n
+      .toUpperCase()
+      .replace('DB', 'C#')
+      .replace('EB', 'D#')
+      .replace('GB', 'F#')
+      .replace('AB', 'G#')
+      .replace('BB', 'A#');
+  const tIdx = notes.indexOf(normalize(tonic));
+  const rIdx = notes.indexOf(normalize(relatedRoot));
+  if (tIdx === -1 || rIdx === -1) return '';
+  const diff = (rIdx - tIdx + 12) % 12;
+  const isMinor =
+    relatedType.toLowerCase().includes('minor') || relatedType.toLowerCase().includes('min');
+  switch (diff) {
+    case 0:
+      return isMinor ? 'i' : 'I';
+    case 2:
+      return isMinor ? 'ii' : 'II';
+    case 4:
+      return isMinor ? 'iii' : 'III';
+    case 5:
+      return isMinor ? 'iv' : 'IV';
+    case 7:
+      return isMinor ? 'v' : 'V';
+    case 9:
+      return isMinor ? 'vi' : 'VI';
+    case 11:
+      return isMinor ? 'vii°' : 'VII';
+    default:
+      return '';
+  }
+}
+
+export function DetailFretboardDiagram({
+  chordData,
+  displayMode = 'notes',
+  className = '',
+}: {
+  chordData?: GuitarChordData | null;
+  displayMode?: 'notes' | 'intervals';
+  className?: string;
+}) {
+  const frets = chordData?.frets ?? [-1, 3, 2, 0, 1, 0];
+  const fingers = chordData?.fingers ?? [];
+  const barres = chordData?.barres ?? [];
+  const baseFret = chordData?.baseFret ?? 1;
+
+  const positiveFrets = frets.filter((f) => f > 0);
+  const minActive = positiveFrets.length ? Math.min(...positiveFrets) : 1;
+  const minFret = baseFret > 1 ? baseFret : Math.max(1, minActive);
+
+  // String x positions (strings 6 to 1: low E to high e)
+  const stringX = [28, 64, 100, 136, 172, 208];
+  const stringWidths = [2.2, 1.8, 1.5, 1.2, 1.0, 0.8];
+  const stringNames = ['E', 'A', 'D', 'G', 'B', 'e'];
+
+  // String indicators at top (y = 12)
+  const stringIndicators = frets.map((f) => (f === -1 ? '✕' : f === 0 ? '○' : ''));
+
+  // Chromatic note lookup for guitar strings (Standard Tuning)
+  const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const STRING_OFFSETS = [4, 9, 2, 7, 11, 4]; // E=4, A=9, D=2, G=7, B=11, e=4
+
+  // Compute finger dots
+  const dots: { cx: number; cy: number; label: string }[] = [];
+  frets.forEach((fret, sIdx) => {
+    if (fret > 0) {
+      const relFret = fret - minFret + 1;
+      if (relFret >= 1 && relFret <= 4) {
+        const cx = stringX[sIdx];
+        const cy = 26 + (relFret - 0.5) * 42;
+        let label = '';
+        if (displayMode === 'intervals') {
+          label = fingers[sIdx] ? String(fingers[sIdx]) : String(relFret);
+        } else {
+          const noteIdx = (STRING_OFFSETS[sIdx] + fret) % 12;
+          label = CHROMATIC[noteIdx];
+        }
+        const stringNum = 6 - sIdx;
+        const isBarreCovered = barres.some(
+          (b) => b.fret === fret && stringNum >= b.toString && stringNum <= b.fromString
+        );
+        if (!isBarreCovered) {
+          dots.push({ cx, cy, label });
+        }
+      }
+    }
+  });
+
+  return (
+    <div
+      className={`w-full max-w-[270px] select-none ${className}`}
+      style={{ color: 'var(--c-text-primary)' }}
+      aria-label="Guitar Fretboard Diagram"
+      data-purpose="fretboard-diagram"
+    >
+      {/* String Markers (Nut head: Muted ✕ & Open ○) */}
+      <div className="flex justify-between px-[14px] text-xs font-extrabold mb-1">
+        {stringIndicators.map((ind, i) => (
+          <span
+            key={`marker-${i}`}
+            className="w-7 text-center leading-none"
+            style={{
+              color: ind === '✕' ? '#EF4444' : 'var(--c-text-muted, #8A92A6)',
+              opacity: ind === '✕' ? 1 : 0.65,
+            }}
+          >
+            {ind}
+          </span>
+        ))}
+      </div>
+
+      {/* Fretboard SVG Surface */}
+      <div
+        className="w-full rounded-2xl p-2.5 border shadow-inner transition-colors"
+        style={{
+          backgroundColor: 'var(--c-surface-lowest, #F9F7F5)',
+          borderColor: 'var(--c-border, #E7DFD6)',
+        }}
+      >
+        <svg className="w-full" viewBox="0 0 236 218" fill="none">
+          {/* Top Nut Bar or Base Fret wire */}
+          {minFret <= 1 ? (
+            <rect fill="currentColor" opacity="0.8" height="4.5" rx="2" width="186" x="25" y="24" />
+          ) : (
+            <>
+              <line
+                stroke="currentColor"
+                strokeOpacity="0.3"
+                strokeWidth="1.5"
+                x1="25"
+                x2="211"
+                y1="26"
+                y2="26"
+              />
+              <text fill="currentColor" opacity="0.75" fontSize="11" fontWeight="bold" x="8" y="48">
+                {minFret}fr
+              </text>
+            </>
+          )}
+
+          {/* 4 horizontal fret wires */}
+          {[68, 110, 152, 194].map((fretY, idx) => (
+            <line
+              key={`fret-${idx}`}
+              stroke="currentColor"
+              strokeOpacity="0.25"
+              strokeWidth="1.2"
+              x1="25"
+              x2="211"
+              y1={fretY}
+              y2={fretY}
+            />
+          ))}
+
+          {/* 6 vertical strings with realistic gauge */}
+          {stringX.map((x, i) => (
+            <line
+              key={`str-${i}`}
+              stroke="currentColor"
+              strokeOpacity="0.28"
+              strokeWidth={stringWidths[i]}
+              x1={x}
+              x2={x}
+              y1="26"
+              y2="194"
+            />
+          ))}
+
+          {/* Barre Bars */}
+          {barres.map((barre, bIdx) => {
+            const relFret = barre.fret - minFret + 1;
+            if (relFret < 1 || relFret > 4) return null;
+            const cy = 26 + (relFret - 0.5) * 42;
+            const fromX = stringX[6 - barre.fromString];
+            const toX = stringX[6 - barre.toString];
+            const minX = Math.min(fromX, toX) - 10;
+            const maxX = Math.max(fromX, toX) + 10;
+            const width = maxX - minX;
+            return (
+              <g key={`barre-${bIdx}`}>
+                <rect
+                  x={minX}
+                  y={cy - 11}
+                  width={width}
+                  height="22"
+                  rx="11"
+                  fill="var(--c-accent-from, #2563EB)"
+                  fillOpacity="0.92"
+                />
+                <circle
+                  cx={fromX}
+                  cy={cy}
+                  r="11"
+                  fill="var(--c-accent-from, #2563EB)"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.5"
+                />
+                <circle
+                  cx={toX}
+                  cy={cy}
+                  r="11"
+                  fill="var(--c-accent-from, #2563EB)"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.5"
+                />
+              </g>
+            );
+          })}
+
+          {/* Finger Dots */}
+          {dots.map((d, i) => (
+            <g key={`dot-${i}`}>
+              <circle
+                cx={d.cx}
+                cy={d.cy}
+                r="12"
+                fill="var(--c-accent-from, #2563EB)"
+                stroke="#FFFFFF"
+                strokeWidth="2.5"
+              />
+              <text
+                x={d.cx}
+                y={d.cy + 3.8}
+                fill="#FFFFFF"
+                fontSize="10"
+                fontWeight="bold"
+                textAnchor="middle"
+                style={{ fontFamily: 'var(--font-headline, sans-serif)' }}
+              >
+                {d.label}
+              </text>
+            </g>
+          ))}
+
+          {/* String Names at Bottom */}
+          {stringNames.map((name, i) => (
+            <text
+              key={`name-${i}`}
+              x={stringX[i]}
+              y="211"
+              fill="currentColor"
+              fillOpacity="0.45"
+              fontSize="10"
+              fontWeight="600"
+              textAnchor="middle"
+            >
+              {name}
+            </text>
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export function LibraryChordDetail({
   state,
   isDefaultPreview = false,
+  onBack,
 }: {
   state: any;
   isDefaultPreview?: boolean;
+  onBack?: () => void;
 }) {
   const {
     chord,
@@ -99,6 +365,8 @@ export function LibraryChordDetail({
     setPreviewInstrument,
     diagramDisplayMode,
     setDiagramDisplayMode,
+    selectChord,
+    isWebDesktop,
   } = state;
   const t = useT();
 
@@ -106,10 +374,12 @@ export function LibraryChordDetail({
 
   if (!chord) return null;
   const favorite = favorites.includes(chord.id);
-  const notesStr = chord.notes.join(' - ');
-  const typeStr = chord.type.charAt(0).toUpperCase() + chord.type.slice(1) + ' Chord';
+  const notesStr = chord.notes.join(' · ');
+  const chordQuality = `${chord.type ? capitalize(chord.type) : 'Major'} Triad`;
 
   const activeInstrument: Instrument = previewInstrument || settings.instrument || 'guitar';
+  const baseFret = chord.guitar?.baseFret ?? 1;
+  const positionText = `${capitalize(activeInstrument)} · ${baseFret > 1 ? `Fret ${baseFret}` : 'Open Position'}`;
 
   const handlePlayChord = () => {
     if (!chord) return;
@@ -123,128 +393,216 @@ export function LibraryChordDetail({
     setTimeout(() => setChordPlaying(false), 2800);
   };
 
-  const renderDetailDiagram = () => {
-    if (!chord) return null;
-    const props = {
-      chordName: chord.name,
-      notes: chord.notes,
-      intervals: chord.intervals,
-      showNoteNames: diagramDisplayMode === 'notes',
-      showIntervals: diagramDisplayMode === 'intervals',
-      size: 'lg' as const,
-    };
-
-    if (activeInstrument === 'guitar') {
-      return <GuitarDiagram chordData={chord.guitar} {...props} leftHanded={settings.leftHanded} />;
-    } else if (activeInstrument === 'bass') {
-      return (
-        <FourStringDiagram
-          chordData={chord.guitar}
-          {...props}
-          instrument="bass"
-          fiveString={settings.bassFiveString}
-        />
-      );
-    } else {
-      return <PianoDiagram chordData={chord.piano} {...props} />;
-    }
-  };
+  const handleBack = onBack || (() => selectChord(null));
 
   return (
     <div
-      className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6"
+      className="flex-1 overflow-y-auto no-scrollbar"
       style={{ background: 'var(--app-bg)' }}
+      data-purpose="chord-detail-screen"
     >
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Default Preview Header Badge if desktop empty preview */}
-        {isDefaultPreview && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--c-surface-low)] border border-[var(--c-border)] w-fit">
-            <span className="material-symbols-outlined text-xs text-[var(--c-accent-from)]">
-              stars
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--c-text-secondary)]">
-              Featured Chord Preview
-            </span>
-          </div>
-        )}
+      <div
+        className="w-full max-w-md mx-auto pb-28 px-4 pt-3 space-y-5"
+        style={{
+          paddingTop:
+            'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px))',
+        }}
+        data-purpose="mobile-viewport"
+      >
+        {/* TopBar / Sticky Header */}
+        <header
+          className="sticky top-0 z-30 px-3.5 py-2 flex items-center justify-between w-full rounded-full shadow-sm transition-colors"
+          style={{
+            backgroundColor: 'var(--surface-card-bg, #ffffff)',
+            borderColor: 'var(--c-border, #E3E6EB)',
+            borderWidth: '1px',
+            backdropFilter: 'blur(16px)',
+          }}
+          data-purpose="chord-detail-top-bar"
+        >
+          {!isWebDesktop ? (
+            <button
+              aria-label="Go back"
+              onClick={handleBack}
+              className="w-9 h-9 rounded-full border flex items-center justify-center active:scale-90 transition-transform cursor-pointer shrink-0"
+              style={{
+                backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
+                borderColor: 'var(--c-border, #E3E6EB)',
+                color: 'var(--c-text-primary)',
+              }}
+              type="button"
+            >
+              <span className="material-symbols-rounded text-lg">arrow_back</span>
+            </button>
+          ) : (
+            <div className="w-9 h-9 shrink-0" />
+          )}
 
-        {/* Hero Card Header */}
-        <div className="bento-card p-6 relative overflow-hidden group">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-label-caps text-[10px] uppercase tracking-wider font-bold text-[var(--c-accent-from)]">
-                  {activeInstrument.toUpperCase()} · {chord.type.toUpperCase()}
+          <div className="flex flex-col items-center justify-center text-center px-2 min-w-0">
+            <h1
+              className="text-base font-bold tracking-tight leading-none truncate"
+              style={{
+                fontFamily: 'var(--font-headline)',
+                color: 'var(--c-text-primary)',
+              }}
+            >
+              {chord.name} {chord.type ? capitalize(chord.type) : ''}
+            </h1>
+            <p
+              className="text-[11px] font-medium mt-0.5 truncate"
+              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+            >
+              {positionText}
+            </p>
+          </div>
+
+          <button
+            aria-label={favorite ? 'Remove from favorites' : 'Add to favorites'}
+            onClick={() => toggleFavorite(chord.id)}
+            data-purpose="favorite-toggle-button"
+            className="w-9 h-9 rounded-full border flex items-center justify-center active:scale-90 transition-transform cursor-pointer shrink-0"
+            style={{
+              backgroundColor: favorite
+                ? 'color-mix(in srgb, #EF4444 12%, var(--surface-card-bg, #ffffff))'
+                : 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
+              borderColor: favorite ? '#FCA5A5' : 'var(--c-border, #E3E6EB)',
+              color: favorite ? '#EF4444' : 'var(--c-text-primary)',
+            }}
+            type="button"
+          >
+            <span
+              className="material-symbols-rounded text-lg"
+              style={{ fontVariationSettings: favorite ? "'FILL' 1" : "'FILL' 0" }}
+            >
+              favorite
+            </span>
+          </button>
+        </header>
+
+        {/* ACTIVE CHORD HERO CARD */}
+        <section
+          className="rounded-3xl p-5 border shadow-soft-card relative overflow-hidden transition-colors"
+          style={{
+            backgroundColor: 'var(--surface-card-bg, #ffffff)',
+            borderColor: 'var(--c-border, #E3E6EB)',
+          }}
+          data-purpose="chord-detail-card"
+        >
+          {/* Top Header Row Inside Card */}
+          <div className="flex items-start justify-between">
+            <div className="min-w-0 pr-2">
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-bold tracking-wide uppercase mb-1"
+                style={{
+                  backgroundColor:
+                    'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
+                  borderColor: 'color-mix(in srgb, var(--c-accent-from, #2563EB) 22%, transparent)',
+                  color: 'var(--c-accent-from, #2563EB)',
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: 'var(--c-accent-from, #2563EB)' }}
+                />
+                <span>{positionText}</span>
+              </div>
+
+              <div className="flex items-baseline gap-2 mt-1">
+                <h2
+                  data-purpose="chord-symbol"
+                  className="text-4xl font-extrabold tracking-tight leading-none"
+                  style={{
+                    fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary)',
+                  }}
+                >
+                  {chord.name}
+                </h2>
+                <span
+                  data-purpose="chord-quality"
+                  className="text-sm font-semibold"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  {chordQuality}
                 </span>
               </div>
-              <h2
-                className="text-4xl md:text-5xl font-extrabold text-[var(--c-text-primary)] tracking-tight"
-                style={{ fontFamily: 'var(--font-headline)' }}
-              >
-                {chord.name}
-              </h2>
+
               <p
-                className="text-sm text-[var(--c-text-secondary)] mt-1 font-medium"
-                style={{ fontFamily: 'var(--font-body)' }}
+                data-purpose="chord-notes"
+                className="text-xs font-medium mt-1.5 tracking-wide"
+                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
               >
-                {notesStr} <span className="opacity-60">({typeStr})</span>
+                Notes:{' '}
+                <span className="font-bold" style={{ color: 'var(--c-text-primary)' }}>
+                  {notesStr}
+                </span>
               </p>
             </div>
 
-            {/* Action Buttons Top */}
-            <div className="flex gap-2 items-center">
-              <Button
-                variant={chordPlaying ? 'primary' : 'secondary'}
+            {/* Quick Action Controls */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
                 onClick={handlePlayChord}
-                style={{ borderRadius: '50%', width: 44, height: 44, padding: 0 }}
-                aria-label={chordPlaying ? 'Stop Audio' : 'Play Chord'}
-              >
-                <span
-                  className="material-symbols-outlined text-xl"
-                  style={{
-                    fontVariationSettings: chordPlaying ? "'FILL' 1" : "'FILL' 1",
-                  }}
-                >
-                  {chordPlaying ? 'stop' : 'play_arrow'}
-                </span>
-              </Button>
-              <ActionButton
-                variant="favorite"
-                isFavorite={favorite}
-                onClick={() => toggleFavorite(chord.id)}
-                iconSize={22}
-                style={{ borderRadius: '50%', width: 44, height: 44, padding: 0 }}
-              />
-              <Button
-                variant="secondary"
-                onClick={() => addToProgression(chord.id)}
-                icon="add"
+                data-purpose="chord-playback-button"
+                aria-label={chordPlaying ? 'Stop Audio' : `Play ${chord.name} Chord`}
+                className="w-11 h-11 rounded-full text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-md"
                 style={{
-                  height: 44,
-                  borderRadius: '22px',
-                  paddingLeft: '14px',
-                  paddingRight: '16px',
+                  backgroundColor: 'var(--c-accent-from, #2563EB)',
+                  boxShadow:
+                    '0 4px 14px color-mix(in srgb, var(--c-accent-from, #2563EB) 40%, transparent)',
                 }}
               >
-                Add
-              </Button>
+                <span className="material-symbols-rounded text-2xl">
+                  {chordPlaying ? 'stop' : 'play_arrow'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => addToProgression(chord.id)}
+                data-purpose="chord-add-button"
+                aria-label="Add to progression"
+                className="w-11 h-11 rounded-full border flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--btn-surface-bg, var(--c-surface-low, #F3F4F7))',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                  color: 'var(--c-text-primary)',
+                }}
+              >
+                <span className="material-symbols-rounded text-xl">add</span>
+              </button>
             </div>
           </div>
 
-          {/* Instrument Switcher & Display Options */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[var(--c-border)]">
-            <div className="flex bg-[var(--c-surface-lowest)] p-1 rounded-full border border-[var(--c-border)] gap-1">
-              {(['guitar', 'bass', 'piano'] as Instrument[]).map((inst) => {
+          {/* Segmented Controls: Instrument & View Mode */}
+          <div
+            className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-2"
+            style={{ borderColor: 'var(--c-border, #E3E6EB)' }}
+          >
+            {/* Instrument switch */}
+            <div
+              className="p-0.5 rounded-full flex text-xs font-semibold border"
+              style={{
+                backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
+                borderColor: 'var(--c-border, #E3E6EB)',
+              }}
+              data-purpose="instrument-switch"
+            >
+              {(['guitar', 'piano'] as Instrument[]).map((inst) => {
                 const isActive = activeInstrument === inst;
                 return (
                   <button
                     key={inst}
+                    type="button"
                     onClick={() => setPreviewInstrument(inst)}
-                    className="px-3.5 py-1 rounded-full text-xs font-semibold capitalize transition-all"
+                    className="px-3 py-1 rounded-full capitalize transition-all cursor-pointer"
                     style={{
-                      backgroundColor: isActive ? 'var(--c-accent-from, #679cff)' : 'transparent',
-                      color: isActive ? '#ffffff' : 'var(--c-text-secondary)',
-                      boxShadow: isActive ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
+                      backgroundColor: isActive ? 'var(--surface-card-bg, #ffffff)' : 'transparent',
+                      color: isActive
+                        ? 'var(--c-accent-from, #2563EB)'
+                        : 'var(--c-text-secondary, #6B7280)',
+                      boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
                     }}
                   >
                     {inst}
@@ -253,102 +611,220 @@ export function LibraryChordDetail({
               })}
             </div>
 
-            <div className="flex bg-[var(--c-surface-lowest)] p-1 rounded-full border border-[var(--c-border)] gap-1">
-              <button
-                onClick={() => setDiagramDisplayMode('notes')}
-                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
+            {/* Display Mode Switch (Notes / Intervals) */}
+            {activeInstrument === 'guitar' && (
+              <div
+                className="p-0.5 rounded-full flex text-xs font-semibold border"
                 style={{
-                  backgroundColor:
-                    diagramDisplayMode === 'notes' ? 'var(--c-surface-high)' : 'transparent',
-                  color:
-                    diagramDisplayMode === 'notes'
-                      ? 'var(--c-text-primary)'
-                      : 'var(--c-text-muted)',
+                  backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
                 }}
+                data-purpose="display-mode-switch"
               >
-                Notes
-              </button>
-              <button
-                onClick={() => setDiagramDisplayMode('intervals')}
-                className="px-3 py-1 rounded-full text-xs font-semibold transition-all"
-                style={{
-                  backgroundColor:
-                    diagramDisplayMode === 'intervals' ? 'var(--c-surface-high)' : 'transparent',
-                  color:
-                    diagramDisplayMode === 'intervals'
-                      ? 'var(--c-text-primary)'
-                      : 'var(--c-text-muted)',
-                }}
-              >
-                Intervals
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Interactive Visualizer Surface */}
-        <div className="bento-card p-6 flex flex-col items-center justify-center relative overflow-hidden">
-          <div className="w-full flex justify-center py-2">{renderDetailDiagram()}</div>
-
-          {/* Notes Interval Breakdown Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-4 pt-4 border-t border-[var(--c-border)] w-full">
-            {chord.notes.map((note: string, idx: number) => {
-              const interval = chord.intervals[idx] || (idx === 0 ? '1' : '');
-              return (
-                <div
-                  key={`${note}-${idx}`}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--c-surface-lowest)] border border-[var(--c-border)]"
+                <button
+                  type="button"
+                  onClick={() => setDiagramDisplayMode('notes')}
+                  className="px-3 py-1 rounded-full transition-all cursor-pointer"
+                  style={{
+                    backgroundColor:
+                      diagramDisplayMode === 'notes'
+                        ? 'var(--surface-card-bg, #ffffff)'
+                        : 'transparent',
+                    color:
+                      diagramDisplayMode === 'notes'
+                        ? 'var(--c-accent-from, #2563EB)'
+                        : 'var(--c-text-secondary, #6B7280)',
+                    boxShadow:
+                      diagramDisplayMode === 'notes' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                  }}
                 >
-                  <span className="font-bold text-xs text-[var(--c-text-primary)]">{note}</span>
-                  <span className="text-[10px] font-semibold text-[var(--c-accent-from)] bg-[var(--c-surface-high)] px-1.5 py-0.5 rounded-md">
-                    {interval}
-                  </span>
-                </div>
-              );
-            })}
+                  Notes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDiagramDisplayMode('intervals')}
+                  className="px-3 py-1 rounded-full transition-all cursor-pointer"
+                  style={{
+                    backgroundColor:
+                      diagramDisplayMode === 'intervals'
+                        ? 'var(--surface-card-bg, #ffffff)'
+                        : 'transparent',
+                    color:
+                      diagramDisplayMode === 'intervals'
+                        ? 'var(--c-accent-from, #2563EB)'
+                        : 'var(--c-text-secondary, #6B7280)',
+                    boxShadow:
+                      diagramDisplayMode === 'intervals' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                  }}
+                >
+                  Intervals
+                </button>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Smart Suggestions & Related Voicings */}
-        {relatedChords.length > 0 && (
-          <div className="space-y-3">
-            <h3
-              className="text-xs font-extrabold uppercase tracking-wider text-[var(--c-text-secondary)] px-1"
-              style={{ fontFamily: 'var(--font-headline)' }}
+          {/* High Fidelity Clean Fretboard Diagram */}
+          <div className="mt-5 flex flex-col items-center justify-center">
+            {activeInstrument === 'guitar' ? (
+              <DetailFretboardDiagram chordData={chord.guitar} displayMode={diagramDisplayMode} />
+            ) : activeInstrument === 'bass' ? (
+              <FourStringDiagram
+                chordData={chord.guitar}
+                chordName={chord.name}
+                notes={chord.notes}
+                intervals={chord.intervals}
+                showNoteNames={diagramDisplayMode === 'notes'}
+                showIntervals={diagramDisplayMode === 'intervals'}
+                size="lg"
+                instrument="bass"
+                fiveString={settings.bassFiveString}
+              />
+            ) : (
+              <PianoDiagram
+                chordData={chord.piano}
+                chordName={chord.name}
+                notes={chord.notes}
+                intervals={chord.intervals}
+                showNoteNames={diagramDisplayMode === 'notes'}
+                showIntervals={diagramDisplayMode === 'intervals'}
+                size="lg"
+              />
+            )}
+
+            {/* Triad Note Breakdown Pills */}
+            <div
+              className="flex flex-wrap items-center justify-center gap-2 mt-4"
+              data-purpose="triad-note-breakdown"
             >
-              {t.chord.voicings} & Related Chords
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              {relatedChords.slice(0, 4).map((related) => (
-                <div
-                  key={related.id}
-                  onClick={() => handleChordClick(related.id)}
-                  className="bento-card p-4 flex flex-col justify-between hover:bg-[var(--c-surface-high)] transition-all cursor-pointer group relative active:scale-[0.98]"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <span
-                        className="font-bold text-[var(--c-text-primary)] text-sm block"
-                        style={{ fontFamily: 'var(--font-headline)' }}
-                      >
-                        {related.name}
-                      </span>
-                      <span className="text-[10px] text-[var(--c-text-secondary)] block">
-                        {related.notes.join(' · ')}
-                      </span>
-                    </div>
-                    <RelatedPlayBtn guitar={related.guitar} accent={accent} isLight={isLight} />
+              {chord.notes.map((note: string, idx: number) => {
+                const isRoot = idx === 0 || note.toUpperCase() === chord.root.toUpperCase();
+                const intervalRaw = chord.intervals?.[idx] || (idx === 0 ? '1' : '');
+                const roleLabel = isRoot
+                  ? 'Root'
+                  : intervalRaw === '3' || intervalRaw === 'b3'
+                    ? '3rd'
+                    : intervalRaw === '5' || intervalRaw === 'b5' || intervalRaw === '#5'
+                      ? '5th'
+                      : intervalRaw === '7' || intervalRaw === 'b7' || intervalRaw === 'maj7'
+                        ? '7th'
+                        : intervalRaw === '9' || intervalRaw === 'b9'
+                          ? '9th'
+                          : intervalRaw === '4' || intervalRaw === 'sus4'
+                            ? '4th'
+                            : intervalRaw === '2' || intervalRaw === 'sus2'
+                              ? '2nd'
+                              : intervalRaw === '6'
+                                ? '6th'
+                                : intervalRaw || `${idx + 1}`;
+
+                return (
+                  <div
+                    key={`${note}-${idx}`}
+                    className="px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all"
+                    style={{
+                      backgroundColor: isRoot
+                        ? 'color-mix(in srgb, var(--c-accent-from, #2563EB) 12%, transparent)'
+                        : 'var(--c-surface-lowest, #ECEEF2)',
+                      borderColor: isRoot
+                        ? 'color-mix(in srgb, var(--c-accent-from, #2563EB) 28%, transparent)'
+                        : 'var(--c-border, #E3E6EB)',
+                      borderWidth: '1px',
+                      color: isRoot
+                        ? 'var(--c-accent-from, #2563EB)'
+                        : 'var(--c-text-primary, #111827)',
+                    }}
+                  >
+                    <span>{note}</span>
+                    <span
+                      className="text-[9px] font-bold px-1.5 py-0.2 rounded-full uppercase"
+                      style={{
+                        backgroundColor: isRoot
+                          ? 'var(--c-accent-from, #2563EB)'
+                          : 'var(--c-surface-low, #E2E4E8)',
+                        color: isRoot ? '#ffffff' : 'var(--c-text-secondary, #6B7280)',
+                      }}
+                    >
+                      {roleLabel}
+                    </span>
                   </div>
-                  <div className="w-full flex justify-center pt-1">
-                    <HeroChordRecess
-                      chordData={related.guitar}
-                      className="w-full max-w-[140px] h-24"
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
+        </section>
+
+        {/* RELATED CHORDS SECTION */}
+        {relatedChords.length > 0 && (
+          <section className="space-y-3" data-purpose="related-chords-section">
+            <div className="flex items-center justify-between px-1">
+              <h3
+                className="text-xs font-bold uppercase tracking-wider"
+                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+              >
+                Related in {chord.name} Major Key
+              </h3>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: 'var(--c-accent-from, #2563EB)' }}
+              >
+                {relatedChords.length} Chords
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3" data-purpose="related-chords-grid">
+              {relatedChords.slice(0, 4).map((rel) => {
+                const degree = getHarmonicDegree(chord.root, rel.root, rel.type);
+                return (
+                  <article
+                    key={rel.id}
+                    onClick={() => handleChordClick(rel.id)}
+                    className="rounded-3xl p-3.5 border shadow-soft-card flex flex-col justify-between active:scale-[0.98] transition-all cursor-pointer group"
+                    style={{
+                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                      borderColor: 'var(--c-border, #E3E6EB)',
+                    }}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="min-w-0 pr-1">
+                          <div className="flex items-baseline gap-1.5">
+                            <span
+                              className="text-base font-bold tracking-tight truncate"
+                              style={{
+                                fontFamily: 'var(--font-headline)',
+                                color: 'var(--c-text-primary)',
+                              }}
+                            >
+                              {rel.name}
+                            </span>
+                            {degree && (
+                              <span
+                                className="text-[10px] font-semibold"
+                                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                              >
+                                {degree}
+                              </span>
+                            )}
+                          </div>
+                          <p
+                            className="text-[10px] font-medium tracking-wide truncate mt-0.5"
+                            style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                          >
+                            {rel.notes?.join(' · ')}
+                          </p>
+                        </div>
+                        <RelatedPlayBtn guitar={rel.guitar} accent={accent} isLight={isLight} />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center pt-1">
+                      <ChordCardMiniFretboard chordData={rel.guitar} />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
         )}
       </div>
     </div>

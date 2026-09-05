@@ -5,7 +5,6 @@ import { SongPracticeView } from './SongPracticeView';
 import { SaxophonePracticePanel } from './SaxophonePracticePanel';
 import { useLibraryState } from './useLibraryState';
 import { LibraryMainView, LibraryChordDetail } from './LibraryUI';
-import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
 
 const CustomChordBuilder = lazy(() => import('../components/CustomChordBuilder'));
 const ProgressionGenerator = lazy(() => import('../components/ProgressionGenerator'));
@@ -53,7 +52,15 @@ export default function LibraryPanel() {
             <LibraryMainView state={state} />
           </div>
           {/* Right Column: Interactive Chord Preview */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+          <div
+            style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              overflow: 'hidden',
+            }}
+          >
             {chord ? (
               <LibraryChordDetail state={state} />
             ) : state.chordOfTheDay ? (
@@ -68,21 +75,7 @@ export default function LibraryPanel() {
         </div>
       ) : // Mobile view - either details or main list
       selectedChordId ? (
-        <div className="flex flex-col h-full overflow-hidden relative">
-          <SharedFloatingHeader
-            title={chord?.name || 'Chord Preview'}
-            onBack={() => selectChord(null)}
-          />
-          <div
-            style={{
-              flex: 1,
-              overflowY: 'auto',
-              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
-            }}
-          >
-            <LibraryChordDetail state={state} />
-          </div>
-        </div>
+        <LibraryChordDetail state={state} onBack={() => selectChord(null)} />
       ) : (
         <LibraryMainView state={state} />
       )}

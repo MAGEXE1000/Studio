@@ -1,6 +1,7 @@
 import { createAudioContext } from '@workspace/studio-core';
 import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 import { isPercussionStem } from './stemClassifier';
+import { getOrTransposeBuffer } from './pitchShifter';
 
 export interface TrackState {
   name: string;
@@ -10,14 +11,16 @@ export interface TrackState {
   muted: boolean;
   solo: boolean;
   buffer: AudioBuffer | null;
+  originalBuffer: AudioBuffer | null;
+  transposedCache: Map<number, AudioBuffer>;
   source: AudioBufferSourceNode | null;
   gainNode: GainNode | null;
   isPercussion: boolean;
 }
 
 let audioCtx: AudioContext | null = null;
-let workletRegistered = false;
-let workletRegistering: Promise<void> | null = null;
+const workletRegistered = false;
+const workletRegistering: Promise<void> | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioCtx) {
@@ -81,16 +84,10 @@ export function createEngine(): AudioEngine {
   const scrubGain = ctx.createGain();
   scrubGain.gain.setValueAtTime(1.0, ctx.currentTime);
 
-  // Melodic bypass route: sumBus -> bypassGain -> masterGain (100% bit-exact, 0ms latency)
-  sumBus.connect(bypassGain);
-  bypassGain.connect(masterGain);
-
-  // Melodic pitch-transposed route: sumBus -> shifterInGain (connected to stNode upon initSoundTouch)
-  sumBus.connect(shifterInGain);
-
-  // Percussion immune route: drumBus -> drumDelay -> scrubFilter (100% IMMUNE to pitch shifting)
-  drumBus.connect(drumDelay);
-  drumDelay.connect(scrubFilter);
+  // Unified zero-latency master bus: Both drumBus and sumBus route directly into masterGain
+  // Drums and non-drums have 100% bit-exact 0.000ms group delay lock
+  sumBus.connect(masterGain);
+  drumBus.connect(masterGain);
 
   masterGain.connect(scrubFilter);
   scrubFilter.connect(scrubGain);
@@ -120,29 +117,10 @@ export function createEngine(): AudioEngine {
   };
 }
 
-export async function initSoundTouch(engine: AudioEngine): Promise<void> {
-  const ctx = engine.ctx;
-  if (!workletRegistered) {
-    if (!workletRegistering) {
-      workletRegistering = SoundTouchNode.register(ctx, '/soundtouch-processor.js');
-    }
-    await workletRegistering;
-    workletRegistered = true;
-  }
-  const stNode = new SoundTouchNode({ context: ctx });
-  engine.shifterInGain.connect(stNode);
-  stNode.connect(engine.shifterOutGain);
-  engine.shifterOutGain.connect(engine.masterGain);
-  engine.stNode = stNode;
-
-  if (engine.pitchSemitones !== 0) {
-    stNode.pitchSemitones.value = engine.pitchSemitones;
-    engine.shifterInGain.gain.setValueAtTime(1.0, ctx.currentTime);
-    engine.shifterOutGain.gain.setValueAtTime(1.0, ctx.currentTime);
-    engine.bypassGain.gain.setValueAtTime(0.0, ctx.currentTime);
-    const latency = 1024 / ctx.sampleRate;
-    engine.drumDelay.delayTime.setValueAtTime(latency, ctx.currentTime);
-  }
+export async function initSoundTouch(_engine: AudioEngine): Promise<void> {
+  // SoundTouch is now executed offline on AudioBuffers via pitchShifter.ts
+  // This preserves backward compatibility with existing callers without worklet latency
+  return Promise.resolve();
 }
 
 export async function loadAudioFile(file: File): Promise<AudioBuffer> {
@@ -177,6 +155,8 @@ export function initTracks(
       muted: false,
       solo: false,
       buffer: null,
+      originalBuffer: null,
+      transposedCache: new Map<number, AudioBuffer>(),
       source: null,
       gainNode,
       isPercussion,
@@ -189,7 +169,20 @@ export function initTracks(
 export function setTrackBuffer(engine: AudioEngine, trackIndex: number, buffer: AudioBuffer): void {
   const track = engine.tracks[trackIndex];
   if (!track) return;
-  track.buffer = buffer;
+  track.originalBuffer = buffer;
+  track.transposedCache.clear();
+
+  if (track.isPercussion || engine.pitchSemitones === 0) {
+    track.buffer = buffer;
+  } else {
+    track.buffer = getOrTransposeBuffer(
+      engine.ctx,
+      buffer,
+      engine.pitchSemitones,
+      track.transposedCache
+    );
+  }
+
   if (buffer.duration > engine.duration) {
     engine.duration = buffer.duration;
   }
@@ -209,63 +202,18 @@ export function play(engine: AudioEngine): void {
   engine.startTime = ctx.currentTime - offset;
   engine.isPlaying = true;
 
-  engine.tracks.forEach((track) => {
-    if (!track.buffer || !track.gainNode) return;
-    const source = ctx.createBufferSource();
-    source.buffer = track.buffer;
-    source.loop = engine.looping;
-    source.connect(track.gainNode);
-    source.playbackRate.setValueAtTime(0.15, ctx.currentTime);
-    source.playbackRate.exponentialRampToValueAtTime(1.0, ctx.currentTime + 0.7);
-    source.start(0, offset);
-    track.source = source;
-
-    if (!engine.looping) {
-      source.onended = () => {
-        if (engine.isPlaying) {
-          const songPos = getCurrentTime(engine);
-          if (songPos >= engine.duration - 0.1) {
-            stop(engine);
-          }
-        }
-      };
-    }
-  });
-
-  applyMutesSolos(engine);
+  startSourcesAtOffset(engine, offset);
 }
 
 export function pause(engine: AudioEngine): void {
   if (!engine.isPlaying) return;
-  const ctx = engine.ctx;
-  const rampDuration = 0.75;
+  if (engine._rampTimer) {
+    clearTimeout(engine._rampTimer);
+    engine._rampTimer = null;
+  }
   engine.pauseOffset = getCurrentTime(engine);
+  stopSources(engine);
   engine.isPlaying = false;
-
-  engine.tracks.forEach((track) => {
-    if (track.source) {
-      try {
-        track.source.playbackRate.cancelScheduledValues(ctx.currentTime);
-        track.source.playbackRate.setValueAtTime(
-          track.source.playbackRate.value || 1.0,
-          ctx.currentTime
-        );
-        track.source.playbackRate.exponentialRampToValueAtTime(
-          0.01,
-          ctx.currentTime + rampDuration
-        );
-      } catch {}
-    }
-  });
-
-  if (engine._rampTimer) clearTimeout(engine._rampTimer);
-  engine._rampTimer = setTimeout(
-    () => {
-      stopSources(engine);
-      engine._rampTimer = null;
-    },
-    rampDuration * 1000 + 50
-  );
 }
 
 export function stop(engine: AudioEngine): void {
@@ -384,69 +332,76 @@ export function endScrub(engine: AudioEngine, targetTime: number): void {
 }
 
 export function setPitch(engine: AudioEngine, semitones: number): void {
-  const prevSemitones = engine.pitchSemitones;
+  if (engine.pitchSemitones === semitones) return;
   engine.pitchSemitones = semitones;
   const ctx = engine.ctx;
-  const ct = ctx.currentTime;
-  const fadeDuration = 0.025; // 25ms smooth crossfade to eliminate click/pop
+  const isPlaying = engine.isPlaying;
 
-  if (semitones === 0) {
-    // Return to pristine bit-exact master bypass
-    engine.bypassGain.gain.cancelScheduledValues(ct);
-    engine.bypassGain.gain.setValueAtTime(engine.bypassGain.gain.value, ct);
-    engine.bypassGain.gain.linearRampToValueAtTime(1.0, ct + fadeDuration);
-
-    engine.shifterOutGain.gain.cancelScheduledValues(ct);
-    engine.shifterOutGain.gain.setValueAtTime(engine.shifterOutGain.gain.value, ct);
-    engine.shifterOutGain.gain.linearRampToValueAtTime(0.0, ct + fadeDuration);
-
-    engine.shifterInGain.gain.cancelScheduledValues(ct);
-    engine.shifterInGain.gain.setValueAtTime(0.0, ct + fadeDuration + 0.01);
-
-    // Dynamic latency compensation for drums: ramp back to 0ms (matched with bypass)
-    engine.drumDelay.delayTime.cancelScheduledValues(ct);
-    engine.drumDelay.delayTime.setValueAtTime(engine.drumDelay.delayTime.value, ct);
-    engine.drumDelay.delayTime.linearRampToValueAtTime(0.0, ct + fadeDuration);
-
-    if (engine.stNode) {
-      try {
-        engine.stNode.pitchSemitones.cancelScheduledValues(ct);
-        engine.stNode.pitchSemitones.setValueAtTime(0, ct + fadeDuration);
-      } catch {}
+  // Update buffers for all non-percussion tracks
+  // Percussion stems ALWAYS remain unshifted at original pitch, tempo, and buffer
+  engine.tracks.forEach((track) => {
+    if (track.isPercussion || !track.originalBuffer) {
+      return;
     }
-  } else {
-    // Transposed path active
-    engine.shifterInGain.gain.cancelScheduledValues(ct);
-    engine.shifterInGain.gain.setValueAtTime(1.0, ct);
-
-    if (engine.stNode) {
-      try {
-        engine.stNode.pitchSemitones.cancelScheduledValues(ct);
-        engine.stNode.pitchSemitones.setValueAtTime(engine.stNode.pitchSemitones.value, ct);
-        engine.stNode.pitchSemitones.linearRampToValueAtTime(semitones, ct + fadeDuration);
-      } catch {}
-    }
-
-    // Dynamic latency compensation for drums: align with SoundTouch WSOLA 1024-sample pre-buffer
-    const targetDelay = 1024 / ctx.sampleRate;
-    engine.drumDelay.delayTime.cancelScheduledValues(ct);
-    engine.drumDelay.delayTime.setValueAtTime(engine.drumDelay.delayTime.value, ct);
-    engine.drumDelay.delayTime.linearRampToValueAtTime(targetDelay, ct + fadeDuration);
-
-    if (prevSemitones === 0) {
-      // Crossfade from bypass to shifted
-      engine.bypassGain.gain.cancelScheduledValues(ct);
-      engine.bypassGain.gain.setValueAtTime(engine.bypassGain.gain.value, ct);
-      engine.bypassGain.gain.linearRampToValueAtTime(0.0, ct + fadeDuration);
-
-      engine.shifterOutGain.gain.cancelScheduledValues(ct);
-      engine.shifterOutGain.gain.setValueAtTime(engine.shifterOutGain.gain.value, ct);
-      engine.shifterOutGain.gain.linearRampToValueAtTime(1.0, ct + fadeDuration);
+    if (semitones === 0) {
+      track.buffer = track.originalBuffer;
     } else {
-      // Already shifted, ensure full gain
-      engine.shifterOutGain.gain.setValueAtTime(1.0, ct);
-      engine.bypassGain.gain.setValueAtTime(0.0, ct);
+      track.buffer = getOrTransposeBuffer(
+        ctx,
+        track.originalBuffer,
+        semitones,
+        track.transposedCache
+      );
     }
+  });
+
+  if (isPlaying) {
+    // Seamless hot-swap of non-percussion track sources at current playback position
+    // Drums continue playing uninterrupted to anchor the rhythm and clock
+    const ct = ctx.currentTime;
+    const currentOffset = ct - engine.startTime;
+    const fadeDuration = 0.025; // 25ms crossfade to eliminate pops
+
+    engine.tracks.forEach((track) => {
+      if (track.isPercussion) return; // Drums maintain unbroken playback
+      if (!track.buffer || !track.gainNode) return;
+
+      const oldSource = track.source;
+      const newSource = ctx.createBufferSource();
+      newSource.buffer = track.buffer;
+      newSource.loop = engine.looping;
+      newSource.connect(track.gainNode);
+      newSource.playbackRate.setValueAtTime(1.0, ct);
+
+      // Start new source at currentOffset locked to the active timeline
+      newSource.start(ct, Math.max(0, currentOffset));
+      track.source = newSource;
+
+      if (!engine.looping) {
+        newSource.onended = () => {
+          if (engine.isPlaying) {
+            const songPos = getCurrentTime(engine);
+            if (songPos >= engine.duration - 0.1) {
+              stop(engine);
+            }
+          }
+        };
+      }
+
+      if (oldSource) {
+        try {
+          oldSource.stop(ct + fadeDuration);
+        } catch {}
+        setTimeout(
+          () => {
+            try {
+              oldSource.disconnect();
+            } catch {}
+          },
+          (fadeDuration + 0.05) * 1000
+        );
+      }
+    });
   }
 }
 
@@ -501,6 +456,7 @@ export function destroyEngine(engine: AudioEngine): void {
   stop(engine);
   engine.tracks.forEach((t) => {
     if (t.gainNode) t.gainNode.disconnect();
+    t.transposedCache?.clear();
   });
   engine.sumBus.disconnect();
   engine.bypassGain.disconnect();

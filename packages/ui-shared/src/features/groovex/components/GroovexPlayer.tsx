@@ -9,7 +9,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import VinylLottie from '../../../shared/lottie/VinylLottie';
 import { Loader } from '../../../components/motion/loader';
-import { GroovexMixerSkeleton } from '../../../shared/loading/StudioSkeleton';
 import { SONG_CATALOG } from '../services/songCatalog';
 import { useGroovexStore } from '../state/useGroovexStore';
 import {
@@ -40,7 +39,7 @@ import { groovexStemRepository, type DownloadProgress } from '@workspace/studio-
 import StudioProgressBar from '../../../shared/progress/StudioProgressBar';
 import StudioCountUpPercentage from '../../../shared/progress/StudioCountUpPercentage';
 
-type PlayerPhase = 'idle' | 'downloading' | 'ready';
+type PlayerPhase = 'loading' | 'ready' | 'error';
 type PracticePreset = 'full' | 'minus-vox' | 'minus-drum' | 'bass-drum';
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -123,8 +122,9 @@ export default function GroovexPlayer() {
   const currentVelocityRef = useRef(0);
   const targetVelocity = 0.55;
   const lastTimestampRef = useRef<number | null>(null);
+  const lastProgressUpdateRef = useRef(0);
 
-  const [phase, setPhase] = useState<PlayerPhase>('idle');
+  const [phase, setPhase] = useState<PlayerPhase>('loading');
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -147,6 +147,15 @@ export default function GroovexPlayer() {
       loaded: boolean;
     }[]
   >([]);
+
+  const updateProgressThrottled = useCallback((val: number) => {
+    const clamped = Math.min(100, Math.max(0, val));
+    const now = performance.now();
+    if (now - lastProgressUpdateRef.current > 32 || clamped === 100 || clamped === 0) {
+      lastProgressUpdateRef.current = now;
+      setOverallProgress(Number(clamped.toFixed(1)));
+    }
+  }, []);
 
   // Physics-based Rotational Animation loop (Smooth acceleration & graceful ~1.8s inertia spin-down)
   useEffect(() => {
@@ -229,7 +238,7 @@ export default function GroovexPlayer() {
     );
     setCurrentTime(0);
     setDuration(0);
-    setPhase('idle');
+    setPhase('loading');
     setIsPlaying(false);
     setOverallProgress(0);
     setCurrentStemLabel('');
@@ -239,13 +248,20 @@ export default function GroovexPlayer() {
     cancelAnimationFrame(rafRef.current);
 
     if (song.hasStems) {
-      Promise.resolve({} as Record<string, boolean>).then((status) => {
-        if (sessionIdRef.current !== sid) return;
-        const allCached = Object.values(status).every((v) => v);
-        if (allCached) {
-          loadAllStems(engine, song, sid);
-        }
-      });
+      groovexStemRepository
+        .getSongCacheStatus(
+          song.id,
+          song.stems.map((s) => s.name)
+        )
+        .then((status) => {
+          if (sessionIdRef.current !== sid) return;
+          const allCached = song.stems.every((s) => status[s.name]);
+          loadAllStems(engine, song, sid, allCached);
+        })
+        .catch(() => {
+          if (sessionIdRef.current !== sid) return;
+          loadAllStems(engine, song, sid, false);
+        });
     }
 
     return () => {
@@ -270,12 +286,17 @@ export default function GroovexPlayer() {
   async function loadAllStems(
     engine: AudioEngine,
     songData: (typeof SONG_CATALOG)[0],
-    sid: number
+    sid: number,
+    allCached = false
   ) {
-    setPhase('downloading');
+    setPhase('loading');
     setFailedStems([]);
     const total = songData.stems.length;
     const failed: number[] = [];
+
+    if (allCached) {
+      setOverallProgress(100);
+    }
 
     for (let i = 0; i < total; i++) {
       if (sessionIdRef.current !== sid) return;
@@ -287,9 +308,9 @@ export default function GroovexPlayer() {
           songData.id,
           stem.name,
           (p: DownloadProgress) => {
-            if (sessionIdRef.current !== sid) return;
+            if (sessionIdRef.current !== sid || allCached) return;
             const stemProgress = p.percent / 100;
-            setOverallProgress(((i + stemProgress) / total) * 100);
+            updateProgressThrottled(((i + stemProgress) / total) * 100);
           }
         );
         if (sessionIdRef.current !== sid) return;
@@ -303,13 +324,23 @@ export default function GroovexPlayer() {
         failed.push(i);
       }
       if (sessionIdRef.current !== sid) return;
-      setOverallProgress(((i + 1) / total) * 100);
+      if (!allCached) {
+        updateProgressThrottled(((i + 1) / total) * 100);
+      }
     }
 
     if (sessionIdRef.current !== sid) return;
-    setFailedStems(failed);
-    setPhase('ready');
-    setCurrentStemLabel('');
+    if (failed.length > 0) {
+      setFailedStems(failed);
+      setPhase('error');
+    } else {
+      setOverallProgress(100);
+      // Fluid settle delay before revealing ready player controls
+      await new Promise((r) => setTimeout(r, allCached ? 160 : 320));
+      if (sessionIdRef.current !== sid) return;
+      setPhase('ready');
+      setCurrentStemLabel('');
+    }
   }
 
   async function handleDownload() {
@@ -335,7 +366,7 @@ export default function GroovexPlayer() {
     if (!engine || !song) return;
     const sid = sessionIdRef.current;
     const toRetry = [...failedStems];
-    setPhase('downloading');
+    setPhase('loading');
     setFailedStems([]);
     const newFailed: number[] = [];
 
@@ -351,7 +382,7 @@ export default function GroovexPlayer() {
           stem.name,
           (p: DownloadProgress) => {
             if (sessionIdRef.current !== sid) return;
-            setOverallProgress(((fi + p.percent / 100) / toRetry.length) * 100);
+            updateProgressThrottled(((fi + p.percent / 100) / toRetry.length) * 100);
           },
           true
         );
@@ -366,13 +397,20 @@ export default function GroovexPlayer() {
         newFailed.push(i);
       }
       if (sessionIdRef.current !== sid) return;
-      setOverallProgress(((fi + 1) / toRetry.length) * 100);
+      updateProgressThrottled(((fi + 1) / toRetry.length) * 100);
     }
 
     if (sessionIdRef.current !== sid) return;
-    setFailedStems(newFailed);
-    setPhase('ready');
-    setCurrentStemLabel('');
+    if (newFailed.length > 0) {
+      setFailedStems(newFailed);
+      setPhase('error');
+    } else {
+      setOverallProgress(100);
+      await new Promise((r) => setTimeout(r, 260));
+      if (sessionIdRef.current !== sid) return;
+      setPhase('ready');
+      setCurrentStemLabel('');
+    }
   }
 
   async function handleLoadFromFile(idx: number) {
@@ -391,7 +429,7 @@ export default function GroovexPlayer() {
         setTracks((prev) => prev.map((t, i) => (i === idx ? { ...t, loaded: true } : t)));
         setDuration(engine.duration);
         setFailedStems((prev) => prev.filter((fi) => fi !== idx));
-        if (phase === 'idle') setPhase('ready');
+        if (phase !== 'ready') setPhase('ready');
       } catch (e) {
         console.error('Failed to load audio:', e);
       }
@@ -637,6 +675,57 @@ export default function GroovexPlayer() {
     );
   }
 
+  const isReady = phase === 'ready';
+  const prefersReducedMotion =
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Physical Vinyl Placement Transform Calculation
+  const vinylPlacementStyle = useMemo(() => {
+    if (isReady) {
+      return {
+        transform: `rotate(${currentAngleRef.current}deg)`,
+        boxShadow:
+          '0 20px 45px -10px rgba(15, 23, 42, 0.35), 0 8px 16px -4px rgba(15, 23, 42, 0.22)',
+        cursor: 'pointer',
+        opacity: 1,
+        transition: 'transform 320ms cubic-bezier(0.34, 1.25, 0.64, 1), box-shadow 300ms ease',
+      };
+    }
+
+    const t = Math.min(1, Math.max(0, overallProgress / 100));
+
+    if (prefersReducedMotion) {
+      return {
+        transform: 'rotate(35deg)',
+        boxShadow:
+          '0 20px 45px -10px rgba(15, 23, 42, 0.35), 0 8px 16px -4px rgba(15, 23, 42, 0.22)',
+        cursor: 'default',
+        opacity: t >= 0.05 ? 1 : Math.max(0.2, t / 0.05),
+        transition: 'opacity 200ms ease',
+      };
+    }
+
+    // Dynamic physical placement: elevation, scale, and 3D spatial alignment
+    const translateY = -42 * Math.pow(1 - t, 1.25);
+    const scale = 1 + (1 - t) * 0.07;
+    const rotX = 14 * (1 - t);
+    const rotY = -8 * (1 - t);
+    const rotZ = 20 + 15 * t;
+
+    const shadowSpread = Math.round(35 + 20 * (1 - t));
+    const shadowY = Math.round(20 + 16 * (1 - t));
+    const shadowOpacity = (0.32 + 0.15 * (1 - t)).toFixed(2);
+
+    return {
+      transform: `perspective(900px) translateY(${translateY.toFixed(2)}px) scale(${scale.toFixed(3)}) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg) rotateZ(${rotZ.toFixed(2)}deg)`,
+      boxShadow: `0 ${shadowY}px ${shadowSpread}px -8px rgba(0, 0, 0, ${shadowOpacity}), 0 10px 20px -4px rgba(0, 0, 0, 0.25)`,
+      cursor: 'default',
+      opacity: t >= 0.03 ? 1 : Math.max(0.15, t / 0.03),
+      transition:
+        'transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease, opacity 200ms ease',
+    };
+  }, [isReady, overallProgress, prefersReducedMotion]);
+
   const effectiveTime = isScrubbing ? scrubVisualTime : currentTime;
   const anyLoaded = tracks.some((t) => t.loaded);
   const isWebDesktop = useIsWebDesktop();
@@ -654,6 +743,27 @@ export default function GroovexPlayer() {
       }}
     >
       <style>{`
+        @keyframes gxFadeSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes gxGlowPulse {
+          0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 0.5;
+            transform: scale(0.92);
+          }
+        }
         /* Realistic Hi-Fi Vinyl Radial Grooves */
         .gx-vinyl-disc {
           background: radial-gradient(circle at center,
@@ -841,69 +951,72 @@ export default function GroovexPlayer() {
             overflow: 'hidden',
           }}
         >
-          {/* Turntable Plinth Header Badges */}
-          <div
-            style={{
-              position: 'relative',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 8,
-              padding: '0 4px',
-            }}
-          >
-            {/* BPM Chip */}
+          {/* Turntable Plinth Header Badges (Visible when Ready) */}
+          {isReady && (
             <div
               style={{
+                position: 'relative',
+                zIndex: 10,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
-                padding: '4px 12px',
-                borderRadius: 9999,
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: '0.02em',
-                background: isLight ? '#EEF6FF' : 'rgba(37,99,235,0.15)',
-                color: '#0066FF',
-                border: isLight ? '1px solid #D9EBFF' : '1px solid rgba(37,99,235,0.3)',
+                justifyContent: 'space-between',
+                marginBottom: 8,
+                padding: '0 4px',
+                animation: 'gxFadeSlideUp 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
               }}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
-                speed
-              </span>
-              <span>{song.bpm} BPM</span>
-            </div>
-
-            {/* Key Tag */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '4px 12px',
-                borderRadius: 9999,
-                fontSize: 11,
-                fontWeight: 700,
-                background: isLight ? 'rgba(241, 245, 249, 0.9)' : 'rgba(255,255,255,0.06)',
-                color: 'var(--c-text-primary)',
-                border: isLight
-                  ? '1px solid rgba(226, 232, 240, 0.8)'
-                  : '1px solid rgba(255,255,255,0.08)',
-              }}
-            >
-              <span
+              {/* BPM Chip */}
+              <div
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  background: '#10b981',
-                  display: 'inline-block',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 12px',
+                  borderRadius: 9999,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: '0.02em',
+                  background: isLight ? '#EEF6FF' : 'rgba(37,99,235,0.15)',
+                  color: '#0066FF',
+                  border: isLight ? '1px solid #D9EBFF' : '1px solid rgba(37,99,235,0.3)',
                 }}
-              />
-              <span id="header-key-badge">Key: {currentKeyDisplay}</span>
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                  speed
+                </span>
+                <span>{song.bpm} BPM</span>
+              </div>
+
+              {/* Key Tag */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 12px',
+                  borderRadius: 9999,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  background: isLight ? 'rgba(241, 245, 249, 0.9)' : 'rgba(255,255,255,0.06)',
+                  color: 'var(--c-text-primary)',
+                  border: isLight
+                    ? '1px solid rgba(226, 232, 240, 0.8)'
+                    : '1px solid rgba(255,255,255,0.08)',
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#10b981',
+                    display: 'inline-block',
+                  }}
+                />
+                <span id="header-key-badge">Key: {currentKeyDisplay}</span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* TURNTABLE PLINTH & VINYL PLATTER */}
           <div
@@ -916,6 +1029,7 @@ export default function GroovexPlayer() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              perspective: '900px',
             }}
           >
             {/* Turntable Cast Platter Sub-chassis */}
@@ -946,17 +1060,30 @@ export default function GroovexPlayer() {
                   border: '1px dashed rgba(148, 163, 184, 0.5)',
                 }}
               />
+
+              {/* Center Turntable Spindle Pin */}
+              <div
+                style={{
+                  position: 'absolute',
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 35% 35%, #ffffff, #f59e0b 60%, #b45309)',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.35)',
+                  border: '1px solid rgba(255,255,255,0.4)',
+                }}
+              />
             </div>
 
-            {/* ROTATING VINYL DISC */}
+            {/* ROTATING / PLACEMENT VINYL DISC */}
             <div
               ref={vinylRef}
               id="vinyl-disc"
               className="gx-vinyl-disc"
-              onClick={handlePlay}
+              onClick={isReady ? handlePlay : undefined}
               role="button"
-              tabIndex={0}
-              aria-label={isPlaying ? 'Pause Vinyl' : 'Play Vinyl'}
+              tabIndex={isReady ? 0 : -1}
+              aria-label={!isReady ? 'Loading Session' : isPlaying ? 'Pause Vinyl' : 'Play Vinyl'}
               style={{
                 position: 'relative',
                 width: '88%',
@@ -965,12 +1092,9 @@ export default function GroovexPlayer() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: 'pointer',
                 userSelect: 'none',
                 WebkitUserSelect: 'none',
-                boxShadow:
-                  '0 20px 45px -10px rgba(15, 23, 42, 0.35), 0 8px 16px -4px rgba(15, 23, 42, 0.22)',
-                transform: 'rotate(35deg)',
+                ...vinylPlacementStyle,
               }}
             >
               {/* High-gloss Conic Sheen Reflection Overlay */}
@@ -1204,929 +1328,939 @@ export default function GroovexPlayer() {
             </div>
           </div>
 
-          {/* COMPACT WAVEFORM AUDIO VISUALIZER */}
-          <div
-            style={{
-              marginTop: 8,
-              background: isLight ? 'rgba(248, 250, 252, 0.9)' : 'rgba(255,255,255,0.03)',
-              borderRadius: 12,
-              padding: 8,
-              border: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
+          {/* DEDICATED LOADING STATE (While stems are downloading) */}
+          {!isReady && (
             <div
+              id="player-loading-panel"
               style={{
+                marginTop: 12,
+                padding: '16px 16px',
+                background: isLight ? 'rgba(248, 250, 252, 0.95)' : 'rgba(255, 255, 255, 0.03)',
+                borderRadius: 18,
+                border: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255, 255, 255, 0.06)',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                fontSize: 9.5,
-                fontFamily: 'var(--studio-font-mono, monospace)',
-                color: 'var(--c-text-muted)',
-                marginBottom: 4,
-                padding: '0 4px',
+                flexDirection: 'column',
+                gap: 12,
+                boxShadow: isLight
+                  ? '0 2px 8px rgba(0, 0, 0, 0.03)'
+                  : '0 4px 14px rgba(0, 0, 0, 0.25)',
               }}
             >
-              <span
+              <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 4,
-                  fontWeight: 700,
-                  color: '#0066FF',
-                  letterSpacing: '0.04em',
+                  justifyContent: 'space-between',
+                  gap: 12,
                 }}
               >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: '50%',
-                    background: '#0066FF',
-                    display: 'inline-block',
-                    animation: isPlaying ? 'gx-glow-pulse 1.5s ease-in-out infinite' : 'none',
-                  }}
-                />
-                LIVE STEM MASTER
-              </span>
-              <span style={{ fontWeight: 600, opacity: 0.8 }}>44.1kHz • 24-bit Lossless</span>
-            </div>
-
-            {/* Dynamic Compact Waveform Frequency Bars */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'flex-end',
-                justifyContent: 'space-between',
-                height: 20,
-                gap: 2,
-                padding: '0 4px',
-                overflow: 'hidden',
-              }}
-            >
-              {[6, 12, 16, 8, 18, 14, 12, 18, 20, 14, 10, 16, 18, 12].map((h, i) => (
-                <span
-                  key={`wave-left-${i}`}
-                  className="gx-wave-bar-anim"
-                  style={{
-                    width: 2.5,
-                    borderRadius: 9999,
-                    background: '#0066FF',
-                    height: h,
-                    animationDelay: `${(i * 0.07).toFixed(2)}s`,
-                    animationPlayState: isPlaying ? 'running' : 'paused',
-                  }}
-                />
-              ))}
-
-              <span
-                style={{
-                  width: 3,
-                  borderRadius: 9999,
-                  background: '#0066FF',
-                  height: 20,
-                  boxShadow: '0 0 4px rgba(0, 102, 255, 0.6)',
-                }}
-              />
-
-              {[16, 10, 14, 18, 12, 16, 20, 10, 8, 16, 18, 14, 10, 14, 18, 12, 8, 6, 12, 14, 8].map(
-                (h, i) => (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
                   <span
-                    key={`wave-right-${i}`}
                     style={{
-                      width: 2.5,
-                      borderRadius: 9999,
-                      background: isLight ? '#E2E8F0' : 'rgba(255,255,255,0.15)',
-                      height: h,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: phase === 'error' ? '#ef4444' : '#0066FF',
+                      display: 'inline-block',
+                      boxShadow:
+                        phase === 'error'
+                          ? '0 0 8px rgba(239, 68, 68, 0.7)'
+                          : '0 0 8px rgba(0, 102, 255, 0.7)',
+                      animation:
+                        phase === 'error' ? 'none' : 'gxGlowPulse 1.5s ease-in-out infinite',
+                      flexShrink: 0,
                     }}
                   />
-                )
-              )}
-            </div>
-          </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                    <span
+                      style={{
+                        fontFamily: 'var(--studio-font-display, sans-serif)',
+                        fontSize: 12,
+                        fontWeight: 800,
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                        color: phase === 'error' ? '#ef4444' : 'var(--c-text-primary)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {phase === 'error'
+                        ? 'Download Interrupted'
+                        : overallProgress >= 100
+                          ? 'Aligning Turntable Session...'
+                          : 'Loading Multitrack Session'}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: 'var(--studio-font-body)',
+                        fontSize: 11,
+                        color: 'var(--c-text-muted)',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {phase === 'error'
+                        ? `${failedStems.length} stem${failedStems.length > 1 ? 's' : ''} failed to load`
+                        : currentStemLabel
+                          ? `Downloading ${currentStemLabel} stem...`
+                          : 'Preparing lossless audio stems...'}
+                    </span>
+                  </div>
+                </div>
 
-          {/* PROGRESS TIMELINE SCRUBBER */}
-          <div style={{ padding: '8px 4px 0' }}>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <input
-                type="range"
-                className="gx-range-slider"
-                min={0}
-                max={Math.max(1, Math.round(duration))}
-                value={Math.round(effectiveTime)}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setScrubVisualTime(val);
-                  handleSeek(val);
-                }}
-                onPointerDown={() => {
-                  setIsScrubbing(true);
-                  handleScrubStart();
-                }}
-                onPointerUp={() => {
-                  setIsScrubbing(false);
-                  handleScrubEnd(duration > 0 ? scrubVisualTime / duration : 0);
-                }}
-                style={{ width: '100%', cursor: 'pointer' }}
+                <span
+                  id="loading-percentage-display"
+                  style={{
+                    fontFamily: 'var(--studio-font-mono, monospace)',
+                    fontSize: 15,
+                    fontWeight: 800,
+                    color: phase === 'error' ? '#ef4444' : '#0066FF',
+                    letterSpacing: '-0.02em',
+                    flexShrink: 0,
+                  }}
+                >
+                  <StudioCountUpPercentage value={overallProgress} />%
+                </span>
+              </div>
+
+              <StudioProgressBar
+                value={overallProgress}
+                accentFrom={phase === 'error' ? '#ef4444' : '#0066FF'}
+                accentTo={phase === 'error' ? '#f87171' : '#3b82f6'}
+                height={6}
               />
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                fontSize: 11,
-                fontFamily: 'var(--studio-font-mono, monospace)',
-                color: 'var(--c-text-muted)',
-                marginTop: 6,
-                fontWeight: 500,
-              }}
-            >
-              <span style={{ fontWeight: 600, color: 'var(--c-text-primary)' }}>
-                {formatTime(effectiveTime)}
-              </span>
-              <span
-                style={{
-                  fontSize: 10,
-                  fontFamily: 'var(--studio-font-display, sans-serif)',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  letterSpacing: '0.08em',
-                  color: '#0066FF',
-                }}
-              >
-                {getSectionName(duration > 0 ? effectiveTime / duration : 0)}
-              </span>
-              <span>{formatTime(duration || 0)}</span>
-            </div>
-          </div>
 
-          {/* REFINED PLAYBACK CONTROLS */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 16,
-              padding: '12px 8px 4px',
-            }}
-          >
-            <button
-              onClick={handleStop}
-              aria-label="Previous Track / Reset"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--c-text-primary)',
-                background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'transform 120ms ease',
-              }}
-              onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
-              onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
-                skip_previous
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleSkip(-10)}
-              aria-label="Rewind 10 seconds"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--c-text-primary)',
-                background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'transform 120ms ease',
-              }}
-              onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
-              onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 23 }}>
-                replay_10
-              </span>
-            </button>
-
-            {/* VIBRANT BLUE PLAY/PAUSE FAB */}
-            <button
-              id="play-pause-btn"
-              onClick={handlePlay}
-              disabled={!anyLoaded}
-              aria-label={isPlaying ? 'Pause' : 'Play'}
-              style={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                background: anyLoaded
-                  ? '#0066FF'
-                  : isLight
-                    ? 'rgba(0,0,0,0.06)'
-                    : 'rgba(255,255,255,0.08)',
-                color: '#FFFFFF',
-                border: 'none',
-                cursor: anyLoaded ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: anyLoaded
-                  ? '0 10px 25px -4px rgba(0, 102, 255, 0.45), 0 4px 10px -2px rgba(0, 102, 255, 0.3)'
-                  : 'none',
-                margin: '0 4px',
-                transition: 'transform 150ms ease, box-shadow 150ms ease',
-              }}
-              onPointerDown={(e) => {
-                if (anyLoaded) e.currentTarget.style.transform = 'scale(0.92)';
-              }}
-              onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 34, fontVariationSettings: "'FILL' 1" }}
-              >
-                {isPlaying ? 'pause' : 'play_arrow'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleSkip(10)}
-              aria-label="Forward 10 seconds"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--c-text-primary)',
-                background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'transform 120ms ease',
-              }}
-              onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
-              onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 23 }}>
-                forward_10
-              </span>
-            </button>
-
-            <button
-              onClick={() => handleSkip(duration)}
-              aria-label="Next Track"
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--c-text-primary)',
-                background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'transform 120ms ease',
-              }}
-              onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
-              onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
-                skip_next
-              </span>
-            </button>
-          </div>
-
-          {/* PITCH TRANSPOSITION STEPPER */}
-          <div
-            style={{
-              marginTop: 12,
-              paddingTop: 10,
-              borderTop: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.06)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '10px 12px',
-              background: isLight ? 'rgba(248, 250, 252, 0.8)' : 'rgba(255,255,255,0.02)',
-              borderRadius: 16,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ color: '#0066FF', fontSize: 20 }}
-              >
-                tune
-              </span>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span
-                  style={{
-                    fontSize: 9.5,
-                    textTransform: 'uppercase',
-                    fontWeight: 700,
-                    color: 'var(--c-text-muted)',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  Transposition
-                </span>
-                <span
-                  id="key-label"
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: 'var(--c-text-primary)',
-                  }}
-                >
-                  Key: {currentKeyDisplay}
-                  {pitchShift === 0 ? ' (Original)' : ''}
-                </span>
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                background: isLight ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
-                padding: 4,
-                borderRadius: 12,
-                border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255,255,255,0.08)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
-              }}
-            >
-              <button
-                onClick={() => handlePitchChange(-1)}
-                disabled={pitchShift <= -6}
-                aria-label="Transpose one semitone down"
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--c-text-primary)',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: pitchShift <= -6 ? 'not-allowed' : 'pointer',
-                  opacity: pitchShift <= -6 ? 0.3 : 1,
-                  fontWeight: 700,
-                  transition: 'transform 100ms ease',
-                }}
-                onPointerDown={(e) => {
-                  if (pitchShift > -6) e.currentTarget.style.transform = 'scale(0.9)';
-                }}
-                onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  remove
-                </span>
-              </button>
-
-              <span
-                id="key-offset"
-                style={{
-                  width: 32,
-                  textAlign: 'center',
-                  fontFamily: 'var(--studio-font-mono, monospace)',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: pitchShift !== 0 ? '#0066FF' : 'var(--c-text-primary)',
-                }}
-              >
-                {pitchShift > 0 ? `+${pitchShift}` : pitchShift === 0 ? '±0' : pitchShift}
-              </span>
-
-              <button
-                onClick={() => handlePitchChange(1)}
-                disabled={pitchShift >= 6}
-                aria-label="Transpose one semitone up"
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: 'var(--c-text-primary)',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: pitchShift >= 6 ? 'not-allowed' : 'pointer',
-                  opacity: pitchShift >= 6 ? 0.3 : 1,
-                  fontWeight: 700,
-                  transition: 'transform 100ms ease',
-                }}
-                onPointerDown={(e) => {
-                  if (pitchShift < 6) e.currentTarget.style.transform = 'scale(0.9)';
-                }}
-                onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
-                  add
-                </span>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 2: DOWNLOADING STATUS / SKELETON (Preserved) */}
-        {phase === 'idle' && song.hasStems && (
-          <section
-            style={{
-              background: isLight ? '#FFFFFF' : isAmoled ? '#000000' : 'rgba(255,255,255,0.03)',
-              borderRadius: 24,
-              padding: 18,
-              border: isLight ? '1px solid #E8EDF5' : '1px solid rgba(255,255,255,0.08)',
-            }}
-          >
-            <button
-              onClick={handleDownload}
-              style={{
-                width: '100%',
-                padding: '14px 20px',
-                borderRadius: 16,
-                border: 'none',
-                cursor: 'pointer',
-                background: '#0066FF',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                boxShadow: '0 4px 16px rgba(0, 102, 255, 0.3)',
-                transition: 'transform 150ms ease',
-              }}
-              onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
-              onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
-                cloud_download
-              </span>
-              <div style={{ textAlign: 'left' }}>
-                <p style={{ fontSize: 13, fontWeight: 700, margin: 0 }}>
-                  {t.groovex.downloadStems}
-                </p>
-                <p style={{ fontSize: 11, margin: '2px 0 0', opacity: 0.85 }}>
-                  {t.groovex.tracksWillBeDownloaded(song.stems.length)}
-                </p>
-              </div>
-            </button>
-          </section>
-        )}
-
-        {phase === 'downloading' && (
-          <section
-            style={{
-              background: isLight ? '#FFFFFF' : isAmoled ? '#000000' : 'rgba(255,255,255,0.03)',
-              borderRadius: 24,
-              padding: 20,
-              border: isLight ? '1px solid #E8EDF5' : '1px solid rgba(255,255,255,0.08)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 16,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Loader variant="percent" size={24} />
-                <div>
-                  <p
+              {phase === 'error' && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 2 }}>
+                  <button
+                    onClick={handleRetryFailed}
                     style={{
-                      fontSize: 13,
+                      padding: '6px 14px',
+                      borderRadius: 10,
+                      border: 'none',
+                      cursor: 'pointer',
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      color: '#ef4444',
+                      fontSize: 11,
                       fontWeight: 700,
-                      margin: 0,
-                      color: 'var(--c-text-primary)',
+                      textTransform: 'uppercase',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
                     }}
                   >
-                    {t.groovex.downloading}
-                  </p>
-                  <p style={{ fontSize: 11, color: 'var(--c-text-muted)', margin: '2px 0 0' }}>
-                    {currentStemLabel}
-                  </p>
+                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>
+                      refresh
+                    </span>
+                    Retry Download
+                  </button>
                 </div>
-              </div>
-              <span
-                style={{
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: '#0066FF',
-                  fontFamily: 'var(--studio-font-mono, monospace)',
-                }}
-              >
-                <StudioCountUpPercentage value={overallProgress} />%
-              </span>
+              )}
             </div>
-            <StudioProgressBar
-              value={overallProgress}
-              accentFrom="#0066FF"
-              accentTo="#3b82f6"
-              height={6}
-            />
-            <div style={{ marginTop: 8 }}>
-              <GroovexMixerSkeleton tracksCount={song.stems.length || 4} />
-            </div>
-          </section>
-        )}
+          )}
 
-        {/* SECTION 3: FAILED STEMS BANNER (Preserved) */}
-        {failedStems.length > 0 && (
-          <section
-            style={{
-              background: 'rgba(239,68,68,0.06)',
-              border: '1px solid rgba(239,68,68,0.3)',
-              borderRadius: 16,
-              padding: '12px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ fontSize: 18, color: '#ef4444' }}
-              >
-                warning
-              </span>
-              <p style={{ fontSize: 12, color: 'var(--c-text-muted)', margin: 0 }}>
-                {t.groovex.stemsFailed(failedStems.length)}
-              </p>
-            </div>
-            <button
-              onClick={handleRetryFailed}
+          {/* COMPLETE PLAYER CONTROLS (Only when Ready) */}
+          {isReady && (
+            <div
+              id="player-ready-controls"
               style={{
-                padding: '6px 14px',
-                borderRadius: 8,
-                border: 'none',
-                cursor: 'pointer',
-                background: 'rgba(239,68,68,0.15)',
-                color: '#ef4444',
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'uppercase',
+                animation: 'gxFadeSlideUp 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
               }}
             >
-              {t.groovex.retry}
-            </button>
-          </section>
-        )}
-
-        {/* SECTION 4: STEMS MIXER WORKSTATION */}
-        <section
-          style={{
-            background: isLight ? '#FFFFFF' : isAmoled ? '#000000' : 'rgba(255,255,255,0.03)',
-            borderRadius: 28,
-            padding: '16px 16px 20px',
-            border: isLight
-              ? '1px solid #E8EDF5'
-              : isAmoled
-                ? '1px solid #1a1a1a'
-                : '1px solid rgba(255,255,255,0.08)',
-            boxShadow: isLight
-              ? '0 10px 30px -4px rgba(15, 23, 42, 0.04), 0 2px 8px -2px rgba(15, 23, 42, 0.02)'
-              : 'none',
-          }}
-        >
-          {/* Mixer Header */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              marginBottom: 14,
-              padding: '0 4px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span
-                className="material-symbols-outlined"
-                style={{ color: '#0066FF', fontSize: 22 }}
-              >
-                equalizer
-              </span>
-              <div>
-                <h2
-                  style={{
-                    fontFamily: 'var(--studio-font-display, "Inter Tight", sans-serif)',
-                    fontWeight: 800,
-                    fontSize: 14,
-                    color: 'var(--c-text-primary)',
-                    letterSpacing: '-0.01em',
-                    margin: 0,
-                  }}
-                >
-                  STEMS MIXER
-                </h2>
-                <p
-                  style={{ fontSize: 10, color: 'var(--c-text-muted)', margin: 0, fontWeight: 500 }}
-                >
-                  {tracks.length} Synchronized Multitrack Channels
-                </p>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <button
-                onClick={handleResetMixer}
+              {/* COMPACT WAVEFORM AUDIO VISUALIZER */}
+              <div
                 style={{
-                  padding: '4px 10px',
-                  background: isLight ? '#F1F5F9' : 'rgba(255,255,255,0.06)',
-                  color: 'var(--c-text-secondary)',
-                  fontSize: 11,
-                  fontWeight: 700,
-                  borderRadius: 8,
-                  border: 'none',
-                  cursor: 'pointer',
-                  transition: 'transform 100ms ease',
-                }}
-                onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
-                onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-              >
-                RESET
-              </button>
-
-              <span
-                style={{
-                  padding: '4px 8px',
-                  background: isLight ? '#EEF6FF' : 'rgba(37,99,235,0.15)',
-                  color: '#0066FF',
-                  border: isLight ? '1px solid #D9EBFF' : '1px solid rgba(37,99,235,0.3)',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  borderRadius: 8,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 4,
+                  marginTop: 8,
+                  background: isLight ? 'rgba(248, 250, 252, 0.9)' : 'rgba(255,255,255,0.03)',
+                  borderRadius: 12,
+                  padding: 8,
+                  border: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.06)',
                 }}
               >
-                <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
-                  cloud_done
-                </span>
-                CACHED
-              </span>
-            </div>
-          </div>
-
-          {/* STEM CHANNELS LIST */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {tracks.map((track, idx) => {
-              const stemColor = getStemColor(track.name);
-              const volPct = Math.round(track.volume * 100);
-
-              return (
                 <div
-                  key={track.name}
                   style={{
-                    background: isLight ? 'rgba(248, 250, 252, 0.85)' : 'rgba(255,255,255,0.02)',
-                    padding: 12,
-                    borderRadius: 16,
-                    border: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.04)',
-                    opacity: track.muted ? 0.45 : 1,
-                    transition: 'opacity 150ms ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: 9.5,
+                    fontFamily: 'var(--studio-font-mono, monospace)',
+                    color: 'var(--c-text-muted)',
+                    marginBottom: 4,
+                    padding: '0 4px',
                   }}
                 >
-                  <div
+                  <span
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginBottom: 8,
+                      gap: 4,
+                      fontWeight: 700,
+                      color: '#0066FF',
+                      letterSpacing: '0.04em',
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: '50%',
-                          background: stemColor,
-                          display: 'inline-block',
-                          boxShadow: `0 0 6px ${stemColor}55`,
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontFamily: 'var(--studio-font-display, "Inter Tight", sans-serif)',
-                          fontWeight: 700,
-                          fontSize: 13,
-                          color: 'var(--c-text-primary)',
-                          letterSpacing: '-0.01em',
-                        }}
-                      >
-                        {track.label}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontFamily: 'var(--studio-font-mono, monospace)',
-                          fontWeight: 600,
-                          color: 'var(--c-text-muted)',
-                        }}
-                      >
-                        {volPct}%
-                      </span>
-                      {!track.loaded && (!song.hasStems || failedStems.includes(idx)) && (
-                        <button
-                          onClick={() => handleLoadFromFile(idx)}
-                          style={{
-                            padding: '2px 8px',
-                            borderRadius: 6,
-                            border: '1px solid var(--surface-border)',
-                            cursor: 'pointer',
-                            background: 'transparent',
-                            color: 'var(--c-text-secondary)',
-                            fontSize: 9,
-                            fontWeight: 700,
-                            textTransform: 'uppercase',
-                          }}
-                        >
-                          Load File
-                        </button>
-                      )}
-                    </div>
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        background: '#0066FF',
+                        display: 'inline-block',
+                        animation: isPlaying ? 'gx-glow-pulse 1.5s ease-in-out infinite' : 'none',
+                      }}
+                    />
+                    LIVE STEM MASTER
+                  </span>
+                  <span style={{ fontWeight: 600, opacity: 0.8 }}>44.1kHz • 24-bit Lossless</span>
+                </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {/* Mute Button */}
-                      <button
-                        onClick={() => handleMute(idx)}
-                        aria-label={`Mute ${track.label}`}
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 8,
-                          fontSize: 11,
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: track.muted
-                            ? '#f43f5e'
-                            : isLight
-                              ? '#FFFFFF'
-                              : 'rgba(255,255,255,0.06)',
-                          color: track.muted
-                            ? '#FFFFFF'
-                            : isLight
-                              ? '#475569'
-                              : 'rgba(255,255,255,0.7)',
-                          border: track.muted
-                            ? '1px solid #e11d48'
-                            : isLight
-                              ? '1px solid #E2E8F0'
-                              : '1px solid rgba(255,255,255,0.08)',
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                          transition: 'transform 100ms ease, background 120ms ease',
-                        }}
-                        onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
-                        onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                      >
-                        M
-                      </button>
+                {/* Dynamic Compact Waveform Frequency Bars */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    justifyContent: 'space-between',
+                    height: 20,
+                    gap: 2,
+                    padding: '0 4px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {[6, 12, 16, 8, 18, 14, 12, 18, 20, 14, 10, 16, 18, 12].map((h, i) => (
+                    <span
+                      key={`wave-left-${i}`}
+                      className="gx-wave-bar-anim"
+                      style={{
+                        width: 2.5,
+                        borderRadius: 9999,
+                        background: '#0066FF',
+                        height: h,
+                        animationDelay: `${(i * 0.07).toFixed(2)}s`,
+                        animationPlayState: isPlaying ? 'running' : 'paused',
+                      }}
+                    />
+                  ))}
 
-                      {/* Solo Button */}
-                      <button
-                        onClick={() => handleSolo(idx)}
-                        aria-label={`Solo ${track.label}`}
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 8,
-                          fontSize: 11,
-                          fontWeight: 800,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          background: track.solo
-                            ? '#f59e0b'
-                            : isLight
-                              ? '#FFFFFF'
-                              : 'rgba(255,255,255,0.06)',
-                          color: track.solo
-                            ? '#FFFFFF'
-                            : isLight
-                              ? '#475569'
-                              : 'rgba(255,255,255,0.7)',
-                          border: track.solo
-                            ? '1px solid #d97706'
-                            : isLight
-                              ? '1px solid #E2E8F0'
-                              : '1px solid rgba(255,255,255,0.08)',
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                          transition: 'transform 100ms ease, background 120ms ease',
-                        }}
-                        onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
-                        onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-                      >
-                        S
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Volume Slider */}
-                  <input
-                    type="range"
-                    className="gx-stem-slider"
-                    min={0}
-                    max={100}
-                    value={volPct}
-                    disabled={!track.loaded}
-                    onChange={(e) => handleVolumeChange(idx, Number(e.target.value) / 100)}
+                  <span
                     style={{
-                      width: '100%',
-                      cursor: track.loaded ? 'pointer' : 'not-allowed',
-                      opacity: track.loaded ? 1 : 0.4,
+                      width: 3,
+                      borderRadius: 9999,
+                      background: '#0066FF',
+                      height: 20,
+                      boxShadow: '0 0 4px rgba(0, 102, 255, 0.6)',
                     }}
                   />
-                </div>
-              );
-            })}
-          </div>
 
-          {/* QUICK PRACTICE MIX PRESETS */}
-          <div
-            style={{
-              marginTop: 16,
-              paddingTop: 14,
-              borderTop: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            <span
-              style={{
-                display: 'block',
-                fontSize: 10,
-                textTransform: 'uppercase',
-                fontWeight: 700,
-                color: 'var(--c-text-muted)',
-                letterSpacing: '0.06em',
-                marginBottom: 8,
-              }}
-            >
-              Practice Mix Presets
-            </span>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 6,
-              }}
-            >
-              {(
-                [
-                  { id: 'full', label: 'Full Band' },
-                  { id: 'minus-vox', label: 'Minus Vox' },
-                  { id: 'minus-drum', label: 'Minus Drum' },
-                  { id: 'bass-drum', label: 'Bass & Drum' },
-                ] as const
-              ).map((preset) => {
-                const isActive = activePreset === preset.id;
-                return (
-                  <button
-                    key={preset.id}
-                    onClick={() => handleApplyPreset(preset.id)}
-                    style={{
-                      padding: '8px 4px',
-                      textAlign: 'center',
-                      borderRadius: 12,
-                      fontSize: 11,
-                      fontWeight: isActive ? 700 : 600,
-                      background: isActive
-                        ? '#0066FF'
-                        : isLight
-                          ? '#F1F5F9'
-                          : 'rgba(255,255,255,0.06)',
-                      color: isActive ? '#FFFFFF' : 'var(--c-text-primary)',
-                      border: 'none',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      boxShadow: isActive ? '0 2px 8px rgba(0, 102, 255, 0.3)' : 'none',
-                      transition: 'all 120ms ease',
+                  {[
+                    16, 10, 14, 18, 12, 16, 20, 10, 8, 16, 18, 14, 10, 14, 18, 12, 8, 6, 12, 14, 8,
+                  ].map((h, i) => (
+                    <span
+                      key={`wave-right-${i}`}
+                      style={{
+                        width: 2.5,
+                        borderRadius: 9999,
+                        background: isLight ? '#E2E8F0' : 'rgba(255,255,255,0.15)',
+                        height: h,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* PROGRESS TIMELINE SCRUBBER */}
+              <div style={{ padding: '8px 4px 0' }}>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="range"
+                    className="gx-range-slider"
+                    min={0}
+                    max={Math.max(1, Math.round(duration))}
+                    value={Math.round(effectiveTime)}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setScrubVisualTime(val);
+                      handleSeek(val);
                     }}
-                    onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
+                    onPointerDown={() => {
+                      setIsScrubbing(true);
+                      handleScrubStart();
+                    }}
+                    onPointerUp={() => {
+                      setIsScrubbing(false);
+                      handleScrubEnd(duration > 0 ? scrubVisualTime / duration : 0);
+                    }}
+                    style={{ width: '100%', cursor: 'pointer' }}
+                  />
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: 11,
+                    fontFamily: 'var(--studio-font-mono, monospace)',
+                    color: 'var(--c-text-muted)',
+                    marginTop: 6,
+                    fontWeight: 500,
+                  }}
+                >
+                  <span style={{ fontWeight: 600, color: 'var(--c-text-primary)' }}>
+                    {formatTime(effectiveTime)}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontFamily: 'var(--studio-font-display, sans-serif)',
+                      textTransform: 'uppercase',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      color: '#0066FF',
+                    }}
+                  >
+                    {getSectionName(duration > 0 ? effectiveTime / duration : 0)}
+                  </span>
+                  <span>{formatTime(duration || 0)}</span>
+                </div>
+              </div>
+
+              {/* REFINED PLAYBACK CONTROLS */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 16,
+                  padding: '12px 8px 4px',
+                }}
+              >
+                <button
+                  onClick={handleStop}
+                  aria-label="Previous Track / Reset"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--c-text-primary)',
+                    background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'transform 120ms ease',
+                  }}
+                  onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+                  onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
+                    skip_previous
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => handleSkip(-10)}
+                  aria-label="Rewind 10 seconds"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--c-text-primary)',
+                    background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'transform 120ms ease',
+                  }}
+                  onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+                  onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 23 }}>
+                    replay_10
+                  </span>
+                </button>
+
+                {/* VIBRANT BLUE PLAY/PAUSE FAB */}
+                <button
+                  id="play-pause-btn"
+                  onClick={handlePlay}
+                  disabled={!anyLoaded}
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: '50%',
+                    background: anyLoaded
+                      ? '#0066FF'
+                      : isLight
+                        ? 'rgba(0,0,0,0.06)'
+                        : 'rgba(255,255,255,0.08)',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    cursor: anyLoaded ? 'pointer' : 'not-allowed',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: anyLoaded
+                      ? '0 10px 25px -4px rgba(0, 102, 255, 0.45), 0 4px 10px -2px rgba(0, 102, 255, 0.3)'
+                      : 'none',
+                    margin: '0 4px',
+                    transition: 'transform 150ms ease, box-shadow 150ms ease',
+                  }}
+                  onPointerDown={(e) => {
+                    if (anyLoaded) e.currentTarget.style.transform = 'scale(0.92)';
+                  }}
+                  onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ fontSize: 34, fontVariationSettings: "'FILL' 1" }}
+                  >
+                    {isPlaying ? 'pause' : 'play_arrow'}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => handleSkip(10)}
+                  aria-label="Forward 10 seconds"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--c-text-primary)',
+                    background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'transform 120ms ease',
+                  }}
+                  onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+                  onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 23 }}>
+                    forward_10
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => handleSkip(duration)}
+                  aria-label="Next Track"
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--c-text-primary)',
+                    background: isLight ? 'rgba(241, 245, 249, 0.7)' : 'rgba(255,255,255,0.06)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'transform 120ms ease',
+                  }}
+                  onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+                  onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 24 }}>
+                    skip_next
+                  </span>
+                </button>
+              </div>
+
+              {/* PITCH TRANSPOSITION STEPPER */}
+              <div
+                style={{
+                  marginTop: 12,
+                  paddingTop: 10,
+                  borderTop: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.06)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 12px',
+                  background: isLight ? 'rgba(248, 250, 252, 0.8)' : 'rgba(255,255,255,0.02)',
+                  borderRadius: 16,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span
+                    className="material-symbols-outlined"
+                    style={{ color: '#0066FF', fontSize: 20 }}
+                  >
+                    tune
+                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <span
+                      style={{
+                        fontSize: 9.5,
+                        textTransform: 'uppercase',
+                        fontWeight: 700,
+                        color: 'var(--c-text-muted)',
+                        letterSpacing: '0.06em',
+                      }}
+                    >
+                      Transposition
+                    </span>
+                    <span
+                      id="key-label"
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: 'var(--c-text-primary)',
+                      }}
+                    >
+                      Key: {currentKeyDisplay}
+                      {pitchShift === 0 ? ' (Original)' : ''}
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    background: isLight ? '#FFFFFF' : 'rgba(255,255,255,0.06)',
+                    padding: 4,
+                    borderRadius: 12,
+                    border: isLight ? '1px solid #E2E8F0' : '1px solid rgba(255,255,255,0.08)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <button
+                    onClick={() => handlePitchChange(-1)}
+                    disabled={pitchShift <= -6}
+                    aria-label="Transpose one semitone down"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--c-text-primary)',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: pitchShift <= -6 ? 'not-allowed' : 'pointer',
+                      opacity: pitchShift <= -6 ? 0.3 : 1,
+                      fontWeight: 700,
+                      transition: 'transform 100ms ease',
+                    }}
+                    onPointerDown={(e) => {
+                      if (pitchShift > -6) e.currentTarget.style.transform = 'scale(0.9)';
+                    }}
                     onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                   >
-                    {preset.label}
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                      remove
+                    </span>
                   </button>
+
+                  <span
+                    id="key-offset"
+                    style={{
+                      width: 32,
+                      textAlign: 'center',
+                      fontFamily: 'var(--studio-font-mono, monospace)',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: pitchShift !== 0 ? '#0066FF' : 'var(--c-text-primary)',
+                    }}
+                  >
+                    {pitchShift > 0 ? `+${pitchShift}` : pitchShift === 0 ? '±0' : pitchShift}
+                  </span>
+
+                  <button
+                    onClick={() => handlePitchChange(1)}
+                    disabled={pitchShift >= 6}
+                    aria-label="Transpose one semitone up"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--c-text-primary)',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: pitchShift >= 6 ? 'not-allowed' : 'pointer',
+                      opacity: pitchShift >= 6 ? 0.3 : 1,
+                      fontWeight: 700,
+                      transition: 'transform 100ms ease',
+                    }}
+                    onPointerDown={(e) => {
+                      if (pitchShift < 6) e.currentTarget.style.transform = 'scale(0.9)';
+                    }}
+                    onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+                      add
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* SECTION 4: STEMS MIXER WORKSTATION (Only when Ready) */}
+        {isReady && (
+          <section
+            id="stems-mixer-section"
+            style={{
+              background: isLight ? '#FFFFFF' : isAmoled ? '#000000' : 'rgba(255,255,255,0.03)',
+              borderRadius: 28,
+              padding: '16px 16px 20px',
+              border: isLight
+                ? '1px solid #E8EDF5'
+                : isAmoled
+                  ? '1px solid #1a1a1a'
+                  : '1px solid rgba(255,255,255,0.08)',
+              boxShadow: isLight
+                ? '0 10px 30px -4px rgba(15, 23, 42, 0.04), 0 2px 8px -2px rgba(15, 23, 42, 0.02)'
+                : 'none',
+              animation: 'gxFadeSlideUp 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            }}
+          >
+            {/* Mixer Header */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                marginBottom: 14,
+                padding: '0 4px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  className="material-symbols-outlined"
+                  style={{ color: '#0066FF', fontSize: 22 }}
+                >
+                  equalizer
+                </span>
+                <div>
+                  <h2
+                    style={{
+                      fontFamily: 'var(--studio-font-display, "Inter Tight", sans-serif)',
+                      fontWeight: 800,
+                      fontSize: 14,
+                      color: 'var(--c-text-primary)',
+                      letterSpacing: '-0.01em',
+                      margin: 0,
+                    }}
+                  >
+                    STEMS MIXER
+                  </h2>
+                  <p
+                    style={{
+                      fontSize: 10,
+                      color: 'var(--c-text-muted)',
+                      margin: 0,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {tracks.length} Synchronized Multitrack Channels
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button
+                  onClick={handleResetMixer}
+                  style={{
+                    padding: '4px 10px',
+                    background: isLight ? '#F1F5F9' : 'rgba(255,255,255,0.06)',
+                    color: 'var(--c-text-secondary)',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    borderRadius: 8,
+                    border: 'none',
+                    cursor: 'pointer',
+                    transition: 'transform 100ms ease',
+                  }}
+                  onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.92)')}
+                  onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  RESET
+                </button>
+
+                <span
+                  style={{
+                    padding: '4px 8px',
+                    background: isLight ? '#EEF6FF' : 'rgba(37,99,235,0.15)',
+                    color: '#0066FF',
+                    border: isLight ? '1px solid #D9EBFF' : '1px solid rgba(37,99,235,0.3)',
+                    fontSize: 10,
+                    fontWeight: 700,
+                    borderRadius: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: 13 }}>
+                    cloud_done
+                  </span>
+                  CACHED
+                </span>
+              </div>
+            </div>
+
+            {/* STEM CHANNELS LIST */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {tracks.map((track, idx) => {
+                const stemColor = getStemColor(track.name);
+                const volPct = Math.round(track.volume * 100);
+
+                return (
+                  <div
+                    key={track.name}
+                    style={{
+                      background: isLight ? 'rgba(248, 250, 252, 0.85)' : 'rgba(255,255,255,0.02)',
+                      padding: 12,
+                      borderRadius: 16,
+                      border: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.04)',
+                      opacity: track.muted ? 0.45 : 1,
+                      transition: 'opacity 150ms ease',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span
+                          style={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            background: stemColor,
+                            display: 'inline-block',
+                            boxShadow: `0 0 6px ${stemColor}55`,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontFamily: 'var(--studio-font-display, "Inter Tight", sans-serif)',
+                            fontWeight: 700,
+                            fontSize: 13,
+                            color: 'var(--c-text-primary)',
+                            letterSpacing: '-0.01em',
+                          }}
+                        >
+                          {track.label}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontFamily: 'var(--studio-font-mono, monospace)',
+                            fontWeight: 600,
+                            color: 'var(--c-text-muted)',
+                          }}
+                        >
+                          {volPct}%
+                        </span>
+                        {!track.loaded && (!song.hasStems || failedStems.includes(idx)) && (
+                          <button
+                            onClick={() => handleLoadFromFile(idx)}
+                            style={{
+                              padding: '2px 8px',
+                              borderRadius: 6,
+                              border: '1px solid var(--surface-border)',
+                              cursor: 'pointer',
+                              background: 'transparent',
+                              color: 'var(--c-text-secondary)',
+                              fontSize: 9,
+                              fontWeight: 700,
+                              textTransform: 'uppercase',
+                            }}
+                          >
+                            Load File
+                          </button>
+                        )}
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {/* Mute Button */}
+                        <button
+                          onClick={() => handleMute(idx)}
+                          aria-label={`Mute ${track.label}`}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 8,
+                            fontSize: 11,
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: track.muted
+                              ? '#f43f5e'
+                              : isLight
+                                ? '#FFFFFF'
+                                : 'rgba(255,255,255,0.06)',
+                            color: track.muted
+                              ? '#FFFFFF'
+                              : isLight
+                                ? '#475569'
+                                : 'rgba(255,255,255,0.7)',
+                            border: track.muted
+                              ? '1px solid #e11d48'
+                              : isLight
+                                ? '1px solid #E2E8F0'
+                                : '1px solid rgba(255,255,255,0.08)',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            transition: 'transform 100ms ease, background 120ms ease',
+                          }}
+                          onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+                          onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                        >
+                          M
+                        </button>
+
+                        {/* Solo Button */}
+                        <button
+                          onClick={() => handleSolo(idx)}
+                          aria-label={`Solo ${track.label}`}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: 8,
+                            fontSize: 11,
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: track.solo
+                              ? '#f59e0b'
+                              : isLight
+                                ? '#FFFFFF'
+                                : 'rgba(255,255,255,0.06)',
+                            color: track.solo
+                              ? '#FFFFFF'
+                              : isLight
+                                ? '#475569'
+                                : 'rgba(255,255,255,0.7)',
+                            border: track.solo
+                              ? '1px solid #d97706'
+                              : isLight
+                                ? '1px solid #E2E8F0'
+                                : '1px solid rgba(255,255,255,0.08)',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                            transition: 'transform 100ms ease, background 120ms ease',
+                          }}
+                          onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.9)')}
+                          onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                        >
+                          S
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Volume Slider */}
+                    <input
+                      type="range"
+                      className="gx-stem-slider"
+                      min={0}
+                      max={100}
+                      value={volPct}
+                      disabled={!track.loaded}
+                      onChange={(e) => handleVolumeChange(idx, Number(e.target.value) / 100)}
+                      style={{
+                        width: '100%',
+                        cursor: track.loaded ? 'pointer' : 'not-allowed',
+                        opacity: track.loaded ? 1 : 0.4,
+                      }}
+                    />
+                  </div>
                 );
               })}
             </div>
-          </div>
-        </section>
+
+            {/* QUICK PRACTICE MIX PRESETS */}
+            <div
+              style={{
+                marginTop: 16,
+                paddingTop: 14,
+                borderTop: isLight ? '1px solid #F1F5F9' : '1px solid rgba(255,255,255,0.06)',
+              }}
+            >
+              <span
+                style={{
+                  display: 'block',
+                  fontSize: 10,
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: 'var(--c-text-muted)',
+                  letterSpacing: '0.06em',
+                  marginBottom: 8,
+                }}
+              >
+                Practice Mix Presets
+              </span>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 6,
+                }}
+              >
+                {(
+                  [
+                    { id: 'full', label: 'Full Band' },
+                    { id: 'minus-vox', label: 'Minus Vox' },
+                    { id: 'minus-drum', label: 'Minus Drum' },
+                    { id: 'bass-drum', label: 'Bass & Drum' },
+                  ] as const
+                ).map((preset) => {
+                  const isActive = activePreset === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      onClick={() => handleApplyPreset(preset.id)}
+                      style={{
+                        padding: '8px 4px',
+                        textAlign: 'center',
+                        borderRadius: 12,
+                        fontSize: 11,
+                        fontWeight: isActive ? 700 : 600,
+                        background: isActive
+                          ? '#0066FF'
+                          : isLight
+                            ? '#F1F5F9'
+                            : 'rgba(255,255,255,0.06)',
+                        color: isActive ? '#FFFFFF' : 'var(--c-text-primary)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        boxShadow: isActive ? '0 2px 8px rgba(0, 102, 255, 0.3)' : 'none',
+                        transition: 'all 120ms ease',
+                      }}
+                      onPointerDown={(e) => (e.currentTarget.style.transform = 'scale(0.95)')}
+                      onPointerUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );

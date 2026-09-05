@@ -14,6 +14,7 @@ import {
 import { Dialog } from '../../../shared/design-system/dialogs';
 import { Button, Input } from '../../../shared/design-system/StudioDesignSystem';
 import { StaggeredReveal } from '../../../shared/animation';
+import { StudioHeader } from '../../../shared/layout/StudioHeader';
 
 export interface DrumPatternsPanelProps {
   onPreviewPattern: (lp: LibraryPattern) => void;
@@ -619,9 +620,9 @@ export function DrumPatternsPanel({
   return (
     <div
       onScroll={onScroll}
-      className="no-scrollbar flex flex-col w-full h-full relative"
+      className="no-scrollbar flex flex-col w-full h-full relative app-bg"
       style={{
-        backgroundColor: 'var(--c-surface-lowest, #F8FAFC)',
+        backgroundColor: 'var(--app-bg)',
         overflowY: 'auto',
       }}
       data-purpose="patterns-view-container"
@@ -629,26 +630,19 @@ export function DrumPatternsPanel({
       <div
         className={
           'w-full flex flex-col pb-28 ' +
-          (isWebDesktop ? 'max-w-5xl mx-auto px-6 pt-6' : 'max-w-md mx-auto px-4 pt-3')
+          (isWebDesktop ? 'max-w-5xl mx-auto px-6 pt-6' : 'max-w-md mx-auto px-4')
         }
       >
         {/* Header Section */}
-        <header className="pb-2 flex flex-col gap-2">
-          <div>
-            <h1
-              className="font-headline font-extrabold text-2xl tracking-tight leading-tight"
-              style={{ color: 'var(--c-text-primary, #111827)' }}
-            >
-              Patterns
-            </h1>
-            <p
-              className="text-xs font-medium tracking-normal mt-0.5"
-              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
-            >
-              Pattern &amp; groove library
-            </p>
-          </div>
+        <StudioHeader
+          title="Patterns"
+          subtitle="Pattern & groove library"
+          disableHorizontalPadding={true}
+          disableTopInset={isWebDesktop}
+        />
 
+        {/* Filter & Search Controls */}
+        <div className="pb-2 flex flex-col gap-2">
           {/* Capsule Search Bar */}
           <div className="relative flex items-center" data-purpose="search-box">
             <span
@@ -796,7 +790,7 @@ export function DrumPatternsPanel({
               })}
             </div>
           )}
-        </header>
+        </div>
 
         {/* My Grooves: Save Current Pattern Action Banner */}
         {isMyGroovesActive && (

@@ -8394,14 +8394,7 @@ export default function DrumEditor() {
                       </div>
                     );
                   case 'prefs':
-                    return (
-                      <div
-                        style={{ overflowY: 'auto', paddingBottom: 100 }}
-                        className="w-full h-full"
-                      >
-                        <DrumPrefsPanel />
-                      </div>
-                    );
+                    return <DrumPrefsPanel />;
                   default:
                     return null;
                 }

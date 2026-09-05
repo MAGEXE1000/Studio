@@ -1,25 +1,28 @@
 {
   "platform": "android",
-  "version": "4.5.60",
-  "versionName": "4.5.60",
-  "versionCode": 40560,
-  "version_code": 40560,
-  "commit": "516efa69",
-  "releasedAt": "9/4/2026, 10:23:45 AM CST",
-  "buildTimestamp": "9/4/2026, 10:23:45 AM CST",
+  "version": "4.5.61",
+  "versionName": "4.5.61",
+  "versionCode": 40561,
+  "version_code": 40561,
+  "commit": "7a64306f",
+  "releasedAt": "9/5/2026, 4:25:39 AM CST",
+  "buildTimestamp": "9/5/2026, 4:25:39 AM CST",
   "updateMode": "refresh",
-  "changelog": "• Stagex Setup Subsections Bilingual Localization: Implemented comprehensive English and Spanish translation coverage across all four Setup subviews—Technical Rider, Setlist Management, Gear Inventory, and Band & Crew Roster.\n• Stagex History Surface & Floating Toolbar Localization: Integrated reactive bilingual dictionary hooks into the History surface and canvas floating action controls.\n• Live Language Transition Architecture: Wired all Stagex setup components to `useT()` and `useSettingsStore` allowing instantaneous language switching (EN ↔ ES) with zero page reloads.\n• Updater Ecosystem Bilingual Localization: Fully localized all updater states, progress bars, version comparisons, and action prompts in StudioUpdateScreen and UpdateIndicator.\n• Roadmap Language Governance: Maintained visible, disabled, and greyed-out future languages (de, fr, zh, pt, it, ja, ko) with standardized \"Próximamente\" / \"Coming soon\" status chips.\n• Stagex Canvas Landscape Presentation: Decoupled the editing history surface and optimized full-screen canvas aspect ratios.",
-  "whatsNew": "• Stagex Setup Subsections Bilingual Localization: Implemented comprehensive English and Spanish translation coverage across all four Setup subviews—Technical Rider, Setlist Management, Gear Inventory, and Band & Crew Roster.\n• Stagex History Surface & Floating Toolbar Localization: Integrated reactive bilingual dictionary hooks into the History surface and canvas floating action controls.\n• Live Language Transition Architecture: Wired all Stagex setup components to `useT()` and `useSettingsStore` allowing instantaneous language switching (EN ↔ ES) with zero page reloads.\n• Updater Ecosystem Bilingual Localization: Fully localized all updater states, progress bars, version comparisons, and action prompts in StudioUpdateScreen and UpdateIndicator.\n• Roadmap Language Governance: Maintained visible, disabled, and greyed-out future languages (de, fr, zh, pt, it, ja, ko) with standardized \"Próximamente\" / \"Coming soon\" status chips.\n• Stagex Canvas Landscape Presentation: Decoupled the editing history surface and optimized full-screen canvas aspect ratios.",
+  "changelog": "• Drumex Beat Editor Studio Redesign: Redesigned the mobile Beat Editor into the canonical studio visual language with high-density layout and tactile production controls.\n• Floating Pill Top Bar: Compact capsule header displaying pattern metadata, interactive BPM tempo pill, 4/4 time signature, kit subtitle, undo/redo buttons, and burger menu.\n• Fixed Left Track Column with Real-Time Mute & Solo: Added persistent 104px track column with bold titles, mini M (Mute) buttons, mini S (Solo) buttons, and clean dot-separated articulation subtitles.\n• Real-Time Audio Mute/Solo Synchronization: Integrated dynamic volume zeroing directly into DrumScheduler audio context without pausing playback or interrupting scheduling.\n• 4-Button Floating Action Controls (FAB Stack): Replaced legacy floating buttons with canonical vertical FAB stack for Reset/Erase, Loop, Metronome/Tempo, and primary Play/Pause.\n• Musical Subdivision Ruler: Monospace subdivision labels with subtle downbeat background tint, bar line boundaries, and semantic measure menu icon.\n• Notehead & Velocity Matrix Visualization: Enhanced grid stroke weights distinguishing quarter-note downbeats from 16th subdivisions, and proportional dynamic velocity bars under noteheads.\n• Score Canvas Space Optimization: Intelligently hid bottom navigation dock when inside Beat Editor, maximizing score height and eliminating touch target overlaps.\n• Widescreen Landscape Presentation: Continuous multi-measure horizontal layout, compact top bar with integrated play trigger, and hidden FAB stack.",
+  "whatsNew": "• Drumex Beat Editor Studio Redesign: Redesigned the mobile Beat Editor into the canonical studio visual language with high-density layout and tactile production controls.\n• Floating Pill Top Bar: Compact capsule header displaying pattern metadata, interactive BPM tempo pill, 4/4 time signature, kit subtitle, undo/redo buttons, and burger menu.\n• Fixed Left Track Column with Real-Time Mute & Solo: Added persistent 104px track column with bold titles, mini M (Mute) buttons, mini S (Solo) buttons, and clean dot-separated articulation subtitles.\n• Real-Time Audio Mute/Solo Synchronization: Integrated dynamic volume zeroing directly into DrumScheduler audio context without pausing playback or interrupting scheduling.\n• 4-Button Floating Action Controls (FAB Stack): Replaced legacy floating buttons with canonical vertical FAB stack for Reset/Erase, Loop, Metronome/Tempo, and primary Play/Pause.\n• Musical Subdivision Ruler: Monospace subdivision labels with subtle downbeat background tint, bar line boundaries, and semantic measure menu icon.\n• Notehead & Velocity Matrix Visualization: Enhanced grid stroke weights distinguishing quarter-note downbeats from 16th subdivisions, and proportional dynamic velocity bars under noteheads.\n• Score Canvas Space Optimization: Intelligently hid bottom navigation dock when inside Beat Editor, maximizing score height and eliminating touch target overlaps.\n• Widescreen Landscape Presentation: Continuous multi-measure horizontal layout, compact top bar with integrated play trigger, and hidden FAB stack.",
   "releaseNotes": {
     "added": [
-      "Stagex Setup Subsections Bilingual Localization: Implemented comprehensive English and Spanish translation coverage across all four Setup subviews—Technical Rider, Setlist Management, Gear Inventory, and Band & Crew Roster.",
-      "Stagex History Surface & Floating Toolbar Localization: Integrated reactive bilingual dictionary hooks into the History surface and canvas floating action controls.",
-      "Live Language Transition Architecture: Wired all Stagex setup components to `useT()` and `useSettingsStore` allowing instantaneous language switching (EN ↔ ES) with zero page reloads.",
-      "Updater Ecosystem Bilingual Localization: Fully localized all updater states, progress bars, version comparisons, and action prompts in StudioUpdateScreen and UpdateIndicator."
+      "Drumex Beat Editor Studio Redesign: Redesigned the mobile Beat Editor into the canonical studio visual language with high-density layout and tactile production controls.",
+      "Floating Pill Top Bar: Compact capsule header displaying pattern metadata, interactive BPM tempo pill, 4/4 time signature, kit subtitle, undo/redo buttons, and burger menu.",
+      "Fixed Left Track Column with Real-Time Mute & Solo: Added persistent 104px track column with bold titles, mini M (Mute) buttons, mini S (Solo) buttons, and clean dot-separated articulation subtitles.",
+      "Real-Time Audio Mute/Solo Synchronization: Integrated dynamic volume zeroing directly into DrumScheduler audio context without pausing playback or interrupting scheduling.",
+      "4-Button Floating Action Controls (FAB Stack): Replaced legacy floating buttons with canonical vertical FAB stack for Reset/Erase, Loop, Metronome/Tempo, and primary Play/Pause."
     ],
     "improved": [
-      "Roadmap Language Governance: Maintained visible, disabled, and greyed-out future languages (de, fr, zh, pt, it, ja, ko) with standardized \"Próximamente\" / \"Coming soon\" status chips.",
-      "Stagex Canvas Landscape Presentation: Decoupled the editing history surface and optimized full-screen canvas aspect ratios."
+      "Musical Subdivision Ruler: Monospace subdivision labels with subtle downbeat background tint, bar line boundaries, and semantic measure menu icon.",
+      "Notehead & Velocity Matrix Visualization: Enhanced grid stroke weights distinguishing quarter-note downbeats from 16th subdivisions, and proportional dynamic velocity bars under noteheads.",
+      "Score Canvas Space Optimization: Intelligently hid bottom navigation dock when inside Beat Editor, maximizing score height and eliminating touch target overlaps.",
+      "Widescreen Landscape Presentation: Continuous multi-measure horizontal layout, compact top bar with integrated play trigger, and hidden FAB stack."
     ]
   },
   "mandatory": false

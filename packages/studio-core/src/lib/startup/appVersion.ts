@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.60';
-export const NATIVE_VERSION_CODE = 40560;
-export const WEB_VERSION = '4.5.60';
+export const NATIVE_VERSION = '4.5.61';
+export const NATIVE_VERSION_CODE = 40561;
+export const WEB_VERSION = '4.5.61';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '516efa69';
+export const APP_COMMIT_SHA = '7a64306f';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/4/2026, 10:23:45 AM CST';
+export const APP_BUILD_TIMESTAMP = '9/5/2026, 4:25:39 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,17 +98,20 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Stagex Setup Subsections Bilingual Localization: Implemented comprehensive English and Spanish translation coverage across all four Setup subviews—Technical Rider, Setlist Management, Gear Inventory, and Band & Crew Roster.',
-      'Stagex History Surface & Floating Toolbar Localization: Integrated reactive bilingual dictionary hooks into the History surface and canvas floating action controls.',
-      'Live Language Transition Architecture: Wired all Stagex setup components to `useT()` and `useSettingsStore` allowing instantaneous language switching (EN ↔ ES) with zero page reloads.',
-      'Updater Ecosystem Bilingual Localization: Fully localized all updater states, progress bars, version comparisons, and action prompts in StudioUpdateScreen and UpdateIndicator.',
+      'Drumex Beat Editor Studio Redesign: Redesigned the mobile Beat Editor into the canonical studio visual language with high-density layout and tactile production controls.',
+      'Floating Pill Top Bar: Compact capsule header displaying pattern metadata, interactive BPM tempo pill, 4/4 time signature, kit subtitle, undo/redo buttons, and burger menu.',
+      'Fixed Left Track Column with Real-Time Mute & Solo: Added persistent 104px track column with bold titles, mini M (Mute) buttons, mini S (Solo) buttons, and clean dot-separated articulation subtitles.',
+      'Real-Time Audio Mute/Solo Synchronization: Integrated dynamic volume zeroing directly into DrumScheduler audio context without pausing playback or interrupting scheduling.',
+      '4-Button Floating Action Controls (FAB Stack): Replaced legacy floating buttons with canonical vertical FAB stack for Reset/Erase, Loop, Metronome/Tempo, and primary Play/Pause.',
     ],
   },
   {
     heading: 'Improved',
     items: [
-      'Roadmap Language Governance: Maintained visible, disabled, and greyed-out future languages (de, fr, zh, pt, it, ja, ko) with standardized "Próximamente" / "Coming soon" status chips.',
-      'Stagex Canvas Landscape Presentation: Decoupled the editing history surface and optimized full-screen canvas aspect ratios.',
+      'Musical Subdivision Ruler: Monospace subdivision labels with subtle downbeat background tint, bar line boundaries, and semantic measure menu icon.',
+      'Notehead & Velocity Matrix Visualization: Enhanced grid stroke weights distinguishing quarter-note downbeats from 16th subdivisions, and proportional dynamic velocity bars under noteheads.',
+      'Score Canvas Space Optimization: Intelligently hid bottom navigation dock when inside Beat Editor, maximizing score height and eliminating touch target overlaps.',
+      'Widescreen Landscape Presentation: Continuous multi-measure horizontal layout, compact top bar with integrated play trigger, and hidden FAB stack.',
     ],
   },
 ];
@@ -120,6 +123,18 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.61',
+    date: '2026-09-05',
+    highlights: [
+      'Drumex Beat Editor Studio Redesign: Redesigned the mobile Beat Editor into the canonical studio visual language with high-density layout and tactile production controls.',
+      'Floating Pill Top Bar: Compact capsule header displaying pattern metadata, interactive BPM tempo pill, 4/4 time signature, kit subtitle, undo/redo buttons, and burger menu.',
+      'Fixed Left Track Column with Real-Time Mute & Solo: Added persistent 104px track column with bold titles, mini M (Mute) buttons, mini S (Solo) buttons, and clean dot-separated articulation subtitles.',
+      'Real-Time Audio Mute/Solo Synchronization: Integrated dynamic volume zeroing directly into DrumScheduler audio context without pausing playback or interrupting scheduling.',
+      '4-Button Floating Action Controls (FAB Stack): Replaced legacy floating buttons with canonical vertical FAB stack for Reset/Erase, Loop, Metronome/Tempo, and primary Play/Pause.',
+      'Musical Subdivision Ruler: Monospace subdivision labels with subtle downbeat background tint, bar line boundaries, and semantic measure menu icon.',
+    ],
+  },
   {
     version: '4.5.60',
     date: '2026-09-04',
@@ -214,17 +229,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Canonical Studio Preferences Architecture: Redesigned the Stagex mobile Preferences view with compact charcoal surfaces, small tracked uppercase section headers (APPEARANCE, CANVAS, EDITOR), a 6-color swatch backdrop grid (SHADOW, VOID, GRAPHITE, SLATE, MIDNIGHT, FOREST), and compact segmented controls for grid sizing, stage shape, and measurement units.',
       'Canonical Mobile Setup View Redesign: Restored the full-width vertical card stack architecture for Technical Rider, Setlist, Gear Inventory, and Band & Crew with bespoke squircle icons, dynamic item count badges, and seamless drilldown transitions.',
       'Stagex Mobile Header & Visual Polish: Unified mobile page headers with seamless top insets, standardized 28px typography, floating action utility pills, and generous scroll clearance above the floating bottom dock.',
-    ],
-  },
-  {
-    version: '4.5.51',
-    date: '2026-09-02',
-    highlights: [
-      'Stagex Canonical React Architecture: Migrated the Stagex application shell to native React, fully unifying navigation, headers, page transitions, and layouts with canonical Studio applications (Chordex, Drumex, Groovex, Vocalex).',
-      'Persistent Stage Canvas Isolation: Confined the specialized Stagex 2D canvas and cable routing engine into an isolated renderer with zero reload state persistence across tab switching.',
-      'Modular React Setup & Preferences: Extracted native React subviews for Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences with canonical floating headers and hardware back navigation.',
-      'Stagex Codebase Complexity Reduction: Reduced StageCorePanel from 4,257 lines down to 222 lines (a 94.7% code reduction), extracting dedicated StageCanvasView, StageSetupContainer, and StageCollabDialog components.',
-      'Single Source of Truth Asset Architecture: Established packages/ui-shared stage-core as authoritative single source of truth across Web and Android with automated build synchronization and byte-identity verification.',
     ],
   },
 ];

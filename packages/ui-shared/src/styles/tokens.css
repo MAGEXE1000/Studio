@@ -3045,7 +3045,7 @@ html.light .alert-dialog__dialog,
 .alert-dialog__heading,
 [data-slot='alert-dialog-heading'] {
   margin: 0;
-  font-family: var(--type-section-font, var(--font-title, 'Inter Tight', 'Inter', sans-serif));
+  font-family: var(--type-section-font, var(--studio-font-display, 'Inter Tight', sans-serif));
   font-size: var(--type-section-size, 19px);
   line-height: var(--type-section-lh, 24px);
   font-weight: var(--type-section-weight, 600);
@@ -3094,7 +3094,7 @@ html.light .alert-dialog__dialog,
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  font-family: var(--type-body-font, var(--font-sans, 'Inter Tight', 'Inter', sans-serif));
+  font-family: var(--type-body-font, var(--studio-font-body, 'Inter', sans-serif));
   font-size: var(--type-body-size, 14.5px);
   line-height: var(--type-body-lh, 18px);
   letter-spacing: var(--type-body-tracking, 0.3px);

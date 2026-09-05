@@ -7,9 +7,12 @@
 
 /* ── Platform-Specific Overrides (Web) ──────────────────────────────────── */
 
-/* Body background */
+/* Body background & canonical typography */
 body {
   background: var(--app-bg);
+  font-family: var(--studio-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Global Tailwind light mode class overrides */

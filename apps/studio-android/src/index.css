@@ -7,9 +7,12 @@
 
 /* ── Platform-Specific Overrides (Android) ──────────────────────────────── */
 
-/* Body background */
+/* Body background & canonical typography */
 body {
   background: var(--c-background);
+  font-family: var(--studio-font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Navigation safe-areas */

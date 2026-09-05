@@ -187,7 +187,10 @@ export default function DrumPrefsPanel() {
       <div className="flex flex-col gap-2">
         <span
           className={`text-[9.5px] font-extrabold tracking-widest uppercase px-1 ${isLight ? 'text-zinc-500' : 'text-zinc-450'}`}
-          style={{ fontFamily: 'var(--font-headline)' }}
+          style={{
+            fontFamily:
+              'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
+          }}
         >
           {title}
         </span>
@@ -210,12 +213,22 @@ export default function DrumPrefsPanel() {
         className={`flex justify-between items-center px-4 py-3 border-b last:border-none ${isLight ? 'border-zinc-100' : 'border-zinc-900/60'}`}
       >
         <div className="flex-1 pr-4">
-          <div className={`text-xs font-bold ${isLight ? 'text-zinc-850' : 'text-zinc-200'}`}>
+          <div
+            className={`text-xs font-bold ${isLight ? 'text-zinc-850' : 'text-zinc-200'}`}
+            style={{
+              fontFamily: 'var(--type-body-font, var(--studio-font-body, "Inter", sans-serif))',
+              fontWeight: 600,
+            }}
+          >
             {label}
           </div>
           {desc && (
             <div
               className={`text-[10px] leading-snug mt-0.5 ${isLight ? 'text-zinc-455' : 'text-zinc-500'}`}
+              style={{
+                fontFamily: 'var(--type-meta-font, var(--studio-font-body, "Inter", sans-serif))',
+                fontWeight: 400,
+              }}
             >
               {desc}
             </div>
@@ -254,6 +267,7 @@ export default function DrumPrefsPanel() {
     return (
       <div
         className={`flex flex-col h-full overflow-hidden p-6 ${isLight ? 'bg-zinc-50' : 'bg-[#000000]'}`}
+        style={{ fontFamily: 'var(--studio-font-body)' }}
       >
         {/* Category Tabs */}
         <div className="flex gap-1.5 mb-6 flex-wrap">
@@ -273,6 +287,8 @@ export default function DrumPrefsPanel() {
                 onClick={() => setActiveCat(c.id)}
                 className="px-3.5 py-1.5 rounded-lg text-[9.5px] font-extrabold uppercase tracking-widest transition-all cursor-pointer"
                 style={{
+                  fontFamily:
+                    'var(--type-button-font, var(--studio-font-body, "Inter", sans-serif))',
                   background: active
                     ? 'linear-gradient(135deg, var(--studio-accent-from), var(--studio-accent-to))'
                     : 'var(--c-surface-low)',
@@ -401,7 +417,16 @@ export default function DrumPrefsPanel() {
   }
 
   return (
-    <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div
+      className="app-bg"
+      style={{
+        flex: 1,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: 'var(--studio-font-body)',
+      }}
+    >
       <div
         ref={scrollRef}
         className="no-scrollbar"

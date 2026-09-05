@@ -1,5 +1,6 @@
 import { createAudioContext } from '@workspace/studio-core';
 import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
+import { isPercussionStem } from './stemClassifier';
 
 export interface TrackState {
   name: string;
@@ -11,6 +12,7 @@ export interface TrackState {
   buffer: AudioBuffer | null;
   source: AudioBufferSourceNode | null;
   gainNode: GainNode | null;
+  isPercussion: boolean;
 }
 
 let audioCtx: AudioContext | null = null;
@@ -31,8 +33,6 @@ export function resumeAudioContext(): void {
   }
 }
 
-const DRUM_STEM_NAMES = new Set(['kick', 'snare', 'cymbals', 'drums', 'snare_cymbals']);
-
 export interface AudioEngine {
   ctx: AudioContext;
   sumBus: GainNode;
@@ -41,10 +41,10 @@ export interface AudioEngine {
   shifterOutGain: GainNode;
   masterGain: GainNode;
   drumBus: GainNode;
+  drumDelay: DelayNode;
   scrubFilter: BiquadFilterNode;
   scrubGain: GainNode;
   stNode: SoundTouchNode | null;
-  stNodeDrums: SoundTouchNode | null;
   tracks: TrackState[];
   isPlaying: boolean;
   isScrubbing: boolean;
@@ -64,6 +64,7 @@ export function createEngine(): AudioEngine {
   const shifterOutGain = ctx.createGain();
   const masterGain = ctx.createGain();
   const drumBus = ctx.createGain();
+  const drumDelay = ctx.createDelay(0.1);
 
   // Zero-semitone bit-exact master bypass active by default
   bypassGain.gain.setValueAtTime(1.0, ctx.currentTime);
@@ -71,6 +72,7 @@ export function createEngine(): AudioEngine {
   shifterOutGain.gain.setValueAtTime(0.0, ctx.currentTime);
   masterGain.gain.setValueAtTime(1.0, ctx.currentTime);
   drumBus.gain.setValueAtTime(1.0, ctx.currentTime);
+  drumDelay.delayTime.setValueAtTime(0.0, ctx.currentTime);
 
   const scrubFilter = ctx.createBiquadFilter();
   scrubFilter.type = 'lowpass';
@@ -79,15 +81,18 @@ export function createEngine(): AudioEngine {
   const scrubGain = ctx.createGain();
   scrubGain.gain.setValueAtTime(1.0, ctx.currentTime);
 
-  // Bypass route: sumBus -> bypassGain -> masterGain (100% bit-exact, 0ms latency)
+  // Melodic bypass route: sumBus -> bypassGain -> masterGain (100% bit-exact, 0ms latency)
   sumBus.connect(bypassGain);
   bypassGain.connect(masterGain);
 
-  // Pitch-transposed route: sumBus -> shifterInGain (connected to stNode upon initSoundTouch)
+  // Melodic pitch-transposed route: sumBus -> shifterInGain (connected to stNode upon initSoundTouch)
   sumBus.connect(shifterInGain);
 
+  // Percussion immune route: drumBus -> drumDelay -> scrubFilter (100% IMMUNE to pitch shifting)
+  drumBus.connect(drumDelay);
+  drumDelay.connect(scrubFilter);
+
   masterGain.connect(scrubFilter);
-  drumBus.connect(scrubFilter);
   scrubFilter.connect(scrubGain);
   scrubGain.connect(ctx.destination);
 
@@ -99,10 +104,10 @@ export function createEngine(): AudioEngine {
     shifterOutGain,
     masterGain,
     drumBus,
+    drumDelay,
     scrubFilter,
     scrubGain,
     stNode: null,
-    stNodeDrums: null,
     tracks: [],
     isPlaying: false,
     isScrubbing: false,
@@ -135,6 +140,8 @@ export async function initSoundTouch(engine: AudioEngine): Promise<void> {
     engine.shifterInGain.gain.setValueAtTime(1.0, ctx.currentTime);
     engine.shifterOutGain.gain.setValueAtTime(1.0, ctx.currentTime);
     engine.bypassGain.gain.setValueAtTime(0.0, ctx.currentTime);
+    const latency = 1024 / ctx.sampleRate;
+    engine.drumDelay.delayTime.setValueAtTime(latency, ctx.currentTime);
   }
 }
 
@@ -151,22 +158,29 @@ export async function loadAudioBuffer(arrayBuffer: ArrayBuffer): Promise<AudioBu
 
 export function initTracks(
   engine: AudioEngine,
-  stems: { name: string; label: string; icon: string }[],
+  stems: { name: string; label?: string; icon?: string }[],
   defaultVolume: number = 1.0
 ): TrackState[] {
-  engine.tracks = stems.map((s) => ({
-    name: s.name,
-    label: s.label,
-    icon: s.icon,
-    volume: defaultVolume,
-    muted: false,
-    solo: false,
-    buffer: null,
-    source: null,
-    gainNode: engine.ctx.createGain(),
-  }));
-  engine.tracks.forEach((t) => {
-    t.gainNode!.connect(engine.sumBus);
+  engine.tracks = stems.map((s) => {
+    const isPercussion = isPercussionStem(s);
+    const gainNode = engine.ctx.createGain();
+    if (isPercussion) {
+      gainNode.connect(engine.drumBus);
+    } else {
+      gainNode.connect(engine.sumBus);
+    }
+    return {
+      name: s.name,
+      label: s.label || s.name,
+      icon: s.icon || (isPercussion ? 'layers' : 'music_note'),
+      volume: defaultVolume,
+      muted: false,
+      solo: false,
+      buffer: null,
+      source: null,
+      gainNode,
+      isPercussion,
+    };
   });
   applyMutesSolos(engine);
   return engine.tracks;
@@ -389,6 +403,11 @@ export function setPitch(engine: AudioEngine, semitones: number): void {
     engine.shifterInGain.gain.cancelScheduledValues(ct);
     engine.shifterInGain.gain.setValueAtTime(0.0, ct + fadeDuration + 0.01);
 
+    // Dynamic latency compensation for drums: ramp back to 0ms (matched with bypass)
+    engine.drumDelay.delayTime.cancelScheduledValues(ct);
+    engine.drumDelay.delayTime.setValueAtTime(engine.drumDelay.delayTime.value, ct);
+    engine.drumDelay.delayTime.linearRampToValueAtTime(0.0, ct + fadeDuration);
+
     if (engine.stNode) {
       try {
         engine.stNode.pitchSemitones.cancelScheduledValues(ct);
@@ -407,6 +426,12 @@ export function setPitch(engine: AudioEngine, semitones: number): void {
         engine.stNode.pitchSemitones.linearRampToValueAtTime(semitones, ct + fadeDuration);
       } catch {}
     }
+
+    // Dynamic latency compensation for drums: align with SoundTouch WSOLA 1024-sample pre-buffer
+    const targetDelay = 1024 / ctx.sampleRate;
+    engine.drumDelay.delayTime.cancelScheduledValues(ct);
+    engine.drumDelay.delayTime.setValueAtTime(engine.drumDelay.delayTime.value, ct);
+    engine.drumDelay.delayTime.linearRampToValueAtTime(targetDelay, ct + fadeDuration);
 
     if (prevSemitones === 0) {
       // Crossfade from bypass to shifted
@@ -483,13 +508,10 @@ export function destroyEngine(engine: AudioEngine): void {
   engine.shifterOutGain.disconnect();
   engine.masterGain.disconnect();
   engine.drumBus.disconnect();
+  engine.drumDelay.disconnect();
   if (engine.stNode) {
     engine.stNode.disconnect();
     engine.stNode = null;
-  }
-  if (engine.stNodeDrums) {
-    engine.stNodeDrums.disconnect();
-    engine.stNodeDrums = null;
   }
   engine.scrubFilter.disconnect();
   engine.scrubGain.disconnect();

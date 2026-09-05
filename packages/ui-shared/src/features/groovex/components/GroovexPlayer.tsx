@@ -230,6 +230,9 @@ export default function GroovexPlayer() {
     const defStemVol = preferences.defaultStemVolume ?? 0.85;
     const trackStates = initTracks(engine, song.stems, defStemVol);
     engineRef.current = engine;
+    if (typeof window !== 'undefined') {
+      (window as any).__groovexEngine = engine;
+    }
     setMasterVolume(engine, preferences.masterVolume);
     initSoundTouch(engine).catch(() => {});
     setTracks(
@@ -281,6 +284,9 @@ export default function GroovexPlayer() {
       cancelAnimationFrame(rafRef.current);
       destroyEngine(engine);
       engineRef.current = null;
+      if (typeof window !== 'undefined' && (window as any).__groovexEngine === engine) {
+        (window as any).__groovexEngine = null;
+      }
     };
   }, [song]);
 
@@ -535,12 +541,14 @@ export default function GroovexPlayer() {
   }
 
   function handlePitchChange(delta: number) {
-    const newPitch = Math.max(-6, Math.min(6, pitchShift + delta));
-    setPitchShift(newPitch);
-    const engine = engineRef.current;
-    if (engine) {
-      setPitch(engine, newPitch);
-    }
+    setPitchShift((prev) => {
+      const newPitch = Math.max(-6, Math.min(6, prev + delta));
+      const engine = engineRef.current;
+      if (engine) {
+        setPitch(engine, newPitch);
+      }
+      return newPitch;
+    });
   }
 
   function handleSkip(delta: number) {

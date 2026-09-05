@@ -29,7 +29,6 @@ import { SongCardGrid } from '../components/SongCardGrid';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import AnimatedActionButton from '../../../shared/animata/container/animated-border-trail';
 import { SharedNavigationContainer } from '../../../navigation/SharedNavigationContainer';
-import { StudioHeader } from '../../../shared/layout/StudioHeader';
 import { Capacitor } from '@capacitor/core';
 import SuccessLottie from '../../../shared/lottie/SuccessLottie';
 import MusicNotesLottie from '../../../shared/lottie/MusicNotesLottie';
@@ -3945,215 +3944,159 @@ const PresetCard = React.memo(
     );
 
     return (
-      <div
-        className="card-hover"
+      <article
+        className="rounded-3xl border shadow-soft-card overflow-hidden transition-all group"
         style={{
-          background: 'var(--app-surface)',
-          borderRadius: '1.25rem',
-          overflow: 'hidden',
-          border: '1px solid rgba(72,72,72,0.06)',
+          backgroundColor: 'var(--surface-card-bg, #ffffff)',
+          borderColor: 'var(--c-border, #E3E6EB)',
         }}
+        data-purpose="song-card"
       >
         {/* Clickable main area */}
         <button
+          type="button"
           onClick={handleMainClick}
           data-testid={`preset-${preset.id}`}
-          style={{
-            width: '100%',
-            textAlign: 'left',
-            padding: '16px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '14px',
-          }}
+          className="w-full text-left p-3.5 flex items-center gap-3.5 active:scale-[0.99] transition-transform cursor-pointer"
         >
           <div
+            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border"
             style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              background: `${accent.to}18`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
+              backgroundColor: 'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, transparent)',
+              borderColor: 'color-mix(in srgb, var(--c-accent-from, #2563EB) 20%, transparent)',
+              color: 'var(--c-accent-from, #2563EB)',
             }}
           >
             <span
-              className="material-symbols-outlined"
-              style={{ color: accent.from, fontSize: '24px', fontVariationSettings: "'FILL' 1" }}
+              className="material-symbols-rounded text-2xl"
+              style={{ fontVariationSettings: "'FILL' 1" }}
             >
               queue_music
             </span>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p
+          <div className="flex-1 min-w-0">
+            <h3
+              className="text-base font-extrabold tracking-tight truncate leading-tight"
               style={{
-                color: 'var(--c-text-primary)',
                 fontFamily: 'var(--font-headline)',
-                fontWeight: 800,
-                fontSize: '16px',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
+                color: 'var(--c-text-primary)',
               }}
             >
               {preset.name}
-            </p>
+            </h3>
             {preset.artist && (
               <p
-                style={{
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'var(--font-body)',
-                  fontSize: '12px',
-                  marginTop: '2px',
-                }}
+                className="text-xs font-medium mt-0.5 truncate"
+                style={{ color: 'var(--c-text-secondary, #6B7280)' }}
               >
                 {preset.artist}
               </p>
             )}
-            <div
-              style={{
-                display: 'flex',
-                gap: '6px',
-                marginTop: '5px',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-              }}
-            >
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
               {preset.key && (
                 <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1"
                   style={{
-                    fontSize: '10px',
-                    fontFamily: 'var(--font-headline)',
-                    fontWeight: 700,
+                    backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
                     color: 'var(--c-text-primary)',
-                    background: 'var(--app-surface-high)',
-                    padding: '2px 8px 2px 7px',
-                    borderRadius: '9999px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '2px',
-                    whiteSpace: 'nowrap',
                   }}
                 >
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-headline)',
-                      fontWeight: 900,
-                      fontSize: '11px',
-                      lineHeight: 1,
-                      color: 'var(--c-text-secondary)',
-                    }}
-                  >
-                    #
-                  </span>
+                  <span style={{ color: 'var(--c-text-secondary, #6B7280)' }}>#</span>
                   {preset.key}
                 </span>
               )}
               {preset.bpm > 0 && (
                 <span
+                  className="px-2 py-0.5 rounded-full text-[10px] font-bold border flex items-center gap-1"
                   style={{
-                    fontSize: '10px',
-                    fontFamily: 'var(--font-headline)',
-                    fontWeight: 700,
-                    color: 'var(--c-text-secondary)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '2px',
-                    whiteSpace: 'nowrap',
+                    backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                    color: 'var(--c-text-secondary, #6B7280)',
                   }}
                 >
-                  <span
-                    className="material-symbols-outlined"
-                    style={{ fontSize: '11px', lineHeight: 1 }}
-                  >
-                    speed
-                  </span>
+                  <span className="material-symbols-rounded text-[11px]">speed</span>
                   {preset.bpm} BPM
                 </span>
               )}
               <span
+                className="px-2 py-0.5 rounded-full text-[10px] font-bold border"
                 style={{
-                  fontSize: '10px',
-                  fontFamily: 'var(--font-headline)',
-                  fontWeight: 700,
-                  color: 'var(--c-text-muted)',
+                  backgroundColor: 'var(--c-surface-lowest, #ECEEF2)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                  color: 'var(--c-text-secondary, #6B7280)',
                 }}
               >
-                {t.songs.chordsLabel(preset.chords.length)}
+                {preset.sections && preset.sections.length > 0
+                  ? `${preset.sections.length} ${preset.sections.length === 1 ? 'Section' : 'Sections'}`
+                  : t.songs.chordsLabel(preset.chords.length)}
               </span>
             </div>
           </div>
           <span
-            className="material-symbols-outlined"
-            style={{ color: 'var(--c-text-secondary)', fontSize: '20px', flexShrink: 0 }}
+            className="material-symbols-rounded text-xl shrink-0 group-hover:translate-x-0.5 transition-transform"
+            style={{ color: 'var(--c-text-muted, #8A92A6)' }}
           >
             chevron_right
           </span>
         </button>
 
         {/* Quick action row: Live | Export PDF | Edit | Delete */}
-        <div style={{ display: 'flex', borderTop: '1px solid rgba(72,72,72,0.07)' }}>
-          <Button
-            variant="ghost"
-            size="sm"
+        <div
+          className="flex items-center border-t text-xs font-semibold"
+          style={{ borderColor: 'var(--c-border, #E3E6EB)' }}
+        >
+          <button
+            type="button"
             onClick={handleLiveClick}
-            style={{
-              flex: 1,
-              color: accent.from,
-              borderRight: '1px solid rgba(72,72,72,0.07)',
-              borderRadius: 0,
-            }}
             data-testid={`live-${preset.id}`}
-            icon="play_circle"
+            className="flex-1 py-2.5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer border-r active:opacity-75"
+            style={{
+              borderColor: 'var(--c-border, #E3E6EB)',
+              color: 'var(--c-accent-from, #2563EB)',
+            }}
           >
-            Live
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+            <span className="material-symbols-rounded text-base">play_circle</span>
+            <span>Live</span>
+          </button>
+          <button
+            type="button"
             onClick={handlePdfClick}
             data-testid={`pdf-${preset.id}`}
+            className="flex-1 py-2.5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer border-r active:opacity-75"
             style={{
-              flex: 1,
-              color: '#9d9da6',
-              borderRight: '1px solid rgba(72,72,72,0.07)',
-              borderRadius: 0,
+              borderColor: 'var(--c-border, #E3E6EB)',
+              color: 'var(--c-text-secondary, #6B7280)',
             }}
-            icon="picture_as_pdf"
           >
-            PDF
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+            <span className="material-symbols-rounded text-base">picture_as_pdf</span>
+            <span>PDF</span>
+          </button>
+          <button
+            type="button"
             onClick={handleEditClick}
+            className="flex-1 py-2.5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer border-r active:opacity-75"
             style={{
-              flex: 1,
-              color: 'var(--c-text-secondary)',
-              borderRight: '1px solid rgba(72,72,72,0.07)',
-              borderRadius: 0,
+              borderColor: 'var(--c-border, #E3E6EB)',
+              color: 'var(--c-text-secondary, #6B7280)',
             }}
-            icon="edit"
           >
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
+            <span className="material-symbols-rounded text-base">edit</span>
+            <span>Edit</span>
+          </button>
+          <button
+            type="button"
             onClick={handleDeleteClick}
+            className="flex-1 py-2.5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:opacity-75"
             style={{
-              flex: 1,
-              color: '#ee7d77',
-              borderRadius: 0,
+              color: '#EF4444',
             }}
-            icon="delete"
           >
-            Delete
-          </Button>
+            <span className="material-symbols-rounded text-base">delete</span>
+            <span>Delete</span>
+          </button>
         </div>
-      </div>
+      </article>
     );
   },
   (prev, next) => {
@@ -4224,7 +4167,10 @@ export default function SongsPanel() {
       (p) =>
         p.name.toLowerCase().includes(q) ||
         (p.artist && p.artist.toLowerCase().includes(q)) ||
-        (p.key && p.key.toLowerCase().includes(q))
+        (p.key && p.key.toLowerCase().includes(q)) ||
+        ((p as any).tags &&
+          Array.isArray((p as any).tags) &&
+          (p as any).tags.some((t: string) => typeof t === 'string' && t.toLowerCase().includes(q)))
     );
   }, [presets, searchQuery]);
 
@@ -5077,7 +5023,7 @@ export default function SongsPanel() {
                   justifyContent: 'center',
                 }}
               >
-                {preferFlats ? 'â™­' : 'â™¯'}
+                {preferFlats ? '♭' : '♯'}
               </button>
               <button
                 onClick={() => setTranspose(activePreset.id, transposeOffset - 1)}
@@ -6425,74 +6371,214 @@ export default function SongsPanel() {
         />
       )}
 
-      <StudioHeader title="Songs" subtitle={t.songs?.subtitle || 'Your songs and chord sheets'} />
-
-      {/* Scrollable list (nav auto-hides here) */}
+      {/* Main scrollable viewport */}
       <div
         ref={listScrollRef}
-        className="flex-1 overflow-y-auto no-scrollbar px-6 pb-32"
-        style={{ paddingTop: '0px' }}
+        className="flex-1 overflow-y-auto no-scrollbar"
+        style={{ background: 'var(--app-bg)' }}
+        data-purpose="songs-screen"
       >
-        {/* Search Bar pill layout */}
-        <div className="relative mb-6">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant opacity-40">
-            search
-          </span>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search titles, keys, or tags..."
-            className="w-full rounded-full py-4 pl-12 pr-6 outline-none font-inter text-sm"
-            style={{
-              backgroundColor: 'var(--surface-topbar-bg)',
-              border: '1px solid var(--c-border)',
-              color: 'var(--c-text-primary)',
-              backdropFilter: 'var(--surface-topbar-blur, blur(16px))',
-              WebkitBackdropFilter: 'var(--surface-topbar-blur, blur(16px))',
-            }}
-          />
-        </div>
-
-        {/* Empty state when no songs at all or search returns nothing */}
-        {filteredPresets.length === 0 && (
-          <div className="flex flex-col items-center justify-center text-center py-12">
-            <span className="material-symbols-outlined text-6xl text-on-surface-variant opacity-20 mb-6">
-              library_music
-            </span>
-            <h3
-              className="font-headline-lg-mobile text-2xl font-extrabold text-on-surface mb-2"
-              style={{ fontFamily: 'var(--font-headline)' }}
+        <main
+          className="w-full max-w-md mx-auto pb-32 px-4 pt-3 space-y-4"
+          style={{
+            paddingTop:
+              'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px))',
+          }}
+          data-purpose="mobile-viewport"
+        >
+          {/* Header */}
+          <header className="pt-2 px-1" data-purpose="header-titles">
+            <h1
+              className="text-3xl font-extrabold tracking-tight leading-tight"
+              style={{
+                fontFamily: 'var(--font-headline)',
+                color: 'var(--c-text-primary, #111827)',
+              }}
             >
-              No songs yet
-            </h3>
-            <p style={{ color: 'var(--c-text-secondary)' }} className="font-inter text-sm">
-              Tap the '+' button to create your first progression
+              Songs
+            </h1>
+            <p
+              className="text-xs font-medium tracking-normal mt-0.5"
+              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+            >
+              {t.songs?.subtitle || 'Manage your song presets and perform live.'}
             </p>
-          </div>
-        )}
+          </header>
 
-        {/* Preset list */}
-        {filteredPresets.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <StaggeredReveal staggerInterval={40}>
-              {filteredPresets.map((preset) => (
-                <PresetCard
-                  key={preset.id}
-                  preset={preset}
-                  accent={accent}
-                  t={t}
-                  setActivePreset={setActivePreset}
-                  setShowLive={setShowLive}
-                  setExportModal={setExportModal}
-                  setEditingId={setEditingId}
-                  setShowForm={setShowForm}
-                  setShowDeleteId={setShowDeleteId}
-                />
-              ))}
-            </StaggeredReveal>
+          {/* Capsule Search Bar */}
+          <div className="relative flex items-center" data-purpose="search-bar">
+            <span
+              className="material-symbols-rounded absolute left-4 pointer-events-none text-lg select-none"
+              style={{ color: 'var(--c-text-muted, #94A3B8)' }}
+            >
+              search
+            </span>
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search titles, keys, or tags..."
+              className="w-full pl-10 pr-10 py-3 text-sm rounded-full border shadow-soft-card outline-none transition-all font-inter"
+              style={{
+                backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                borderColor: 'var(--c-border, #E3E6EB)',
+                color: 'var(--c-text-primary, #111827)',
+              }}
+            />
+            {searchQuery && (
+              <button
+                aria-label="Clear search"
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3.5 p-1 rounded-full text-slate-400 hover:text-slate-600 active:scale-90 transition-transform cursor-pointer"
+                style={{ color: 'var(--c-text-muted, #94A3B8)' }}
+              >
+                <span className="material-symbols-rounded text-base">close</span>
+              </button>
+            )}
           </div>
-        )}
+
+          {/* Empty states or song list */}
+          {filteredPresets.length === 0 ? (
+            presets.length === 0 ? (
+              /* No songs yet in library */
+              <section
+                className="flex flex-col items-center justify-center text-center px-4 py-16"
+                data-purpose="empty-state"
+              >
+                <div
+                  className="w-16 h-16 rounded-3xl flex items-center justify-center mb-4 border shadow-soft-card"
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, var(--surface-card-bg, #ffffff))',
+                    borderColor:
+                      'color-mix(in srgb, var(--c-accent-from, #2563EB) 22%, transparent)',
+                    color: 'var(--c-accent-from, #2563EB)',
+                  }}
+                >
+                  <span className="material-symbols-rounded text-3xl">library_music</span>
+                </div>
+                <h2
+                  className="text-xl font-bold tracking-tight"
+                  style={{
+                    fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                >
+                  No songs yet
+                </h2>
+                <p
+                  className="text-xs font-normal max-w-[240px] mt-1.5 leading-relaxed"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  Tap the{' '}
+                  <span className="font-semibold" style={{ color: 'var(--c-text-primary)' }}>
+                    '+'
+                  </span>{' '}
+                  button to create your first progression
+                </p>
+                <div className="flex items-center gap-2.5 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(null);
+                      setShowForm(true);
+                    }}
+                    className="px-4 py-2 rounded-full text-xs font-bold text-white shadow-md active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                    style={{
+                      backgroundColor: 'var(--c-accent-from, #2563EB)',
+                      boxShadow:
+                        '0 4px 14px color-mix(in srgb, var(--c-accent-from, #2563EB) 30%, transparent)',
+                    }}
+                    data-purpose="empty-create-song-btn"
+                  >
+                    <span className="material-symbols-rounded text-base">add</span>
+                    <span>Create Song</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowImport(true)}
+                    className="px-4 py-2 rounded-full text-xs font-semibold border shadow-sm active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                    style={{
+                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                      borderColor: 'var(--c-border, #E3E6EB)',
+                      color: 'var(--c-text-primary, #111827)',
+                    }}
+                    data-purpose="empty-import-btn"
+                  >
+                    <span className="material-symbols-rounded text-base">cloud_download</span>
+                    <span>Import</span>
+                  </button>
+                </div>
+              </section>
+            ) : (
+              /* Search yields no results */
+              <section
+                className="flex flex-col items-center justify-center text-center px-4 py-16"
+                data-purpose="search-empty-state"
+              >
+                <div
+                  className="w-14 h-14 rounded-3xl flex items-center justify-center mb-4 border shadow-soft-card"
+                  style={{
+                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                    color: 'var(--c-text-muted, #8A92A6)',
+                  }}
+                >
+                  <span className="material-symbols-rounded text-2xl">search_off</span>
+                </div>
+                <h3
+                  className="text-lg font-bold tracking-tight"
+                  style={{
+                    fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                >
+                  No matching songs
+                </h3>
+                <p
+                  className="text-xs font-medium mt-1 max-w-[240px]"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  No songs found for &ldquo;{searchQuery}&rdquo;
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="mt-4 px-3.5 py-1.5 rounded-full border text-xs font-semibold active:scale-95 transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                  data-purpose="clear-search-btn"
+                >
+                  Clear Search
+                </button>
+              </section>
+            )
+          ) : (
+            /* Scalable Song List */
+            <div className="space-y-2.5" data-purpose="song-list">
+              <StaggeredReveal staggerInterval={30}>
+                {filteredPresets.map((preset) => (
+                  <PresetCard
+                    key={preset.id}
+                    preset={preset}
+                    accent={accent}
+                    t={t}
+                    setActivePreset={setActivePreset}
+                    setShowLive={setShowLive}
+                    setExportModal={setExportModal}
+                    setEditingId={setEditingId}
+                    setShowForm={setShowForm}
+                    setShowDeleteId={setShowDeleteId}
+                  />
+                ))}
+              </StaggeredReveal>
+            </div>
+          )}
+        </main>
       </div>
 
       {/* Delete confirmation sheet */}
@@ -6556,72 +6642,54 @@ export default function SongsPanel() {
         />
       )}
 
-      {/* Floating action buttons above bottom nav */}
-      <div
+      {/* Floating Action Buttons (FAB Stack) */}
+      <aside
+        className="fixed right-5 flex flex-col items-end gap-3 pointer-events-auto"
         style={{
-          position: 'fixed',
-          right: '24px',
-          bottom: '96px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          zIndex: 9999,
+          bottom: 'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 86px)',
+          zIndex: 40,
         }}
+        data-purpose="action-buttons"
       >
-        {/* Import circle — top */}
-        <Button
+        {/* Secondary FAB: Import */}
+        <button
+          type="button"
           onClick={() => setShowImport(true)}
           data-testid="import-preset-btn"
-          isIconOnly={true}
-          size="lg"
-          variant="secondary"
-          aria-label="Import Preset"
-          title="Import Preset"
-          icon={
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-              cloud_download
-            </span>
-          }
+          aria-label="Import or Backup Cloud"
+          title="Import or Backup Cloud"
+          className="w-11 h-11 rounded-full border shadow-soft-card flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
           style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            background: 'rgba(12, 12, 14, 0.45)',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
-            boxShadow:
-              '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+            backgroundColor: 'var(--surface-card-bg, #ffffff)',
+            borderColor: 'var(--c-border, #E3E6EB)',
+            color: 'var(--c-text-secondary, #6B7280)',
           }}
-        />
-        {/* New circle — bottom */}
-        <Button
+        >
+          <span className="material-symbols-rounded text-xl">cloud_download</span>
+        </button>
+
+        {/* Primary FAB: Create Song */}
+        <button
+          type="button"
           onClick={() => {
             setEditingId(null);
             setShowForm(true);
           }}
           data-testid="new-preset-btn"
-          isIconOnly={true}
-          size="lg"
-          variant="secondary"
-          aria-label="New Preset"
-          title="New Preset"
-          icon={
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
-              add
-            </span>
-          }
+          aria-label="Create new progression"
+          title="Create new progression"
+          className="rounded-full text-white shadow-lg flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
           style={{
-            width: '48px',
-            height: '48px',
-            borderRadius: '50%',
-            background: 'rgba(12, 12, 14, 0.45)',
-            backdropFilter: 'blur(25px)',
-            WebkitBackdropFilter: 'blur(25px)',
+            width: '52px',
+            height: '52px',
+            backgroundColor: 'var(--c-accent-from, #2563EB)',
             boxShadow:
-              '0 24px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.12), 0 4px 12px rgba(0, 0, 0, 0.2)',
+              '0 8px 24px color-mix(in srgb, var(--c-accent-from, #2563EB) 35%, transparent)',
           }}
-        />
-      </div>
+        >
+          <span className="material-symbols-rounded text-2xl font-bold">add</span>
+        </button>
+      </aside>
     </div>
   );
 }

@@ -112,6 +112,7 @@ import DrumPaperPreview, { type DrumExportConfig } from '../components/DrumPaper
 import DrumExportModal from '../components/DrumExportModal';
 import DrumImportModal from '../components/DrumImportModal';
 import { DrumBeatsPanel } from '../components/DrumBeatsPanel';
+import { DrumPatternsPanel } from '../components/DrumPatternsPanel';
 import {
   LIB_INSTS,
   LibMiniGrid,
@@ -7714,6 +7715,60 @@ export default function DrumEditor() {
                       </div>
                     );
                   case 'patterns':
+                    if (!isWebDesktop) {
+                      return (
+                        <DrumPatternsPanel
+                          onPreviewPattern={handleLibPreview}
+                          onUsePattern={handleLibReplace}
+                          onAppendPattern={handleLibInsert}
+                          grooves={grooves}
+                          onPreviewGroove={handleGroovePreview}
+                          onUseGroove={(id) => {
+                            loadGrooveReplace(id);
+                            NavigationDispatcher.push({
+                              app: 'drumex',
+                              page: 'songs',
+                              subView: 'editor',
+                              id: activeDrumSongId || undefined,
+                            });
+                          }}
+                          onAppendGroove={(id) => {
+                            loadGrooveAppend(id);
+                            NavigationDispatcher.push({
+                              app: 'drumex',
+                              page: 'songs',
+                              subView: 'editor',
+                              id: activeDrumSongId || undefined,
+                            });
+                          }}
+                          onSaveCurrentPattern={() => {
+                            setSavGrName(pattern.name);
+                            setSavGrTag('');
+                            setShowSaveGroove(true);
+                          }}
+                          onDeleteGroove={(id) => {
+                            deleteGroove(id);
+                            if (previewingGrooveId === id) {
+                              drumScheduler.stop();
+                              setPreviewingGrooveId(null);
+                              setRandomVariations(
+                                useDrumStore.getState().drumPrefs.randomVariations
+                              );
+                            }
+                          }}
+                          onRenameGroove={(id, name, tag) => {
+                            renameGroove(id, name, tag);
+                          }}
+                          previewingId={previewingGrooveId}
+                          activePatternName={pattern.name}
+                          accent={accent}
+                          isLight={isLight}
+                          isAmoled={isAmoled}
+                          isWebDesktop={isWebDesktop}
+                          onScroll={drumScrollHide}
+                        />
+                      );
+                    }
                     return (
                       <div
                         onScroll={drumScrollHide}

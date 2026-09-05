@@ -131,7 +131,11 @@ export default function GroovexApp() {
       }}
     >
       {!isWebDesktop && view === 'player' && (
-        <SharedFloatingHeader title={currentSong?.title || 'Player'} onBack={handleBack} />
+        <SharedFloatingHeader
+          title={currentSong?.title || 'Player'}
+          subtitle={currentSong?.artist}
+          onBack={handleBack}
+        />
       )}
 
       <div

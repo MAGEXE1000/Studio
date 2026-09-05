@@ -151,6 +151,7 @@ export interface SettingsScaffoldProps {
 
 export interface SharedFloatingHeaderProps {
   title: string;
+  subtitle?: React.ReactNode;
   onBack?: () => void;
   hideBack?: boolean;
   toolbarActions?: React.ReactNode;
@@ -165,6 +166,7 @@ export interface SharedFloatingHeaderProps {
 
 export function SharedFloatingHeader({
   title,
+  subtitle,
   onBack,
   hideBack,
   toolbarActions,
@@ -303,28 +305,77 @@ export function SharedFloatingHeader({
             zIndex: 1,
           }}
         >
-          <span
-            data-testid={
-              titleTestId ||
-              (title === 'Production Document' ? 'production-document-title' : undefined)
-            }
-            style={{
-              fontSize: 'var(--type-section-size, 19px)',
-              lineHeight: 'var(--type-section-lh, 24px)',
-              fontWeight: 600,
-              color: 'var(--c-text-primary)',
-              letterSpacing: 'var(--type-section-tracking, 0.6px)',
-              fontFamily:
-                'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              textAlign: 'center',
-              maxWidth: '100%',
-            }}
-          >
-            {title}
-          </span>
+          {subtitle ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minWidth: 0,
+                textAlign: 'center',
+                maxWidth: '100%',
+              }}
+            >
+              <span
+                data-testid={titleTestId}
+                style={{
+                  fontSize: '15.5px',
+                  lineHeight: '1.2',
+                  fontWeight: 700,
+                  color: 'var(--c-text-primary)',
+                  letterSpacing: '-0.01em',
+                  fontFamily:
+                    'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '100%',
+                }}
+              >
+                {title}
+              </span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  lineHeight: '1.2',
+                  fontWeight: 500,
+                  color: 'var(--c-text-muted)',
+                  fontFamily: 'var(--font-body, "Inter", sans-serif)',
+                  marginTop: '1.5px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '100%',
+                }}
+              >
+                {subtitle}
+              </span>
+            </div>
+          ) : (
+            <span
+              data-testid={
+                titleTestId ||
+                (title === 'Production Document' ? 'production-document-title' : undefined)
+              }
+              style={{
+                fontSize: 'var(--type-section-size, 19px)',
+                lineHeight: 'var(--type-section-lh, 24px)',
+                fontWeight: 600,
+                color: 'var(--c-text-primary)',
+                letterSpacing: 'var(--type-section-tracking, 0.6px)',
+                fontFamily:
+                  'var(--type-section-font, var(--studio-font-display, "Inter Tight", sans-serif))',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                textAlign: 'center',
+                maxWidth: '100%',
+              }}
+            >
+              {title}
+            </span>
+          )}
         </div>
 
         {/* Right Toolbar Actions Layer */}

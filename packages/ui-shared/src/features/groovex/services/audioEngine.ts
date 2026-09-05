@@ -35,6 +35,10 @@ const DRUM_STEM_NAMES = new Set(['kick', 'snare', 'cymbals', 'drums', 'snare_cym
 
 export interface AudioEngine {
   ctx: AudioContext;
+  sumBus: GainNode;
+  bypassGain: GainNode;
+  shifterInGain: GainNode;
+  shifterOutGain: GainNode;
   masterGain: GainNode;
   drumBus: GainNode;
   scrubFilter: BiquadFilterNode;
@@ -54,20 +58,45 @@ export interface AudioEngine {
 
 export function createEngine(): AudioEngine {
   const ctx = getAudioContext();
+  const sumBus = ctx.createGain();
+  const bypassGain = ctx.createGain();
+  const shifterInGain = ctx.createGain();
+  const shifterOutGain = ctx.createGain();
   const masterGain = ctx.createGain();
   const drumBus = ctx.createGain();
+
+  // Zero-semitone bit-exact master bypass active by default
+  bypassGain.gain.setValueAtTime(1.0, ctx.currentTime);
+  shifterInGain.gain.setValueAtTime(0.0, ctx.currentTime);
+  shifterOutGain.gain.setValueAtTime(0.0, ctx.currentTime);
+  masterGain.gain.setValueAtTime(1.0, ctx.currentTime);
+  drumBus.gain.setValueAtTime(1.0, ctx.currentTime);
+
   const scrubFilter = ctx.createBiquadFilter();
   scrubFilter.type = 'lowpass';
   scrubFilter.frequency.setValueAtTime(20000, ctx.currentTime);
   scrubFilter.Q.setValueAtTime(0.7, ctx.currentTime);
   const scrubGain = ctx.createGain();
   scrubGain.gain.setValueAtTime(1.0, ctx.currentTime);
+
+  // Bypass route: sumBus -> bypassGain -> masterGain (100% bit-exact, 0ms latency)
+  sumBus.connect(bypassGain);
+  bypassGain.connect(masterGain);
+
+  // Pitch-transposed route: sumBus -> shifterInGain (connected to stNode upon initSoundTouch)
+  sumBus.connect(shifterInGain);
+
   masterGain.connect(scrubFilter);
   drumBus.connect(scrubFilter);
   scrubFilter.connect(scrubGain);
   scrubGain.connect(ctx.destination);
+
   return {
     ctx,
+    sumBus,
+    bypassGain,
+    shifterInGain,
+    shifterOutGain,
     masterGain,
     drumBus,
     scrubFilter,
@@ -96,16 +125,17 @@ export async function initSoundTouch(engine: AudioEngine): Promise<void> {
     workletRegistered = true;
   }
   const stNode = new SoundTouchNode({ context: ctx });
-  engine.masterGain.disconnect(engine.scrubFilter);
-  engine.masterGain.connect(stNode);
-  stNode.connect(engine.scrubFilter);
+  engine.shifterInGain.connect(stNode);
+  stNode.connect(engine.shifterOutGain);
+  engine.shifterOutGain.connect(engine.masterGain);
   engine.stNode = stNode;
 
-  const stNodeDrums = new SoundTouchNode({ context: ctx });
-  engine.drumBus.disconnect(engine.scrubFilter);
-  engine.drumBus.connect(stNodeDrums);
-  stNodeDrums.connect(engine.scrubFilter);
-  engine.stNodeDrums = stNodeDrums;
+  if (engine.pitchSemitones !== 0) {
+    stNode.pitchSemitones.value = engine.pitchSemitones;
+    engine.shifterInGain.gain.setValueAtTime(1.0, ctx.currentTime);
+    engine.shifterOutGain.gain.setValueAtTime(1.0, ctx.currentTime);
+    engine.bypassGain.gain.setValueAtTime(0.0, ctx.currentTime);
+  }
 }
 
 export async function loadAudioFile(file: File): Promise<AudioBuffer> {
@@ -135,8 +165,7 @@ export function initTracks(
     gainNode: engine.ctx.createGain(),
   }));
   engine.tracks.forEach((t) => {
-    const bus = DRUM_STEM_NAMES.has(t.name) ? engine.drumBus : engine.masterGain;
-    t.gainNode!.connect(bus);
+    t.gainNode!.connect(engine.sumBus);
   });
   return engine.tracks;
 }
@@ -277,6 +306,11 @@ export function seek(engine: AudioEngine, time: number): void {
     engine._rampTimer = null;
   }
   if (wasPlaying) stopSources(engine);
+  if (engine.stNode) {
+    try {
+      engine.stNode.port.postMessage({ type: 'reset' });
+    } catch {}
+  }
   engine.pauseOffset = Math.max(0, Math.min(time, engine.duration));
   engine.isPlaying = false;
   if (wasPlaying) {
@@ -334,9 +368,58 @@ export function endScrub(engine: AudioEngine, targetTime: number): void {
 }
 
 export function setPitch(engine: AudioEngine, semitones: number): void {
+  const prevSemitones = engine.pitchSemitones;
   engine.pitchSemitones = semitones;
-  if (engine.stNode) {
-    engine.stNode.pitchSemitones.value = semitones;
+  const ctx = engine.ctx;
+  const ct = ctx.currentTime;
+  const fadeDuration = 0.025; // 25ms smooth crossfade to eliminate click/pop
+
+  if (semitones === 0) {
+    // Return to pristine bit-exact master bypass
+    engine.bypassGain.gain.cancelScheduledValues(ct);
+    engine.bypassGain.gain.setValueAtTime(engine.bypassGain.gain.value, ct);
+    engine.bypassGain.gain.linearRampToValueAtTime(1.0, ct + fadeDuration);
+
+    engine.shifterOutGain.gain.cancelScheduledValues(ct);
+    engine.shifterOutGain.gain.setValueAtTime(engine.shifterOutGain.gain.value, ct);
+    engine.shifterOutGain.gain.linearRampToValueAtTime(0.0, ct + fadeDuration);
+
+    engine.shifterInGain.gain.cancelScheduledValues(ct);
+    engine.shifterInGain.gain.setValueAtTime(0.0, ct + fadeDuration + 0.01);
+
+    if (engine.stNode) {
+      try {
+        engine.stNode.pitchSemitones.cancelScheduledValues(ct);
+        engine.stNode.pitchSemitones.setValueAtTime(0, ct + fadeDuration);
+      } catch {}
+    }
+  } else {
+    // Transposed path active
+    engine.shifterInGain.gain.cancelScheduledValues(ct);
+    engine.shifterInGain.gain.setValueAtTime(1.0, ct);
+
+    if (engine.stNode) {
+      try {
+        engine.stNode.pitchSemitones.cancelScheduledValues(ct);
+        engine.stNode.pitchSemitones.setValueAtTime(engine.stNode.pitchSemitones.value, ct);
+        engine.stNode.pitchSemitones.linearRampToValueAtTime(semitones, ct + fadeDuration);
+      } catch {}
+    }
+
+    if (prevSemitones === 0) {
+      // Crossfade from bypass to shifted
+      engine.bypassGain.gain.cancelScheduledValues(ct);
+      engine.bypassGain.gain.setValueAtTime(engine.bypassGain.gain.value, ct);
+      engine.bypassGain.gain.linearRampToValueAtTime(0.0, ct + fadeDuration);
+
+      engine.shifterOutGain.gain.cancelScheduledValues(ct);
+      engine.shifterOutGain.gain.setValueAtTime(engine.shifterOutGain.gain.value, ct);
+      engine.shifterOutGain.gain.linearRampToValueAtTime(1.0, ct + fadeDuration);
+    } else {
+      // Already shifted, ensure full gain
+      engine.shifterOutGain.gain.setValueAtTime(1.0, ct);
+      engine.bypassGain.gain.setValueAtTime(0.0, ct);
+    }
   }
 }
 
@@ -392,6 +475,10 @@ export function destroyEngine(engine: AudioEngine): void {
   engine.tracks.forEach((t) => {
     if (t.gainNode) t.gainNode.disconnect();
   });
+  engine.sumBus.disconnect();
+  engine.bypassGain.disconnect();
+  engine.shifterInGain.disconnect();
+  engine.shifterOutGain.disconnect();
   engine.masterGain.disconnect();
   engine.drumBus.disconnect();
   if (engine.stNode) {

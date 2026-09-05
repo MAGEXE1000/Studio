@@ -789,11 +789,31 @@ var SoundTouchProcessor = class extends AudioWorkletProcessor {
   _pipe;
   _samples;
   _outputSamples;
+  _primed;
+  _currentPitch;
+  _lastL;
+  _lastR;
   constructor() {
     super();
     this._pipe = new SoundTouch();
     this._samples = new Float32Array(256);
     this._outputSamples = new Float32Array(256);
+    this._primed = false;
+    this._currentPitch = 1;
+    this._lastL = 0;
+    this._lastR = 0;
+    if (this.port) {
+      this.port.onmessage = (event) => {
+        if (event.data?.type === 'reset') {
+          try {
+            this._pipe.clear();
+          } catch {}
+          this._primed = false;
+          this._lastL = 0;
+          this._lastR = 0;
+        }
+      };
+    }
   }
   process(inputs, outputs, parameters) {
     const input = inputs[0];
@@ -808,14 +828,20 @@ var SoundTouchProcessor = class extends AudioWorkletProcessor {
       this._samples = new Float32Array(frameCount * 2);
       this._outputSamples = new Float32Array(frameCount * 2);
     }
-    const rate = parameters['rate'][0];
-    const tempo = parameters['tempo'][0];
-    const pitch = parameters['pitch'][0];
-    const pitchSemitones = parameters['pitchSemitones'][0];
-    const playbackRate = parameters['playbackRate'][0];
+    const rate = parameters['rate'] ? parameters['rate'][0] : 1;
+    const tempo = parameters['tempo'] ? parameters['tempo'][0] : 1;
+    const pitch = parameters['pitch'] ? parameters['pitch'][0] : 1;
+    const pitchSemitones = parameters['pitchSemitones'] ? parameters['pitchSemitones'][0] : 0;
+    const playbackRate = parameters['playbackRate'] ? parameters['playbackRate'][0] : 1;
     this._pipe.rate = rate;
     this._pipe.tempo = tempo;
-    this._pipe.pitch = (pitch * Math.pow(2, pitchSemitones / 12)) / playbackRate;
+    const targetPitch = (pitch * Math.pow(2, pitchSemitones / 12)) / playbackRate;
+    if (Math.abs(this._currentPitch - targetPitch) > 0.0001) {
+      this._currentPitch += (targetPitch - this._currentPitch) * 0.15;
+    } else {
+      this._currentPitch = targetPitch;
+    }
+    this._pipe.pitch = this._currentPitch;
     const samples = this._samples;
     for (let i = 0; i < frameCount; i++) {
       samples[i * 2] = leftInput[i];
@@ -824,6 +850,21 @@ var SoundTouchProcessor = class extends AudioWorkletProcessor {
     this._pipe.inputBuffer.putSamples(samples, 0, frameCount);
     this._pipe.process();
     const outputBuffer = this._pipe.outputBuffer;
+
+    // Maintain a 1024-sample pre-buffer to prevent WSOLA block underruns and zero-padded audio dropouts
+    const PREBUFFER_THRESHOLD = 1024;
+    if (!this._primed) {
+      if (outputBuffer.frameCount >= PREBUFFER_THRESHOLD) {
+        this._primed = true;
+      } else {
+        for (let i = 0; i < frameCount; i++) {
+          leftOutput[i] = 0;
+          rightOutput[i] = 0;
+        }
+        return true;
+      }
+    }
+
     const available = outputBuffer.frameCount;
     const toExtract = Math.min(available, frameCount);
     if (toExtract > 0) {
@@ -835,10 +876,21 @@ var SoundTouchProcessor = class extends AudioWorkletProcessor {
         leftOutput[i] = Number.isFinite(l) ? l : 0;
         rightOutput[i] = Number.isFinite(r) ? r : 0;
       }
+      this._lastL = leftOutput[toExtract - 1];
+      this._lastR = rightOutput[toExtract - 1];
     }
-    for (let i = toExtract; i < frameCount; i++) {
-      leftOutput[i] = 0;
-      rightOutput[i] = 0;
+    if (toExtract < frameCount) {
+      // Smooth fade-to-zero in the rare event of an underrun rather than a harsh click
+      const fadeFrames = frameCount - toExtract;
+      const lastL = this._lastL || 0;
+      const lastR = this._lastR || 0;
+      for (let i = toExtract; i < frameCount; i++) {
+        const factor = 1 - (i - toExtract + 1) / (fadeFrames + 1);
+        leftOutput[i] = lastL * factor;
+        rightOutput[i] = lastR * factor;
+      }
+      this._lastL = 0;
+      this._lastR = 0;
     }
     return true;
   }

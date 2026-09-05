@@ -4750,61 +4750,256 @@ export default function SongsPanel() {
           />
         )}
 
-        {!isWebDesktop && (
-          <SharedFloatingHeader
-            title={activePreset.name || 'Song Editor'}
-            onBack={() => setActivePreset(null)}
-            toolbarActions={
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+        {!isWebDesktop ? (
+          /* ── Mobile Top Stack: Floating Header & Song Metadata Toolbar ── */
+          <div
+            className="flex-none px-4 pt-2 pb-2 flex flex-col gap-2.5 z-30"
+            style={{
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 10px)',
+              background: 'var(--app-bg)',
+            }}
+          >
+            {/* BEGIN: FloatingTopHeader */}
+            <header
+              className="w-full rounded-full px-2.5 py-2 flex items-center justify-between border shadow-pill"
+              style={{
+                backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                borderColor: 'var(--c-border, #E3E6EB)',
+              }}
+              data-purpose="top-navigation"
+            >
+              {/* Back Button */}
+              <button
+                aria-label="Go back"
+                data-purpose="editor-back-btn"
+                onClick={() => setActivePreset(null)}
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                style={{ color: 'var(--c-text-primary, #111827)' }}
+                type="button"
+              >
+                <span className="material-symbols-rounded text-[22px]">chevron_left</span>
+              </button>
+
+              {/* Song Title */}
+              <div
+                className="flex items-center gap-1.5 min-w-0 max-w-[55%]"
+                data-purpose="song-title-group"
+              >
+                <h1
+                  className="text-[17px] font-bold tracking-tight truncate text-center"
+                  style={{
+                    fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                >
+                  {activePreset.name || 'Song Editor'}
+                </h1>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-1">
                 {(() => {
                   const hasChords =
                     activePreset.chords.length > 0 ||
                     (activePreset.sections ?? []).some((s) => s.chords.length > 0);
                   return hasChords ? (
-                    <Button
-                      variant="primary"
+                    <button
+                      aria-label="Live Mode"
                       onClick={() => setShowLive(true)}
                       data-testid="enter-live-mode"
+                      className="h-8 px-2.5 rounded-full flex items-center gap-1 text-xs font-bold text-white shadow-sm transition-all active:scale-95 cursor-pointer"
                       style={{
-                        height: '32px',
-                        padding: '0 8px',
-                        fontSize: '11px',
                         background: `linear-gradient(135deg, ${accent.from}, ${accent.to})`,
                         boxShadow: `0 2px 8px ${accent.to}44`,
                       }}
-                      icon="play_circle"
+                      type="button"
                     >
-                      Live
-                    </Button>
+                      <span className="material-symbols-rounded text-sm">play_circle</span>
+                      <span>Live</span>
+                    </button>
                   ) : null;
                 })()}
-                <Button
-                  variant="secondary"
-                  size="icon"
+                <button
+                  aria-label="Edit song details"
+                  data-purpose="edit-song-details-btn"
                   onClick={() => {
                     setEditingId(activePreset.id);
                     setShowForm(true);
                   }}
-                  style={{ borderRadius: '50%', width: 32, height: 32 }}
-                  icon="edit"
-                />
+                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                  type="button"
+                >
+                  <span className="material-symbols-rounded text-[20px]">edit</span>
+                </button>
               </div>
-            }
-          />
-        )}
+            </header>
+            {/* END: FloatingTopHeader */}
 
-        {/* Header */}
-        <header
-          className="flex-none app-bg"
-          style={{
-            paddingTop: !isWebDesktop ? 'calc(env(safe-area-inset-top, 0px) + 78px)' : '18px',
-            paddingBottom: '10px',
-            paddingLeft: '16px',
-            paddingRight: '16px',
-          }}
-        >
-          {/* ── Desktop Title row ── */}
-          {isWebDesktop && (
+            {/* BEGIN: SongMetadataToolbar */}
+            <section
+              aria-label="Song Controls and Tuning"
+              className="w-full flex items-center justify-between gap-2 px-0.5"
+              data-purpose="song-toolbar"
+            >
+              {/* Left: Key & BPM */}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingId(activePreset.id);
+                    setShowForm(true);
+                  }}
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 border shadow-sm text-xs font-semibold active:scale-95 transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                  data-purpose="key-badge"
+                  title="Click to edit key"
+                >
+                  <span
+                    className="text-[11px] font-normal"
+                    style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                  >
+                    #
+                  </span>
+                  <span className="font-bold tracking-wide">
+                    {transposeOffset === 0
+                      ? activePreset.key || 'C'
+                      : transposeKeyString(activePreset.key || 'C', transposeOffset, preferFlats)}
+                  </span>
+                </button>
+
+                {activePreset.bpm > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(activePreset.id);
+                      setShowForm(true);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 border shadow-sm text-xs font-semibold active:scale-95 transition-all cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                      borderColor: 'var(--c-border, #E3E6EB)',
+                      color: 'var(--c-text-primary, #111827)',
+                    }}
+                    data-purpose="bpm-badge"
+                    title="Click to edit tempo"
+                  >
+                    <span
+                      className="material-symbols-rounded text-sm"
+                      style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                    >
+                      speed
+                    </span>
+                    <span className="font-bold">{activePreset.bpm}</span>
+                    <span
+                      className="text-[10px] font-medium"
+                      style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                    >
+                      BPM
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {/* Right: Transposition Controls */}
+              <div
+                className="flex items-center rounded-full px-1.5 py-1 border shadow-sm gap-0.5"
+                style={{
+                  backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                }}
+                data-purpose="transpose-controls"
+              >
+                {transposeOffset !== 0 && (
+                  <button
+                    type="button"
+                    onClick={() => resetTranspose(activePreset.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer"
+                    style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                    title="Reset key"
+                  >
+                    <span className="material-symbols-rounded text-sm">restart_alt</span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })
+                  }
+                  className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer"
+                  style={{
+                    color: 'var(--c-text-secondary, #6B7280)',
+                    fontFamily: 'var(--font-headline)',
+                    fontWeight: 800,
+                    fontSize: '12px',
+                  }}
+                  title={
+                    preferFlats
+                      ? 'Using flats (click for sharps)'
+                      : 'Using sharps (click for flats)'
+                  }
+                >
+                  {preferFlats ? '♭' : '♯'}
+                </button>
+
+                <button
+                  type="button"
+                  aria-label="Transpose down"
+                  data-testid="transpose-down"
+                  id="btn-transpose-down"
+                  disabled={transposeOffset <= -11}
+                  onClick={() => setTranspose(activePreset.id, transposeOffset - 1)}
+                  className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer disabled:opacity-40"
+                  style={{ color: 'var(--c-text-primary, #111827)' }}
+                >
+                  <span className="material-symbols-rounded text-sm">remove</span>
+                </button>
+
+                <span
+                  id="transpose-value"
+                  className="text-xs font-bold font-mono px-1 select-none min-w-[24px] text-center"
+                  style={{
+                    color:
+                      transposeOffset !== 0
+                        ? 'var(--c-accent-from, #2563EB)'
+                        : 'var(--c-text-primary, #111827)',
+                  }}
+                >
+                  {formatOffset(transposeOffset)}
+                </span>
+
+                <button
+                  type="button"
+                  aria-label="Transpose up"
+                  data-testid="transpose-up"
+                  id="btn-transpose-up"
+                  disabled={transposeOffset >= 11}
+                  onClick={() => setTranspose(activePreset.id, transposeOffset + 1)}
+                  className="w-7 h-7 flex items-center justify-center rounded-full active:scale-90 transition-all cursor-pointer disabled:opacity-40"
+                  style={{ color: 'var(--c-text-primary, #111827)' }}
+                >
+                  <span className="material-symbols-rounded text-sm">add</span>
+                </button>
+              </div>
+            </section>
+            {/* END: SongMetadataToolbar */}
+          </div>
+        ) : (
+          /* Desktop Title and Meta Header */
+          <header
+            className="flex-none app-bg"
+            style={{
+              paddingTop: '18px',
+              paddingBottom: '10px',
+              paddingLeft: '16px',
+              paddingRight: '16px',
+            }}
+          >
             <div
               style={{
                 display: 'flex',
@@ -4906,198 +5101,349 @@ export default function SongsPanel() {
                 />
               </div>
             </div>
-          )}
 
-          {/* â”€â”€ Meta + transpose row (full width) â”€â”€ */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '6px',
-              marginTop: '8px',
-            }}
-          >
-            {/* Left: key badge + BPM badge */}
-            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-              {activePreset.key && (
-                <span
-                  style={{
-                    padding: '3px 10px 3px 8px',
-                    background: 'var(--app-surface-high)',
-                    color: 'var(--c-text-primary)',
-                    borderRadius: '9999px',
-                    fontFamily: 'var(--font-headline)',
-                    fontWeight: 700,
-                    fontSize: '11px',
-                    border: '1px solid rgba(72,72,72,0.18)',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '3px',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
+            {/* Desktop Meta + transpose row */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '6px',
+                marginTop: '8px',
+              }}
+            >
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                {activePreset.key && (
                   <span
                     style={{
+                      padding: '3px 10px 3px 8px',
+                      background: 'var(--app-surface-high)',
+                      color: 'var(--c-text-primary)',
+                      borderRadius: '9999px',
                       fontFamily: 'var(--font-headline)',
-                      fontWeight: 900,
-                      fontSize: '12px',
-                      lineHeight: 1,
-                      color: 'var(--c-text-secondary)',
+                      fontWeight: 700,
+                      fontSize: '11px',
+                      border: '1px solid rgba(72,72,72,0.18)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '3px',
+                      whiteSpace: 'nowrap',
                     }}
                   >
-                    #
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-headline)',
+                        fontWeight: 900,
+                        fontSize: '12px',
+                        lineHeight: 1,
+                        color: 'var(--c-text-secondary)',
+                      }}
+                    >
+                      #
+                    </span>
+                    {transposeOffset === 0 ? (
+                      activePreset.key
+                    ) : (
+                      <>
+                        <span
+                          style={{ opacity: 0.4, textDecoration: 'line-through', fontSize: '10px' }}
+                        >
+                          {activePreset.key}
+                        </span>
+                        <span style={{ marginLeft: '2px' }}>
+                          {transposeKeyString(activePreset.key, transposeOffset, preferFlats)}
+                        </span>
+                      </>
+                    )}
                   </span>
-                  {transposeOffset === 0 ? (
-                    activePreset.key
-                  ) : (
-                    <>
-                      <span
-                        style={{ opacity: 0.4, textDecoration: 'line-through', fontSize: '10px' }}
-                      >
-                        {activePreset.key}
-                      </span>
-                      <span style={{ marginLeft: '2px' }}>
-                        {transposeKeyString(activePreset.key, transposeOffset, preferFlats)}
-                      </span>
-                    </>
-                  )}
-                </span>
-              )}
-              {activePreset.bpm > 0 && (
-                <span
-                  style={{
-                    padding: '3px 10px',
-                    background: 'var(--app-surface-high)',
-                    color: 'var(--c-text-secondary)',
-                    borderRadius: '9999px',
-                    fontFamily: 'var(--font-headline)',
-                    fontWeight: 700,
-                    fontSize: '11px',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {activePreset.bpm} BPM
-                </span>
-              )}
-            </div>
+                )}
+                {activePreset.bpm > 0 && (
+                  <span
+                    style={{
+                      padding: '3px 10px',
+                      background: 'var(--app-surface-high)',
+                      color: 'var(--c-text-secondary)',
+                      borderRadius: '9999px',
+                      fontFamily: 'var(--font-headline)',
+                      fontWeight: 700,
+                      fontSize: '11px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {activePreset.bpm} BPM
+                  </span>
+                )}
+              </div>
 
-            {/* Right: transpose controls â€” no background box */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
-              {transposeOffset !== 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}>
+                {transposeOffset !== 0 && (
+                  <button
+                    onClick={() => resetTranspose(activePreset.id)}
+                    className="btn-smooth"
+                    title={t.songs.resetKey}
+                    style={{
+                      padding: '3px 6px',
+                      borderRadius: '9999px',
+                      background: 'var(--app-surface-high)',
+                      color: 'var(--c-text-secondary)',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
+                      restart_alt
+                    </span>
+                  </button>
+                )}
                 <button
-                  onClick={() => resetTranspose(activePreset.id)}
+                  onClick={() =>
+                    useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })
+                  }
                   className="btn-smooth"
-                  title={t.songs.resetKey}
+                  title={preferFlats ? t.songs.usingFlats : t.songs.usingSharps}
                   style={{
-                    padding: '3px 6px',
-                    borderRadius: '9999px',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '7px',
                     background: 'var(--app-surface-high)',
                     color: 'var(--c-text-secondary)',
+                    fontFamily: 'var(--font-headline)',
+                    fontWeight: 800,
+                    fontSize: '12px',
                     display: 'flex',
                     alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>
-                    restart_alt
+                  {preferFlats ? '♭' : '♯'}
+                </button>
+                <button
+                  onClick={() => setTranspose(activePreset.id, transposeOffset - 1)}
+                  className="btn-smooth"
+                  data-testid="transpose-down"
+                  disabled={transposeOffset <= -11}
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: 'var(--app-surface-high)',
+                    color: transposeOffset > -11 ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: transposeOffset <= -11 ? 0.4 : 1,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>
+                    remove
                   </span>
                 </button>
-              )}
-              <button
-                onClick={() =>
-                  useSettingsStore.getState().updateSettings({ preferFlats: !preferFlats })
-                }
-                className="btn-smooth"
-                title={preferFlats ? t.songs.usingFlats : t.songs.usingSharps}
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '7px',
-                  background: 'var(--app-surface-high)',
-                  color: 'var(--c-text-secondary)',
-                  fontFamily: 'var(--font-headline)',
-                  fontWeight: 800,
-                  fontSize: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                {preferFlats ? '♭' : '♯'}
-              </button>
-              <button
-                onClick={() => setTranspose(activePreset.id, transposeOffset - 1)}
-                className="btn-smooth"
-                data-testid="transpose-down"
-                disabled={transposeOffset <= -11}
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: 'var(--app-surface-high)',
-                  color: transposeOffset > -11 ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: transposeOffset <= -11 ? 0.4 : 1,
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>
-                  remove
-                </span>
-              </button>
-              <div
-                style={{
-                  width: '30px',
-                  textAlign: 'center',
-                  fontFamily: 'var(--font-headline)',
-                  fontWeight: 900,
-                  fontSize: '12px',
-                  color: transposeOffset !== 0 ? accent.from : 'var(--c-text-muted)',
-                  transition: 'color 250ms ease',
-                  flexShrink: 0,
-                }}
-              >
-                {formatOffset(transposeOffset)}
+                <div
+                  style={{
+                    width: '30px',
+                    textAlign: 'center',
+                    fontFamily: 'var(--font-headline)',
+                    fontWeight: 900,
+                    fontSize: '12px',
+                    color: transposeOffset !== 0 ? accent.from : 'var(--c-text-muted)',
+                    transition: 'color 250ms ease',
+                    flexShrink: 0,
+                  }}
+                >
+                  {formatOffset(transposeOffset)}
+                </div>
+                <button
+                  onClick={() => setTranspose(activePreset.id, transposeOffset + 1)}
+                  className="btn-smooth"
+                  data-testid="transpose-up"
+                  disabled={transposeOffset >= 11}
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    background: 'var(--app-surface-high)',
+                    color: transposeOffset < 11 ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: transposeOffset >= 11 ? 0.4 : 1,
+                  }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>
+                    add
+                  </span>
+                </button>
               </div>
-              <button
-                onClick={() => setTranspose(activePreset.id, transposeOffset + 1)}
-                className="btn-smooth"
-                data-testid="transpose-up"
-                disabled={transposeOffset >= 11}
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  background: 'var(--app-surface-high)',
-                  color: transposeOffset < 11 ? 'var(--c-text-primary)' : 'var(--c-text-muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: transposeOffset >= 11 ? 0.4 : 1,
-                }}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '17px' }}>
-                  add
-                </span>
-              </button>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
-        {/* Chord list (scrollable) */}
+        {/* Chord list or Empty Progression State */}
         {(() => {
+          const totalChordsCount =
+            (activePreset.chords?.length ?? 0) +
+            (activePreset.sections ?? []).reduce((acc, s) => acc + s.chords.length, 0);
           const hasSections = !!(activePreset.sections && activePreset.sections.length > 0);
+          const isEmptyProgression = totalChordsCount === 0;
+
+          if (!isWebDesktop && isEmptyProgression) {
+            return (
+              <main
+                className="flex-1 flex flex-col items-center justify-center px-4 -mt-8"
+                data-purpose="empty-chord-progression"
+              >
+                {/* Musical Icon Graphic */}
+                <div className="relative flex items-center justify-center mb-6">
+                  {/* Soft glowing aura */}
+                  <div
+                    className="absolute w-28 h-28 rounded-full filter blur-xl animate-pulse"
+                    style={{
+                      backgroundColor:
+                        'color-mix(in srgb, var(--c-accent-from, #2563EB) 18%, transparent)',
+                    }}
+                  />
+                  {/* Clean glyph composition */}
+                  <div
+                    className="relative flex items-center justify-center w-16 h-16 rounded-3xl border shadow-soft-card"
+                    style={{
+                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                      borderColor:
+                        'color-mix(in srgb, var(--c-accent-from, #2563EB) 20%, transparent)',
+                      color: 'var(--c-accent-from, #2563EB)',
+                    }}
+                  >
+                    <span className="material-symbols-rounded text-3xl">music_note</span>
+                  </div>
+                </div>
+
+                {/* Descriptive Text */}
+                <h2
+                  className="text-base sm:text-lg font-bold text-center tracking-tight mb-2"
+                  style={{
+                    fontFamily: 'var(--font-headline)',
+                    color: 'var(--c-text-primary, #111827)',
+                  }}
+                >
+                  No chords in this song yet.
+                </h2>
+                <p
+                  className="text-xs sm:text-sm text-center max-w-[260px] leading-relaxed mb-6 font-normal"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  Add sections like Verse and Chorus, or insert chords directly to start building
+                  your progression.
+                </p>
+
+                {/* Primary Action Buttons */}
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={() => {
+                      const secs = activePreset.sections;
+                      if (secs && secs.length > 0) {
+                        setShowSectionSelector(true);
+                      } else {
+                        setPickerSectionId(null);
+                        setShowPicker(true);
+                      }
+                    }}
+                    data-purpose="empty-add-chord-btn"
+                    className="inline-flex items-center gap-1.5 text-white text-xs font-bold px-4 py-2.5 rounded-full active:scale-95 transition-all cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--c-accent-from, #2563EB)',
+                      boxShadow:
+                        '0 8px 24px -4px color-mix(in srgb, var(--c-accent-from, #2563EB) 40%, transparent)',
+                    }}
+                    type="button"
+                  >
+                    <span className="material-symbols-rounded text-[18px]">music_note</span>
+                    <span>Add Chord</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setCustomSectionName('');
+                      setCustomSectionMode(false);
+                      setShowSectionPicker(true);
+                    }}
+                    data-purpose="empty-add-section-btn"
+                    className="inline-flex items-center gap-1.5 border text-xs font-semibold px-4 py-2.5 rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                      borderColor: 'var(--c-border, #E3E6EB)',
+                      color: 'var(--c-text-primary, #111827)',
+                    }}
+                    type="button"
+                  >
+                    <span
+                      className="material-symbols-rounded text-[18px]"
+                      style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                    >
+                      layers
+                    </span>
+                    <span>Add Section</span>
+                  </button>
+                </div>
+              </main>
+            );
+          }
+
           return (
             <div
               ref={editorScrollRef}
               className="flex-1 overflow-y-auto no-scrollbar"
-              style={{ padding: '0 16px 90px', position: 'relative' }}
+              style={{ padding: '0 16px 100px', position: 'relative' }}
+              data-purpose="editor-content-area"
             >
-              {hasSections ? (
-                /* â”€â”€ Sections view â”€â”€ */
+              {/* Optional Lyrics / Notes Card */}
+              {activePreset.notes && (
                 <div
-                  style={{ paddingTop: '12px', paddingBottom: '16px' }}
+                  className="mb-4 mt-2 rounded-2xl border p-3.5 shadow-soft-card flex flex-col gap-1.5"
+                  style={{
+                    backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                    borderColor: 'var(--c-border, #E3E6EB)',
+                  }}
+                  data-purpose="song-notes-card"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className="material-symbols-rounded text-sm"
+                        style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                      >
+                        description
+                      </span>
+                      <span
+                        className="text-[11px] font-bold uppercase tracking-wider"
+                        style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                      >
+                        Lyrics & Notes
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingId(activePreset.id);
+                        setShowForm(true);
+                      }}
+                      className="text-xs font-semibold flex items-center gap-0.5 cursor-pointer"
+                      style={{ color: 'var(--c-accent-from, #2563EB)' }}
+                    >
+                      <span className="material-symbols-rounded text-xs">edit</span>
+                      <span>Edit</span>
+                    </button>
+                  </div>
+                  <p
+                    className="text-xs whitespace-pre-wrap leading-relaxed"
+                    style={{ color: 'var(--c-text-primary, #111827)' }}
+                  >
+                    {activePreset.notes}
+                  </p>
+                </div>
+              )}
+
+              {hasSections ? (
+                /* ── Sections view ── */
+                <div
+                  style={{ paddingTop: '8px', paddingBottom: '16px' }}
                   onPointerMove={onSecDragMove}
                   onPointerUp={onSecDragEnd}
                   onPointerCancel={onSecDragEnd}
@@ -5115,12 +5461,11 @@ export default function SongsPanel() {
                         }}
                         style={{
                           marginBottom: '16px',
-                          borderRadius: '14px',
+                          borderRadius: '16px',
                           background: isSecActive ? `${accent.to}10` : 'transparent',
                           border: isSecActive
                             ? `1.5px solid ${accent.to}30`
                             : '1.5px solid transparent',
-                          // transform is controlled imperatively via node.style.transform â€” do not set here
                           boxShadow: isSecActive ? '0 6px 20px rgba(0,0,0,0.18)' : 'none',
                           zIndex: isSecActive ? 10 : 1,
                           position: 'relative',
@@ -5132,34 +5477,23 @@ export default function SongsPanel() {
                         }}
                       >
                         {/* Section header row */}
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            marginBottom: '8px',
-                            padding: '0 2px',
-                          }}
-                        >
+                        <div className="flex items-center gap-1.5 mb-2 px-0.5">
                           {/* Drag handle */}
                           <div
                             onPointerDown={(e) => onSecDragStart(e, secIdx)}
                             style={{
                               cursor: isSecActive ? 'grabbing' : 'grab',
                               touchAction: 'none',
-                              padding: '4px 4px',
+                              padding: '4px 2px',
                               color: 'var(--c-text-muted)',
                               userSelect: 'none',
                               flexShrink: 0,
                             }}
+                            title="Drag to reorder section"
                           >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: '18px' }}
-                            >
-                              drag_indicator
-                            </span>
+                            <span className="material-symbols-rounded text-lg">drag_indicator</span>
                           </div>
+
                           {isEditing ? (
                             <input
                               autoFocus
@@ -5186,104 +5520,131 @@ export default function SongsPanel() {
                                 }
                                 if (e.key === 'Escape') setEditingSectionId(null);
                               }}
+                              className="flex-1 rounded-lg px-2.5 py-1 text-xs font-extrabold outline-none border"
                               style={{
-                                flex: 1,
-                                background: 'var(--app-surface)',
-                                border: `1px solid ${accent.from}44`,
-                                borderRadius: '8px',
-                                padding: '5px 10px',
-                                color: 'var(--c-text-primary)',
+                                backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                                borderColor: 'var(--c-accent-from, #2563EB)',
+                                color: 'var(--c-text-primary, #111827)',
                                 fontFamily: 'var(--font-headline)',
-                                fontWeight: 800,
-                                fontSize: '13px',
-                                outline: 'none',
                               }}
                             />
                           ) : (
-                            <p
-                              style={{
-                                flex: 1,
-                                color: accent.from,
-                                fontFamily: 'var(--font-headline)',
-                                fontWeight: 800,
-                                fontSize: '13px',
-                                letterSpacing: '0.08em',
-                                textTransform: 'uppercase',
-                                borderLeft: `3px solid ${accent.from}`,
-                                paddingLeft: '8px',
-                              }}
-                            >
-                              {section.name}
-                            </p>
+                            <div className="flex-1 flex items-center gap-2">
+                              <span
+                                className="w-1 h-3.5 rounded-full"
+                                style={{ backgroundColor: 'var(--c-accent-from, #2563EB)' }}
+                              />
+                              <h3
+                                className="text-xs font-extrabold tracking-wider uppercase"
+                                style={{
+                                  fontFamily: 'var(--font-headline)',
+                                  color: 'var(--c-accent-from, #2563EB)',
+                                }}
+                              >
+                                {section.name}
+                              </h3>
+                              <span
+                                className="text-[10px] font-medium"
+                                style={{ color: 'var(--c-text-muted, #8A92A6)' }}
+                              >
+                                ({section.chords.length})
+                              </span>
+                            </div>
                           )}
+
                           {!isEditing && (
-                            <>
+                            <div className="flex items-center gap-1">
                               <button
+                                type="button"
+                                onClick={() => {
+                                  setPickerSectionId(section.id);
+                                  setShowPicker(true);
+                                }}
+                                className="px-2.5 py-1 rounded-full text-[11px] font-bold flex items-center gap-1 transition-all active:scale-95 cursor-pointer"
+                                style={{
+                                  backgroundColor:
+                                    'color-mix(in srgb, var(--c-accent-from, #2563EB) 10%, var(--surface-card-bg, #ffffff))',
+                                  color: 'var(--c-accent-from, #2563EB)',
+                                  border:
+                                    '1px solid color-mix(in srgb, var(--c-accent-from, #2563EB) 20%, transparent)',
+                                }}
+                                title="Add chord to this section"
+                              >
+                                <span className="material-symbols-rounded text-[13px]">
+                                  music_note
+                                </span>
+                                <span>+ Chord</span>
+                              </button>
+
+                              <button
+                                type="button"
                                 onClick={() => {
                                   setEditingSectionId(section.id);
                                   setEditingSectionName(section.name);
                                 }}
-                                className="btn-smooth"
+                                className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                                 style={{
-                                  width: '28px',
-                                  height: '28px',
-                                  borderRadius: '8px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: 'var(--app-surface-high)',
+                                  backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                                  color: 'var(--c-text-secondary, #6B7280)',
+                                  border: '1px solid var(--c-border, #E3E6EB)',
                                 }}
+                                title="Rename section"
                               >
-                                <span
-                                  className="material-symbols-outlined"
-                                  style={{ color: 'var(--c-text-secondary)', fontSize: '15px' }}
-                                >
-                                  edit
-                                </span>
+                                <span className="material-symbols-rounded text-sm">edit</span>
                               </button>
+
                               <button
+                                type="button"
                                 onClick={() => {
                                   if (localSections.length > 1 || section.chords.length === 0)
                                     deleteSection(activePreset.id, section.id);
                                 }}
-                                className="btn-smooth"
+                                className="w-7 h-7 rounded-lg flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                                 style={{
-                                  width: '28px',
-                                  height: '28px',
-                                  borderRadius: '8px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  background: 'rgba(238,125,119,0.1)',
+                                  backgroundColor: 'rgba(239,68,68,0.08)',
+                                  color: '#EF4444',
+                                  border: '1px solid rgba(239,68,68,0.2)',
                                   opacity:
                                     localSections.length <= 1 && section.chords.length > 0
                                       ? 0.3
                                       : 1,
                                 }}
+                                title="Delete section"
                               >
-                                <span
-                                  className="material-symbols-outlined"
-                                  style={{ color: '#ee7d77', fontSize: '15px' }}
-                                >
-                                  delete
-                                </span>
+                                <span className="material-symbols-rounded text-sm">delete</span>
                               </button>
-                            </>
+                            </div>
                           )}
                         </div>
+
                         {/* Chords in section */}
                         {section.chords.length === 0 && (
-                          <p
+                          <div
+                            onClick={() => {
+                              setPickerSectionId(section.id);
+                              setShowPicker(true);
+                            }}
+                            className="border border-dashed rounded-2xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition-all active:scale-[0.99]"
                             style={{
-                              color: 'var(--c-text-muted)',
-                              fontFamily: 'var(--font-body)',
-                              fontSize: '12px',
-                              padding: '4px 12px 8px',
+                              borderColor: 'var(--c-border, #E3E6EB)',
+                              backgroundColor: 'var(--surface-card-bg, #ffffff)',
                             }}
                           >
-                            {t.songs.noSectionChords}
-                          </p>
+                            <span
+                              className="material-symbols-rounded text-base mb-1"
+                              style={{ color: 'var(--c-accent-from, #2563EB)' }}
+                            >
+                              music_note
+                            </span>
+                            <span
+                              className="text-xs font-semibold"
+                              style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                            >
+                              No chords in this section yet. Tap to add.
+                            </span>
+                          </div>
                         )}
+
                         {(() => {
                           const sChords =
                             secChordDragKey === section.id
@@ -5337,17 +5698,19 @@ export default function SongsPanel() {
                                       display: 'flex',
                                       alignItems: 'center',
                                       gap: '8px',
-                                      padding: '8px 10px',
+                                      padding: '8px 12px',
                                       background: isActive
                                         ? `${accent.to}18`
-                                        : 'var(--app-surface)',
+                                        : 'var(--surface-card-bg, #ffffff)',
                                       borderRadius: '1rem',
                                       border: isActive
                                         ? `1.5px solid ${accent.to}44`
-                                        : '1px solid rgba(72,72,72,0.06)',
-                                      boxShadow: isActive ? '0 12px 36px rgba(0,0,0,0.4)' : 'none',
+                                        : '1px solid var(--c-border, #E3E6EB)',
+                                      boxShadow: isActive
+                                        ? '0 12px 36px rgba(0,0,0,0.4)'
+                                        : 'var(--shadow-soft-card, none)',
                                       zIndex: isActive ? 10 : 1,
-                                      transform: isActive ? 'scale(1.03)' : 'scale(1)',
+                                      transform: isActive ? 'scale(1.02)' : 'scale(1)',
                                       transition:
                                         isDragSec && !isActive
                                           ? 'top 180ms cubic-bezier(0.34,1.3,0.64,1), box-shadow 150ms ease, transform 200ms ease'
@@ -5370,14 +5733,15 @@ export default function SongsPanel() {
                                       style={{
                                         cursor: isActive ? 'grabbing' : 'grab',
                                         touchAction: 'none',
-                                        padding: '4px 4px',
+                                        padding: '4px 2px',
                                         color: 'var(--c-text-muted)',
                                         userSelect: 'none',
                                         flexShrink: 0,
                                       }}
+                                      title="Drag to reorder chord"
                                     >
                                       <span
-                                        className="material-symbols-outlined"
+                                        className="material-symbols-rounded"
                                         style={{ fontSize: '18px' }}
                                       >
                                         drag_indicator
@@ -5385,7 +5749,7 @@ export default function SongsPanel() {
                                     </div>
                                     <div
                                       style={{
-                                        background: 'var(--app-surface-lowest)',
+                                        background: 'var(--c-surface-lowest, #ECEEF2)',
                                         borderRadius: '8px',
                                         padding: '3px 3px 1px',
                                         width: '52px',
@@ -5418,51 +5782,31 @@ export default function SongsPanel() {
                                         : chord!.name.replace(/\s/g, '')}
                                     </p>
                                     <button
+                                      type="button"
                                       onClick={() =>
                                         duplicateChordInSection(activePreset.id, section.id, idx)
                                       }
-                                      className="btn-smooth"
-                                      style={{
-                                        width: '28px',
-                                        height: '28px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: 'transparent',
-                                        flexShrink: 0,
-                                      }}
+                                      className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                                      style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                                      title="Duplicate chord"
                                     >
-                                      <span
-                                        className="material-symbols-outlined"
-                                        style={{
-                                          color: 'var(--c-text-secondary)',
-                                          fontSize: '15px',
-                                        }}
-                                      >
+                                      <span className="material-symbols-rounded text-base">
                                         content_copy
                                       </span>
                                     </button>
                                     <button
+                                      type="button"
                                       onClick={() =>
                                         removeChordFromSection(activePreset.id, section.id, idx)
                                       }
-                                      className="btn-smooth"
+                                      className="w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                                       style={{
-                                        width: '28px',
-                                        height: '28px',
-                                        borderRadius: '50%',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        background: 'rgba(238,125,119,0.1)',
-                                        flexShrink: 0,
+                                        backgroundColor: 'rgba(239,68,68,0.1)',
+                                        color: '#EF4444',
                                       }}
+                                      title="Remove chord"
                                     >
-                                      <span
-                                        className="material-symbols-outlined"
-                                        style={{ color: '#ee7d77', fontSize: '15px' }}
-                                      >
+                                      <span className="material-symbols-rounded text-base">
                                         close
                                       </span>
                                     </button>
@@ -5477,48 +5821,21 @@ export default function SongsPanel() {
                   })}
                 </div>
               ) : (
-                /* â”€â”€ Flat chord list â”€â”€ */
+                /* ── Flat chord list ── */
                 <>
-                  {localChords.length === 0 && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '200px',
-                        gap: '12px',
-                      }}
-                    >
-                      <MusicNotesLottie size={52} />
-                      <p
-                        style={{
-                          color: 'var(--c-text-secondary)',
-                          fontFamily: 'var(--font-body)',
-                          fontSize: '14px',
-                        }}
-                      >
-                        {t.songs.noChords}
-                      </p>
-                    </div>
-                  )}
-                  {/* During drag: absolute-positioned items with CSS `top` transitions for siblings */}
                   <div
                     style={{
                       paddingTop: '8px',
                       paddingBottom: '24px',
                       position: 'relative',
-                      // Give the container a fixed height during drag so it doesn't collapse
                       height: dragIdx !== null ? `${localChords.length * ITEM_H + 32}px` : 'auto',
                     }}
                   >
                     {localChords.map((chordId, i) => {
-                      // Check if it's a custom chord
                       const isCustom = chordId.startsWith('custom-');
                       const customChord = isCustom
                         ? (customChords.find((c) => c.id === chordId) ?? null)
                         : null;
-                      // Apply transposition only for display on standard chords
                       const displayId =
                         !isCustom && transposeOffset !== 0
                           ? transposeChordId(chordId, transposeOffset)
@@ -5542,41 +5859,36 @@ export default function SongsPanel() {
                               : undefined
                           }
                           style={{
-                            // â”€â”€ Layout: absolute during drag, normal flow otherwise â”€â”€
                             position: isDrag ? 'absolute' : 'relative',
                             left: isDrag ? 0 : undefined,
                             right: isDrag ? 0 : undefined,
-                            // Active item: JSX top = correct after slot-change re-render;
-                            // between slot changes it's overridden by imperative onDragMove
                             top: isDrag
                               ? `${i * ITEM_H + 8 + (isActive ? dragDeltaY : 0)}px`
                               : undefined,
                             height: `${ITEM_H - 8}px`,
                             marginBottom: isDrag ? 0 : '8px',
-
-                            // â”€â”€ Visuals â”€â”€
                             display: 'flex',
                             alignItems: 'center',
                             gap: '10px',
-                            padding: '10px',
-                            background: isActive ? `${accent.to}18` : 'var(--app-surface)',
+                            padding: '10px 12px',
+                            background: isActive
+                              ? `${accent.to}18`
+                              : 'var(--surface-card-bg, #ffffff)',
                             borderRadius: '1rem',
                             borderWidth: isActive ? '1.5px' : '1px',
                             borderStyle: 'solid',
-                            borderColor: isActive ? `${accent.to}44` : 'rgba(72,72,72,0.06)',
-                            boxShadow: isActive ? '0 16px 48px rgba(0,0,0,0.5)' : 'none',
+                            borderColor: isActive ? `${accent.to}44` : 'var(--c-border, #E3E6EB)',
+                            boxShadow: isActive
+                              ? '0 16px 48px rgba(0,0,0,0.5)'
+                              : 'var(--shadow-soft-card, none)',
                             zIndex: isActive ? 10 : 1,
-                            transform: isActive ? 'scale(1.03)' : 'scale(1)',
-
-                            // â”€â”€ Transitions â”€â”€
-                            // Siblings animate `top` smoothly; active item has no transform transition (imperative)
+                            transform: isActive ? 'scale(1.02)' : 'scale(1)',
                             transition:
                               isDrag && !isActive
                                 ? 'top 180ms cubic-bezier(0.34, 1.3, 0.64, 1), box-shadow 150ms ease, background-color 150ms ease, border-color 150ms ease, transform 200ms cubic-bezier(0.34, 1.3, 0.64, 1)'
                                 : isActive
                                   ? 'background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1)'
                                   : 'background-color 200ms ease, border-color 200ms ease, transform 200ms ease',
-
                             willChange: isDrag ? 'top, transform' : 'auto',
                           }}
                         >
@@ -5586,23 +5898,20 @@ export default function SongsPanel() {
                             style={{
                               cursor: isActive ? 'grabbing' : 'grab',
                               touchAction: 'none',
-                              padding: '4px 6px',
+                              padding: '4px 4px',
                               color: 'var(--c-text-muted)',
                               userSelect: 'none',
                               flexShrink: 0,
                             }}
                           >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ fontSize: '20px' }}
-                            >
+                            <span className="material-symbols-rounded" style={{ fontSize: '20px' }}>
                               drag_indicator
                             </span>
                           </div>
 
                           <div
                             style={{
-                              background: 'var(--app-surface-lowest)',
+                              background: 'var(--c-surface-lowest, #ECEEF2)',
                               borderRadius: '8px',
                               padding: '3px 3px 1px',
                               width: '52px',
@@ -5646,7 +5955,7 @@ export default function SongsPanel() {
                                     }}
                                   >
                                     <span
-                                      className="material-symbols-outlined"
+                                      className="material-symbols-rounded"
                                       style={{ fontSize: '12px', color: '#fb923c' }}
                                     >
                                       warning
@@ -5654,49 +5963,6 @@ export default function SongsPanel() {
                                   </span>
                                 )}
                             </div>
-                            {/* Instrument badge (custom) / chord type (standard) */}
-                            {isCustom ? (
-                              (() => {
-                                const instr = customChord?.instrument ?? 'guitar';
-                                const c =
-                                  { guitar: accent.from, bass: '#fb923c', piano: '#c084fc' }[
-                                    instr
-                                  ] ?? accent.from;
-                                return (
-                                  <span
-                                    style={{
-                                      display: 'inline-block',
-                                      marginTop: '4px',
-                                      padding: '1px 7px',
-                                      borderRadius: '9999px',
-                                      background: `${c}1a`,
-                                      border: `1px solid ${c}44`,
-                                      color: c,
-                                      fontFamily: 'var(--font-body)',
-                                      fontWeight: 800,
-                                      fontSize: '9px',
-                                      textTransform: 'uppercase',
-                                      letterSpacing: '0.15em',
-                                    }}
-                                  >
-                                    {instr}
-                                  </span>
-                                );
-                              })()
-                            ) : (
-                              <p
-                                style={{
-                                  color: 'var(--c-text-secondary)',
-                                  fontFamily: 'var(--font-body)',
-                                  fontSize: '10px',
-                                  marginTop: '3px',
-                                  textTransform: 'uppercase',
-                                  letterSpacing: '0.1em',
-                                }}
-                              >
-                                {chord!.type}
-                              </p>
-                            )}
                           </div>
                           <span
                             style={{
@@ -5711,25 +5977,20 @@ export default function SongsPanel() {
                           </span>
                           {isCustom && customChord && (
                             <button
+                              type="button"
                               onClick={() => {
                                 setEditCustomId(customChord.id);
                                 setShowCustomBuilder(true);
                               }}
-                              className="btn-smooth"
+                              className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                               title={t.songs.editCustomChord}
                               style={{
-                                width: '32px',
-                                height: '32px',
-                                borderRadius: '50%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
                                 background: `${accent.from}18`,
                                 flexShrink: 0,
                               }}
                             >
                               <span
-                                className="material-symbols-outlined"
+                                className="material-symbols-rounded"
                                 style={{ color: accent.from, fontSize: '15px' }}
                               >
                                 edit
@@ -5737,46 +5998,26 @@ export default function SongsPanel() {
                             </button>
                           )}
                           <button
+                            type="button"
                             onClick={() => duplicateChordInPreset(activePreset.id, i)}
-                            className="btn-smooth"
-                            style={{
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'transparent',
-                              flexShrink: 0,
-                            }}
+                            className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer"
+                            style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                            title="Duplicate chord"
                           >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: 'var(--c-text-secondary)', fontSize: '16px' }}
-                            >
-                              content_copy
-                            </span>
+                            <span className="material-symbols-rounded text-base">content_copy</span>
                           </button>
                           <button
+                            type="button"
                             onClick={() => removeChordFromPreset(activePreset.id, i)}
-                            className="btn-smooth"
+                            className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                             style={{
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '50%',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              background: 'rgba(238,125,119,0.1)',
+                              backgroundColor: 'rgba(239,68,68,0.1)',
+                              color: '#EF4444',
                               flexShrink: 0,
                             }}
+                            title="Remove chord"
                           >
-                            <span
-                              className="material-symbols-outlined"
-                              style={{ color: '#ee7d77', fontSize: '16px' }}
-                            >
-                              close
-                            </span>
+                            <span className="material-symbols-rounded text-base">close</span>
                           </button>
                         </div>
                       );
@@ -5788,64 +6029,123 @@ export default function SongsPanel() {
           );
         })()}
 
-        {/* Bottom action strip â€” floating, always Add Section (left) + Add Chord (right) */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 30,
-            padding: '10px 16px',
-            paddingBottom: 'max(18px, env(safe-area-inset-bottom))',
-            display: 'flex',
-            gap: '8px',
-          }}
-        >
-          <Button
-            variant="secondary"
-            onClick={() => {
-              setCustomSectionName('');
-              setCustomSectionMode(false);
-              setShowSectionPicker(true);
-            }}
-            data-testid="add-section-btn"
+        {/* Floating Action Buttons Area (Mobile) */}
+        {!isWebDesktop && (
+          <div
+            className="fixed right-5 flex flex-col items-end gap-2.5 z-40 pointer-events-none"
             style={{
-              flex: 1,
-              borderRadius: '9999px',
-              background: 'rgba(72,72,72,0.35)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              borderColor: 'rgba(255,255,255,0.07)',
-              color: 'var(--c-text-secondary)',
+              bottom:
+                'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 24px)',
             }}
-            icon="segment"
+            data-purpose="fab-container"
           >
-            {t.songs.addSection}
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              const secs = activePreset.sections;
-              if (secs && secs.length > 0) {
-                setShowSectionSelector(true);
-              } else {
-                setPickerSectionId(null);
-                setShowPicker(true);
-              }
-            }}
-            data-testid="add-chord-btn"
+            <div className="flex flex-col items-end gap-2 pointer-events-auto">
+              <button
+                aria-label="Add Section"
+                data-testid="add-section-btn"
+                onClick={() => {
+                  setCustomSectionName('');
+                  setCustomSectionMode(false);
+                  setShowSectionPicker(true);
+                }}
+                className="h-10 px-3.5 rounded-full border shadow-md flex items-center gap-1.5 text-xs font-semibold active:scale-95 transition-all cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--surface-card-bg, #ffffff)',
+                  borderColor: 'var(--c-border, #E3E6EB)',
+                  color: 'var(--c-text-primary, #111827)',
+                }}
+                type="button"
+              >
+                <span
+                  className="material-symbols-rounded text-[18px]"
+                  style={{ color: 'var(--c-text-secondary, #6B7280)' }}
+                >
+                  layers
+                </span>
+                <span>Section</span>
+              </button>
+
+              <button
+                aria-label="Add Chord"
+                data-testid="add-chord-btn"
+                onClick={() => {
+                  const secs = activePreset.sections;
+                  if (secs && secs.length > 0) {
+                    setShowSectionSelector(true);
+                  } else {
+                    setPickerSectionId(null);
+                    setShowPicker(true);
+                  }
+                }}
+                className="h-11 px-4 rounded-full text-white shadow-float flex items-center gap-1.5 text-xs font-bold active:scale-95 transition-all cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--c-accent-from, #2563EB)',
+                  boxShadow:
+                    '0 8px 24px -4px color-mix(in srgb, var(--c-accent-from, #2563EB) 40%, transparent)',
+                }}
+                type="button"
+              >
+                <span className="material-symbols-rounded text-[18px]">music_note</span>
+                <span>+ Chord</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Bottom Action Strip */}
+        {isWebDesktop && (
+          <div
             style={{
-              flex: 1,
-              borderRadius: '9999px',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 30,
+              padding: '10px 16px',
+              display: 'flex',
+              gap: '8px',
             }}
-            icon="add"
           >
-            {t.songs.addChord || 'Add Chord'}
-          </Button>
-        </div>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setCustomSectionName('');
+                setCustomSectionMode(false);
+                setShowSectionPicker(true);
+              }}
+              data-testid="add-section-btn"
+              style={{
+                flex: 1,
+                borderRadius: '9999px',
+                background: 'var(--app-surface-high)',
+                color: 'var(--c-text-secondary)',
+              }}
+              icon="layers"
+            >
+              {t.songs.addSection}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                const secs = activePreset.sections;
+                if (secs && secs.length > 0) {
+                  setShowSectionSelector(true);
+                } else {
+                  setPickerSectionId(null);
+                  setShowPicker(true);
+                }
+              }}
+              data-testid="add-chord-btn"
+              style={{
+                flex: 1,
+                borderRadius: '9999px',
+              }}
+              icon="music_note"
+            >
+              {t.songs.addChord || 'Add Chord'}
+            </Button>
+          </div>
+        )}
 
         {/* Section picker sheet */}
         {showSectionPicker && (

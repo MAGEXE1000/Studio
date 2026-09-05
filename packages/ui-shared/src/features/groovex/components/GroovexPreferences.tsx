@@ -14,6 +14,38 @@ import { SONG_CATALOG } from '../services/songCatalog';
 import { Dialog } from '../../../shared/design-system/dialogs';
 import { Button } from '../../../shared/design-system/StudioDesignSystem';
 
+// Canonical conversions for Master Gain:
+// Range: -24 dB to +6 dB, with 0 dB at center position (50%).
+// Stored preference: linear gain where 1.0 represents 0 dB unity gain.
+export function dbToGain(db: number): number {
+  return Number(Math.pow(10, db / 20).toFixed(3));
+}
+
+export function gainToDb(gain: number): number {
+  if (!gain || gain <= 0.063) return -24;
+  return Math.round(20 * Math.log10(gain));
+}
+
+export function dbToSliderPos(db: number): number {
+  const clamped = Math.max(-24, Math.min(6, db));
+  if (clamped <= 0) {
+    // -24 dB..0 dB maps to 0..50
+    return Math.round(((clamped + 24) / 24) * 50);
+  }
+  // 0 dB..+6 dB maps to 50..100
+  return Math.round(50 + (clamped / 6) * 50);
+}
+
+export function sliderPosToDb(pos: number): number {
+  const clamped = Math.max(0, Math.min(100, pos));
+  if (clamped <= 50) {
+    // 0..50 maps to -24..0 dB
+    return Math.round(-24 + (clamped / 50) * 24);
+  }
+  // 50..100 maps to 0..+6 dB
+  return Math.round(((clamped - 50) / 50) * 6);
+}
+
 export default function GroovexPreferences() {
   const t = useT();
   const { preferences, updatePreferences } = useGroovexStore();
@@ -58,20 +90,20 @@ export default function GroovexPreferences() {
       await refreshCache();
     } catch {
       // silently handle cache error
+    } finally {
+      setDeletingId(null);
     }
-    setDeletingId(null);
   }
 
   async function handleClearAll() {
-    setConfirmDeleteAll(false);
-    setDeletingId('__all__');
     try {
       await groovexStemRepository.clearAllCache();
       await refreshCache();
     } catch {
       // silently handle cache error
+    } finally {
+      setConfirmDeleteAll(false);
     }
-    setDeletingId(null);
   }
 
   function songMeta(songId: string) {
@@ -88,11 +120,11 @@ export default function GroovexPreferences() {
     !isLight && (settings.amoledMode || settings.perApp?.groovex?.amoledMode)
   );
 
-  // Master Gain dB calculation:
-  // masterVolume default 0.85 -> Math.round((0.85 - 1) * 20) = -3 dB.
-  // When changed: masterVolume = Math.round((1 + db / 20) * 100) / 100
-  const currentDb = Math.round((preferences.masterVolume - 1) * 20);
+  // Master Gain canonical decibel mapping:
+  // preferences.masterVolume = 1.0 -> 0 dB (center position 50).
+  const currentDb = gainToDb(preferences.masterVolume);
   const displayDb = currentDb > 0 ? `+${currentDb} dB` : `${currentDb} dB`;
+  const masterSliderPos = dbToSliderPos(currentDb);
 
   // Default Stem Volume calculation:
   // defaultStemVolume default 0.85 -> 85%.
@@ -157,6 +189,7 @@ export default function GroovexPreferences() {
           height: 6px;
           cursor: pointer;
           border-radius: 9999px;
+          background: transparent;
         }
         input[type=range].stitch-range-slider::-moz-range-thumb {
           height: 22px;
@@ -175,6 +208,7 @@ export default function GroovexPreferences() {
           height: 6px;
           cursor: pointer;
           border-radius: 9999px;
+          background: transparent;
         }
       `}</style>
 
@@ -191,7 +225,9 @@ export default function GroovexPreferences() {
         <section
           data-purpose="screen-title-section"
           style={{
-            paddingTop: '16px',
+            paddingTop: isWebDesktop
+              ? '16px'
+              : 'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 40px))',
             paddingBottom: '20px',
             userSelect: 'none',
           }}
@@ -292,14 +328,15 @@ export default function GroovexPreferences() {
               <StitchRangeSlider
                 id="master-gain"
                 label={t.groovex.masterGain}
-                value={currentDb}
-                min={-24}
-                max={6}
+                value={masterSliderPos}
+                min={0}
+                max={100}
                 step={1}
                 displayValue={displayDb}
                 ticks={[{ label: '-24 dB' }, { label: '0 dB' }, { label: '+6 dB' }]}
-                onChange={(newDb) => {
-                  const vol = Math.max(0, Math.min(1.3, Number((1 + newDb / 20).toFixed(2))));
+                onChange={(newPos) => {
+                  const newDb = sliderPosToDb(newPos);
+                  const vol = dbToGain(newDb);
                   updatePreferences({ masterVolume: vol });
                 }}
                 isLight={isLight}
@@ -933,7 +970,7 @@ export default function GroovexPreferences() {
                     variant="primary"
                     onClick={() => {
                       updatePreferences({
-                        masterVolume: 0.85,
+                        masterVolume: 1.0,
                         loopPlayback: false,
                         autoPlay: false,
                         countIn: false,

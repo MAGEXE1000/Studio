@@ -211,7 +211,8 @@ export default function GroovexPlayer() {
     const sid = ++sessionIdRef.current;
     const engine = createEngine();
     engine.looping = preferences.loopPlayback;
-    const trackStates = initTracks(engine, song.stems);
+    const defStemVol = preferences.defaultStemVolume ?? 0.85;
+    const trackStates = initTracks(engine, song.stems, defStemVol);
     engineRef.current = engine;
     setMasterVolume(engine, preferences.masterVolume);
     initSoundTouch(engine).catch(() => {});
@@ -527,7 +528,8 @@ export default function GroovexPlayer() {
     const defaults = [0.95, 0.85, 0.88, 0.9, 0.75, 0.6];
     setTracks((prev) =>
       prev.map((t, idx) => {
-        const defVol = defaults[idx] !== undefined ? defaults[idx] : 0.85;
+        const defVol =
+          defaults[idx] !== undefined ? defaults[idx] : (preferences.defaultStemVolume ?? 0.85);
         setTrackVolume(engine, idx, defVol);
         if (t.muted) toggleMute(engine, idx);
         if (t.solo) toggleSolo(engine, idx);

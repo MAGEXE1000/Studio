@@ -43,7 +43,7 @@ export const useGroovexStore = create<GroovexState>()(
       sortBy: 'artist',
       recentSongs: [],
       preferences: {
-        masterVolume: 0.85,
+        masterVolume: 1.0,
         loopPlayback: false,
         autoPlay: false,
         countIn: false,
@@ -88,6 +88,21 @@ export const useGroovexStore = create<GroovexState>()(
         // exactly where the user left off (e.g. mid-song in the player).
         activeSongId: s.activeSongId,
       }),
+      merge: (persistedState: any, currentState) => {
+        const merged = {
+          ...currentState,
+          ...(persistedState || {}),
+          preferences: {
+            ...currentState.preferences,
+            ...(persistedState?.preferences || {}),
+          },
+        };
+        // Migrate legacy 0.85 masterVolume default to canonical 1.0 (0 dB unity gain)
+        if (merged.preferences?.masterVolume === 0.85) {
+          merged.preferences.masterVolume = 1.0;
+        }
+        return merged;
+      },
     }
   )
 );

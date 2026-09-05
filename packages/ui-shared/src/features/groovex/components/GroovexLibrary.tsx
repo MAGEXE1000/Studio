@@ -32,6 +32,7 @@ export default function GroovexLibrary() {
       typeof window !== 'undefined' &&
       window.matchMedia('(prefers-color-scheme: light)').matches);
   const t = useT();
+  const isWebDesktop = useIsWebDesktop();
   const [showFilters, setShowFilters] = useState(false);
   const [cachedSongIds, setCachedSongIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -135,7 +136,9 @@ export default function GroovexLibrary() {
         {/* ── STITCH COMPACT, PUNCHY LIBRARY HEADER ── */}
         <section
           style={{
-            paddingTop: '16px',
+            paddingTop: isWebDesktop
+              ? '16px'
+              : 'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 40px))',
             paddingBottom: '8px',
             userSelect: 'none',
           }}

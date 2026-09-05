@@ -151,13 +151,14 @@ export async function loadAudioBuffer(arrayBuffer: ArrayBuffer): Promise<AudioBu
 
 export function initTracks(
   engine: AudioEngine,
-  stems: { name: string; label: string; icon: string }[]
+  stems: { name: string; label: string; icon: string }[],
+  defaultVolume: number = 1.0
 ): TrackState[] {
   engine.tracks = stems.map((s) => ({
     name: s.name,
     label: s.label,
     icon: s.icon,
-    volume: 1.0,
+    volume: defaultVolume,
     muted: false,
     solo: false,
     buffer: null,
@@ -167,6 +168,7 @@ export function initTracks(
   engine.tracks.forEach((t) => {
     t.gainNode!.connect(engine.sumBus);
   });
+  applyMutesSolos(engine);
   return engine.tracks;
 }
 

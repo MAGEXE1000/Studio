@@ -94,7 +94,7 @@ const PatternMiniTimeline = memo(function PatternMiniTimeline({
 
   return (
     <div
-      className="w-full rounded-xl px-3 py-2 flex flex-col gap-1.5 transition-colors"
+      className="w-full rounded-xl px-2.5 py-1.5 flex flex-col gap-1 transition-colors"
       style={{
         backgroundColor: isLight ? 'rgba(0,0,0,0.035)' : 'rgba(255,255,255,0.04)',
         border: isLight ? '1px solid rgba(0,0,0,0.05)' : '1px solid rgba(255,255,255,0.06)',
@@ -238,7 +238,7 @@ const PatternCard = memo(function PatternCard({
 }) {
   return (
     <article
-      className="w-full rounded-2xl border shadow-soft-card overflow-hidden transition-all group flex flex-col p-3.5 gap-3"
+      className="w-full rounded-2xl border shadow-soft-card overflow-hidden transition-all group flex flex-col p-3 gap-2.5"
       style={{
         backgroundColor: 'var(--surface-card-bg, #ffffff)',
         borderColor: 'var(--c-border, #E3E6EB)',
@@ -270,7 +270,7 @@ const PatternCard = memo(function PatternCard({
           data-testid={'preview-btn-' + lp.id}
           aria-label={isPlaying ? 'Stop ' + lp.name : 'Preview ' + lp.name}
           title={isPlaying ? 'Stop Preview' : 'Audition Preview'}
-          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 border transition-all active:scale-90 cursor-pointer shadow-sm"
+          className="w-8.5 h-8.5 rounded-full flex items-center justify-center shrink-0 border transition-all active:scale-90 cursor-pointer shadow-sm"
           style={{
             backgroundColor: isPlaying
               ? 'var(--c-accent-from, #2563EB)'
@@ -284,7 +284,7 @@ const PatternCard = memo(function PatternCard({
               : 'none',
           }}
         >
-          <span className="material-symbols-rounded text-lg">
+          <span className="material-symbols-outlined text-lg">
             {isPlaying ? 'stop' : 'play_arrow'}
           </span>
         </button>
@@ -304,13 +304,13 @@ const PatternCard = memo(function PatternCard({
           type="button"
           onClick={onUse}
           data-testid={'use-btn-' + lp.id}
-          className="py-2 px-3 rounded-full border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer shadow-sm"
+          className="py-1.5 px-3 rounded-full border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer shadow-sm"
           style={{
             backgroundColor: 'var(--c-accent-from, #2563EB)',
             color: '#ffffff',
           }}
         >
-          <span className="material-symbols-rounded text-base">download</span>
+          <span className="material-symbols-outlined text-base">download</span>
           <span>USE</span>
         </button>
 
@@ -318,14 +318,14 @@ const PatternCard = memo(function PatternCard({
           type="button"
           onClick={onAppend}
           data-testid={'append-btn-' + lp.id}
-          className="py-2 px-3 rounded-full border font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
+          className="py-1.5 px-3 rounded-full border font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
           style={{
             backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)',
             borderColor: 'var(--c-border, #E3E6EB)',
             color: 'var(--c-text-primary, #111827)',
           }}
         >
-          <span className="material-symbols-rounded text-base">playlist_add</span>
+          <span className="material-symbols-outlined text-base">playlist_add</span>
           <span>APPEND</span>
         </button>
       </div>
@@ -357,7 +357,7 @@ const MyGrooveCard = memo(function MyGrooveCard({
 
   return (
     <article
-      className="w-full rounded-2xl border shadow-soft-card overflow-hidden transition-all group flex flex-col p-3.5 gap-3 relative"
+      className="w-full rounded-2xl border shadow-soft-card overflow-hidden transition-all group flex flex-col p-3 gap-2.5 relative"
       style={{
         backgroundColor: 'var(--surface-card-bg, #ffffff)',
         borderColor: 'var(--c-border, #E3E6EB)',
@@ -377,11 +377,10 @@ const MyGrooveCard = memo(function MyGrooveCard({
             </h2>
             {groove.tag && (
               <span
-                className="text-[9.5px] font-extrabold uppercase px-2 py-0.5 rounded-full shrink-0"
+                className="px-2 py-0.5 rounded-full text-[9.5px] font-black uppercase tracking-wider"
                 style={{
-                  backgroundColor:
-                    'color-mix(in srgb, var(--c-accent-from, #2563EB) 12%, transparent)',
-                  color: 'var(--c-accent-from, #2563EB)',
+                  backgroundColor: 'var(--c-accent-from, #2563EB)',
+                  color: '#ffffff',
                 }}
               >
                 {groove.tag}
@@ -392,19 +391,19 @@ const MyGrooveCard = memo(function MyGrooveCard({
             className="text-[11px] font-semibold tracking-wider uppercase mt-0.5 truncate"
             style={{ color: 'var(--c-text-muted, #94A3B8)' }}
           >
-            MY GROOVE · {groove.bpm} BPM · {groove.bars} {groove.bars === 1 ? 'BAR' : 'BARS'}
+            Custom Groove · {groove.bpm} BPM · 4/4
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Audition Button */}
+        {/* Audition & Actions */}
+        <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
             onClick={onPreview}
             data-testid={'preview-groove-' + groove.id}
             aria-label={isPlaying ? 'Stop ' + groove.name : 'Preview ' + groove.name}
             title={isPlaying ? 'Stop Preview' : 'Audition Preview'}
-            className="w-9 h-9 rounded-full flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm"
+            className="w-8.5 h-8.5 rounded-full flex items-center justify-center border transition-all active:scale-90 cursor-pointer shadow-sm"
             style={{
               backgroundColor: isPlaying
                 ? 'var(--c-accent-from, #2563EB)'
@@ -418,7 +417,7 @@ const MyGrooveCard = memo(function MyGrooveCard({
                 : 'none',
             }}
           >
-            <span className="material-symbols-rounded text-lg">
+            <span className="material-symbols-outlined text-lg">
               {isPlaying ? 'stop' : 'play_arrow'}
             </span>
           </button>
@@ -431,7 +430,7 @@ const MyGrooveCard = memo(function MyGrooveCard({
             style={{ color: 'var(--c-text-secondary, #6B7280)' }}
             aria-label="Groove options"
           >
-            <span className="material-symbols-rounded text-lg">more_vert</span>
+            <span className="material-symbols-outlined text-lg">more_vert</span>
           </button>
 
           {/* Kebab Dropdown Menu */}
@@ -457,7 +456,7 @@ const MyGrooveCard = memo(function MyGrooveCard({
                   className="w-full px-3 py-2 text-xs font-bold flex items-center gap-2 text-left cursor-pointer hover:bg-slate-500/10 transition-colors"
                   style={{ color: 'var(--c-text-primary, #111827)' }}
                 >
-                  <span className="material-symbols-rounded text-base">edit</span>
+                  <span className="material-symbols-outlined text-base">edit</span>
                   <span>Rename</span>
                 </button>
                 <button
@@ -468,7 +467,7 @@ const MyGrooveCard = memo(function MyGrooveCard({
                   }}
                   className="w-full px-3 py-2 text-xs font-bold flex items-center gap-2 text-left cursor-pointer text-red-500 hover:bg-red-500/10 transition-colors"
                 >
-                  <span className="material-symbols-rounded text-base">delete</span>
+                  <span className="material-symbols-outlined text-base">delete</span>
                   <span>Delete</span>
                 </button>
               </div>
@@ -491,13 +490,13 @@ const MyGrooveCard = memo(function MyGrooveCard({
           type="button"
           onClick={onUse}
           data-testid={'use-groove-' + groove.id}
-          className="py-2 px-3 rounded-full border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer shadow-sm"
+          className="py-1.5 px-3 rounded-full border border-transparent font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer shadow-sm"
           style={{
             backgroundColor: 'var(--c-accent-from, #2563EB)',
             color: '#ffffff',
           }}
         >
-          <span className="material-symbols-rounded text-base">download</span>
+          <span className="material-symbols-outlined text-base">download</span>
           <span>USE</span>
         </button>
 
@@ -505,14 +504,14 @@ const MyGrooveCard = memo(function MyGrooveCard({
           type="button"
           onClick={onAppend}
           data-testid={'append-groove-' + groove.id}
-          className="py-2 px-3 rounded-full border font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
+          className="py-1.5 px-3 rounded-full border font-extrabold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition cursor-pointer"
           style={{
             backgroundColor: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.05)',
             borderColor: 'var(--c-border, #E3E6EB)',
             color: 'var(--c-text-primary, #111827)',
           }}
         >
-          <span className="material-symbols-rounded text-base">playlist_add</span>
+          <span className="material-symbols-outlined text-base">playlist_add</span>
           <span>APPEND</span>
         </button>
       </div>
@@ -630,30 +629,30 @@ export function DrumPatternsPanel({
       <div
         className={
           'w-full flex flex-col pb-28 ' +
-          (isWebDesktop ? 'max-w-5xl mx-auto px-6 pt-6' : 'max-w-md mx-auto px-4 pt-4')
+          (isWebDesktop ? 'max-w-5xl mx-auto px-6 pt-6' : 'max-w-md mx-auto px-4 pt-3')
         }
       >
         {/* Header Section */}
-        <header className="pb-3 flex flex-col gap-3">
+        <header className="pb-2 flex flex-col gap-2">
           <div>
             <h1
-              className="font-headline font-extrabold text-[26px] tracking-tight leading-tight"
+              className="font-headline font-extrabold text-2xl tracking-tight leading-tight"
               style={{ color: 'var(--c-text-primary, #111827)' }}
             >
-              Grooves
+              Patterns
             </h1>
             <p
               className="text-xs font-medium tracking-normal mt-0.5"
               style={{ color: 'var(--c-text-secondary, #6B7280)' }}
             >
-              Pattern library
+              Pattern &amp; groove library
             </p>
           </div>
 
           {/* Capsule Search Bar */}
           <div className="relative flex items-center" data-purpose="search-box">
             <span
-              className="material-symbols-rounded absolute left-4 pointer-events-none text-lg select-none"
+              className="material-symbols-outlined absolute left-3.5 pointer-events-none text-lg select-none"
               style={{ color: 'var(--c-text-muted, #94A3B8)' }}
             >
               search
@@ -666,7 +665,7 @@ export function DrumPatternsPanel({
                 setVisibleBatch(20);
               }}
               placeholder="Search patterns, genres, or moods..."
-              className="w-full pl-10 pr-10 py-2.5 text-[13px] rounded-full border shadow-soft-card outline-none transition-all font-inter"
+              className="w-full pl-9 pr-9 py-2 text-xs rounded-full border shadow-soft-card outline-none transition-all font-inter"
               style={{
                 backgroundColor: 'var(--surface-card-bg, #ffffff)',
                 borderColor: 'var(--c-border, #E3E6EB)',
@@ -679,10 +678,10 @@ export function DrumPatternsPanel({
                 aria-label="Clear search"
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 p-1 rounded-full text-slate-400 hover:text-slate-600 active:scale-90 transition-transform cursor-pointer"
+                className="absolute right-3 p-1 rounded-full text-slate-400 hover:text-slate-600 active:scale-90 transition-transform cursor-pointer"
                 style={{ color: 'var(--c-text-muted, #94A3B8)' }}
               >
-                <span className="material-symbols-rounded text-base">close</span>
+                <span className="material-symbols-outlined text-sm">close</span>
               </button>
             )}
           </div>
@@ -703,7 +702,7 @@ export function DrumPatternsPanel({
                     setVisibleBatch(20);
                   }}
                   data-testid={'cat-btn-' + cat.toLowerCase().replace(/\s+/g, '-')}
-                  className="shrink-0 px-4 py-1.5 text-xs font-bold rounded-full transition-all active:scale-95 cursor-pointer border"
+                  className="shrink-0 px-3.5 py-1 text-[11px] font-bold rounded-full transition-all active:scale-95 cursor-pointer border"
                   style={{
                     backgroundColor: active
                       ? 'var(--c-accent-from, #2563EB)'
@@ -743,7 +742,7 @@ export function DrumPatternsPanel({
                       setVisibleBatch(20);
                     }}
                     data-testid={'genre-btn-' + (genre === '' ? 'all' : genre.toLowerCase())}
-                    className="shrink-0 px-3.5 py-1 text-xs font-bold rounded-full transition-all active:scale-95 cursor-pointer border"
+                    className="shrink-0 px-3 py-0.5 text-[11px] font-bold rounded-full transition-all active:scale-95 cursor-pointer border"
                     style={{
                       backgroundColor: active
                         ? 'var(--c-accent-from, #2563EB)'
@@ -764,17 +763,21 @@ export function DrumPatternsPanel({
           ) : (
             <div
               className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 -mx-4 px-4"
-              data-purpose="groove-tags"
+              data-purpose="tag-chips"
             >
-              {(['', ...GROOVE_TAGS] as ('' | GrooveTag)[]).map((tag) => {
-                const label = tag === '' ? 'ALL' : tag.toUpperCase();
+              {(['', ...GROOVE_TAGS] as const).map((tag) => {
+                const label = tag === '' ? 'ALL TAGS' : tag.toUpperCase();
                 const active = grooveTagFilter === tag;
                 return (
                   <button
                     key={label}
                     type="button"
-                    onClick={() => setGrooveTagFilter(tag)}
-                    className="shrink-0 px-3.5 py-1 text-xs font-bold rounded-full transition-all active:scale-95 cursor-pointer border"
+                    onClick={() => {
+                      setGrooveTagFilter(tag);
+                      setVisibleBatch(20);
+                    }}
+                    data-testid={'tag-btn-' + (tag === '' ? 'all' : tag.toLowerCase())}
+                    className="shrink-0 px-3 py-0.5 text-[11px] font-bold rounded-full transition-all active:scale-95 cursor-pointer border"
                     style={{
                       backgroundColor: active
                         ? 'var(--c-accent-from, #2563EB)'
@@ -812,7 +815,7 @@ export function DrumPatternsPanel({
                 className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white shadow-sm"
                 style={{ backgroundColor: 'var(--c-accent-from, #2563EB)' }}
               >
-                <span className="material-symbols-rounded text-xl">bookmark_add</span>
+                <span className="material-symbols-outlined text-xl">bookmark_add</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div
@@ -828,7 +831,9 @@ export function DrumPatternsPanel({
                   Store "{activePatternName || 'Current Pattern'}" to your library
                 </div>
               </div>
-              <span className="material-symbols-rounded text-xl text-slate-400">chevron_right</span>
+              <span className="material-symbols-outlined text-xl text-slate-400">
+                chevron_right
+              </span>
             </button>
           </div>
         )}
@@ -855,7 +860,7 @@ export function DrumPatternsPanel({
                     color: 'var(--c-accent-from, #2563EB)',
                   }}
                 >
-                  <span className="material-symbols-rounded text-2xl">search_off</span>
+                  <span className="material-symbols-outlined text-2xl">search_off</span>
                 </div>
                 <div className="flex flex-col gap-1">
                   <h3
@@ -905,7 +910,7 @@ export function DrumPatternsPanel({
                   color: 'var(--c-accent-from, #2563EB)',
                 }}
               >
-                <span className="material-symbols-rounded text-2xl">bookmark_border</span>
+                <span className="material-symbols-outlined text-2xl">bookmark_border</span>
               </div>
               <div className="flex flex-col gap-1">
                 <h3

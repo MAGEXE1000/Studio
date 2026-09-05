@@ -247,7 +247,7 @@ const KIT_LABEL: Record<KitType, string> = {
   house: 'Acoustic • House Kit',
 };
 
-// â”€â”€ Per-instrument character presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Per-instrument character presets ─────────────────────────────────────────
 // Each preset applies a curated combination of FX values in one tap.
 // Values use the same range as the sliders (0-1 for knobs, Â±12 for EQ dB).
 type FXPreset = { label: string; values: Partial<InstFX> };
@@ -332,14 +332,14 @@ const KIT_CATEGORIES: { id: string; kits: KitType[] }[] = [
   { id: 'ultrahd', kits: ['house'] },
 ];
 
-// â”€â”€ Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Tabs ───────────────────────────────────────────────────────────────────
 type DrumTab = 'songs' | 'patterns' | 'prefs';
 const TAB_ORDER: DrumTab[] = ['songs', 'patterns', 'prefs'];
 
 const DRUM_VIEWS = ['songs-list', 'songs-editor', 'patterns', 'prefs'] as const;
 type DrumView = (typeof DRUM_VIEWS)[number];
 
-// â”€â”€ SVG note heads (memoized â€” rendered hundreds of times in the grid) â”€â”€â”€â”€â”€
+// ── SVG note heads (memoized — rendered hundreds of times in the grid) ─────
 function IconDrumSongs({ active }: { active: boolean }) {
   const sw = active ? 2 : 1.6;
   const ao = active ? 0.13 : 0;
@@ -527,7 +527,7 @@ function IconPrefs({ active }: { active: boolean }) {
   );
 }
 
-// â”€â”€ Bottom nav (Songs / Patterns / Prefs) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Bottom nav (Songs / Patterns / Prefs) ──────────────────────────────────
 function useDrumNavTabs(): { id: DrumTab; label: string; Icon: React.FC<{ active: boolean }> }[] {
   const t = useT();
   return [
@@ -559,7 +559,7 @@ function DrumNav({
   return null;
 }
 
-// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Helpers ────────────────────────────────────────────────────────────────
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <p
@@ -594,9 +594,9 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
   );
 }
 
-// â”€â”€ Export config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Export config ───────────────────────────────────────────────────────────
 
-// â”€â”€ JSON export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── JSON export ─────────────────────────────────────────────────────────────
 async function exportDrumSongJSON(
   patterns: DrumPattern[],
   song: DrumSong | null,
@@ -649,7 +649,7 @@ async function exportDrumSongJSON(
   URL.revokeObjectURL(url);
 }
 
-// â”€â”€ PDF export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── PDF export ──────────────────────────────────────────────────────────────
 const HEX_TO_RGB = (hex: string): [number, number, number] => {
   const h = hex.replace('#', '');
   const n = parseInt(
@@ -762,7 +762,7 @@ export default function DrumEditor() {
   const kit = kitType ?? 'house';
   const ALL_INSTS = KIT_INSTRUMENTS[kit] ?? KIT_INSTRUMENTS.house;
 
-  // â”€â”€ Theme â€” use per-app drums theme, fall back to global â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Theme — use per-app drums theme, fall back to global ─────────────────
   const drumsVis = settings.perApp?.drumex ?? {
     theme: settings.theme ?? 'dark',
     amoledMode: settings.amoledMode ?? false,
@@ -783,7 +783,7 @@ export default function DrumEditor() {
     return false;
   })();
   const isAmoled = !isLight && (drumsVis.amoledMode ?? false);
-  // SVG/canvas colors â€” CSS vars can't be used directly in SVG props
+  // SVG/canvas colors — CSS vars can't be used directly in SVG props
   const noteColor = isLight ? '#111118' : '#ffffff';
   const staffColor = isLight ? 'rgba(9, 9, 11, 0.08)' : 'rgba(255, 255, 255, 0.05)';
   const barColor = isLight ? 'rgba(9, 9, 11, 0.25)' : 'rgba(255, 255, 255, 0.15)';
@@ -792,7 +792,7 @@ export default function DrumEditor() {
   const ROW_H = isWebDesktop ? 68 : 44;
   const rowGap = isWebDesktop ? 8 : 0;
 
-  // â”€â”€ Landscape detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Landscape detection ──────────────────────────────────────────────────
   const [isLandscape, setIsLandscape] = useState(
     () =>
       typeof window !== 'undefined' &&
@@ -819,7 +819,7 @@ export default function DrumEditor() {
     };
   }, []);
 
-  // â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── State ────────────────────────────────────────────────────────────────
   const activeTab = useNavigationStore((s) => {
     const lastRoute = s.history[s.history.length - 1];
     if (lastRoute?.app === 'drumex' && lastRoute.page) {
@@ -1122,7 +1122,7 @@ export default function DrumEditor() {
   };
   const [humanizeFeedback, setHumanizeFeedback] = useState(false);
 
-  // â”€â”€ Row visibility (persisted to localStorage) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Row visibility (persisted to localStorage) ───────────────────────────
   const [showExtraRows, setShowExtraRows] = useState<boolean>(() => {
     try {
       const v = JSON.parse(localStorage.getItem('chordex-drum-ui') ?? '{}');
@@ -1132,22 +1132,22 @@ export default function DrumEditor() {
     }
   });
 
-  // â”€â”€ Undo / Redo stacks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Undo / Redo stacks ───────────────────────────────────────────────────
   type HistoryEntry = { patterns: typeof patterns; activePatternId: string | null };
   const undoStack = useRef<HistoryEntry[]>([]);
   const redoStack = useRef<HistoryEntry[]>([]);
   const [historyCount, setHistoryCount] = useState(0);
 
-  // â”€â”€ Bar copy/paste clipboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Bar copy/paste clipboard ──────────────────────────────────────────────
   const [copiedMeasure, setCopiedMeasure] = useState<DrumMeasure | null>(null);
   const [openBarMenu, setOpenBarMenu] = useState<string | null>(null); // measureId
   const [flashBarId, setFlashBarId] = useState<string | null>(null); // brief highlight on paste
 
-  // â”€â”€ Per-instrument FX sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Per-instrument FX sheet ────────────────────────────────────────────────
   const [showFXSheet, setShowFXSheet] = useState(false);
   const [fxInst, setFxInst] = useState<DrumInstrument>('kick');
 
-  // Sync instFX + instPlugins store â†’ drumAudio module whenever they change
+  // Sync instFX + instPlugins store → drumAudio module whenever they change
   useEffect(() => {
     setInstFXMap(instFX);
   }, [instFX]);
@@ -1170,13 +1170,13 @@ export default function DrumEditor() {
     setHumanizeVelocity(drumPrefs.humanizeVelocity);
   }, [drumPrefs.humanizeVelocity]);
 
-  // â”€â”€ Quick mixer sheet + export modal + import modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Quick mixer sheet + export modal + import modal ──────────────────────
   const [showMixerSheet, setShowMixerSheet] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [showImportDrum, setShowImportDrum] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
-  // â”€â”€ Groove Library state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Groove Library state ──────────────────────────────────────────────────
   const [grooveFilter, setGrooveFilter] = useState<GrooveTag>('');
   const [patRenameId, setPatRenameId] = useState<string | null>(null);
   const [patRenameName, setPatRenameName] = useState('');
@@ -1189,7 +1189,7 @@ export default function DrumEditor() {
   const [grooveRenameName, setGrooveRenameName] = useState('');
   const [grooveRenameTag, setGrooveRenameTag] = useState<GrooveTag>('');
 
-  // â”€â”€ Built-in Library state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Built-in Library state ─────────────────────────────────────────────
   const [libCategory, setLibCategory] = useState<LibraryCategory | 'All' | 'My Grooves'>('All');
   const [libGenre, setLibGenre] = useState<LibraryGenre | ''>('');
   const [libSearch, setLibSearch] = useState('');
@@ -1207,7 +1207,7 @@ export default function DrumEditor() {
     setLibVisible(VISIBLE_BATCH);
   }, [libCategory, libGenre, libSearchDebounced]);
 
-  // â”€â”€ Container width â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Container width ──────────────────────────────────────────────────────
   // Use a stable callback ref so the observer re-attaches every time the
   // container div mounts (e.g. first open of the editor, or after a tab switch
   // remounts the content wrapper). A plain useEffect(fn,[]) misses mounts that
@@ -1251,7 +1251,7 @@ export default function DrumEditor() {
     _roRef.current = ro;
   }, []);
 
-  // â”€â”€ Visible instruments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Visible instruments ───────────────────────────────────────────────────
   const extraInsts = useMemo(() => ALL_INSTS.filter((i) => !CORE_INSTS.includes(i)), [ALL_INSTS]);
   const patternMuted = useMemo(
     () => new Set(pattern.mutedInstruments ?? []),
@@ -1261,10 +1261,10 @@ export default function DrumEditor() {
     return showExtraRows ? ALL_INSTS : ALL_INSTS.filter((i) => CORE_INSTS.includes(i));
   }, [ALL_INSTS, showExtraRows]);
 
-  // â”€â”€ Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Layout ───────────────────────────────────────────────────────────────
   const availableW = containerW - LABEL_W;
   // rawMpr: how many measures fit per row at the minimum step width.
-  // In landscape the screen is wider so rawMpr is naturally larger â†’
+  // In landscape the screen is wider so rawMpr is naturally larger →
   // more measures shown per row without stretching any of them.
   const rawMpr = Math.max(1, Math.floor(availableW / (spm * MIN_STEP)));
   const measuresPerRow = isLandscape ? pattern.measures.length : 1;
@@ -1298,7 +1298,7 @@ export default function DrumEditor() {
   const secPerStepRef = useRef(0);
   secPerStepRef.current = 60 / pattern.bpm / (pattern.subdivision / pattern.timeSignature[1]);
 
-  // â”€â”€ System rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── System rows ──────────────────────────────────────────────────────────
   const systemRows = useMemo(() => {
     const rows: (typeof pattern.measures)[] = [];
     for (let i = 0; i < pattern.measures.length; i += measuresPerRow)
@@ -1306,7 +1306,7 @@ export default function DrumEditor() {
     return rows;
   }, [pattern.measures, measuresPerRow]);
 
-  // â”€â”€ Smart loop range (clamped against current bar count) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Smart loop range (clamped against current bar count) ─────────────────
   // Always derive a valid range; `loopActive` gates visual + audio behavior.
   const effectiveLoop = useMemo<LoopRange>(
     () => clampLoopRange(pattern.loopRange, pattern.measures.length),
@@ -1314,12 +1314,12 @@ export default function DrumEditor() {
   );
   const loopActive = effectiveLoop.enabled && pattern.measures.length > 0;
 
-  // â”€â”€ Hit maps (step â†’ { variation, velocity }) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Hit maps (step → { variation, velocity }) ────────────────────────────
 
-  // â”€â”€ Scroll-hide for bottom nav â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Scroll-hide for bottom nav ────────────────────────────────────────────
   const drumNavLastY = useRef(0);
 
-  // â”€â”€ Refs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Refs ─────────────────────────────────────────────────────────────────
   const scrollRef = useRef<HTMLDivElement>(null);
   const playheadRef = useRef<HTMLDivElement>(null);
   const pointerStart = useRef<{ x: number; y: number } | null>(null);
@@ -1327,7 +1327,7 @@ export default function DrumEditor() {
   const dragFilled = useRef(new Set<string>());
   const countInTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // â”€â”€ Lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Lifecycle ────────────────────────────────────────────────────────────
   useEffect(() => {
     samplePool.onStatusChange = (s) => setSampleStatus(s);
     setSampleStatus(samplePool.status);
@@ -1365,7 +1365,7 @@ export default function DrumEditor() {
     if (playing) drumScheduler.updatePattern(pattern);
   }, [pattern, playing]);
 
-  // â”€â”€ Scroll-hide: attach to grid scroll container â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Scroll-hide: attach to grid scroll container ──────────────────────────
   const drumScrollHide = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const y = e.currentTarget.scrollTop;
     if (y < 30) {
@@ -1379,7 +1379,7 @@ export default function DrumEditor() {
     drumNavLastY.current = y;
   }, []);
 
-  // â”€â”€ Auto-save: persist patterns/kit into the loaded song whenever they change
+  // ── Auto-save: persist patterns/kit into the loaded song whenever they change
   useEffect(() => {
     if (!activeDrumSongId) return;
     const t = setTimeout(() => {
@@ -1393,13 +1393,13 @@ export default function DrumEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patterns, activePatternId, kitType, activeDrumSongId]);
 
-  // â”€â”€ Playhead â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Playhead ─────────────────────────────────────────────────────────────
   const endAdvTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const drumPrefsRef = useRef(drumPrefs);
   useEffect(() => {
     drumPrefsRef.current = drumPrefs;
   }, [drumPrefs]);
-  // Low latency now lives globally (Studio Hub â†’ Performance) and is wired in App.tsx.
+  // Low latency now lives globally (Studio Hub → Performance) and is wired in App.tsx.
 
   useEffect(() => {
     drumScheduler.onStep = (gs, mIdx, stepInM) => {
@@ -1446,7 +1446,7 @@ export default function DrumEditor() {
           el.scrollLeft = x - el.clientWidth + 40;
         }
       }
-      // â”€â”€ Auto-expand â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // ── Auto-expand ────────────────────────────────────────────────────────
       const totalSteps = drumScheduler.totalSteps;
       if (drumPrefsRef.current.autoExpandPattern && gs === totalSteps - 1) {
         const { patterns: pts, activePatternId: actId } = useDrumStore.getState();
@@ -1490,12 +1490,12 @@ export default function DrumEditor() {
     []
   );
 
-  // â”€â”€ Master volume â†’ audio engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Master volume → audio engine ─────────────────────────────────────────
   useEffect(() => {
     drumScheduler.setMasterVolume(masterVolume);
   }, [masterVolume]);
 
-  // â”€â”€ Row visibility persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Row visibility persistence ────────────────────────────────────────────
   useEffect(() => {
     try {
       const prev = JSON.parse(localStorage.getItem('chordex-drum-ui') ?? '{}');
@@ -1503,7 +1503,7 @@ export default function DrumEditor() {
     } catch {}
   }, [showExtraRows]);
 
-  // â”€â”€ Undo / Redo helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Undo / Redo helpers ────────────────────────────────────────────────────
   const pushUndo = useCallback(() => {
     const { patterns: pts, activePatternId: actId } = useDrumStore.getState();
     undoStack.current.push({ patterns: JSON.parse(JSON.stringify(pts)), activePatternId: actId });
@@ -1549,7 +1549,7 @@ export default function DrumEditor() {
     prevMeasureCount.current = currentCount;
   }, [pattern.measures.length]);
 
-  // â”€â”€ Keyboard shortcuts (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Keyboard shortcuts (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) ──────────────────
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
@@ -1565,7 +1565,7 @@ export default function DrumEditor() {
     return () => window.removeEventListener('keydown', handler);
   }, [handleUndo, handleRedo]);
 
-  // â”€â”€ Metronome click â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Metronome click ──────────────────────────────────────────────────────
   const playMetronomeClick = useCallback(
     (isBeat1: boolean, soundOverride?: string) => {
       const ctx = getAudioCtx();
@@ -1672,7 +1672,7 @@ export default function DrumEditor() {
     [drumPrefs.metronomeSound]
   );
 
-  // â”€â”€ Play/stop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Play/stop ────────────────────────────────────────────────────────────
   const startPattern = useCallback(() => {
     setRandomVariations(useDrumStore.getState().drumPrefs.randomVariations);
     const sm = { ...KIT_DEFAULTS[kit].soundMap, ...soundMap };
@@ -1757,7 +1757,7 @@ export default function DrumEditor() {
     playMetronomeClick,
   ]);
 
-  // â”€â”€ Kit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Kit ──────────────────────────────────────────────────────────────────
   const handleKitSelect = useCallback(
     (k: KitType) => {
       if (kitType === k) return;
@@ -1772,7 +1772,7 @@ export default function DrumEditor() {
     [setKitType, kitType, houseKitMic]
   );
 
-  // â”€â”€ Groove Library â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Groove Library ────────────────────────────────────────────────────────
   const filteredGrooves = grooveFilter ? grooves.filter((g) => g.tag === grooveFilter) : grooves;
 
   const handleGroovePreview = useCallback(
@@ -1918,7 +1918,7 @@ export default function DrumEditor() {
     return items;
   }, [libCategory, libGenre, libSearchDebounced]);
 
-  // â”€â”€ BPM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── BPM ──────────────────────────────────────────────────────────────────
   const adjustBpm = useCallback(
     (d: number) => {
       const bpm = Math.max(40, Math.min(280, pattern.bpm + d));
@@ -1927,7 +1927,7 @@ export default function DrumEditor() {
     [pattern.id, pattern.bpm, updatePattern]
   );
 
-  // â”€â”€ Subdivision â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Subdivision ──────────────────────────────────────────────────────────
   const toggleSub = useCallback(() => {
     updatePattern(pattern.id, { subdivision: pattern.subdivision === 16 ? 8 : 16 });
     if (drumScheduler.isPlaying) {
@@ -1936,7 +1936,7 @@ export default function DrumEditor() {
     }
   }, [pattern, updatePattern]);
 
-  // â”€â”€ Clear â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Clear ────────────────────────────────────────────────────────────────
   const handleClear = useCallback(() => {
     if (drumScheduler.isPlaying) {
       drumScheduler.stop();
@@ -1948,7 +1948,7 @@ export default function DrumEditor() {
     updatePattern(pattern.id, { measures: clearedMeasures });
   }, [pattern, updatePattern, pushUndo]);
 
-  // â”€â”€ Cell tap / drag â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Cell tap / drag ──────────────────────────────────────────────────────
   // Resolve which grid cell a pointer event falls on; returns null if outside grid
   const resolveCell = (clientX: number, clientY: number, instOverride?: DrumInstrument | null) => {
     const el = scrollRef.current;
@@ -1969,7 +1969,7 @@ export default function DrumEditor() {
       return null;
     const mIdx = sysIdx * mprRef.current + measureInRow;
 
-    // snapToGrid=false â†’ quantize to beat rather than subdivision step
+    // snapToGrid=false → quantize to beat rather than subdivision step
     let stepInM = Math.floor((cx % measureWRef.current) / stepWRef.current);
     if (!useDrumStore.getState().drumPrefs.snapToGrid) {
       const spBeat = spmRef.current / 4;
@@ -2132,7 +2132,7 @@ export default function DrumEditor() {
     setFocusedInst(cell.inst);
   };
 
-  // â”€â”€ Back â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Back ─────────────────────────────────────────────────────────────────
   const handleBack = () => {
     if (inEditor) {
       if (drumScheduler.isPlaying) {
@@ -2240,7 +2240,7 @@ export default function DrumEditor() {
     ]
   );
 
-  // â”€â”€ Create Beat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Create Beat ───────────────────────────────────────────────────────────
   const handleCreateBeat = useCallback(() => {
     if (!createName.trim()) return;
     const bpm = Math.max(40, Math.min(280, parseInt(createBpm, 10) || 120));
@@ -2269,7 +2269,7 @@ export default function DrumEditor() {
     houseKitMic,
   ]);
 
-  // â”€â”€ Songs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Songs ─────────────────────────────────────────────────────────────────
   const handleOpenSaveForm = useCallback(() => {
     if (activeDrumSongId) {
       const song = drumSongs.find((s) => s.id === activeDrumSongId);
@@ -2386,7 +2386,7 @@ export default function DrumEditor() {
     [previewingSongId, kit, soundMap, volumeMap, activeInstruments, masterVolume, houseKitMic]
   );
 
-  // â”€â”€ Humanize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Humanize ──────────────────────────────────────────────────────────────
   // Applies subtle variation to note types across the active pattern,
   // producing a more human feel without drastically altering the groove.
   const handleHumanize = useCallback(() => {
@@ -2425,12 +2425,12 @@ export default function DrumEditor() {
     setTimeout(() => setHumanizeFeedback(false), 900);
   }, [pattern, updatePattern]);
 
-  // â”€â”€ Convenience: active song â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Convenience: active song ─────────────────────────────────────────────
   const activeSong = activeDrumSongId
     ? (drumSongs.find((s) => s.id === activeDrumSongId) ?? null)
     : null;
 
-  // â”€â”€ Render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Render ────────────────────────────────────────────────────────────────
   const inputSt: React.CSSProperties = {
     width: '100%',
     background: 'var(--app-surface-high)',
@@ -2801,7 +2801,7 @@ export default function DrumEditor() {
                       flexShrink: 0,
                     }}
                   >
-                    {playing ? 'â¹' : 'â–¶'}
+                    {playing ? '⏹' : '▶'}
                   </button>
 
                   <div
@@ -3230,7 +3230,7 @@ export default function DrumEditor() {
                                               fontSize: 9,
                                             }}
                                           >
-                                            â–¶
+                                            ▶
                                           </button>
                                           {isSel && (
                                             <span
@@ -3240,7 +3240,7 @@ export default function DrumEditor() {
                                                 paddingRight: 4,
                                               }}
                                             >
-                                              âœ“
+                                              ✓
                                             </span>
                                           )}
                                         </div>
@@ -3496,7 +3496,7 @@ export default function DrumEditor() {
             </div>
           )}
 
-      {/* â”€â”€ Hamburger panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Hamburger panel ──────────────────────────────────────────────── */}
       {inEditor && (showHamburger || hamburgerClosing) && (
         <div
           style={{
@@ -3527,7 +3527,7 @@ export default function DrumEditor() {
               maxHeight: kit === 'house' ? '70vh' : undefined,
             }}
           >
-            {/* â”€â”€ House Kit mic selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── House Kit mic selector ──────────────────────────────────── */}
             {kit === 'house' && (
               <>
                 <div style={{ padding: '8px 4px 4px' }}>
@@ -3586,7 +3586,7 @@ export default function DrumEditor() {
                       >
                         {houseProgress.total > 0
                           ? `${houseProgress.loaded}/${houseProgress.total}`
-                          : 'Loadingâ€¦'}
+                          : 'Loading…'}
                       </span>
                     </div>
                   )}
@@ -3609,7 +3609,7 @@ export default function DrumEditor() {
                   style={{ height: 1, background: 'rgba(128,128,128,0.08)', margin: '8px 4px 4px' }}
                 />
 
-                {/* â”€â”€ Per-instrument velocity flavor (collapsible) â”€â”€ */}
+                {/* ── Per-instrument velocity flavor (collapsible) ── */}
                 <div style={{ padding: '4px 4px 6px' }}>
                   <button
                     onClick={() => setShowSoundCharacter((s) => !s)}
@@ -3732,7 +3732,7 @@ export default function DrumEditor() {
                         }
                       )}
 
-                      {/* â”€â”€ Crash Cymbal model selector â”€â”€ */}
+                      {/* ── Crash Cymbal model selector ── */}
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
                           <span
@@ -3782,7 +3782,7 @@ export default function DrumEditor() {
                         </div>
                       </div>
 
-                      {/* â”€â”€ Cymbal Pack selector â”€â”€ */}
+                      {/* ── Cymbal Pack selector ── */}
                       <div style={{ marginTop: 10 }}>
                         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
                           <span
@@ -3832,7 +3832,7 @@ export default function DrumEditor() {
                         </div>
                       </div>
 
-                      {/* â”€â”€ Random Variations toggle â”€â”€ */}
+                      {/* ── Random Variations toggle ── */}
                       <div style={{ display: 'flex', alignItems: 'center', marginTop: 10 }}>
                         <span
                           style={{
@@ -3963,7 +3963,7 @@ export default function DrumEditor() {
                 1/{pattern.subdivision}
               </button>
             </div>
-            {/* â”€â”€ Humanize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── Humanize ──────────────────────────────────────────────── */}
             <div style={{ height: 1, background: 'rgba(128,128,128,0.08)', margin: '0 4px' }} />
             <div style={{ display: 'flex', alignItems: 'center', padding: '9px 4px', gap: 8 }}>
               <div style={{ flex: 1 }}>
@@ -3999,11 +3999,11 @@ export default function DrumEditor() {
                   fontFamily: 'Manrope,sans-serif',
                 }}
               >
-                {humanizeFeedback ? 'âœ“ Done' : 'Apply'}
+                {humanizeFeedback ? '✓ Done' : 'Apply'}
               </button>
             </div>
 
-            {/* â”€â”€ Preferences â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+            {/* ── Preferences ───────────────────────────────────────────── */}
             <div style={{ height: 1, background: 'rgba(128,128,128,0.08)', margin: '0 4px' }} />
             <button
               onClick={() => {
@@ -4132,7 +4132,7 @@ export default function DrumEditor() {
         </div>
       )}
 
-      {/* â”€â”€ Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Content ──────────────────────────────────────────────────────── */}
       <div
         style={{
           display: 'flex',
@@ -4231,7 +4231,7 @@ export default function DrumEditor() {
               flexDirection: 'column',
             }}
           >
-            {/* â•â•â• SONGS LIST (Songs tab, not in editor) â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */}
+            {/* ═══ SONGS LIST (Songs tab, not in editor) ═══════════════════════ */}
             <SharedNavigationContainer activeView={currentView} viewOrder={DRUM_VIEWS}>
               {(viewId) => {
                 switch (viewId) {
@@ -4317,7 +4317,7 @@ export default function DrumEditor() {
                                   }`}
                                 >
                                   <option value="all">All Kits</option>
-                                  <option value="house">Acoustic â€” House Kit</option>
+                                  <option value="house">Acoustic — House Kit</option>
                                 </select>
                               </div>
 
@@ -4841,12 +4841,12 @@ export default function DrumEditor() {
                               overflowY: 'auto',
                               overflowX: pattern.measures.length > 2 ? 'auto' : 'hidden',
                               paddingTop: 8,
-                              paddingBottom: isWebDesktop ? 110 : isLandscape ? 20 : 100,
+                              paddingBottom: isWebDesktop ? 110 : isLandscape ? 20 : 108,
                               position: 'relative',
                             }}
                             className="no-scrollbar"
                           >
-                            {/* Playhead â€” extends into ruler, draggable handle at top */}
+                            {/* Playhead — extends into ruler, draggable handle at top */}
                             <div
                               ref={playheadRef}
                               style={{
@@ -4870,7 +4870,7 @@ export default function DrumEditor() {
                                 transform: `translate(${LABEL_W}px, 0px)`,
                               }}
                             >
-                              {/* Draggable handle â€” downward triangle above the ruler */}
+                              {/* Draggable handle — downward triangle above the ruler */}
                               <div
                                 onPointerDown={(e) => {
                                   e.stopPropagation();
@@ -5477,13 +5477,27 @@ export default function DrumEditor() {
                                 );
                               })}
                           </div>
-                          {/* ── Floating Action Controls (Canonical FAB Stack) ── */}
+                          {/* ── Floating Transport Dock (Canonical Mobile Transport Capsule) ── */}
                           <aside
-                            aria-label="Drum sequencer actions"
-                            className="fixed bottom-5 right-4 z-40 flex flex-col items-center gap-2.5"
+                            aria-label="Drum sequencer transport controls"
+                            className="fixed z-40 flex items-center gap-1.5 px-3 py-1.5 rounded-full border shadow-2xl backdrop-blur-xl"
                             style={{
                               display: isWebDesktop || isLandscape ? 'none' : 'flex',
-                              bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)',
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              bottom:
+                                'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 16px)',
+                              backgroundColor: isAmoled
+                                ? 'rgba(12, 12, 14, 0.94)'
+                                : isLight
+                                  ? 'rgba(255, 255, 255, 0.94)'
+                                  : 'rgba(22, 22, 26, 0.94)',
+                              borderColor: isLight
+                                ? 'rgba(0, 0, 0, 0.08)'
+                                : 'rgba(255, 255, 255, 0.12)',
+                              boxShadow: isLight
+                                ? '0 10px 30px -5px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)'
+                                : '0 12px 36px -4px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.08)',
                             }}
                           >
                             {/* 1. Erase / Trash action */}
@@ -5492,8 +5506,8 @@ export default function DrumEditor() {
                                 <div
                                   style={{
                                     position: 'absolute',
-                                    bottom: 'calc(100% + 10px)',
-                                    right: 0,
+                                    bottom: 'calc(100% + 14px)',
+                                    left: 0,
                                     background: isAmoled
                                       ? 'rgba(4,4,4,0.98)'
                                       : isLight
@@ -5577,27 +5591,30 @@ export default function DrumEditor() {
                                 </div>
                               )}
                               <button
-                                onClick={() => setShowClearConfirm((s) => !s)}
+                                onClick={() => {
+                                  setShowClearConfirm((s) => !s);
+                                  setShowLoopPanel(false);
+                                  setShowBpmPanel(false);
+                                }}
                                 aria-label="Delete / Reset pattern"
                                 title="Reset pattern"
-                                className="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
+                                className="w-9 h-9 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
                                 style={{
                                   background: showClearConfirm
                                     ? 'rgba(239,68,68,0.18)'
                                     : isAmoled
-                                      ? '#111111'
+                                      ? 'rgba(255,255,255,0.06)'
                                       : isLight
-                                        ? '#ffffff'
-                                        : '#1e1e24',
+                                        ? 'rgba(0,0,0,0.05)'
+                                        : 'rgba(255,255,255,0.08)',
                                   color: '#ef4444',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
                                   border: isLight
-                                    ? '1px solid rgba(226,232,240,0.8)'
-                                    : '1px solid rgba(255,255,255,0.1)',
+                                    ? '1px solid rgba(0,0,0,0.06)'
+                                    : '1px solid rgba(255,255,255,0.08)',
                                 }}
                                 type="button"
                               >
-                                <span className="material-symbols-outlined text-[19px]">
+                                <span className="material-symbols-outlined text-[18px]">
                                   delete
                                 </span>
                               </button>
@@ -5664,8 +5681,9 @@ export default function DrumEditor() {
                                     <div
                                       style={{
                                         position: 'absolute',
-                                        bottom: 'calc(100% + 10px)',
-                                        right: 0,
+                                        bottom: 'calc(100% + 14px)',
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
                                         background: isAmoled
                                           ? 'rgba(0,0,0,0.97)'
                                           : isLight
@@ -5938,31 +5956,34 @@ export default function DrumEditor() {
                                   );
                                 })()}
                               <button
-                                onClick={() => setShowLoopPanel((s) => !s)}
+                                onClick={() => {
+                                  setShowLoopPanel((s) => !s);
+                                  setShowClearConfirm(false);
+                                  setShowBpmPanel(false);
+                                }}
                                 title="Smart loop"
                                 aria-label="Smart loop"
-                                className="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
+                                className="w-9 h-9 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
                                 style={{
                                   background: loopActive
                                     ? `${accent.from}22`
                                     : showLoopPanel
                                       ? `${accent.from}15`
                                       : isAmoled
-                                        ? '#111111'
+                                        ? 'rgba(255,255,255,0.06)'
                                         : isLight
-                                          ? '#ffffff'
-                                          : '#1e1e24',
+                                          ? 'rgba(0,0,0,0.05)'
+                                          : 'rgba(255,255,255,0.08)',
                                   color: loopActive ? accent.from : isLight ? '#334155' : '#cbd5e1',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
                                   border: loopActive
                                     ? `1.5px solid ${accent.from}88`
                                     : isLight
-                                      ? '1px solid rgba(226,232,240,0.8)'
-                                      : '1px solid rgba(255,255,255,0.1)',
+                                      ? '1px solid rgba(0,0,0,0.06)'
+                                      : '1px solid rgba(255,255,255,0.08)',
                                 }}
                                 type="button"
                               >
-                                <span className="material-symbols-outlined text-[19px]">
+                                <span className="material-symbols-outlined text-[18px]">
                                   repeat
                                 </span>
                               </button>
@@ -5992,8 +6013,9 @@ export default function DrumEditor() {
                                     <div
                                       style={{
                                         position: 'absolute',
-                                        bottom: 'calc(100% + 10px)',
-                                        right: 0,
+                                        bottom: 'calc(100% + 14px)',
+                                        left: '50%',
+                                        transform: 'translateX(-65%)',
                                         background: isAmoled
                                           ? 'rgba(0,0,0,0.97)'
                                           : isLight
@@ -6165,49 +6187,67 @@ export default function DrumEditor() {
                                   );
                                 })()}
                               <button
-                                onClick={() => setShowBpmPanel((s) => !s)}
+                                onClick={() => {
+                                  setShowBpmPanel((s) => !s);
+                                  setShowClearConfirm(false);
+                                  setShowLoopPanel(false);
+                                }}
                                 title="BPM & Swing"
                                 aria-label="Metronome and Tempo"
-                                className="w-10 h-10 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
+                                className="w-9 h-9 rounded-full flex items-center justify-center transition active:scale-95 focus:outline-none cursor-pointer"
                                 style={{
                                   background: showBpmPanel
                                     ? `${accent.from}22`
                                     : isAmoled
-                                      ? '#111111'
+                                      ? 'rgba(255,255,255,0.06)'
                                       : isLight
-                                        ? '#ffffff'
-                                        : '#1e1e24',
+                                        ? 'rgba(0,0,0,0.05)'
+                                        : 'rgba(255,255,255,0.08)',
                                   color: showBpmPanel
                                     ? accent.from
                                     : isLight
                                       ? '#334155'
                                       : '#cbd5e1',
-                                  boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
                                   border: showBpmPanel
                                     ? `1.5px solid ${accent.from}88`
                                     : isLight
-                                      ? '1px solid rgba(226,232,240,0.8)'
-                                      : '1px solid rgba(255,255,255,0.1)',
+                                      ? '1px solid rgba(0,0,0,0.06)'
+                                      : '1px solid rgba(255,255,255,0.08)',
                                 }}
                                 type="button"
                               >
-                                <span className="material-symbols-outlined text-[19px]">timer</span>
+                                <span className="material-symbols-outlined text-[18px]">timer</span>
                               </button>
                             </div>
 
+                            {/* Separator */}
+                            <div
+                              className="w-[1px] h-5 mx-0.5"
+                              style={{
+                                backgroundColor: isLight
+                                  ? 'rgba(0,0,0,0.10)'
+                                  : 'rgba(255,255,255,0.12)',
+                              }}
+                            />
+
                             {/* 4. Primary Play FAB */}
                             <button
-                              onClick={handlePlay}
+                              onClick={() => {
+                                setShowClearConfirm(false);
+                                setShowLoopPanel(false);
+                                setShowBpmPanel(false);
+                                handlePlay();
+                              }}
                               title={playing ? 'Pause' : 'Play'}
                               aria-label={playing ? 'Pause drum pattern' : 'Play drum pattern'}
-                              className="w-12 h-12 rounded-full flex items-center justify-center text-white transition active:scale-95 focus:outline-none cursor-pointer"
+                              className="w-11 h-11 rounded-full flex items-center justify-center text-white transition active:scale-95 focus:outline-none cursor-pointer"
                               style={{
                                 background: '#007aff',
-                                boxShadow: '0 6px 24px rgba(0,122,255,0.4)',
+                                boxShadow: '0 4px 16px rgba(0,122,255,0.45)',
                               }}
                               type="button"
                             >
-                              <span className="material-symbols-outlined text-[26px]">
+                              <span className="material-symbols-outlined text-[24px]">
                                 {playing ? 'pause' : 'play_arrow'}
                               </span>
                             </button>
@@ -6406,7 +6446,7 @@ export default function DrumEditor() {
                                         color: 'var(--c-text-primary)',
                                       }}
                                     >
-                                      Acoustic â€” House Kit
+                                      Acoustic — House Kit
                                     </span>
                                     <p
                                       style={{
@@ -6666,7 +6706,7 @@ export default function DrumEditor() {
                                               padding: '2px 0',
                                             }}
                                           >
-                                            Sabian Pack (Hi-hat, crash, ride â€” bright, versatile)
+                                            Sabian Pack (Hi-hat, crash, ride — bright, versatile)
                                           </div>
                                         </div>
 
@@ -7666,7 +7706,7 @@ export default function DrumEditor() {
                             />
                           </div>
                         )}
-                        {/* â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                        {/* ── Search ──────────────────────────────────────────────── */}
                         <div className="px-4 pb-3">
                           <div className="relative">
                             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-zinc-500 pointer-events-none">
@@ -7685,7 +7725,7 @@ export default function DrumEditor() {
                           </div>
                         </div>
 
-                        {/* â”€â”€ Category chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                        {/* ── Category chips ──────────────────────────────────────── */}
                         <div className="no-scrollbar flex gap-1.5 overflow-x-auto px-4 pb-3">
                           {(
                             ['All', ...LIBRARY_CATEGORIES, 'My Grooves'] as (
@@ -7751,7 +7791,7 @@ export default function DrumEditor() {
                           </div>
                         )}
 
-                        {/* â”€â”€ My Grooves section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                        {/* ── My Grooves section ─────────────────────────────────── */}
                         {libCategory === 'My Grooves' && (
                           <>
                             <div style={{ padding: '0 16px 12px' }}>
@@ -8277,7 +8317,7 @@ export default function DrumEditor() {
                           </>
                         )}
 
-                        {/* â”€â”€ Built-in Library Cards â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                        {/* ── Built-in Library Cards ──────────────────────────────── */}
                         {libCategory !== 'My Grooves' && (
                           <div
                             style={
@@ -8371,7 +8411,7 @@ export default function DrumEditor() {
         </div>
       </div>
 
-      {/* â”€â”€ Bottom nav â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Bottom nav ───────────────────────────────────────────────────── */}
       <DrumNav
         activeTab={activeTab}
         setTab={handleSetTab}
@@ -8447,7 +8487,7 @@ export default function DrumEditor() {
         </div>
       )}
 
-      {/* â”€â”€ Save Groove sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Save Groove sheet ────────────────────────────────────────────── */}
       {showSaveGroove && (
         <Dialog open={true} onClose={() => setShowSaveGroove(false)} title="Save to Groove Library">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -8468,7 +8508,7 @@ export default function DrumEditor() {
                 autoFocus
                 value={savGrName}
                 onChange={(e) => setSavGrName(e.target.value)}
-                placeholder="Groove nameâ€¦"
+                placeholder="Groove name…"
               />
             </div>
             <div>
@@ -8534,7 +8574,7 @@ export default function DrumEditor() {
         </Dialog>
       )}
 
-      {/* â”€â”€ Quick Mixer sheet (EQ button in editor toolbar) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Quick Mixer sheet (EQ button in editor toolbar) ──────────────── */}
       {showMixerSheet && inEditor && (
         <Dialog open={true} onClose={() => setShowMixerSheet(false)} title="Pattern Mixer">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -8712,7 +8752,7 @@ export default function DrumEditor() {
         </Dialog>
       )}
 
-      {/* â”€â”€ Per-instrument FX sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Per-instrument FX sheet ──────────────────────────────────────── */}
       {showFXSheet &&
         inEditor &&
         (() => {
@@ -8727,7 +8767,7 @@ export default function DrumEditor() {
             hint?: string;
           };
           const fxSliders: SliderDef[] = [
-            // â”€â”€ Dynamics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Dynamics ────────────────────────────────────────────────────────
             {
               key: 'compress',
               label: 'Compress',
@@ -8752,7 +8792,7 @@ export default function DrumEditor() {
               step: 0.01,
               hint: 'Chop the tail (tighter sound)',
             },
-            // â”€â”€ EQ (4-band) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── EQ (4-band) ─────────────────────────────────────────────────────
             { key: 'eqLow', label: 'Low 80 Hz', min: -12, max: 12, step: 0.5, hint: 'Boom / thin' },
             {
               key: 'eqLowMid',
@@ -8764,7 +8804,7 @@ export default function DrumEditor() {
             },
             { key: 'eqMid', label: 'Mid 2 kHz', min: -12, max: 12, step: 0.5, hint: 'Snap / honk' },
             { key: 'eqHigh', label: 'High 10k', min: -12, max: 12, step: 0.5, hint: 'Air / sheen' },
-            // â”€â”€ Space & character â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Space & character ────────────────────────────────────────────────
             { key: 'reverb', label: 'Reverb', min: 0, max: 1, step: 0.01, hint: 'Room / ambience' },
             {
               key: 'saturate',
@@ -8876,7 +8916,7 @@ export default function DrumEditor() {
                     paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)',
                   }}
                 >
-                  {/* â”€â”€ Character presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                  {/* ── Character presets ────────────────────────────────── */}
                   {presets.length > 0 && (
                     <div style={{ padding: '0 20px 14px' }}>
                       <span
@@ -8928,7 +8968,7 @@ export default function DrumEditor() {
                       </div>
                     </div>
                   )}
-                  {/* â”€â”€ FX sliders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                  {/* ── FX sliders ──────────────────────────────────────── */}
                   {fxSliders.map(({ key, label, min, max, step, hint }) => {
                     const val = curFX[key] ?? 0;
                     const isEQ =
@@ -9010,7 +9050,7 @@ export default function DrumEditor() {
                     );
                   })}
 
-                  {/* â”€â”€ Plugins section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+                  {/* ── Plugins section ──────────────────────────────── */}
                   <div style={{ padding: '14px 20px 0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}>
                       <span
@@ -9065,7 +9105,7 @@ export default function DrumEditor() {
           );
         })()}
 
-      {/* â”€â”€ Export modal (full-screen) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Export modal (full-screen) ────────────────────────────────────── */}
       {showExportModal && (
         <DrumExportModal
           patterns={patterns}
@@ -9075,7 +9115,7 @@ export default function DrumEditor() {
         />
       )}
 
-      {/* â”€â”€ Import modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Import modal ─────────────────────────────────────────────────── */}
       {showImportDrum && (
         <DrumImportModal
           accent={accent}
@@ -9087,13 +9127,13 @@ export default function DrumEditor() {
         />
       )}
 
-      {/* â”€â”€ Create Beat modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Create Beat modal ────────────────────────────────────────────── */}
       {showCreateForm &&
         (() => {
           return (
             <Dialog open={true} onClose={() => setShowCreateForm(false)} title="New Beat">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* â”€â”€ Beat info â”€â”€ */}
+                {/* ── Beat info ── */}
                 <div>
                   <label style={labelSt}>Beat Title</label>
                   <Input
@@ -9114,7 +9154,7 @@ export default function DrumEditor() {
                   />
                 </div>
 
-                {/* â”€â”€ BPM â”€â”€ */}
+                {/* ── BPM ── */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
                     <label style={labelSt}>BPM</label>
@@ -9160,7 +9200,7 @@ export default function DrumEditor() {
                   </div>
                 </div>
 
-                {/* â”€â”€ Drum Kit Details â”€â”€ */}
+                {/* ── Drum Kit Details ── */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div>
                     <label style={labelSt}>Drum Kit</label>
@@ -9196,14 +9236,14 @@ export default function DrumEditor() {
                   </div>
                 </div>
 
-                {/* â”€â”€ Notes â”€â”€ */}
+                {/* ── Notes ── */}
                 <div>
                   <label style={labelSt}>Notes</label>
                   <textarea
                     value={createNotes}
                     onChange={(e) => setCreateNotes(e.target.value)}
                     rows={2}
-                    placeholder="Optional notesâ€¦"
+                    placeholder="Optional notes…"
                     style={
                       {
                         ...inputSt,
@@ -9216,7 +9256,7 @@ export default function DrumEditor() {
                   />
                 </div>
 
-                {/* â”€â”€ Actions â”€â”€ */}
+                {/* ── Actions ── */}
                 <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                   <Button onClick={() => setShowCreateForm(false)} style={{ flex: 1 }}>
                     Cancel

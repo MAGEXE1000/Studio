@@ -255,7 +255,7 @@ function BeatCard({
                 color: isPlaying ? '#ffffff' : 'var(--c-accent-from, #2563EB)',
               }}
             >
-              <span className="material-symbols-rounded text-2xl select-none">
+              <span className="material-symbols-outlined text-2xl select-none">
                 {isPlaying ? 'stop' : 'play_arrow'}
               </span>
             </button>
@@ -301,7 +301,7 @@ function BeatCard({
             className="w-8 h-8 rounded-full flex items-center justify-center transition-transform active:scale-95 cursor-pointer shrink-0"
             style={{ color: 'var(--c-text-muted, #8A92A6)' }}
           >
-            <span className="material-symbols-rounded text-xl group-hover:translate-x-0.5 transition-transform">
+            <span className="material-symbols-outlined text-xl group-hover:translate-x-0.5 transition-transform">
               chevron_right
             </span>
           </button>
@@ -331,7 +331,7 @@ function BeatCard({
               color: 'var(--c-text-secondary, #6B7280)',
             }}
           >
-            <span className="material-symbols-rounded text-[11px]">speed</span>
+            <span className="material-symbols-outlined text-[11px]">speed</span>
             {bpm} BPM
           </span>
 
@@ -379,7 +379,7 @@ function BeatCard({
             color: 'var(--c-accent-from, #2563EB)',
           }}
         >
-          <span className="material-symbols-rounded text-base">tune</span>
+          <span className="material-symbols-outlined text-base">tune</span>
           <span>Edit</span>
         </button>
 
@@ -393,7 +393,7 @@ function BeatCard({
             color: 'var(--c-text-secondary, #6B7280)',
           }}
         >
-          <span className="material-symbols-rounded text-base">edit</span>
+          <span className="material-symbols-outlined text-base">edit</span>
           <span>Rename</span>
         </button>
 
@@ -403,7 +403,7 @@ function BeatCard({
           data-testid={`delete-beat-${song.id}`}
           className="flex-1 py-2.5 flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:opacity-75 text-red-500 hover:text-red-600"
         >
-          <span className="material-symbols-rounded text-base">delete</span>
+          <span className="material-symbols-outlined text-base">delete</span>
           <span>Delete</span>
         </button>
       </div>
@@ -502,7 +502,7 @@ export function DrumBeatsPanel({
       data-purpose="beats-screen"
     >
       <main
-        className="w-full max-w-md mx-auto pb-32 px-4 pt-3 space-y-4"
+        className="w-full max-w-md mx-auto pb-32 px-4 pt-3 space-y-4 flex flex-col min-h-[calc(100vh-var(--safe-area-inset-top,0px)-var(--safe-area-inset-bottom,0px)-80px)]"
         style={{
           paddingTop:
             'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 12px))',
@@ -510,7 +510,7 @@ export function DrumBeatsPanel({
         data-purpose="mobile-viewport"
       >
         {/* Header Titles */}
-        <header className="pt-2 px-1" data-purpose="header-titles">
+        <header className="pt-2 px-1 flex-shrink-0" data-purpose="header-titles">
           <h1
             className="text-3xl font-extrabold tracking-tight leading-tight"
             style={{
@@ -529,9 +529,9 @@ export function DrumBeatsPanel({
         </header>
 
         {/* Capsule Search Bar */}
-        <div className="relative flex items-center" data-purpose="search-box">
+        <div className="relative flex items-center flex-shrink-0" data-purpose="search-box">
           <span
-            className="material-symbols-rounded absolute left-4 pointer-events-none text-lg select-none"
+            className="material-symbols-outlined absolute left-4 pointer-events-none text-lg select-none"
             style={{ color: 'var(--c-text-muted, #94A3B8)' }}
           >
             search
@@ -558,7 +558,7 @@ export function DrumBeatsPanel({
               style={{ color: 'var(--c-text-muted, #94A3B8)' }}
               data-testid="clear-search-btn"
             >
-              <span className="material-symbols-rounded text-base">close</span>
+              <span className="material-symbols-outlined text-base">close</span>
             </button>
           )}
         </div>
@@ -566,7 +566,7 @@ export function DrumBeatsPanel({
         {/* Filter & Sort Chips (Visible when beats exist) */}
         {drumSongs.length > 0 && (
           <div
-            className="flex items-center justify-between gap-2 px-1 pt-0.5"
+            className="flex items-center justify-between gap-2 px-1 pt-0.5 flex-shrink-0"
             data-purpose="filter-bar"
           >
             {/* Sort pills */}
@@ -620,9 +620,9 @@ export function DrumBeatsPanel({
 
         {/* Content Area: Empty State, Search Empty State, or Beats List */}
         {drumSongs.length === 0 ? (
-          /* Canonical Empty State */
+          /* Canonical Empty State: Balanced & Centered in available content region */
           <section
-            className="flex flex-col items-center justify-center text-center px-4 py-16"
+            className="flex-1 flex flex-col items-center justify-center text-center px-4 py-8 my-auto"
             data-purpose="empty-state"
           >
             {/* Musical Drum Icon Container */}
@@ -635,7 +635,7 @@ export function DrumBeatsPanel({
                 color: 'var(--c-accent-from, #2563EB)',
               }}
             >
-              <span className="material-symbols-rounded text-4xl select-none">album</span>
+              <span className="material-symbols-outlined text-4xl select-none">album</span>
             </div>
 
             <h2
@@ -669,7 +669,7 @@ export function DrumBeatsPanel({
                 data-purpose="empty-create-beat-btn"
                 data-testid="empty-create-beat-btn"
               >
-                <span className="material-symbols-rounded text-base font-bold">add</span>
+                <span className="material-symbols-outlined text-base font-bold">add</span>
                 <span>Create Beat</span>
               </button>
 
@@ -685,7 +685,7 @@ export function DrumBeatsPanel({
                 data-purpose="empty-import-btn"
                 data-testid="empty-import-btn"
               >
-                <span className="material-symbols-rounded text-base">upload_file</span>
+                <span className="material-symbols-outlined text-base">upload_file</span>
                 <span>Import</span>
               </button>
             </div>
@@ -693,7 +693,7 @@ export function DrumBeatsPanel({
         ) : filteredSongs.length === 0 ? (
           /* Search Empty State */
           <section
-            className="flex flex-col items-center justify-center text-center px-4 py-16"
+            className="flex-1 flex flex-col items-center justify-center text-center px-4 py-12 my-auto"
             data-purpose="search-empty-state"
           >
             <div
@@ -704,7 +704,7 @@ export function DrumBeatsPanel({
                 color: 'var(--c-text-muted, #8A92A6)',
               }}
             >
-              <span className="material-symbols-rounded text-2xl select-none">search_off</span>
+              <span className="material-symbols-outlined text-2xl select-none">search_off</span>
             </div>
             <h3
               className="text-lg font-bold tracking-tight"
@@ -849,51 +849,53 @@ export function DrumBeatsPanel({
         </Dialog>
       )}
 
-      {/* Floating Action Buttons (FAB Stack) */}
-      <aside
-        className="fixed right-5 flex flex-col items-end gap-3 pointer-events-auto"
-        style={{
-          bottom: 'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 86px)',
-          zIndex: 40,
-        }}
-        data-purpose="floating-action-group"
-      >
-        {/* Secondary FAB: Import Beat JSON */}
-        <button
-          type="button"
-          onClick={onImportSong}
-          data-testid="import-beat-btn"
-          aria-label="Import Beat File"
-          title="Import Beat File"
-          className="w-11 h-11 rounded-full border shadow-soft-card flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+      {/* Floating Action Buttons (FAB Stack) - Rendered when beats exist to prevent visual competition in empty state */}
+      {drumSongs.length > 0 && (
+        <aside
+          className="fixed right-5 flex flex-col items-end gap-3 pointer-events-auto"
           style={{
-            backgroundColor: 'var(--surface-card-bg, #ffffff)',
-            borderColor: 'var(--c-border, #E3E6EB)',
-            color: 'var(--c-text-secondary, #6B7280)',
+            bottom: 'calc(var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 86px)',
+            zIndex: 40,
           }}
+          data-purpose="floating-action-group"
         >
-          <span className="material-symbols-rounded text-xl">upload_file</span>
-        </button>
+          {/* Secondary FAB: Import Beat JSON */}
+          <button
+            type="button"
+            onClick={onImportSong}
+            data-testid="import-beat-btn"
+            aria-label="Import Beat File"
+            title="Import Beat File"
+            className="w-11 h-11 rounded-full border shadow-soft-card flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+            style={{
+              backgroundColor: 'var(--surface-card-bg, #ffffff)',
+              borderColor: 'var(--c-border, #E3E6EB)',
+              color: 'var(--c-text-secondary, #6B7280)',
+            }}
+          >
+            <span className="material-symbols-outlined text-xl">upload_file</span>
+          </button>
 
-        {/* Primary FAB: Create New Beat */}
-        <button
-          type="button"
-          onClick={onCreateSong}
-          data-testid="new-beat-btn"
-          aria-label="Create New Beat"
-          title="New Beat"
-          className="rounded-full text-white shadow-lg flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
-          style={{
-            width: '52px',
-            height: '52px',
-            backgroundColor: 'var(--c-accent-from, #2563EB)',
-            boxShadow:
-              '0 8px 24px color-mix(in srgb, var(--c-accent-from, #2563EB) 35%, transparent)',
-          }}
-        >
-          <span className="material-symbols-rounded text-2xl font-bold">add</span>
-        </button>
-      </aside>
+          {/* Primary FAB: Create New Beat */}
+          <button
+            type="button"
+            onClick={onCreateSong}
+            data-testid="new-beat-btn"
+            aria-label="Create New Beat"
+            title="New Beat"
+            className="rounded-full text-white shadow-lg flex items-center justify-center active:scale-90 transition-transform cursor-pointer"
+            style={{
+              width: '52px',
+              height: '52px',
+              backgroundColor: 'var(--c-accent-from, #2563EB)',
+              boxShadow:
+                '0 8px 24px color-mix(in srgb, var(--c-accent-from, #2563EB) 35%, transparent)',
+            }}
+          >
+            <span className="material-symbols-outlined text-2xl font-bold">add</span>
+          </button>
+        </aside>
+      )}
     </div>
   );
 }

@@ -187,7 +187,7 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
           style={{
             paddingBottom: '14px',
             marginBottom: '14px',
-            borderBottom: '1px solid var(--c-border)',
+            borderBottom: '1px solid var(--track, var(--c-border))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -196,11 +196,13 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
           <h3
             style={{
               margin: 0,
-              fontSize: '16px',
-              fontWeight: 850,
-              fontFamily: 'Manrope, sans-serif',
-              letterSpacing: '-0.02em',
-              color: 'var(--c-text-primary)',
+              fontSize: 'var(--type-section-size, 19px)',
+              lineHeight: 'var(--type-section-lh, 24px)',
+              fontWeight: 'var(--type-section-weight, 600)' as any,
+              fontFamily:
+                'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+              letterSpacing: 'var(--type-section-tracking, 0.6px)',
+              color: 'var(--c-text-primary, var(--text))',
             }}
           >
             {title}
@@ -208,21 +210,22 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
           <button
             onClick={onClose}
             type="button"
+            className="touch-target-44"
             style={{
-              width: 28,
-              height: 28,
+              width: 'var(--btn-size-sm, 38px)',
+              height: 'var(--btn-size-sm, 38px)',
               borderRadius: '50%',
               background: 'var(--app-surface-high)',
-              border: '1px solid var(--c-border)',
+              border: '1px solid var(--track, var(--c-border))',
               cursor: 'pointer',
               padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'var(--c-text-secondary)',
+              color: 'var(--c-text-secondary, var(--muted))',
             }}
           >
-            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 18 }}>
               close
             </span>
           </button>
@@ -233,10 +236,11 @@ export function Sheet({ open, onClose, title, children, className }: SheetProps)
         style={{
           overflowY: 'auto',
           maxHeight: '65vh',
-          fontSize: '13.5px',
-          lineHeight: 1.5,
-          color: 'var(--c-text-secondary)',
-          fontFamily: 'Inter, sans-serif',
+          fontSize: 'var(--type-body-size, 14.5px)',
+          lineHeight: 'var(--type-body-lh, 18px)',
+          color: 'var(--c-text-secondary, var(--muted))',
+          fontFamily: 'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+          letterSpacing: 'var(--type-body-tracking, 0.3px)',
         }}
       >
         {children}

@@ -240,12 +240,14 @@ export function SharedFloatingHeader({
             data-testid={backBtnTestId || 'shared-floating-header-back-btn'}
             onClick={onBack}
             aria-label="Go back"
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.92 }}
+            whileHover={{ scale: 1.04 }}
             transition={SpringPresets.soft}
             style={{
-              width: 40,
-              height: 40,
+              width: 'var(--btn-size-md, 42px)',
+              height: 'var(--btn-size-md, 42px)',
+              minWidth: '42px',
+              minHeight: '42px',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
@@ -254,6 +256,7 @@ export function SharedFloatingHeader({
               border: isLight
                 ? '1px solid rgba(0, 0, 0, 0.05)'
                 : '1px solid rgba(255, 255, 255, 0.08)',
+              boxShadow: 'var(--btn-surface-shadow, 0 1px 3px rgba(0,0,0,0.12))',
               color: 'var(--c-text-primary)',
               cursor: 'pointer',
               zIndex: 2,
@@ -278,7 +281,7 @@ export function SharedFloatingHeader({
             </svg>
           </motion.button>
         ) : (
-          <div style={{ width: 40, height: 40, flexShrink: 0 }} />
+          <div style={{ width: 42, height: 42, flexShrink: 0 }} />
         )}
 
         {/* Mathematically Centered Section Title across complete top bar */}
@@ -306,11 +309,13 @@ export function SharedFloatingHeader({
               (title === 'Production Document' ? 'production-document-title' : undefined)
             }
             style={{
-              fontSize: '16px',
-              fontWeight: 750,
+              fontSize: 'var(--type-section-size, 19px)',
+              lineHeight: 'var(--type-section-lh, 24px)',
+              fontWeight: 600,
               color: 'var(--c-text-primary)',
-              letterSpacing: '-0.015em',
-              fontFamily: 'Manrope, sans-serif',
+              letterSpacing: 'var(--type-section-tracking, 0.6px)',
+              fontFamily:
+                'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',

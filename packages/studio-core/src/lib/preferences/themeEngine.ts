@@ -203,12 +203,15 @@ export function applyThemeTokens(settings: any) {
 
     // 4. Radius Tokens
     root.style.setProperty('--radius-xs', '0.25rem');
-    root.style.setProperty('--radius-sm', '0.5rem');
+    root.style.setProperty('--radius-sm', '0.375rem');
     root.style.setProperty('--radius-md', '0.75rem');
-    root.style.setProperty('--radius-lg', d.cardRadius); // Make standard radius adaptive
-    root.style.setProperty('--radius-xl', '1.25rem');
-    root.style.setProperty('--radius-2xl', '1.5rem');
-    root.style.setProperty('--radius-3xl', '2rem');
+    root.style.setProperty('--radius-compact', '12px');
+    root.style.setProperty('--radius-card', '16px');
+    root.style.setProperty('--radius-major', '18px');
+    root.style.setProperty('--radius-lg', '16px');
+    root.style.setProperty('--radius-xl', '18px');
+    root.style.setProperty('--radius-2xl', '20px');
+    root.style.setProperty('--radius-3xl', '24px');
     root.style.setProperty('--radius-full', '9999px');
   }
 
@@ -216,8 +219,19 @@ export function applyThemeTokens(settings: any) {
   const typoKey = `${settings?.fontSize ?? 'medium'}|${settings?.displayDensity ?? 'comfortable'}`;
   if (typoKey !== _lastTypographyKey) {
     _lastTypographyKey = typoKey;
-    root.style.setProperty('--font-headline', 'Manrope, sans-serif');
-    root.style.setProperty('--font-body', 'Inter, sans-serif');
+    root.style.setProperty(
+      '--font-title',
+      "'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    );
+    root.style.setProperty(
+      '--font-headline',
+      "'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    );
+    root.style.setProperty(
+      '--font-body',
+      "'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+    );
+    root.style.setProperty('--font-label', "'Inter', sans-serif");
 
     const sizes = {
       small: { base: '13px', sm: '11px', xs: '9px', lg: '16px', xl: '20px', hero: '2.2rem' },

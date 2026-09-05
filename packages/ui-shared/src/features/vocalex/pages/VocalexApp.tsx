@@ -305,10 +305,13 @@ function VocalexPreferences() {
             <h3
               style={{
                 margin: 0,
-                fontSize: 14,
-                fontWeight: 700,
-                fontFamily: 'var(--font-headline)',
-                color: 'var(--c-text-primary)',
+                fontSize: 'var(--type-body-size, 14.5px)',
+                lineHeight: 'var(--type-body-lh, 18px)',
+                fontWeight: 600,
+                fontFamily:
+                  'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                letterSpacing: '-0.2px',
+                color: 'var(--c-text-primary, var(--text))',
               }}
             >
               Start On
@@ -316,10 +319,12 @@ function VocalexPreferences() {
             <p
               style={{
                 margin: '4px 0 0',
-                fontSize: 12,
-                color: 'var(--c-text-secondary)',
-                fontFamily: 'var(--font-body)',
-                lineHeight: 1.4,
+                fontSize: 'var(--type-meta-size, 12px)',
+                lineHeight: 'var(--type-meta-lh, 16px)',
+                letterSpacing: 'var(--type-meta-tracking, 0.2px)',
+                color: 'var(--c-text-secondary, var(--muted))',
+                fontFamily:
+                  'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
               }}
             >
               Choose which screen opens when you launch Vocalex.
@@ -335,19 +340,21 @@ function VocalexPreferences() {
                     useSettingsStore.getState().updateSettings({ defaultVocalexTab: value })
                   }
                   title={label}
-                  className="btn-smooth"
+                  className="btn-smooth touch-target-44"
                   style={{
-                    width: '40px',
-                    height: '40px',
+                    width: 'var(--btn-size-md, 42px)',
+                    height: 'var(--btn-size-md, 42px)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    borderRadius: '10px',
-                    border: active ? `2px solid ${acc.from}` : '2px solid transparent',
+                    borderRadius: 'var(--radius-compact, 12px)',
+                    border: active
+                      ? `2px solid ${acc.from}`
+                      : '1px solid var(--track, var(--c-border))',
                     background: active
                       ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
                       : 'var(--app-surface-low)',
-                    color: active ? acc.from : 'var(--c-text-secondary)',
+                    color: active ? acc.from : 'var(--c-text-secondary, var(--muted))',
                     cursor: 'pointer',
                     transition: 'all 150ms ease',
                     flexShrink: 0,

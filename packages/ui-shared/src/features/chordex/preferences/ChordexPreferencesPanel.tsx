@@ -36,9 +36,13 @@ export default function ChordexPreferencesPanel() {
   const t = useT();
 
   const cardStyle: React.CSSProperties = {
-    background: 'var(--app-surface)',
-    borderRadius: '1.5rem',
+    background: 'var(--surface-card-bg, var(--app-surface))',
+    borderRadius: 'var(--radius-card, 16px)',
+    border: '1px solid var(--track, var(--c-border))',
+    boxShadow:
+      'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
     overflow: 'hidden',
+    position: 'relative',
     transition: 'background-color 700ms cubic-bezier(0.4,0,0.2,1)',
   };
 

@@ -235,7 +235,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
           type="button"
           onClick={handleFocusInput}
           disabled={isAtLimit}
-          className="relative z-10 w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
+          className="relative z-10 w-[38px] h-[38px] rounded-full flex items-center justify-center transition-all cursor-pointer shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 touch-target-44"
           style={{
             backgroundColor: isLight ? '#000000' : '#ffffff',
             color: isLight ? '#ffffff' : '#000000',
@@ -353,10 +353,13 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       animate={{ opacity: 1, y: 0 }}
                       exit={prefersReducedMotion ? undefined : { opacity: 0, scale: 0.96 }}
                       transition={{ duration: 0.18 }}
-                      className="rounded-2xl p-3.5 border shadow-card flex items-center justify-between transition-colors"
+                      className="p-3.5 border flex items-center justify-between transition-colors relative overflow-hidden"
                       style={{
+                        borderRadius: 'var(--radius-card, 16px)',
                         backgroundColor: cardBg,
-                        borderColor: cardBorder,
+                        borderColor: 'var(--track, var(--c-border))',
+                        boxShadow:
+                          'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
                       }}
                     >
                       <div className="flex items-center space-x-3 min-w-0 pr-2 flex-1">
@@ -379,8 +382,16 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                         {/* Info */}
                         <div className="min-w-0 flex-1">
                           <p
-                            className="font-bold text-sm leading-tight truncate"
-                            style={{ color: textPrimary }}
+                            className="truncate"
+                            style={{
+                              color: textPrimary,
+                              fontFamily:
+                                'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                              fontSize: 'var(--type-body-size, 14.5px)',
+                              lineHeight: 'var(--type-body-lh, 18px)',
+                              fontWeight: 600,
+                              margin: 0,
+                            }}
                           >
                             {member.name}
                           </p>
@@ -388,6 +399,8 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                             className="text-[11px] font-medium truncate mt-0.5"
                             style={{
                               color: isAssigned ? (isLight ? '#2563eb' : '#60a5fa') : textMuted,
+                              fontFamily:
+                                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
                             }}
                           >
                             {isAssigned
@@ -416,17 +429,19 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                                 {displayTags.map((tag) => (
                                   <span
                                     key={tag}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold tracking-wide"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs"
                                     style={{
+                                      borderRadius: 'var(--radius-compact, 12px)',
                                       backgroundColor: isLight
                                         ? 'rgba(0, 0, 0, 0.05)'
                                         : 'rgba(255, 255, 255, 0.08)',
                                       color: isLight ? '#27272a' : '#d4d4d8',
-                                      border: `1px solid ${
-                                        isLight
-                                          ? 'rgba(0, 0, 0, 0.08)'
-                                          : 'rgba(255, 255, 255, 0.12)'
-                                      }`,
+                                      border: '1px solid var(--track, var(--c-border))',
+                                      fontFamily:
+                                        'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                                      fontSize: 'var(--type-meta-size, 12px)',
+                                      lineHeight: 'var(--type-meta-lh, 16px)',
+                                      letterSpacing: 'var(--type-meta-tracking, 0.2px)',
                                     }}
                                     data-testid={`member-tag-badge-${tag}`}
                                   >
@@ -466,7 +481,7 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                       <button
                         type="button"
                         onClick={() => removeMember(member.id)}
-                        className="w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95 hover:bg-red-500/10 hover:text-red-500"
+                        className="w-[38px] h-[38px] rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer active:scale-95 hover:bg-red-500/10 hover:text-red-500 touch-target-44"
                         style={{ color: textSecondary }}
                         title="Remove member"
                         aria-label={`Remove ${member.name}`}
@@ -495,13 +510,42 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
 
         {/* ── 3. ADD MEMBER CARD (STITCH PARITY) ────────────────────── */}
         <section
-          className="rounded-3xl p-6 border shadow-card"
-          style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+          className="p-6 border relative overflow-hidden"
+          style={{
+            borderRadius: 'var(--radius-card, 16px)',
+            backgroundColor: cardBg,
+            borderColor: 'var(--track, var(--c-border))',
+            boxShadow:
+              'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
+          }}
           data-testid="add-member-card"
         >
+          {/* Top Specular Rim */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 12,
+              right: 12,
+              height: '1px',
+              background: 'var(--surface-card-inset, rgba(255, 255, 255, 0.08))',
+              pointerEvents: 'none',
+              opacity: 0.6,
+            }}
+          />
+
           <h3
-            className="text-xs font-bold tracking-wider uppercase mb-3.5 font-sans"
-            style={{ color: textSecondary }}
+            className="mb-3.5"
+            style={{
+              color: 'var(--c-text-primary, var(--text))',
+              fontFamily:
+                'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+              fontSize: 'var(--type-section-size, 19px)',
+              lineHeight: 'var(--type-section-lh, 24px)',
+              fontWeight: 'var(--type-section-weight, 600)' as any,
+              letterSpacing: 'var(--type-section-tracking, 0.6px)',
+              margin: '0 0 14px 0',
+            }}
           >
             {membersTr?.formAddTitle || (isSpanish ? 'AÑADIR MIEMBRO' : 'ADD MEMBER')}
           </h3>
@@ -517,11 +561,17 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                 placeholder={isSpanish ? 'Ingresa un nombre...' : 'Enter a name...'}
                 autoComplete="off"
                 disabled={isAtLimit}
-                className="w-full h-14 pl-4 pr-24 py-3 text-[15px] font-medium rounded-2xl border transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-14 pl-4 pr-24 py-3 transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
+                  borderRadius: 'var(--radius-compact, 12px)',
                   backgroundColor: inputBg,
-                  borderColor: inputBorder,
+                  borderColor: 'var(--track, var(--c-border))',
+                  borderWidth: '1px',
+                  borderStyle: 'solid',
                   color: textPrimary,
+                  fontFamily:
+                    'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                  fontSize: 'var(--type-body-size, 14.5px)',
                 }}
                 data-testid="input-member-name"
               />
@@ -529,10 +579,13 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
               <button
                 type="submit"
                 disabled={!name.trim() || isAtLimit}
-                className="absolute right-2 h-10 px-4 rounded-xl font-semibold text-xs tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="absolute right-2 h-[38px] px-4 font-semibold text-xs tracking-wide transition-all flex items-center justify-center space-x-1.5 shadow-sm active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer touch-target-44"
                 style={{
+                  borderRadius: 'var(--radius-compact, 12px)',
                   backgroundColor: isLight ? '#09090b' : '#ffffff',
                   color: isLight ? '#ffffff' : '#09090b',
+                  fontFamily:
+                    'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
                 }}
                 id="btn-add-member"
                 data-testid="btn-add-member"
@@ -626,8 +679,14 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                     key={tag.id}
                     type="button"
                     onClick={() => handleToggleTag(tag.id)}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer border active:scale-95 flex items-center gap-1"
+                    className="px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer border active:scale-95 flex items-center gap-1"
                     style={{
+                      borderRadius: 'var(--radius-compact, 12px)',
+                      fontFamily:
+                        'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                      fontSize: 'var(--type-meta-size, 12px)',
+                      lineHeight: 'var(--type-meta-lh, 16px)',
+                      letterSpacing: 'var(--type-meta-tracking, 0.2px)',
                       backgroundColor: isSelected
                         ? isLight
                           ? '#09090b'
@@ -635,7 +694,11 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
                         : isLight
                           ? 'rgba(0, 0, 0, 0.03)'
                           : 'rgba(255, 255, 255, 0.04)',
-                      borderColor: isSelected ? (isLight ? '#09090b' : '#ffffff') : inputBorder,
+                      borderColor: isSelected
+                        ? isLight
+                          ? '#09090b'
+                          : '#ffffff'
+                        : 'var(--track, var(--c-border))',
                       color: isSelected ? (isLight ? '#ffffff' : '#09090b') : textSecondary,
                     }}
                     data-testid={`tag-chip-${tag.id}`}
@@ -797,8 +860,14 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
         <section className="grid grid-cols-2 gap-3.5" data-testid="metrics-grid">
           {/* MEMBERS */}
           <article
-            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
-            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            className="p-5 flex flex-col justify-between min-h-[104px] relative overflow-hidden"
+            style={{
+              borderRadius: 'var(--radius-card, 16px)',
+              backgroundColor: cardBg,
+              border: '1px solid var(--track, var(--c-border))',
+              boxShadow:
+                'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
+            }}
             data-testid="metric-card-members"
           >
             <span
@@ -827,8 +896,14 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
 
           {/* ASSIGNED */}
           <article
-            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
-            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            className="p-5 flex flex-col justify-between min-h-[104px] relative overflow-hidden"
+            style={{
+              borderRadius: 'var(--radius-card, 16px)',
+              backgroundColor: cardBg,
+              border: '1px solid var(--track, var(--c-border))',
+              boxShadow:
+                'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
+            }}
             data-testid="metric-card-assigned"
           >
             <span
@@ -851,8 +926,14 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
 
           {/* STAGE ELEMENTS */}
           <article
-            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
-            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            className="p-5 flex flex-col justify-between min-h-[104px] relative overflow-hidden"
+            style={{
+              borderRadius: 'var(--radius-card, 16px)',
+              backgroundColor: cardBg,
+              border: '1px solid var(--track, var(--c-border))',
+              boxShadow:
+                'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
+            }}
             data-testid="metric-card-stage-elements"
           >
             <span
@@ -876,8 +957,14 @@ export const StageMembersView: React.FC<StageMembersViewProps> = ({
 
           {/* UNASSIGNED */}
           <article
-            className="rounded-2xl p-5 border shadow-card flex flex-col justify-between min-h-[104px]"
-            style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+            className="p-5 flex flex-col justify-between min-h-[104px] relative overflow-hidden"
+            style={{
+              borderRadius: 'var(--radius-card, 16px)',
+              backgroundColor: cardBg,
+              border: '1px solid var(--track, var(--c-border))',
+              boxShadow:
+                'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
+            }}
             data-testid="metric-card-unassigned"
           >
             <span

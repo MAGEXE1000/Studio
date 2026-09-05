@@ -30,12 +30,12 @@ export function StudioHeader({
   containerStyle = {},
 }: StudioHeaderProps) {
   const mergedTitleStyle: React.CSSProperties = {
-    fontFamily: 'Manrope, sans-serif',
+    fontFamily: 'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
     color: 'var(--c-text-primary)',
-    lineHeight: 1.15,
-    fontSize: '28px',
-    fontWeight: 850,
-    letterSpacing: '-0.03em',
+    lineHeight: 'var(--type-title-lh, 28px)',
+    fontSize: 'var(--type-title-size, 22px)',
+    fontWeight: 600,
+    letterSpacing: 'var(--type-title-tracking, -0.7px)',
     textAlign: 'left',
     marginTop: 0,
     marginBottom: 0,
@@ -43,11 +43,12 @@ export function StudioHeader({
   };
 
   const mergedSubtitleStyle: React.CSSProperties = {
-    fontFamily: 'Inter, sans-serif',
+    fontFamily: 'var(--type-body-font, var(--font-body, "Inter Tight", "Inter", sans-serif))',
     color: 'var(--c-text-secondary)',
-    lineHeight: 1.4,
-    fontSize: '13px',
-    fontWeight: 500,
+    lineHeight: 'var(--type-body-lh, 18px)',
+    fontSize: 'var(--type-body-size, 14.5px)',
+    fontWeight: 400,
+    letterSpacing: 'var(--type-body-tracking, 0.3px)',
     marginTop: '4px',
     marginBottom: 0,
     ...subtitleStyle,
@@ -83,14 +84,14 @@ export function StudioHeader({
       style={{
         paddingTop: disableTopInset
           ? 0
-          : 'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 40px))',
+          : 'var(--page-header-top-inset, calc(var(--safe-area-inset-top, env(safe-area-inset-top, 0px)) + 28px))',
         paddingBottom: 'var(--page-header-bottom-inset, 16px)',
         paddingLeft: disableHorizontalPadding
           ? 0
-          : 'var(--page-header-inset-h, var(--page-inset-h, 24px))',
+          : 'var(--page-header-inset-h, var(--page-pad-h, 16px))',
         paddingRight: disableHorizontalPadding
           ? 0
-          : 'var(--page-header-inset-h, var(--page-inset-h, 24px))',
+          : 'var(--page-header-inset-h, var(--page-pad-h, 16px))',
         display: 'flex',
         flexDirection: actions ? 'row' : 'column',
         alignItems: actions ? 'flex-end' : 'flex-start',

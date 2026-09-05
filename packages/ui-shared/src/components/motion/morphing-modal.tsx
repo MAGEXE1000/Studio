@@ -89,14 +89,15 @@ export function MorphingModal({
               }}
               transition={SPRING_PANEL}
               className={cn(
-                'pointer-events-auto relative w-full max-w-sm overflow-hidden rounded-3xl will-change-transform overscroll-contain',
+                'pointer-events-auto relative w-full max-w-sm overflow-hidden will-change-transform overscroll-contain',
                 className
               )}
               style={{
                 touchAction: 'pan-y',
+                borderRadius: 'var(--radius-major, 18px)',
                 background:
                   'var(--surface-dialog-bg, var(--app-surface-high, var(--c-surface-high)))',
-                border: '1px solid var(--c-border)',
+                border: '1px solid var(--track, var(--c-border))',
                 color: 'var(--c-text-primary)',
                 boxShadow:
                   '0 24px 64px -8px rgba(0, 0, 0, 0.5), 0 8px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08)',

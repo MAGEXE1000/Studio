@@ -466,18 +466,21 @@ export default function DrumPrefsPanel() {
                         onClick={() =>
                           useSettingsStore.getState().updateSettings({ defaultDrumTab: value })
                         }
+                        className="touch-target-44"
                         style={{
-                          width: '40px',
-                          height: '40px',
+                          width: 'var(--btn-size-md, 42px)',
+                          height: 'var(--btn-size-md, 42px)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          borderRadius: '10px',
-                          border: active ? `2px solid ${acc.from}` : '2px solid transparent',
+                          borderRadius: 'var(--radius-compact, 12px)',
+                          border: active
+                            ? `2px solid ${acc.from}`
+                            : '1px solid var(--track, var(--c-border))',
                           background: active
                             ? `linear-gradient(135deg, ${acc.from}22, ${acc.to}18)`
                             : 'var(--app-surface-low)',
-                          color: active ? acc.from : 'var(--c-text-secondary)',
+                          color: active ? acc.from : 'var(--c-text-secondary, var(--muted))',
                           cursor: 'pointer',
                           transition: 'all 150ms ease',
                           flexShrink: 0,

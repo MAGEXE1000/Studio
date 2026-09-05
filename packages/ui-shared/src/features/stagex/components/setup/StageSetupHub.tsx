@@ -117,39 +117,47 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
                 onClick={() => onSelectSubView(card.id)}
                 whileTap={{ scale: 0.988 }}
                 whileHover={{ y: -1 }}
-                className="w-full text-left p-5 sm:p-6 rounded-[22px] border transition-all duration-200 cursor-pointer"
+                className="w-full text-left p-5 sm:p-6 transition-all duration-200 cursor-pointer relative overflow-hidden"
                 style={{
+                  borderRadius: 'var(--radius-card, 16px)',
                   backgroundColor: isLight
                     ? '#ffffff'
                     : isAmoled
                       ? '#000000'
-                      : 'var(--app-surface, #111115)',
-                  borderColor: isLight
-                    ? 'rgba(0, 0, 0, 0.08)'
-                    : isAmoled
-                      ? 'rgba(255, 255, 255, 0.12)'
-                      : 'var(--c-border, rgba(255, 255, 255, 0.08))',
+                      : 'var(--surface-card-bg, var(--app-surface, #111115))',
+                  border: '1px solid var(--track, var(--c-border))',
+                  boxShadow:
+                    'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
                 }}
               >
+                {/* Top Specular Rim */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 12,
+                    right: 12,
+                    height: '1px',
+                    background: 'var(--surface-card-inset, rgba(255, 255, 255, 0.08))',
+                    pointerEvents: 'none',
+                    opacity: 0.6,
+                  }}
+                />
+
                 {/* Top row: Icon container at upper-left & Chevron at upper-right */}
                 <div className="flex items-center justify-between w-full">
                   <div
-                    className="w-12 h-12 rounded-[16px] flex items-center justify-center border"
+                    className="w-11 h-11 flex items-center justify-center"
                     style={{
+                      borderRadius: 'var(--radius-compact, 12px)',
                       backgroundColor: isLight
                         ? 'rgba(0, 0, 0, 0.04)'
-                        : isAmoled
-                          ? 'rgba(255, 255, 255, 0.05)'
-                          : 'rgba(255, 255, 255, 0.05)',
-                      borderColor: isLight
-                        ? 'rgba(0, 0, 0, 0.06)'
-                        : isAmoled
-                          ? 'rgba(255, 255, 255, 0.10)'
-                          : 'rgba(255, 255, 255, 0.06)',
+                        : 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid var(--track, var(--c-border))',
                     }}
                   >
                     <span
-                      className="material-symbols-outlined text-[24px]"
+                      className="material-symbols-outlined text-[22px]"
                       style={{
                         color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
                       }}
@@ -160,30 +168,42 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
                   <span
                     className="material-symbols-outlined text-[22px]"
                     style={{
-                      color: isLight ? '#a1a1aa' : 'rgba(255, 255, 255, 0.35)',
+                      color: isLight ? '#a1a1aa' : 'var(--c-text-secondary, var(--muted))',
                     }}
                   >
                     chevron_right
                   </span>
                 </div>
 
-                {/* Middle row: Large Section Title & Muted Description */}
-                <div className="mt-5 mb-5">
+                {/* Middle row: Section Title & Muted Description */}
+                <div className="mt-4 mb-4">
                   <h3
-                    className="text-[20px] font-bold tracking-tight"
                     style={{
-                      color: isLight ? 'var(--c-text-primary, #09090b)' : '#ffffff',
-                      fontFamily: 'Manrope, sans-serif',
-                      lineHeight: 1.25,
+                      color: isLight
+                        ? 'var(--c-text-primary, #09090b)'
+                        : 'var(--c-text-primary, var(--text))',
+                      fontFamily:
+                        'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                      fontSize: 'var(--type-section-size, 19px)',
+                      lineHeight: 'var(--type-section-lh, 24px)',
+                      fontWeight: 'var(--type-section-weight, 600)' as any,
+                      letterSpacing: 'var(--type-section-tracking, 0.6px)',
                       margin: 0,
                     }}
                   >
                     {card.title}
                   </h3>
                   <p
-                    className="text-[13px] font-normal leading-relaxed mt-1"
                     style={{
-                      color: isLight ? 'var(--c-text-secondary, #71717a)' : '#a1a1aa',
+                      color: isLight
+                        ? 'var(--c-text-secondary, #71717a)'
+                        : 'var(--c-text-secondary, var(--muted))',
+                      fontFamily:
+                        'var(--type-body-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                      fontSize: 'var(--type-body-size, 14.5px)',
+                      lineHeight: 'var(--type-body-lh, 18px)',
+                      fontWeight: 'var(--type-body-weight, 400)' as any,
+                      letterSpacing: 'var(--type-body-tracking, 0.3px)',
                       margin: '4px 0 0 0',
                     }}
                   >
@@ -194,13 +214,22 @@ export const StageSetupHub: React.FC<StageSetupHubProps> = ({
                 {/* Bottom row: Item Count / Status Badge */}
                 <div className="flex items-center">
                   <span
-                    className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide border"
+                    className="inline-flex items-center px-3 py-1 text-xs"
                     style={{
+                      borderRadius: 'var(--radius-compact, 12px)',
                       backgroundColor: isLight
                         ? 'rgba(0, 0, 0, 0.04)'
                         : 'rgba(255, 255, 255, 0.06)',
-                      borderColor: isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)',
-                      color: isLight ? 'var(--c-text-secondary, #71717a)' : '#d4d4d8',
+                      border: '1px solid var(--track, var(--c-border))',
+                      color: isLight
+                        ? 'var(--c-text-secondary, #71717a)'
+                        : 'var(--c-text-secondary, var(--muted))',
+                      fontFamily:
+                        'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
+                      fontSize: 'var(--type-meta-size, 12px)',
+                      lineHeight: 'var(--type-meta-lh, 16px)',
+                      fontWeight: 500,
+                      letterSpacing: 'var(--type-meta-tracking, 0.2px)',
                     }}
                   >
                     {card.badge}

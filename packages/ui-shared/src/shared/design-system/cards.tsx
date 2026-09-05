@@ -41,13 +41,16 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       <Component
         ref={ref}
         style={{
-          borderRadius: 20,
-          padding: '16px 18px',
-          background: glass ? 'var(--surface-topbar-bg)' : 'var(--c-surface-mid)',
+          borderRadius: 'var(--radius-card, 16px)',
+          padding: 'var(--card-pad, 16px)',
+          background: glass
+            ? 'var(--surface-topbar-bg)'
+            : 'var(--surface-card-bg, var(--c-surface-mid))',
           border: accentBorder
             ? `1.5px solid var(--c-accent-from, #7c3aed)`
-            : `1px solid var(--c-border)`,
-          boxShadow: 'var(--elevation-low)',
+            : `1px solid var(--track, var(--c-border))`,
+          boxShadow:
+            'var(--surface-card-shadow, var(--elevation-low)), var(--surface-card-inset, inset 0 1px 0 rgba(255, 255, 255, 0.08))',
           backdropFilter: glass ? 'var(--surface-topbar-blur, blur(16px))' : 'none',
           WebkitBackdropFilter: glass ? 'var(--surface-topbar-blur, blur(16px))' : 'none',
           cursor: interactive ? 'pointer' : 'default',
@@ -119,16 +122,17 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
         onClick={onClick}
         style={{
           background: 'var(--surface-topbar-bg)',
-          border: 'var(--surface-topbar-border)',
-          borderRadius: 20,
-          padding: '16px',
+          border: '1px solid var(--track, var(--c-border))',
+          borderRadius: 'var(--radius-card, 16px)',
+          padding: 'var(--card-pad, 16px)',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           minHeight: 96,
           backdropFilter: 'var(--surface-float-blur)',
           WebkitBackdropFilter: 'var(--surface-float-blur)',
-          boxShadow: 'var(--surface-topbar-shadow)',
+          boxShadow:
+            'var(--surface-card-shadow, var(--surface-topbar-shadow)), var(--surface-card-inset, inset 0 1px 0 rgba(255, 255, 255, 0.08))',
           position: 'relative',
           overflow: 'hidden',
           boxSizing: 'border-box',
@@ -214,13 +218,14 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
             {title && (
               <p
                 style={{
-                  fontFamily: 'Manrope, sans-serif',
-                  fontWeight: 850,
-                  fontSize: 24,
+                  fontFamily:
+                    'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+                  fontWeight: 600,
+                  fontSize: 'var(--type-title-size, 22px)',
                   color: 'var(--c-text-primary)',
                   margin: 0,
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.025em',
+                  lineHeight: 'var(--type-title-lh, 28px)',
+                  letterSpacing: 'var(--type-title-tracking, -0.7px)',
                 }}
               >
                 {title}
@@ -229,12 +234,15 @@ export const BentoCard = forwardRef<HTMLDivElement, BentoCardProps>(
             {subtitle && (
               <p
                 style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: 11.5,
-                  color: 'var(--c-text-secondary)',
+                  fontFamily:
+                    'var(--type-body-font, var(--font-body, "Inter Tight", "Inter", sans-serif))',
+                  fontSize: 'var(--type-body-size, 14.5px)',
+                  color: 'var(--muted, var(--c-text-secondary))',
                   margin: '3px 0 0',
-                  lineHeight: 1.2,
-                  opacity: 0.82,
+                  lineHeight: 'var(--type-body-lh, 18px)',
+                  letterSpacing: 'var(--type-body-tracking, 0.3px)',
+                  fontWeight: 400,
+                  opacity: 0.88,
                 }}
               >
                 {subtitle}
@@ -276,13 +284,15 @@ export function Surface({
     <div
       style={{
         backgroundColor: getBg(),
-        border: `1px solid rgba(255, 255, 255, 0.08)`,
+        border: `1px solid var(--track, var(--c-border))`,
         backdropFilter: glass ? 'blur(20px) saturate(180%)' : 'none',
         WebkitBackdropFilter: glass ? 'blur(20px) saturate(180%)' : 'none',
         color: 'var(--c-text-primary)',
-        boxShadow: glass ? '0 8px 24px rgba(0, 0, 0, 0.16)' : 'none',
+        boxShadow: glass
+          ? 'var(--surface-deep-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-deep-inset, inset 0 1px 0 rgba(255, 255, 255, 0.08))'
+          : 'var(--elevation-low)',
         transition: 'background-color 200ms ease, border-color 200ms ease, color 200ms ease',
-        borderRadius: 20,
+        borderRadius: 'var(--radius-major, 18px)',
         ...style,
       }}
       className={`studio-surface ${className}`}

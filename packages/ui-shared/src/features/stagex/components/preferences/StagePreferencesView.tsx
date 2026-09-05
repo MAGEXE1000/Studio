@@ -53,14 +53,17 @@ export const StagePreferencesView: React.FC<StagePreferencesViewProps> = ({
   const isSpanish = currentLanguage === 'es';
 
   const cardStyle: React.CSSProperties = {
-    background: isLight ? '#ffffff' : isAmoled ? '#000000' : 'var(--app-surface, #111115)',
-    border: isLight
-      ? '1px solid #eaecef'
+    background: isLight
+      ? '#ffffff'
       : isAmoled
-        ? '1px solid rgba(255, 255, 255, 0.12)'
-        : '1px solid var(--c-border, rgba(255, 255, 255, 0.08))',
-    borderRadius: '1.5rem',
+        ? '#000000'
+        : 'var(--surface-card-bg, var(--app-surface, #111115))',
+    border: '1px solid var(--track, var(--c-border))',
+    borderRadius: 'var(--radius-card, 16px)',
+    boxShadow:
+      'var(--surface-card-shadow, 0 8px 24px rgba(0, 0, 0, 0.16)), var(--surface-card-inset, inset 0 1px 1px rgba(255, 255, 255, 0.08))',
     overflow: 'hidden',
+    position: 'relative',
   };
 
   const gridSizes = [

@@ -471,11 +471,14 @@ function PrefCard({
         </span>
         <h3
           style={{
-            fontSize: 17,
-            fontWeight: 700,
-            color: 'var(--c-text-primary)',
+            fontSize: 'var(--type-section-size, 19px)',
+            lineHeight: 'var(--type-section-lh, 24px)',
+            fontWeight: 600,
+            color: 'var(--c-text-primary, var(--text))',
             margin: 0,
-            fontFamily: 'var(--font-headline)',
+            fontFamily:
+              'var(--type-section-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+            letterSpacing: 'var(--type-section-tracking, 0.6px)',
           }}
         >
           {title}

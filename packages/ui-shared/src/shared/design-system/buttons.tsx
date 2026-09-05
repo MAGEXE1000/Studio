@@ -138,11 +138,16 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const colors = getColors();
 
-    // Size mappings matching HeroUI and modern mobile standards
+    // Size mappings matching canonical mobile standards
     const getPaddingAndHeight = () => {
       if (size === 'icon' || isIconOnly) {
-        const boxSize = size === 'sm' ? '32px' : size === 'lg' ? '48px' : '40px';
-        const rad = size === 'sm' ? '12px' : size === 'lg' ? '16px' : '14px';
+        const boxSize =
+          size === 'sm'
+            ? 'var(--btn-size-sm, 38px)'
+            : size === 'lg'
+              ? 'var(--btn-size-lg, 46px)'
+              : 'var(--btn-size-md, 42px)';
+        const rad = size === 'lg' ? 'var(--radius-card, 16px)' : 'var(--radius-compact, 12px)';
         return {
           height: boxSize,
           width: boxSize,
@@ -153,34 +158,34 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       }
       if (size === 'sm') {
         return {
-          height: '32px',
+          height: 'var(--btn-size-sm, 38px)',
           width: fullWidth ? '100%' : undefined,
           padding: '0 14px',
-          fontSize: '12px',
-          borderRadius: '16px',
+          fontSize: '13px',
+          borderRadius: 'var(--radius-compact, 12px)',
         };
       }
       if (size === 'lg') {
         return {
-          height: '48px',
+          height: 'var(--btn-size-lg, 46px)',
           width: fullWidth ? '100%' : undefined,
-          padding: '0 24px',
+          padding: '0 20px',
           fontSize: '15px',
-          borderRadius: '24px',
+          borderRadius: 'var(--radius-card, 16px)',
         };
       }
       return {
-        height: '40px',
+        height: 'var(--btn-size-md, 42px)',
         width: fullWidth ? '100%' : undefined,
-        padding: '0 18px',
+        padding: '0 16px',
         fontSize: '13.5px',
-        borderRadius: '20px',
+        borderRadius: 'var(--radius-compact, 12px)',
       };
     };
 
     const dims = getPaddingAndHeight();
     const resolvedSizeClass = size === 'icon' ? 'button--icon-only button--md' : `button--${size}`;
-    const iconOnlyClass = isIconOnly ? 'button--icon-only' : '';
+    const iconOnlyClass = isIconOnly ? 'button--icon-only touch-target-44' : '';
     const fullWidthClass = fullWidth ? 'button--full-width' : '';
 
     return (
@@ -197,9 +202,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           padding: dims.padding,
           fontSize: dims.fontSize,
           borderRadius: dims.borderRadius,
-          fontFamily: 'Manrope, sans-serif',
-          fontWeight: 750,
-          letterSpacing: '-0.01em',
+          fontFamily:
+            'var(--type-button-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+          fontWeight: 600,
+          letterSpacing: 'var(--type-button-tracking, -0.2px)',
           background: colors.bg,
           color: colors.text,
           border: `1px solid ${colors.border}`,
@@ -348,9 +354,23 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     const canHover = useHoverCapable();
 
     const getDim = () => {
-      if (size === 'sm') return { box: 32, icon: 16, radius: shape === 'circle' ? '50%' : '10px' };
-      if (size === 'lg') return { box: 46, icon: 22, radius: shape === 'circle' ? '50%' : '16px' };
-      return { box: 38, icon: 18, radius: shape === 'circle' ? '50%' : '12px' };
+      if (size === 'sm')
+        return {
+          box: 38,
+          icon: 18,
+          radius: shape === 'circle' ? '50%' : 'var(--radius-compact, 12px)',
+        };
+      if (size === 'lg')
+        return {
+          box: 46,
+          icon: 22,
+          radius: shape === 'circle' ? '50%' : 'var(--radius-card, 16px)',
+        };
+      return {
+        box: 42,
+        icon: 20,
+        radius: shape === 'circle' ? '50%' : 'var(--radius-compact, 12px)',
+      };
     };
 
     const dim = getDim();
@@ -358,18 +378,18 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
     const getStyles = () => {
       if (variant === 'primary') {
         return {
-          bg: 'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
+          bg: 'linear-gradient(135deg, var(--c-accent-from, #2563eb), var(--c-accent-to, var(--c-accent-from, #2563eb)))',
           color: 'var(--color-on-tertiary, #ffffff)',
           border: '1px solid var(--studio-accent-border, rgba(255, 255, 255, 0.20))',
-          shadow: 'var(--studio-accent-glow)',
+          shadow: 'var(--studio-accent-glow), inset 0 1px 1.5px rgba(255, 255, 255, 0.35)',
         };
       }
-      if (variant === 'danger') {
+      if (variant === 'danger' || variant === 'danger-soft') {
         return {
           bg: 'rgba(239, 68, 68, 0.12)',
           color: 'var(--c-error, #ef4444)',
           border: '1px solid rgba(239, 68, 68, 0.25)',
-          shadow: '0 2px 8px rgba(239, 68, 68, 0.15)',
+          shadow: '0 2px 8px rgba(239, 68, 68, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
         };
       }
       if (variant === 'ghost') {
@@ -381,10 +401,11 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         };
       }
       return {
-        bg: 'var(--surface-topbar-bg)',
-        color: 'var(--c-text-primary)',
-        border: '1px solid var(--c-border)',
-        shadow: 'var(--elevation-low)',
+        bg: 'var(--btn-surface-bg, var(--surface-topbar-bg))',
+        color: 'var(--strong, var(--c-text-primary))',
+        border: '1px solid var(--track, var(--c-border))',
+        shadow:
+          'var(--btn-surface-shadow, 0 2px 8px rgba(0, 0, 0, 0.16)), var(--btn-surface-inset, inset 0 1px 1px rgba(255, 255, 255, 0.16))',
       };
     };
 
@@ -417,7 +438,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           boxSizing: 'border-box',
           ...style,
         }}
-        className={`btn-smooth ${className}`}
+        className={`btn-smooth touch-target-44 ${className}`}
         {...(props as any)}
       >
         {loading ? (
@@ -453,7 +474,7 @@ export function FloatingButton({ icon, style, className = '', ...props }: Floati
       style={{
         width: '56px',
         height: '56px',
-        borderRadius: '20px',
+        borderRadius: 'var(--radius-major, 18px)',
         background:
           'linear-gradient(135deg, var(--c-accent-from, #7c3aed), var(--c-accent-to, var(--c-accent-from, #7c3aed)))',
         color: '#ffffff',

@@ -2513,8 +2513,8 @@ function AppRow({
           background: pressed
             ? 'var(--hub-card-pressed-bg, rgba(255, 255, 255, 0.04))'
             : 'var(--hub-card-bg, rgba(255, 255, 255, 0.01))',
-          border: '1px solid var(--hub-card-border, rgba(255, 255, 255, 0.06))',
-          borderRadius: '10px',
+          border: '1px solid var(--track, var(--hub-card-border, rgba(255, 255, 255, 0.06)))',
+          borderRadius: 'var(--radius-compact, 12px)',
           cursor: 'pointer',
           textAlign: 'left',
           transform: pressed ? 'scale(0.99)' : 'scale(1)',
@@ -2526,12 +2526,13 @@ function AppRow({
       >
         <div
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: 8,
+            width: 36,
+            height: 36,
+            borderRadius: 'var(--radius-compact, 12px)',
             flexShrink: 0,
             background: 'var(--hub-card-icon-bg, rgba(255, 255, 255, 0.04))',
-            border: '1px solid var(--hub-card-icon-border, rgba(255, 255, 255, 0.08))',
+            border:
+              '1px solid var(--track, var(--hub-card-icon-border, rgba(255, 255, 255, 0.08)))',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -2543,21 +2544,27 @@ function AppRow({
         <div style={{ flex: 1, minWidth: 0 }}>
           <p
             style={{
-              fontSize: 13,
-              fontWeight: 700,
-              color: 'var(--c-text-primary)',
+              fontSize: 'var(--type-body-size, 14.5px)',
+              lineHeight: 'var(--type-body-lh, 18px)',
+              fontWeight: 600,
+              fontFamily:
+                'var(--type-title-font, var(--font-title, "Inter Tight", "Inter", sans-serif))',
+              color: 'var(--c-text-primary, var(--text))',
               margin: 0,
-              letterSpacing: '-0.01em',
+              letterSpacing: '-0.2px',
             }}
           >
             {name}
           </p>
           <p
             style={{
-              fontSize: 10,
-              color: 'var(--c-text-secondary)',
+              fontSize: 'var(--type-meta-size, 12px)',
+              lineHeight: 'var(--type-meta-lh, 16px)',
+              color: 'var(--c-text-secondary, var(--muted))',
+              fontFamily:
+                'var(--type-meta-font, var(--font-sans, "Inter Tight", "Inter", sans-serif))',
               margin: '2px 0 0',
-              fontWeight: 500,
+              fontWeight: 400,
             }}
           >
             {desc}

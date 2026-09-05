@@ -45,16 +45,21 @@
   --color-error-dim: #bb5551;
   --color-error-container: #7f2927;
 
-  --font-headline: 'Manrope', sans-serif;
+  --font-headline:
+    'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-label: 'Inter', sans-serif;
-  --font-sans: 'Manrope', sans-serif;
+  --font-sans:
+    'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
+  --radius-compact: 12px;
+  --radius-card: 16px;
+  --radius-major: 18px;
   --radius-sm: 0.375rem;
   --radius-md: 0.75rem;
-  --radius-lg: 1.25rem;
-  --radius-xl: 1.75rem;
-  --radius-2xl: 2.25rem;
-  --radius-3xl: 2.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.125rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
   --radius-full: 9999px;
   --expo-out: linear(
     0 0%,
@@ -249,9 +254,9 @@
   --c-error-dim: #f87171;
   --c-error-container: rgba(239, 68, 68, 0.15);
 
-  --elevation-low: none;
-  --elevation-mid: none;
-  --elevation-high: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --elevation-low: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --elevation-mid: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --elevation-high: 0 8px 32px rgba(0, 0, 0, 0.45);
 
   --c-accent-from: var(--studio-accent-from);
   --c-accent-to: var(--studio-accent-to);
@@ -261,6 +266,106 @@
   --c-accent-glow: var(--studio-accent-glow);
   --c-accent-border: var(--studio-accent-border);
   --c-brand: var(--c-accent-from);
+
+  /* ── Canonical Typography Hierarchy (Inter Tight Standard) ── */
+  --font-title:
+    'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body:
+    'Inter Tight', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Titles: Inter Tight, 22px, line-height 28px, Semi Bold, letter-spacing: -0.7px */
+  --type-title-font: var(--font-title);
+  --type-title-size: 22px;
+  --type-title-lh: 28px;
+  --type-title-weight: 600;
+  --type-title-tracking: -0.7px;
+
+  /* Section headers: Inter Tight, 19px, line-height 24px, Semi Bold, letter-spacing: 0.6px */
+  --type-section-font: var(--font-title);
+  --type-section-size: 19px;
+  --type-section-lh: 24px;
+  --type-section-weight: 600;
+  --type-section-tracking: 0.6px;
+
+  /* Body / day labels: Inter Tight, 14.5px, line-height 18px, Regular, letter-spacing: 0.3px */
+  --type-body-font: var(--font-body);
+  --type-body-size: 14.5px;
+  --type-body-lh: 18px;
+  --type-body-weight: 400;
+  --type-body-tracking: 0.3px;
+
+  /* Metadata / secondary labels */
+  --type-metadata-size: 12.5px;
+  --type-metadata-lh: 16px;
+  --type-metadata-weight: 500;
+  --type-metadata-tracking: 0.15px;
+
+  /* Category / uppercase subheads */
+  --type-caption-size: 10.5px;
+  --type-caption-lh: 14px;
+  --type-caption-weight: 700;
+  --type-caption-tracking: 0.12em;
+
+  /* Button label */
+  --type-button-size: 13.5px;
+  --type-button-lh: 18px;
+  --type-button-weight: 600;
+  --type-button-tracking: -0.2px;
+
+  /* Navigation label */
+  --type-nav-size: 11px;
+  --type-nav-lh: 14px;
+  --type-nav-weight: 500;
+  --type-nav-tracking: 0.1px;
+
+  /* ── Canonical Deterministic Spacing Scale ── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  /* ── Canonical Mobile Geometry Dimensions ── */
+  --header-h: 58px;
+  --header-compact-h: 48px;
+  --bottom-nav-h: 58px;
+  --page-pad-h: 16px;
+  --card-pad: 16px;
+  --section-gap: 20px;
+
+  /* ── Canonical Circular Control Sizes ── */
+  --btn-size-sm: 38px;
+  --btn-size-md: 42px;
+  --btn-size-lg: 46px;
+  --btn-touch-min: 44px;
+
+  /* ── Canonical 3-Tier Radius System ── */
+  --radius-compact: 12px;
+  --radius-card: 16px;
+  --radius-major: 18px;
+
+  /* ── Semantic Color Tokens ── */
+  --text: var(--c-text-primary);
+  --muted: var(--c-text-secondary);
+  --strong: var(--c-text-primary);
+  --track: var(--c-border);
+
+  /* ── Layered Surface Elevation & Specular Depth ── */
+  --surface-card-bg: var(--c-surface-mid);
+  --surface-card-shadow: 0 2px 10px rgba(0, 0, 0, 0.22);
+  --surface-card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --surface-card-highlight: 0 0 0 1px rgba(255, 255, 255, 0.05);
+
+  --surface-deep-bg: var(--c-surface-high);
+  --surface-deep-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+  --surface-deep-inset: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+  --btn-surface-bg: var(--c-surface-high);
+  --btn-surface-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --btn-surface-inset: inset 0 1px 1px rgba(255, 255, 255, 0.16);
 }
 
 /* ── Dedicated App Identity Brand Colors (Hub cards, logos, branding only) ──
@@ -376,6 +481,19 @@
   --hub-card-icon-bg: rgba(255, 255, 255, 0.04);
   --hub-card-icon-border: rgba(255, 255, 255, 0.08);
   --control-track-bg: rgba(0, 0, 0, 0.65);
+
+  --surface-card-bg: #000000;
+  --surface-card-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  --surface-card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --surface-card-highlight: 0 0 0 1px rgba(255, 255, 255, 0.06);
+
+  --surface-deep-bg: #080808;
+  --surface-deep-shadow: 0 8px 28px rgba(0, 0, 0, 0.7);
+  --surface-deep-inset: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  --btn-surface-bg: #0d0d0d;
+  --btn-surface-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --btn-surface-inset: inset 0 1px 1px rgba(255, 255, 255, 0.14);
 }
 
 :root.light.amoled {
@@ -460,6 +578,19 @@
   --hub-card-icon-bg: rgba(0, 0, 0, 0.03);
   --hub-card-icon-border: rgba(0, 0, 0, 0.06);
   --control-track-bg: rgba(0, 0, 0, 0.07);
+
+  --surface-card-bg: #ffffff;
+  --surface-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --surface-card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --surface-card-highlight: 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  --surface-deep-bg: #ffffff;
+  --surface-deep-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --surface-deep-inset: inset 0 1px 0 rgba(255, 255, 255, 1);
+
+  --btn-surface-bg: rgba(0, 0, 0, 0.04);
+  --btn-surface-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --btn-surface-inset: inset 0 1px 1px rgba(255, 255, 255, 0.9);
 }
 
 /* Body background always tracks the active theme so the status bar area blends in */
@@ -474,6 +605,23 @@ html,
 }
 .sc-setting-row-interactive:hover {
   background: var(--c-border);
+}
+
+/* Accessible touch target expansion (minimum 44px) for compact controls */
+.touch-target-44 {
+  position: relative;
+}
+.touch-target-44::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 44px;
+  min-height: 44px;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
 }
 
 /* ============================================================
@@ -2802,8 +2950,8 @@ html.web-desktop.light.amoled .app-sub-app-container {
   max-height: calc(100dvh - 48px);
   background: var(--surface-dialog-bg, var(--app-surface-high, var(--c-surface-high)));
   color: var(--c-text-primary);
-  border: 1px solid var(--c-border);
-  border-radius: 24px;
+  border: 1px solid var(--track, var(--c-border));
+  border-radius: var(--radius-major, 18px);
   box-shadow:
     0 24px 64px -8px rgba(0, 0, 0, 0.5),
     0 8px 24px -4px rgba(0, 0, 0, 0.3),
@@ -2824,7 +2972,7 @@ html.light .alert-dialog__dialog,
   box-shadow:
     0 20px 48px -4px rgba(0, 0, 0, 0.14),
     0 4px 12px -2px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 /* Size modifiers */
@@ -2832,17 +2980,17 @@ html.light .alert-dialog__dialog,
   max-width: 320px;
 }
 .alert-dialog__dialog--sm {
-  max-width: 380px;
+  max-width: 360px;
 }
 .alert-dialog__dialog--md {
   max-width: 440px;
 }
 .alert-dialog__dialog--lg {
-  max-width: 540px;
+  max-width: 520px;
 }
 .alert-dialog__dialog--cover {
   max-width: 100%;
-  height: 100%;
+  max-height: 100%;
   border-radius: 0;
 }
 
@@ -2854,7 +3002,7 @@ html.light .alert-dialog__dialog,
   gap: 12px;
   padding-bottom: 12px;
   margin-bottom: 8px;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: 1px solid var(--track, var(--c-border));
   padding-right: 28px;
 }
 
@@ -2862,12 +3010,12 @@ html.light .alert-dialog__dialog,
 .alert-dialog__heading,
 [data-slot='alert-dialog-heading'] {
   margin: 0;
-  font-family: 'Manrope', sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--c-text-primary);
-  line-height: 1.3;
+  font-family: var(--type-section-font, var(--font-title, 'Inter Tight', 'Inter', sans-serif));
+  font-size: var(--type-section-size, 19px);
+  line-height: var(--type-section-lh, 24px);
+  font-weight: var(--type-section-weight, 600);
+  letter-spacing: var(--type-section-tracking, 0.6px);
+  color: var(--c-text-primary, var(--text));
 }
 
 /* Status Icon */
@@ -2876,40 +3024,30 @@ html.light .alert-dialog__dialog,
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   flex-shrink: 0;
-  font-size: 20px;
 }
 
 .alert-dialog__icon--danger {
-  background: rgba(238, 125, 119, 0.14);
-  border: 1px solid rgba(238, 125, 119, 0.28);
-  color: #ee7d77;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
 }
-
 .alert-dialog__icon--warning {
-  background: rgba(251, 191, 36, 0.14);
-  border: 1px solid rgba(251, 191, 36, 0.28);
-  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
 }
-
 .alert-dialog__icon--success {
-  background: rgba(16, 185, 129, 0.14);
-  border: 1px solid rgba(16, 185, 129, 0.28);
-  color: #10b981;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
 }
-
 .alert-dialog__icon--accent {
-  background: rgba(37, 99, 235, 0.14);
-  border: 1px solid rgba(37, 99, 235, 0.28);
-  color: var(--studio-accent-from, #2563eb);
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
 }
-
 .alert-dialog__icon--default {
-  background: rgba(128, 128, 128, 0.1);
-  border: 1px solid var(--c-border);
+  background: rgba(128, 128, 128, 0.12);
   color: var(--c-text-secondary);
 }
 
@@ -2921,10 +3059,11 @@ html.light .alert-dialog__dialog,
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  font-family: 'Inter', sans-serif;
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--c-text-secondary);
+  font-family: var(--type-body-font, var(--font-sans, 'Inter Tight', 'Inter', sans-serif));
+  font-size: var(--type-body-size, 14.5px);
+  line-height: var(--type-body-lh, 18px);
+  letter-spacing: var(--type-body-tracking, 0.3px);
+  color: var(--c-text-secondary, var(--muted));
   scrollbar-width: thin;
 }
 
@@ -2938,24 +3077,24 @@ html.light .alert-dialog__dialog,
   gap: 10px;
   padding-top: 14px;
   margin-top: 10px;
-  border-top: 1px solid var(--c-border);
+  border-top: 1px solid var(--track, var(--c-border));
 }
 
 /* Close Trigger */
 .alert-dialog__close-trigger,
 [data-slot='alert-dialog-close-trigger'] {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 28px;
-  height: 28px;
+  top: 14px;
+  right: 14px;
+  width: var(--btn-size-sm, 38px);
+  height: var(--btn-size-sm, 38px);
   border-radius: 50%;
   background: rgba(128, 128, 128, 0.08);
-  border: 1px solid var(--c-border);
+  border: 1px solid var(--track, var(--c-border));
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--c-text-secondary);
+  color: var(--c-text-secondary, var(--muted));
   cursor: pointer;
   padding: 0;
   transition: all 150ms ease;

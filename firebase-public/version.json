@@ -1,26 +1,15 @@
 {
   "platform": "web",
-  "version": "4.5.63",
-  "versionName": "4.5.63",
-  "versionCode": 40563,
-  "version_code": 40563,
-  "commit": "fdc02f14",
-  "releasedAt": "9/5/2026, 5:04:36 PM CST",
-  "buildTimestamp": "9/5/2026, 5:04:36 PM CST",
+  "version": "4.5.64",
+  "versionName": "4.5.64",
+  "versionCode": 40564,
+  "version_code": 40564,
+  "commit": "e47600d8",
+  "releasedAt": "9/5/2026, 5:50:57 PM CST",
+  "buildTimestamp": "9/5/2026, 5:50:57 PM CST",
   "updateMode": "refresh",
-  "changelog": "• Canonical Chordex Section-Entry Animations: Integrated the canonical Studio motion system (`StudioPageTransition` with `variant=\"drilldown\"`) across all redesigned Chordex views (Library, Category browsing, Chord Detail, Songs list, Song Editor, and Saxophone Practice).\n• Dynamic Drilldown Initial Entrance Support: Enhanced `StudioPageTransition` to support conditional initial mount entrance transitions, ensuring sub-views animate smoothly upon appearance while preserving root tab transitions.\n• Canonical Studio Header Parity: Replaced all custom, ad-hoc, and static headers across Chordex with canonical `StudioHeader` (in-flow) and `SharedFloatingHeader` (floating glass capsule) components.\n• Studio Performance & Architecture Optimization: Consolidated redundant orientation and navigation listeners in Stagex, purged dead module candidate scoring loops in Studio Hub, and eliminated unreferenced redesign imports across Chordex and Vocalex.\n• Drumex Pattern Library Layout Unification: Unified desktop and mobile pattern browsing under the canonical `DrumPatternsPanel`, removing over 700 lines of duplicate code and reducing bundle overhead.\n• Groovex Store Selector Memoization: Converted broad store subscriptions in Groovex Preferences to fine-grained atomic Zustand selectors, isolating preference views from unrelated playback state mutations.",
-  "whatsNew": "• Canonical Chordex Section-Entry Animations: Integrated the canonical Studio motion system (`StudioPageTransition` with `variant=\"drilldown\"`) across all redesigned Chordex views (Library, Category browsing, Chord Detail, Songs list, Song Editor, and Saxophone Practice).\n• Dynamic Drilldown Initial Entrance Support: Enhanced `StudioPageTransition` to support conditional initial mount entrance transitions, ensuring sub-views animate smoothly upon appearance while preserving root tab transitions.\n• Canonical Studio Header Parity: Replaced all custom, ad-hoc, and static headers across Chordex with canonical `StudioHeader` (in-flow) and `SharedFloatingHeader` (floating glass capsule) components.\n• Studio Performance & Architecture Optimization: Consolidated redundant orientation and navigation listeners in Stagex, purged dead module candidate scoring loops in Studio Hub, and eliminated unreferenced redesign imports across Chordex and Vocalex.\n• Drumex Pattern Library Layout Unification: Unified desktop and mobile pattern browsing under the canonical `DrumPatternsPanel`, removing over 700 lines of duplicate code and reducing bundle overhead.\n• Groovex Store Selector Memoization: Converted broad store subscriptions in Groovex Preferences to fine-grained atomic Zustand selectors, isolating preference views from unrelated playback state mutations.",
-  "releaseNotes": {
-    "added": [
-      "Canonical Chordex Section-Entry Animations: Integrated the canonical Studio motion system (`StudioPageTransition` with `variant=\"drilldown\"`) across all redesigned Chordex views (Library, Category browsing, Chord Detail, Songs list, Song Editor, and Saxophone Practice).",
-      "Dynamic Drilldown Initial Entrance Support: Enhanced `StudioPageTransition` to support conditional initial mount entrance transitions, ensuring sub-views animate smoothly upon appearance while preserving root tab transitions.",
-      "Canonical Studio Header Parity: Replaced all custom, ad-hoc, and static headers across Chordex with canonical `StudioHeader` (in-flow) and `SharedFloatingHeader` (floating glass capsule) components."
-    ],
-    "improved": [
-      "Studio Performance & Architecture Optimization: Consolidated redundant orientation and navigation listeners in Stagex, purged dead module candidate scoring loops in Studio Hub, and eliminated unreferenced redesign imports across Chordex and Vocalex.",
-      "Drumex Pattern Library Layout Unification: Unified desktop and mobile pattern browsing under the canonical `DrumPatternsPanel`, removing over 700 lines of duplicate code and reducing bundle overhead.",
-      "Groovex Store Selector Memoization: Converted broad store subscriptions in Groovex Preferences to fine-grained atomic Zustand selectors, isolating preference views from unrelated playback state mutations."
-    ]
-  },
+  "changelog": "",
+  "whatsNew": "",
+  "releaseNotes": {},
   "mandatory": false
 }

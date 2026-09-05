@@ -515,21 +515,30 @@
 ══════════════════════════════════════════ */
       #sc-vtools {
         position: absolute;
-        left: calc(max(16px, env(safe-area-inset-left, 0px) + 8px));
+        left: calc(max(14px, env(safe-area-inset-left, 0px) + 6px));
         top: 50%;
         transform: translateY(-50%);
         z-index: 100;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 4px;
+        background: rgba(14, 14, 16, 0.94);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 12px;
+        padding: 2px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+        box-sizing: border-box;
       }
       #sc-vtools-toggle {
         width: 32px;
         height: 32px;
-        border-radius: 10px;
-        background: rgba(14, 14, 14, 0.94);
-        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 9px;
+        background: transparent;
+        border: none;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -538,46 +547,60 @@
         -webkit-tap-highlight-color: transparent;
         transition:
           color 140ms ease,
-          background 140ms ease;
+          background 140ms ease,
+          transform 180ms ease;
         flex-shrink: 0;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        outline: none;
       }
       #sc-vtools-toggle:hover {
         color: #c8c8c8;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.08);
       }
-      #sc-vtools-body {
-        position: absolute;
-        left: calc(100% + 8px);
-        top: 50%;
-        transform: translateY(calc(-50% + var(--vtools-shift-y, 0px))) scale(1);
-        transform-origin: left center;
-        background: rgba(14, 14, 14, 0.94);
-        border: 1px solid rgba(255, 255, 255, 0.09);
+      /* Collapsed State */
+      #sc-vtools.vtools-collapsed {
+        border-radius: 12px;
+        background: rgba(14, 14, 16, 0.92);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+      }
+      #sc-vtools.vtools-collapsed #sc-vtools-body {
+        display: none;
+        opacity: 0;
+        max-height: 0;
+        pointer-events: none;
+      }
+      /* Expanded State - transforms in place */
+      #sc-vtools:not(.vtools-collapsed) {
         border-radius: 16px;
-        padding: 5px;
+        padding: 2px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+      }
+      #sc-vtools:not(.vtools-collapsed) #sc-vtools-body {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 1px;
-        overflow: hidden;
-        max-height: calc(100vh - 128px);
+        gap: 2px;
         opacity: 1;
-        visibility: visible;
         pointer-events: auto;
-        transition:
-          opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
-          transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
-          visibility 180ms;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65);
+        transition: opacity 180ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-      #sc-vtools-body.vtools-collapsed {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transform: translateY(calc(-50% + var(--vtools-shift-y, 0px))) scale(0.92);
+      #sc-vtools:not(.vtools-collapsed) #sc-vtools-toggle {
+        color: #c8c8c8;
+      }
+      /* Body container - in-flow, no offset popout to the right */
+      #sc-vtools-body {
+        position: static;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+      }
+      #sc-vtools-body::-webkit-scrollbar {
+        display: none;
       }
       .sc-vtool-btn {
         width: 32px;
@@ -2612,16 +2635,21 @@
       }
 
       /* ── Vertical toolbar ── */
-      html[data-theme='light'] #sc-vtools-toggle {
+      html[data-theme='light'] #sc-vtools {
         background: rgba(245, 245, 247, 0.96) !important;
         border-color: rgba(0, 0, 0, 0.1) !important;
-        color: #555 !important;
         box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
       }
+      html[data-theme='light'] #sc-vtools-toggle {
+        background: transparent !important;
+        border: none !important;
+        color: #555 !important;
+        box-shadow: none !important;
+      }
       html[data-theme='light'] #sc-vtools-body {
-        background: rgba(245, 245, 247, 0.96) !important;
-        border-color: rgba(0, 0, 0, 0.1) !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
       }
       html[data-theme='light'] .sc-vtool-btn {
         color: #555 !important;
@@ -3630,11 +3658,12 @@
         border-top-color: rgba(255, 255, 255, 0.06) !important;
       }
       html[data-amoled='1'] #sc-vtools {
-        background: transparent !important;
+        background: rgba(6, 6, 8, 0.98) !important;
+        border-color: rgba(255, 255, 255, 0.14) !important;
       }
       html[data-amoled='1'] #sc-vtools-toggle {
-        background: rgba(14, 14, 14, 0.94) !important;
-        border: 1px solid rgba(255, 255, 255, 0.09) !important;
+        background: transparent !important;
+        border: none !important;
       }
       html[data-amoled='1'] #settings-panel {
         background: #000 !important;
@@ -4064,18 +4093,20 @@
         style="left: 0; right: 0; top: 0; bottom: 0"
       >
         <!-- ══════════ VERTICAL STAGE TOOLBAR ══════════ -->
-        <div id="sc-vtools">
-          <!-- Collapse / expand handle -->
+        <div id="sc-vtools" class="vtools-collapsed">
+          <!-- Collapse / expand handle (morphs between more_vert and close) -->
           <button id="sc-vtools-toggle" onclick="toggleSCVTools()" title="Show tools">
             <span
+              id="sc-vtools-toggle-icon"
               class="material-symbols-outlined"
               style="font-size: 18px; font-family: 'Material Symbols Outlined'"
               >more_vert</span
             >
           </button>
-          <!-- Tools panel — starts collapsed -->
+          <!-- Tools panel — in-flow, unfolds cleanly in place -->
           <div id="sc-vtools-body" class="vtools-collapsed">
-            <!-- Toggle group -->
+            <div class="sc-vtool-sep"></div>
+            <!-- Persistent Toggles: Grid & Connections -->
             <button
               id="btn-grid"
               onclick="toggleGrid()"
@@ -4084,19 +4115,6 @@
             >
               <span class="material-symbols-outlined" style="font-size: 17px">grid_on</span>
             </button>
-            <button id="btn-snap" onclick="toggleSnap()" class="sc-vtool-btn" title="Snap to Grid">
-              <span class="material-symbols-outlined" style="font-size: 17px"
-                >align_horizontal_left</span
-              >
-            </button>
-            <button
-              id="btn-connect"
-              onclick="toggleConnect()"
-              class="sc-vtool-btn"
-              title="Connection Mode"
-            >
-              <span class="material-symbols-outlined" style="font-size: 17px">hub</span>
-            </button>
             <button
               id="btn-connections"
               onclick="toggleConnectionsVisible()"
@@ -4104,28 +4122,6 @@
               title="Show / Hide Connection Lines"
             >
               <span class="material-symbols-outlined" style="font-size: 17px">cable</span>
-            </button>
-            <div class="sc-vtool-sep"></div>
-            <!-- Action group -->
-            <!-- v3.0.56: onclick switched from `autoArrangeElements()` (which prompts
-             a confirm dialog and bails on empty stage) to `_doAutoArrange()`
-             (direct, no prompt) — matching the behaviour of the React top-toolbar
-             auto-arrange button which has been removed in v3.0.56. The icon stays
-             the same so the visual position in the vertical sidebar is unchanged. -->
-            <button
-              onclick="_doAutoArrange()"
-              class="sc-vtool-btn"
-              title="Auto-arrange elements"
-              onmouseover="
-                this.style.color = '#c5ffc9';
-                this.style.background = 'rgba(197,255,201,0.08)';
-              "
-              onmouseout="
-                this.style.color = '#767575';
-                this.style.background = '';
-              "
-            >
-              <span class="material-symbols-outlined" style="font-size: 17px">auto_fix_high</span>
             </button>
             <div class="sc-vtool-sep"></div>
             <!-- Layers button with popup to the right -->

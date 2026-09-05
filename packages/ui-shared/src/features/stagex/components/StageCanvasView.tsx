@@ -903,7 +903,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
       </div>
 
       {/* Mobile Floating Action Controls */}
-      {!isWebDesktop && (
+      {(!isWebDesktop || isLandscape) && (
         <>
           {/* Normal Mode Controls: Rotate & Add FAB (hidden in liveMode, when specs is open) */}
           {!liveMode && !specsOpen && (
@@ -959,14 +959,14 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                 </button>
               )}
 
-              {/* Add Element FAB (Only rendered when History is NOT active) */}
-              {!isHistoryActive && (
+              {/* Add Element FAB - strictly hidden when panel is open */}
+              {!panelOpen && (
                 <button
                   data-testid="stagex-fab-add"
                   onClick={handleToggleElements}
-                  className="absolute rounded-full flex items-center justify-center p-0 cursor-pointer active:scale-95"
+                  className="absolute rounded-full flex items-center justify-center p-0 cursor-pointer active:scale-95 transition-all"
                   style={{
-                    zIndex: 50,
+                    zIndex: 20,
                     bottom: 'calc(max(14px, env(safe-area-inset-bottom, 0px)) + 84px)',
                     right: 'calc(max(16px, env(safe-area-inset-right, 0px)))',
                     width: 44,
@@ -975,16 +975,9 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
                     border: 'none',
                     color: '#ffffff',
                     boxShadow: '0 4px 14px rgba(236, 72, 153, 0.45)',
-                    transform:
-                      panelOpen && panelMode === 'elements'
-                        ? 'rotate(45deg) scale(1)'
-                        : 'rotate(0deg) scale(1)',
-                    transition: 'transform 0.28s cubic-bezier(0.34,1.56,0.64,1)',
                   }}
-                  aria-label={
-                    panelOpen && panelMode === 'elements' ? 'Close Elements' : 'Add Element'
-                  }
-                  title={panelOpen && panelMode === 'elements' ? 'Close Elements' : 'Add Element'}
+                  aria-label={currentLang === 'es' ? 'Añadir Elemento' : 'Add Element'}
+                  title={currentLang === 'es' ? 'Añadir Elemento' : 'Add Element'}
                 >
                   <span className="material-symbols-outlined text-[24px]">add</span>
                 </button>
@@ -1049,6 +1042,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         {isHistoryActive ? (
           <StageHistorySurface
             onClose={handleClosePanel}
+            onSwitchToElements={() => handleModeChange('elements')}
             historyEntries={historyState.entries}
             currentIndex={historyState.currentIndex}
             canUndo={historyState.canUndo}
@@ -1063,6 +1057,7 @@ export const StageCanvasView: React.FC<StageCanvasViewProps> = ({
         ) : (
           <StageElementLibrarySurface
             onClose={handleClosePanel}
+            onSwitchToHistory={() => handleModeChange('history')}
             onSelectElement={handleAddElement}
             isLight={isLight}
             isAmoled={isAmoled}

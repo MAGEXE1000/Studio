@@ -9,6 +9,7 @@ export interface StageHistoryItem {
 
 export interface StageHistorySurfaceProps {
   onClose: () => void;
+  onSwitchToElements?: () => void;
   historyEntries?: StageHistoryItem[];
   currentIndex?: number;
   canUndo?: boolean;
@@ -23,6 +24,7 @@ export interface StageHistorySurfaceProps {
 
 export const StageHistorySurface: React.FC<StageHistorySurfaceProps> = ({
   onClose,
+  onSwitchToElements,
   historyEntries = [],
   currentIndex = -1,
   canUndo = false,
@@ -68,10 +70,31 @@ export const StageHistorySurface: React.FC<StageHistorySurfaceProps> = ({
         transition: 'opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* Header: Title + Step Badge (Left) & Undo/Redo + Close (Right) */}
+      {/* Header: Back to Elements + Title + Step Badge (Left) & Undo/Redo + Close (Right) */}
       <div className="flex items-center justify-between gap-3 pb-2">
-        {/* Left: Un-truncated Title & Step Counter */}
+        {/* Left: Back to Elements + Un-truncated Title & Step Counter */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
+          {onSwitchToElements && (
+            <button
+              type="button"
+              data-testid="stagex-history-to-elements-btn"
+              onClick={onSwitchToElements}
+              className="h-7 px-2 rounded-full flex items-center gap-1 flex-shrink-0 cursor-pointer active:scale-95 transition-all text-[11px] font-semibold"
+              style={{
+                background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+                color: isLight ? '#52525b' : '#a1a1aa',
+                border: isLight
+                  ? '1px solid rgba(0, 0, 0, 0.06)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+              aria-label={isSpanish ? 'Volver a Elementos' : 'Back to Elements'}
+              title={isSpanish ? 'Volver a Elementos' : 'Back to Elements'}
+            >
+              <span className="material-symbols-outlined text-[15px]">arrow_back</span>
+              <span className="hidden sm:inline">{isSpanish ? 'Elementos' : 'Elements'}</span>
+            </button>
+          )}
+
           <span className="material-symbols-outlined text-[18px] text-pink-500 flex-shrink-0">
             history
           </span>

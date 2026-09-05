@@ -4549,23 +4549,34 @@ function _applyCableHover(newIdx) {
 
 function toggleConnectionsVisible() {
   state.connectionsVisible = !state.connectionsVisible;
+  const connSvg = document.getElementById('connections-svg');
+  if (connSvg) connSvg.style.display = state.connectionsVisible ? '' : 'none';
   _setToolBtn('btn-connections', state.connectionsVisible, 'primary');
-  renderConnections();
+  if (typeof renderConnections === 'function') renderConnections();
+  if (typeof saveSettings === 'function') saveSettings();
 }
 
 // ══════════════════════════════════════════════════════════
-//  VERTICAL TOOLBAR: TOGGLE COLLAPSE
+//  VERTICAL TOOLBAR: TOGGLE COLLAPSE (IN-PLACE MORPHING)
 // ══════════════════════════════════════════════════════════
 function toggleSCVTools() {
+  const vt = document.getElementById('sc-vtools');
   const body = document.getElementById('sc-vtools-body');
   const toggle = document.getElementById('sc-vtools-toggle');
+  const icon = document.getElementById('sc-vtools-toggle-icon') || (toggle ? toggle.querySelector('.material-symbols-outlined') : null);
   const container = document.getElementById('canvas-container');
-  if (!body) return;
-  const isNowCollapsed = body.classList.toggle('vtools-collapsed');
+  if (!vt) return;
+  const isNowCollapsed = vt.classList.toggle('vtools-collapsed');
+  if (body) body.classList.toggle('vtools-collapsed', isNowCollapsed);
   // Mirror state onto the container so any CSS state selectors can respond
   if (container) container.classList.toggle('vtools-open', !isNowCollapsed);
   if (toggle) {
-    toggle.title = isNowCollapsed ? 'Show tools' : 'Hide tools';
+    toggle.title = isNowCollapsed
+      ? (state.lang === 'es' ? 'Mostrar herramientas' : 'Show tools')
+      : (state.lang === 'es' ? 'Ocultar herramientas' : 'Hide tools');
+  }
+  if (icon) {
+    icon.textContent = isNowCollapsed ? 'more_vert' : 'close';
   }
   if (!isNowCollapsed) {
     if (typeof positionVTools === 'function') {
@@ -4601,8 +4612,10 @@ function _setToolBtn(id, active, activeColor) {
 }
 function toggleGrid() {
   state.gridVisible = !state.gridVisible;
-  stageCanvas.classList.toggle('grid-off', !state.gridVisible);
+  const sc = document.getElementById('stage-canvas');
+  if (sc) sc.classList.toggle('grid-off', !state.gridVisible);
   _setToolBtn('btn-grid', state.gridVisible, 'primary');
+  if (typeof saveSettings === 'function') saveSettings();
 }
 function toggleSnap() {
   state.snapToGrid = !state.snapToGrid;
@@ -8307,7 +8320,6 @@ function positionScenesBar() {
 function positionVTools() {
   const vt = document.getElementById('sc-vtools');
   const toggle = document.getElementById('sc-vtools-toggle');
-  const body = document.getElementById('sc-vtools-body');
   const canvas = document.getElementById('stage-canvas');
   if (!vt || !canvas) return;
   const rect = canvas.getBoundingClientRect();
@@ -8315,25 +8327,10 @@ function positionVTools() {
   const cRect = container.getBoundingClientRect();
   const canvasCenterY = rect.top - cRect.top + rect.height / 2;
   const toggleH = toggle ? toggle.offsetHeight : 32;
-  const topOffset = canvasCenterY - toggleH / 2;
+  const topOffset = canvasCenterY - toggleH / 2 - 2;
   if (!isNaN(topOffset) && canvasCenterY > 0) {
     vt.style.setProperty('top', `${Math.round(topOffset)}px`, 'important');
     vt.style.setProperty('transform', 'none', 'important');
-  }
-
-  if (body) {
-    const menuH = body.offsetHeight || 270;
-    const topMin = 54;
-    const bottomMax = Math.max(topMin + menuH, (cRect.height || window.innerHeight) - 74);
-    const naturalTop = canvasCenterY - menuH / 2;
-    const naturalBottom = canvasCenterY + menuH / 2;
-    let shiftY = 0;
-    if (naturalTop < topMin) {
-      shiftY = topMin - naturalTop;
-    } else if (naturalBottom > bottomMax) {
-      shiftY = bottomMax - naturalBottom;
-    }
-    body.style.setProperty('--vtools-shift-y', `${Math.round(shiftY)}px`);
   }
 }
 
@@ -8341,10 +8338,9 @@ function positionVTools() {
 document.addEventListener(
   'pointerdown',
   (e) => {
-    const body = document.getElementById('sc-vtools-body');
     const vt = document.getElementById('sc-vtools');
-    if (!body || body.classList.contains('vtools-collapsed')) return;
-    if (vt && !vt.contains(e.target)) {
+    if (!vt || vt.classList.contains('vtools-collapsed')) return;
+    if (!vt.contains(e.target)) {
       toggleSCVTools();
     }
   },
@@ -10653,8 +10649,11 @@ function applySettings() {
   // initial color before first paint, and injectTheme() from the React parent corrects it
   // after the iframe loads. Setting it here would cause a flash when the saved bg is cross-theme.
 
-  // Grid size: update CSS background-size
+  // Grid size & visibility
   _applyGridSize(state.gridSize);
+  const sc = document.getElementById('stage-canvas');
+  if (sc) sc.classList.toggle('grid-off', !state.gridVisible);
+  _setToolBtn('btn-grid', state.gridVisible !== false, 'primary');
 
   // Status bar
   const sb = document.getElementById('status-bar');
@@ -10664,7 +10663,8 @@ function applySettings() {
 
   // Connections visibility (controlled by left toolbar button only)
   const connSvg = document.getElementById('connections-svg');
-  if (connSvg) connSvg.style.display = state.connectionsVisible ? '' : 'none';
+  if (connSvg) connSvg.style.display = state.connectionsVisible !== false ? '' : 'none';
+  _setToolBtn('btn-connections', state.connectionsVisible !== false, 'primary');
   // Cable length labels toggle (preferences)
   const cableLenToggle = document.getElementById('settings-cablelen-toggle');
   if (cableLenToggle)
@@ -12021,19 +12021,7 @@ const _ARRANGE_ZONES = {
   'Monitor Console': { row: 0, side: 'right' },
 };
 
-function autoArrangeElements() {
-  if (state.elements.length === 0) {
-    showToast('No elements on stage to arrange.');
-    return;
-  }
-  showConfirm(
-    'Auto-arrange all elements by type (drums centered, mics downstage, amps upstage)?',
-    () => _doAutoArrange()
-  );
-}
-
-// Shared anchor-based placement used by both _doAutoArrange (toolbar button)
-// and _scBuildPlot (AI assistant). Items are anchored to natural stage
+// Shared anchor-based placement used by _scBuildPlot (AI assistant). Items are anchored to natural stage
 // positions (left ~18%, center 50%, right ~82%) and fan out around the
 // anchor when several share a side, instead of being centered inside an
 // inner third — which made everything look bunched toward the middle.
@@ -12156,55 +12144,6 @@ function _smartPlaceElements(elements, W, H) {
     el.x = Math.max(PAD_X * 0.6, Math.min(W - PAD_X * 0.6, el.x || W / 2));
     el.y = Math.max(ICON_W * 0.6, Math.min(H - ICON_W * 0.6, el.y || H / 2));
   });
-}
-
-function _doAutoArrange() {
-  pushHistory();
-  const canvas = document.getElementById('stage-canvas');
-  const W = canvas ? canvas.offsetWidth : state.canvasW || 900;
-  const H = canvas ? canvas.offsetHeight : state.canvasH || 506;
-
-  // Collect old positions for the smooth animation pass
-  const oldPos = {};
-  state.elements.forEach((el) => {
-    const dom = document.getElementById('elem-' + el.id);
-    if (dom) oldPos[el.id] = { x: parseFloat(dom.style.left), y: parseFloat(dom.style.top) };
-  });
-
-  // New anchor-based placement (shared with the AI assistant's _scBuildPlot)
-  _smartPlaceElements(state.elements, W, H);
-
-  // Render at final positions
-  renderAll();
-  updateStageBalance();
-
-  // Animate elements from old positions to new
-  requestAnimationFrame(() => {
-    state.elements.forEach((el) => {
-      const dom = document.getElementById('elem-' + el.id);
-      if (!dom || !oldPos[el.id]) return;
-      const old = oldPos[el.id];
-      const newX = el.x,
-        newY = el.y;
-      if (Math.abs(old.x - newX) < 1 && Math.abs(old.y - newY) < 1) return;
-      // Jump to old position, then transition to new
-      dom.style.transition = 'none';
-      dom.style.left = old.x + 'px';
-      dom.style.top = old.y + 'px';
-      dom.getBoundingClientRect(); // force reflow
-      dom.style.transition =
-        'left 0.5s cubic-bezier(0.34,1.2,0.64,1), top 0.5s cubic-bezier(0.34,1.2,0.64,1)';
-      dom.style.left = newX + 'px';
-      dom.style.top = newY + 'px';
-    });
-    setTimeout(() => {
-      document.querySelectorAll('.stage-element').forEach((d) => {
-        d.style.transition = '';
-      });
-    }, 560);
-  });
-
-  showToast('Stage arranged ✓ — Undo to revert.');
 }
 
 // ══════════════════════════════════════════════════════════

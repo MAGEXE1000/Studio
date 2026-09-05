@@ -5,6 +5,7 @@ import { STAGEX_LIBRARY, STAGEX_ICON_MAP, localizeElementName } from '../constan
 
 export interface StageElementLibrarySurfaceProps {
   onClose: () => void;
+  onSwitchToHistory?: () => void;
   onSelectElement: (item: StageLibraryItem) => void;
   isLight: boolean;
   isAmoled: boolean;
@@ -13,6 +14,7 @@ export interface StageElementLibrarySurfaceProps {
 
 export const StageElementLibrarySurface: React.FC<StageElementLibrarySurfaceProps> = ({
   onClose,
+  onSwitchToHistory,
   onSelectElement,
   isLight,
   accent: _accent,
@@ -92,7 +94,7 @@ export const StageElementLibrarySurface: React.FC<StageElementLibrarySurfaceProp
         transition: 'opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1)',
       }}
     >
-      {/* Header: Category Horizontal Selector + Close Button */}
+      {/* Header: Category Horizontal Selector + Switch to History + Close Button */}
       <div className="flex items-center justify-between gap-2 pb-2">
         <div
           data-testid="drawer-categories-row"
@@ -143,24 +145,47 @@ export const StageElementLibrarySurface: React.FC<StageElementLibrarySurfaceProp
           })}
         </div>
 
-        {/* Dedicated Close Button */}
-        <button
-          type="button"
-          data-testid="stagex-drawer-close-btn"
-          onClick={onClose}
-          className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer active:scale-90 transition-all"
-          style={{
-            background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
-            color: isLight ? '#52525b' : '#a1a1aa',
-            border: isLight
-              ? '1px solid rgba(0, 0, 0, 0.06)'
-              : '1px solid rgba(255, 255, 255, 0.08)',
-          }}
-          aria-label={tr.stagex?.library?.closeDrawer || 'Close Element Drawer'}
-          title={tr.stagex?.library?.closeDrawer || 'Close'}
-        >
-          <span className="material-symbols-outlined text-[16px]">close</span>
-        </button>
+        {/* Right Header Actions: History Switch & Dedicated Close Button */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {onSwitchToHistory && (
+            <button
+              type="button"
+              data-testid="stagex-library-to-history-btn"
+              onClick={onSwitchToHistory}
+              className="h-7 px-2 rounded-full flex items-center gap-1 flex-shrink-0 cursor-pointer active:scale-95 transition-all text-[11px] font-semibold"
+              style={{
+                background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+                color: isLight ? '#52525b' : '#a1a1aa',
+                border: isLight
+                  ? '1px solid rgba(0, 0, 0, 0.06)'
+                  : '1px solid rgba(255, 255, 255, 0.08)',
+              }}
+              aria-label={isSpanish ? 'Ver historial' : 'View history'}
+              title={isSpanish ? 'Historial de Edición' : 'Edit History'}
+            >
+              <span className="material-symbols-outlined text-[15px] text-pink-500">history</span>
+              <span className="hidden sm:inline">{isSpanish ? 'Historial' : 'History'}</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            data-testid="stagex-drawer-close-btn"
+            onClick={onClose}
+            className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer active:scale-90 transition-all"
+            style={{
+              background: isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.08)',
+              color: isLight ? '#52525b' : '#a1a1aa',
+              border: isLight
+                ? '1px solid rgba(0, 0, 0, 0.06)'
+                : '1px solid rgba(255, 255, 255, 0.08)',
+            }}
+            aria-label={tr.stagex?.library?.closeDrawer || 'Close Element Drawer'}
+            title={tr.stagex?.library?.closeDrawer || 'Close'}
+          >
+            <span className="material-symbols-outlined text-[16px]">close</span>
+          </button>
+        </div>
       </div>
 
       {/* Elements Horizontal Scrolling Shelf */}

@@ -4588,12 +4588,16 @@ body.is-landscape #presets-panel {
     top: 50%;
     transform: translateY(-50%);
   }
-  #sc-vtools-body.vtools-collapsed {
-    border: none !important;
+  #sc-vtools.vtools-collapsed {
+    border-radius: 12px !important;
+  }
+  #sc-vtools.vtools-collapsed #sc-vtools-body {
+    display: none !important;
   }
   /* Cap body height and quietly scroll; hide scrollbar */
   #sc-vtools-body {
-    max-height: calc(100vh - 52px) !important;
+    position: static !important;
+    max-height: calc(100vh - 80px) !important;
     overflow-y: auto !important;
     scrollbar-width: none !important;
   }

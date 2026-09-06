@@ -4,6 +4,7 @@ import {
   useT,
   NavigationDispatcher,
   useSettingsStore,
+  mediaSessionCoordinator,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
@@ -500,6 +501,7 @@ export default function GroovexPlayer() {
     setIsPlaying(false);
     setCurrentTime(0);
     cancelAnimationFrame(rafRef.current);
+    mediaSessionCoordinator.stopSession('groovex');
   }
 
   function handleSeek(targetTime: number) {
@@ -677,6 +679,95 @@ export default function GroovexPlayer() {
       })
     );
   }
+
+  // MediaSession Coordinator bindings & native controls integration
+  const handlePlayRef = useRef(handlePlay);
+  handlePlayRef.current = handlePlay;
+  const handleSeekRef = useRef(handleSeek);
+  handleSeekRef.current = handleSeek;
+  const handleSkipRef = useRef(handleSkip);
+  handleSkipRef.current = handleSkip;
+  const songRef = useRef(song);
+  songRef.current = song;
+  const isPlayingRef = useRef(isPlaying);
+  isPlayingRef.current = isPlaying;
+  const currentTimeRef = useRef(currentTime);
+  currentTimeRef.current = currentTime;
+  const durationRef = useRef(duration);
+  durationRef.current = duration;
+
+  useEffect(() => {
+    if (!song) return;
+
+    mediaSessionCoordinator.registerProvider({
+      id: 'groovex',
+      getMetadata: () => ({
+        title: songRef.current?.title || 'GrooveX Track',
+        artist: songRef.current?.artist || 'GrooveX',
+        album: songRef.current?.genre ? `GrooveX · ${songRef.current.genre}` : 'GrooveX Studio',
+        duration: durationRef.current || (engineRef.current?.duration ?? 0),
+      }),
+      getPlaybackState: () => ({
+        state: isPlayingRef.current ? 'playing' : 'paused',
+        position: currentTimeRef.current,
+        duration: durationRef.current || (engineRef.current?.duration ?? 0),
+        speed: 1.0,
+      }),
+      onPlay: () => {
+        if (!isPlayingRef.current) handlePlayRef.current();
+      },
+      onPause: () => {
+        if (isPlayingRef.current) handlePlayRef.current();
+      },
+      onSeekTo: (posSec: number) => {
+        handleSeekRef.current(posSec);
+      },
+      onSkipForward: (sec: number) => {
+        handleSkipRef.current(sec);
+      },
+      onSkipBackward: (sec: number) => {
+        handleSkipRef.current(-sec);
+      },
+      onNext: () => {
+        const curId = songRef.current?.id;
+        const idx = SONG_CATALOG.findIndex((s) => s.id === curId);
+        if (idx >= 0 && idx < SONG_CATALOG.length - 1) {
+          useGroovexStore.getState().setActiveSong(SONG_CATALOG[idx + 1].id);
+        }
+      },
+      onPrevious: () => {
+        const curId = songRef.current?.id;
+        const idx = SONG_CATALOG.findIndex((s) => s.id === curId);
+        if (idx > 0) {
+          useGroovexStore.getState().setActiveSong(SONG_CATALOG[idx - 1].id);
+        }
+      },
+      onStop: () => {
+        handleStop();
+      },
+    });
+
+    mediaSessionCoordinator.updateMetadata('groovex', {
+      title: song.title,
+      artist: song.artist,
+      album: song.genre ? `GrooveX · ${song.genre}` : 'GrooveX Studio',
+      duration: duration || (engineRef.current?.duration ?? 0),
+    });
+
+    return () => {
+      mediaSessionCoordinator.unregisterProvider('groovex');
+    };
+  }, [song]);
+
+  useEffect(() => {
+    if (!song) return;
+    mediaSessionCoordinator.updatePlaybackState('groovex', {
+      state: isPlaying ? 'playing' : 'paused',
+      position: currentTime,
+      duration: duration || (engineRef.current?.duration ?? 0),
+      speed: 1.0,
+    });
+  }, [isPlaying, currentTime, duration, song]);
 
   function formatTime(secs: number): string {
     const m = Math.floor(secs / 60);

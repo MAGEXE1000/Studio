@@ -100,6 +100,7 @@ import {
   type LoopRange,
   useBottomNavigationStore,
   defaultPattern,
+  mediaSessionCoordinator,
 } from '@workspace/studio-core';
 
 import { NoteHead } from '../components/DrumNoteHeads';
@@ -1766,6 +1767,60 @@ export default function DrumEditor() {
     pattern.timeSignature,
     playMetronomeClick,
   ]);
+
+  // ── MediaSession integration for Drumex Beats ──────────────────────────────
+  const handlePlayRef = useRef(handlePlay);
+  handlePlayRef.current = handlePlay;
+
+  useEffect(() => {
+    if (activeTab === 'metronome') return;
+
+    if (playing) {
+      mediaSessionCoordinator.registerProvider({
+        id: 'drumex-beats',
+        getMetadata: () => ({
+          title: pattern.name || 'Drum Beat',
+          artist: KIT_DEFAULTS[kit]?.label || 'Drumex Studio',
+          album: `Drumex Beats · ${pattern.bpm} BPM`,
+        }),
+        getPlaybackState: () => ({
+          state: playing ? 'playing' : 'paused',
+          speed: 1.0,
+        }),
+        onPlay: () => {
+          if (!drumScheduler.isPlaying) handlePlayRef.current();
+        },
+        onPause: () => {
+          if (drumScheduler.isPlaying) handlePlayRef.current();
+        },
+        onStop: () => {
+          drumScheduler.stop();
+          setPlaying(false);
+          mediaSessionCoordinator.stopSession('drumex-beats');
+        },
+      });
+
+      mediaSessionCoordinator.updateMetadata('drumex-beats', {
+        title: pattern.name || 'Drum Beat',
+        artist: KIT_DEFAULTS[kit]?.label || 'Drumex Studio',
+        album: `Drumex Beats · ${pattern.bpm} BPM`,
+      });
+
+      mediaSessionCoordinator.updatePlaybackState('drumex-beats', {
+        state: 'playing',
+        speed: 1.0,
+      });
+    } else {
+      mediaSessionCoordinator.updatePlaybackState('drumex-beats', {
+        state: 'paused',
+        speed: 1.0,
+      });
+    }
+
+    return () => {
+      mediaSessionCoordinator.unregisterProvider('drumex-beats');
+    };
+  }, [playing, pattern, kit, activeTab]);
 
   // ── Kit ──────────────────────────────────────────────────────────────────
   const handleKitSelect = useCallback(

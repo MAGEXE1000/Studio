@@ -5,6 +5,7 @@ import {
   type MetronomeSubdivision,
   type MetronomeSoundId,
 } from '../lib/audio/metronomeAudio';
+import { mediaSessionCoordinator } from '../lib/audio/mediaSessionCoordinator';
 
 export interface MetronomePreset {
   id: string;
@@ -258,6 +259,71 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         practiceTimerInterval = null;
       }
     }
+
+    syncMediaSession(playing);
+  };
+
+  const syncMediaSession = (playing?: boolean) => {
+    const s = get();
+    const isCurrentlyPlaying = playing !== undefined ? playing : s.isPlaying;
+    const preset = s.presets.find((p) => p.id === s.activePresetId);
+    const title = preset?.name || `${s.bpm} BPM Metronome`;
+    const album = `${s.bpm} BPM · ${s.timeSignature} · ${SOUND_LABELS[s.sound] || 'Metronome'}`;
+
+    if (isCurrentlyPlaying) {
+      mediaSessionCoordinator.registerProvider({
+        id: 'drumex-metronome',
+        getMetadata: () => {
+          const state = get();
+          const p = state.presets.find((pr) => pr.id === state.activePresetId);
+          return {
+            title: p?.name || `${state.bpm} BPM Metronome`,
+            artist: 'Drumex Metronome',
+            album: `${state.bpm} BPM · ${state.timeSignature} · ${SOUND_LABELS[state.sound] || 'Metronome'}`,
+          };
+        },
+        getPlaybackState: () => ({
+          state: get().isPlaying ? 'playing' : 'paused',
+          speed: 1.0,
+        }),
+        onPlay: () => get().start(),
+        onPause: () => get().stop(),
+        onStop: () => {
+          get().stop();
+          mediaSessionCoordinator.stopSession('drumex-metronome');
+        },
+        onSkipForward: () => get().adjustBpm(5),
+        onSkipBackward: () => get().adjustBpm(-5),
+        onNext: () => {
+          const list = get().presets;
+          const idx = list.findIndex((p) => p.id === get().activePresetId);
+          const next = list[(idx + 1) % list.length];
+          if (next) get().loadPreset(next.id);
+        },
+        onPrevious: () => {
+          const list = get().presets;
+          const idx = list.findIndex((p) => p.id === get().activePresetId);
+          const prev = list[(idx - 1 + list.length) % list.length];
+          if (prev) get().loadPreset(prev.id);
+        },
+      });
+
+      mediaSessionCoordinator.updateMetadata('drumex-metronome', {
+        title,
+        artist: 'Drumex Metronome',
+        album,
+      });
+
+      mediaSessionCoordinator.updatePlaybackState('drumex-metronome', {
+        state: 'playing',
+        speed: 1.0,
+      });
+    } else {
+      mediaSessionCoordinator.updatePlaybackState('drumex-metronome', {
+        state: 'paused',
+        speed: 1.0,
+      });
+    }
   };
 
   const persistSettings = () => {
@@ -312,6 +378,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       metronomeAudioEngine.setBpm(clamped);
       set({ bpm: clamped });
       persistSettings();
+      if (get().isPlaying) syncMediaSession(true);
     },
 
     adjustBpm: (delta: number) => {
@@ -320,24 +387,28 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       metronomeAudioEngine.setBpm(next);
       set({ bpm: next });
       persistSettings();
+      if (get().isPlaying) syncMediaSession(true);
     },
 
     setTimeSignature: (sig: MetronomeTimeSignature) => {
       metronomeAudioEngine.setTimeSignature(sig);
       set({ timeSignature: sig });
       persistSettings();
+      if (get().isPlaying) syncMediaSession(true);
     },
 
     setSubdivision: (sub: MetronomeSubdivision) => {
       metronomeAudioEngine.setSubdivision(sub);
       set({ subdivision: sub });
       persistSettings();
+      if (get().isPlaying) syncMediaSession(true);
     },
 
     setSound: (sound: MetronomeSoundId) => {
       metronomeAudioEngine.setSound(sound);
       set({ sound });
       persistSettings();
+      if (get().isPlaying) syncMediaSession(true);
     },
 
     setVolume: (volume: number) => {
@@ -395,6 +466,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       }
 
       set({ activePresetId: id });
+      if (get().isPlaying) syncMediaSession(true);
     },
 
     saveNewPreset: (name: string) => {

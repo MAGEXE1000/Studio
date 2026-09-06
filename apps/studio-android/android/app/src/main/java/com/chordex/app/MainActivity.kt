@@ -134,6 +134,7 @@ class MainActivity : BridgeActivity() {
         }
 
         registerPlugin(AppInstallerPlugin::class.java)
+        registerPlugin(NativeMediaPlugin::class.java)
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

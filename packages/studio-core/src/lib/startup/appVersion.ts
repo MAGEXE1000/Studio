@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.68';
-export const NATIVE_VERSION_CODE = 40568;
-export const WEB_VERSION = '4.5.68';
+export const NATIVE_VERSION = '4.5.69';
+export const NATIVE_VERSION_CODE = 40569;
+export const WEB_VERSION = '4.5.69';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'f1e2821d';
+export const APP_COMMIT_SHA = 'afdc8c18';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/6/2026, 1:15:42 PM CST';
+export const APP_BUILD_TIMESTAMP = '9/6/2026, 2:36:20 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,16 +98,21 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Studio/Livex Android System Updater Redesign: Implemented the new flagship Android updater dialog matching the approved design system specifications with 400px width constraint, rounded-28 perimeter, micro scrollbar, and hardware-accelerated CSS state morphing transitions.',
-      'Tactile Interaction & Visual Indicators: Added tactile button feedback (.livex-tap-press scale down on active touch), continuous scanning beam animations for package verification, and real-time download metrics (transferred MB, speed, ETA).',
+      'Restored GrooveX Vinyl Turntable Audio Feedback: Restored authentic vinyl turntable scratch and platter brake audio feedback on pause and resume, operating via an independent dedicated turntableBus connected to masterGain without modifying stem playback rates.',
+      'Pre-Synthesized Analytical Turntable AudioBuffers: Mathematically pre-synthesized 520ms vinyl platter deceleration stop and 260ms needle cue direct-drive spin-up AudioBuffers with anti-click zero-crossing envelopes, zero network latency, and zero decoding overhead.',
+      'Drumex Metronome User-First Presets: Replaced factory presets with an intentional "MY PRESETS" empty state and full CRUD workflow (create, in-place edit, duplicate with unique copy names, rename, delete).',
+      'Dual-Mode Incremental Tempo Progression: Implemented deterministic tempo progression engine supporting both By Bars (evaluated strictly at bar boundaries) and By Time (on the monotonic Web Audio clock) with live summary cards.',
+      'Synchronized Visual Count-In Countdown: Added floating 4-3-2-1 countdown overlay locked to Web Audio beat schedule events, unmounting cleanly at the exact instant performance begins.',
     ],
   },
   {
     heading: 'Fixed',
     items: [
-      'Full Theme Parity: Engineered pixel-perfect support for Light (#ffffff / #f8fafc), Dark (#0c0d10 / #16171b), and AMOLED (true #000000 / #08080a) themes with canonical surface blur tokens.',
-      'Categorized Release Notes Engine: Release changelogs are dynamically classified into distinct, color-coded badges (NEW in emerald, AUDIO ENGINE in blue, FIXED & IMPROVED in amber) with automatic fallback for single-version manifests.',
-      'End-to-End Pipeline Wiring: Connected real-time download progress events, graceful download cancellation, cryptographic SHA-256 verification, and native Android PackageInstaller handoff.',
+      'Transposition & Stem Synchronization Preservation: All stem buffer sources remain locked to an invariant 1.0000x playback rate, guaranteeing 100% time and tempo preservation across -12 to +12 semitones with zero cumulative drift and bit-exact drum alignment.',
+      'Android Media Controls Transport Alignment: Android notification shade, Quick Settings media card, lock screen, and Bluetooth play/pause actions seamlessly trigger the restored turntable stop and start audio feedback.',
+      'Android Media Notification Badge Scaling: Redesigned notification artwork badge with generous padding and centered typography, eliminating SystemUI media card cropping and clipped BPM text.',
+      'Neutral Accent Beat Toggle: Tapping the active accent beat toggles to a neutral state (-1) for unaccented metronome practice across all meters and subdivisions.',
+      "Streamlined Rhythm Cards: Removed intrusive '+' tiles from Time Signature and Subdivision cards, presenting clean quick-selection grids alongside compact modal configuration triggers.",
     ],
   },
 ];
@@ -119,6 +124,18 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.69',
+    date: '2026-09-06',
+    highlights: [
+      'Restored GrooveX Vinyl Turntable Audio Feedback: Restored authentic vinyl turntable scratch and platter brake audio feedback on pause and resume, operating via an independent dedicated turntableBus connected to masterGain without modifying stem playback rates.',
+      'Pre-Synthesized Analytical Turntable AudioBuffers: Mathematically pre-synthesized 520ms vinyl platter deceleration stop and 260ms needle cue direct-drive spin-up AudioBuffers with anti-click zero-crossing envelopes, zero network latency, and zero decoding overhead.',
+      'Drumex Metronome User-First Presets: Replaced factory presets with an intentional "MY PRESETS" empty state and full CRUD workflow (create, in-place edit, duplicate with unique copy names, rename, delete).',
+      'Dual-Mode Incremental Tempo Progression: Implemented deterministic tempo progression engine supporting both By Bars (evaluated strictly at bar boundaries) and By Time (on the monotonic Web Audio clock) with live summary cards.',
+      'Synchronized Visual Count-In Countdown: Added floating 4-3-2-1 countdown overlay locked to Web Audio beat schedule events, unmounting cleanly at the exact instant performance begins.',
+      'Transposition & Stem Synchronization Preservation: All stem buffer sources remain locked to an invariant 1.0000x playback rate, guaranteeing 100% time and tempo preservation across -12 to +12 semitones with zero cumulative drift and bit-exact drum alignment.',
+    ],
+  },
   {
     version: '4.5.68',
     date: '2026-09-06',
@@ -219,16 +236,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Updater Ecosystem Bilingual Localization: Fully localized all updater states, progress bars, version comparisons, and action prompts in StudioUpdateScreen and UpdateIndicator.',
       'Roadmap Language Governance: Maintained visible, disabled, and greyed-out future languages (de, fr, zh, pt, it, ja, ko) with standardized "Próximamente" / "Coming soon" status chips.',
       'Stagex Canvas Landscape Presentation: Decoupled the editing history surface and optimized full-screen canvas aspect ratios.',
-    ],
-  },
-  {
-    version: '4.5.59',
-    date: '2026-09-04',
-    highlights: [
-      'Stagex History Bottom Panel Redesign: Replaced the floating popup modal with an integrated bottom library panel mode, featuring direct jump navigation, dynamic undo/redo badges, state tracking, and responsive desktop/mobile parity.',
-      'Stagex Production Document Single Long-Page PDF Redesign: Implemented continuous single-page vector jsPDF document export with synchronized preview parity across desktop and mobile, standardized typography, high-DPI rasterization for stage plots, and complete technical rider details.',
-      'Stage Canvas Interaction: Unified StageBridgeService history synchronization between React and vanilla canvas engine, ensuring seamless state rollbacks, forward redo, and immediate visual canvas reconciliation.',
-      'Export Dialog & Document Layout: Standardized multi-section production document geometry with crisp section headers, channel mapping, logistic notes, gear inventory, and band & crew personnel tables.',
     ],
   },
 ];

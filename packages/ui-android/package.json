@@ -1,6 +1,6 @@
 {
   "name": "@workspace/ui-android",
-  "version": "4.5.66",
+  "version": "4.5.67",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",

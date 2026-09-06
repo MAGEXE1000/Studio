@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.64';
-export const NATIVE_VERSION_CODE = 40564;
-export const WEB_VERSION = '4.5.64';
+export const NATIVE_VERSION = '4.5.65';
+export const NATIVE_VERSION_CODE = 40565;
+export const WEB_VERSION = '4.5.65';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = 'e47600d8';
+export const APP_COMMIT_SHA = '965cafbb';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/5/2026, 5:50:57 PM CST';
+export const APP_BUILD_TIMESTAMP = '9/6/2026, 9:50:58 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,15 +98,18 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'GrooveX Sample-Accurate Multitrack Transposition: Re-architected transposition engine to use in-memory buffer-level SoundTouch transposition with exact sample length preservation and zero cumulative drift.',
-      'Full Musical Transposition Scale: Supported pitch shifting across -12 to +12 semitones with instantaneous cache retrieval and seamless 25ms crossfade stem hot-swapping during live playback.',
+      'Drumex Metronome Primary Tab: Implemented the approved Drumex Metronome design as a primary production tab placed immediately to the left of Beats (`Metronome | Beats | Patterns | Preferences`).',
+      'Deterministic Web Audio Lookahead Engine: Built high-precision metronome audio engine powered by authoritative Web Audio hardware clock (`currentTime`) and 25ms lookahead scheduler, guaranteeing zero perceptible lag and zero cumulative drift across 40–280 BPM.',
+      'Pre-Synthesized PCM Percussive Kits: Pre-rendered 6 high-transient percussive sound kits (`Acoustic Woodblock`, `Acoustic Click`, `Digital Beep`, `Cowbell`, `Rimshot`, `Soft Click`) directly into cached in-memory AudioBuffers with zero network latency, consistent loudness, and clean transient attack.',
+      'Metronome Presets Management: Full CRUD preset architecture with local storage persistence, supporting instant recall, inline preset creation, duplication, renaming, updating, and search filtering.',
+      'Rhythm Metrics & Controls: Segmented pill selectors for Time Signatures (4/4, 3/4, 6/8, 2/4) and Subdivisions (1/4, 1/8, 1/16, 3let), accented Beat 1 tracking, audible count-in, practice timer, tap tempo, and floating quick controls dock.',
     ],
   },
   {
     heading: 'Improved',
     items: [
-      'Percussion Stem Transposition Immunity: Guaranteed 100% pitch and tempo immunity for all drum and percussion stems (kick, snare, toms, cymbals, hi-hats, percussion), keeping rhythm strictly locked to the hardware audio clock.',
-      'Unified Zero-Latency Audio Graph: Eliminated worklet starvation delays, underrun zero-padding, and fractional skip resets by routing all stems directly into the unified master gain with Delta t = 0.000ms.',
+      'Clean Audio Lifecycle & Leak Immunity: Guaranteed zero node, timer, or context leaks over repeated start/stop cycles with automatic background/navigation teardown.',
+      'Global Navigation & Translation Integration: Seamless bottom navigation bar and desktop dock integration with English and Spanish translations.',
     ],
   },
 ];
@@ -118,6 +121,18 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.65',
+    date: '2026-09-06',
+    highlights: [
+      'Drumex Metronome Primary Tab: Implemented the approved Drumex Metronome design as a primary production tab placed immediately to the left of Beats (`Metronome | Beats | Patterns | Preferences`).',
+      'Deterministic Web Audio Lookahead Engine: Built high-precision metronome audio engine powered by authoritative Web Audio hardware clock (`currentTime`) and 25ms lookahead scheduler, guaranteeing zero perceptible lag and zero cumulative drift across 40–280 BPM.',
+      'Pre-Synthesized PCM Percussive Kits: Pre-rendered 6 high-transient percussive sound kits (`Acoustic Woodblock`, `Acoustic Click`, `Digital Beep`, `Cowbell`, `Rimshot`, `Soft Click`) directly into cached in-memory AudioBuffers with zero network latency, consistent loudness, and clean transient attack.',
+      'Metronome Presets Management: Full CRUD preset architecture with local storage persistence, supporting instant recall, inline preset creation, duplication, renaming, updating, and search filtering.',
+      'Rhythm Metrics & Controls: Segmented pill selectors for Time Signatures (4/4, 3/4, 6/8, 2/4) and Subdivisions (1/4, 1/8, 1/16, 3let), accented Beat 1 tracking, audible count-in, practice timer, tap tempo, and floating quick controls dock.',
+      'Clean Audio Lifecycle & Leak Immunity: Guaranteed zero node, timer, or context leaks over repeated start/stop cycles with automatic background/navigation teardown.',
+    ],
+  },
   {
     version: '4.5.64',
     date: '2026-09-05',
@@ -217,16 +232,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Stagex Setlist Redesign: Aligned Setup > Setlist with Stitch mobile reference, featuring floating header, arrangement subheaders, 2x2 metrics strip, key/tempo badges, and setlist insights.',
       'Stagex Gear Inventory Redesign: Upgraded Setup > Gear Inventory with crisp vector icons, 2x2 stats grid, verification status tracking, and lightweight empty state.',
       'Stagex Band & Crew Redesign: Enhanced Setup > Band & Crew with 8-member capacity guard, integrated quick-add member card, 2x2 personnel metrics, assigned stage elements tracking, and refined empty states.',
-    ],
-  },
-  {
-    version: '4.5.55',
-    date: '2026-09-03',
-    highlights: [
-      'Stagex Touch Dragging Pipeline: Optimized Android element dragging with unified W3C pointer capture (`setPointerCapture`), zero-deadzone touch responsiveness, and `requestAnimationFrame`-coalesced visual commits, eliminating drag latency, stepping, and stutter.',
-      'Actions Menu Layering & Independence: Portaled the Stagex element Actions menu to `document.body` with viewport edge collision detection and smart vertical positioning, ensuring the menu is never clipped by collapsed or expanded Advanced Specs.',
-      'Multi-Touch Gestures & Stage Sync: Seamlessly transitioned between element manipulation and two-finger pinch-to-zoom on Android, guaranteeing authoritative final coordinate synchronization with React state and PDF Export.',
-      'Design Token Compliance: Normalized typography tokens in AccentColorPicker with canonical CSS variables.',
     ],
   },
 ];

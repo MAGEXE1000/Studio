@@ -1,7 +1,5 @@
 import { createAudioContext } from '@workspace/studio-core';
-import { SoundTouchNode } from '@soundtouchjs/audio-worklet';
 import { isPercussionStem } from './stemClassifier';
-import { getOrTransposeBuffer } from './pitchShifter';
 
 export interface TrackState {
   name: string;
@@ -12,7 +10,7 @@ export interface TrackState {
   solo: boolean;
   buffer: AudioBuffer | null;
   originalBuffer: AudioBuffer | null;
-  transposedCache: Map<number, AudioBuffer>;
+  transposedCache?: Map<number, AudioBuffer>;
   source: AudioBufferSourceNode | null;
   gainNode: GainNode | null;
   isPercussion: boolean;
@@ -47,7 +45,7 @@ export interface AudioEngine {
   drumDelay: DelayNode;
   scrubFilter: BiquadFilterNode;
   scrubGain: GainNode;
-  stNode: SoundTouchNode | null;
+  stNode: null;
   tracks: TrackState[];
   isPlaying: boolean;
   isScrubbing: boolean;
@@ -117,9 +115,17 @@ export function createEngine(): AudioEngine {
   };
 }
 
+export function getPitchRatio(semitones: number): number {
+  return Math.pow(2, semitones / 12);
+}
+
+export function getSourceRate(engine: AudioEngine): number {
+  return engine.pitchSemitones !== 0 ? getPitchRatio(engine.pitchSemitones) : 1.0;
+}
+
 export async function initSoundTouch(_engine: AudioEngine): Promise<void> {
-  // SoundTouch is now executed offline on AudioBuffers via pitchShifter.ts
-  // This preserves backward compatibility with existing callers without worklet latency
+  // Transposition uses native zero-CPU playbackRate engine for 100% sample-synchronization
+  // Backward compatibility preservation for existing callers
   return Promise.resolve();
 }
 
@@ -142,11 +148,8 @@ export function initTracks(
   engine.tracks = stems.map((s) => {
     const isPercussion = isPercussionStem(s);
     const gainNode = engine.ctx.createGain();
-    if (isPercussion) {
-      gainNode.connect(engine.drumBus);
-    } else {
-      gainNode.connect(engine.sumBus);
-    }
+    // All tracks route into sumBus for unified zero-drift master mix
+    gainNode.connect(engine.sumBus);
     return {
       name: s.name,
       label: s.label || s.name,
@@ -156,7 +159,6 @@ export function initTracks(
       solo: false,
       buffer: null,
       originalBuffer: null,
-      transposedCache: new Map<number, AudioBuffer>(),
       source: null,
       gainNode,
       isPercussion,
@@ -170,18 +172,7 @@ export function setTrackBuffer(engine: AudioEngine, trackIndex: number, buffer: 
   const track = engine.tracks[trackIndex];
   if (!track) return;
   track.originalBuffer = buffer;
-  track.transposedCache.clear();
-
-  if (track.isPercussion || engine.pitchSemitones === 0) {
-    track.buffer = buffer;
-  } else {
-    track.buffer = getOrTransposeBuffer(
-      engine.ctx,
-      buffer,
-      engine.pitchSemitones,
-      track.transposedCache
-    );
-  }
+  track.buffer = buffer;
 
   if (buffer.duration > engine.duration) {
     engine.duration = buffer.duration;
@@ -199,7 +190,8 @@ export function play(engine: AudioEngine): void {
   if (ctx.state === 'suspended') ctx.resume();
 
   const offset = engine.pauseOffset;
-  engine.startTime = ctx.currentTime - offset;
+  const baseRate = getSourceRate(engine);
+  engine.startTime = ctx.currentTime - offset / baseRate;
   engine.isPlaying = true;
 
   startSourcesAtOffset(engine, offset);
@@ -240,13 +232,14 @@ function stopSources(engine: AudioEngine): void {
 
 function startSourcesAtOffset(engine: AudioEngine, offset: number): void {
   const ctx = engine.ctx;
+  const rate = getSourceRate(engine);
   engine.tracks.forEach((track) => {
     if (!track.buffer || !track.gainNode) return;
     const source = ctx.createBufferSource();
     source.buffer = track.buffer;
     source.loop = engine.looping;
     source.connect(track.gainNode);
-    source.playbackRate.setValueAtTime(1.0, ctx.currentTime);
+    source.playbackRate.setValueAtTime(rate, ctx.currentTime);
     source.start(0, offset);
     track.source = source;
     if (!engine.looping) {
@@ -270,17 +263,13 @@ export function seek(engine: AudioEngine, time: number): void {
     engine._rampTimer = null;
   }
   if (wasPlaying) stopSources(engine);
-  if (engine.stNode) {
-    try {
-      engine.stNode.port.postMessage({ type: 'reset' });
-    } catch {}
-  }
   engine.pauseOffset = Math.max(0, Math.min(time, engine.duration));
   engine.isPlaying = false;
   if (wasPlaying) {
     const ctx = engine.ctx;
     if (ctx.state === 'suspended') ctx.resume();
-    engine.startTime = ctx.currentTime - engine.pauseOffset;
+    const rate = getSourceRate(engine);
+    engine.startTime = ctx.currentTime - engine.pauseOffset / rate;
     engine.isPlaying = true;
     startSourcesAtOffset(engine, engine.pauseOffset);
   }
@@ -304,10 +293,11 @@ export function scrubSeek(engine: AudioEngine, delta: number): void {
   if (delta > 0.003) mult = 2.5;
   else if (delta < -0.003) mult = 0.2;
   else mult = 0.7;
+  const baseRate = getSourceRate(engine);
   engine.tracks.forEach((track) => {
     if (track.source) {
       try {
-        track.source.playbackRate.setValueAtTime(mult, engine.ctx.currentTime);
+        track.source.playbackRate.setValueAtTime(baseRate * mult, engine.ctx.currentTime);
       } catch {}
     }
   });
@@ -324,85 +314,35 @@ export function endScrub(engine: AudioEngine, targetTime: number): void {
   engine.scrubGain.gain.linearRampToValueAtTime(1.0, ct + 0.15);
   if (engine.isPlaying) {
     const clamped = Math.max(0, Math.min(targetTime, engine.duration));
+    const rate = getSourceRate(engine);
     stopSources(engine);
     engine.pauseOffset = clamped;
-    engine.startTime = ct - clamped;
+    engine.startTime = ct - clamped / rate;
     startSourcesAtOffset(engine, clamped);
   }
 }
 
 export function setPitch(engine: AudioEngine, semitones: number): void {
   if (engine.pitchSemitones === semitones) return;
-  engine.pitchSemitones = semitones;
-  const ctx = engine.ctx;
-  const isPlaying = engine.isPlaying;
 
-  // Update buffers for all non-percussion tracks
-  // Percussion stems ALWAYS remain unshifted at original pitch, tempo, and buffer
+  const currentPos = getCurrentTime(engine);
+  engine.pitchSemitones = semitones;
+  const newRate = getSourceRate(engine);
+  const ct = engine.ctx.currentTime;
+
   engine.tracks.forEach((track) => {
-    if (track.isPercussion || !track.originalBuffer) {
-      return;
-    }
-    if (semitones === 0) {
-      track.buffer = track.originalBuffer;
-    } else {
-      track.buffer = getOrTransposeBuffer(
-        ctx,
-        track.originalBuffer,
-        semitones,
-        track.transposedCache
-      );
+    if (track.source) {
+      try {
+        track.source.playbackRate.cancelScheduledValues(ct);
+        track.source.playbackRate.setValueAtTime(newRate, ct);
+      } catch {}
     }
   });
 
-  if (isPlaying) {
-    // Seamless hot-swap of non-percussion track sources at current playback position
-    // Drums continue playing uninterrupted to anchor the rhythm and clock
-    const ct = ctx.currentTime;
-    const currentOffset = ct - engine.startTime;
-    const fadeDuration = 0.025; // 25ms crossfade to eliminate pops
-
-    engine.tracks.forEach((track) => {
-      if (track.isPercussion) return; // Drums maintain unbroken playback
-      if (!track.buffer || !track.gainNode) return;
-
-      const oldSource = track.source;
-      const newSource = ctx.createBufferSource();
-      newSource.buffer = track.buffer;
-      newSource.loop = engine.looping;
-      newSource.connect(track.gainNode);
-      newSource.playbackRate.setValueAtTime(1.0, ct);
-
-      // Start new source at currentOffset locked to the active timeline
-      newSource.start(ct, Math.max(0, currentOffset));
-      track.source = newSource;
-
-      if (!engine.looping) {
-        newSource.onended = () => {
-          if (engine.isPlaying) {
-            const songPos = getCurrentTime(engine);
-            if (songPos >= engine.duration - 0.1) {
-              stop(engine);
-            }
-          }
-        };
-      }
-
-      if (oldSource) {
-        try {
-          oldSource.stop(ct + fadeDuration);
-        } catch {}
-        setTimeout(
-          () => {
-            try {
-              oldSource.disconnect();
-            } catch {}
-          },
-          (fadeDuration + 0.05) * 1000
-        );
-      }
-    });
+  if (engine.isPlaying) {
+    engine.startTime = ct - currentPos / newRate;
   }
+  engine.pauseOffset = currentPos;
 }
 
 export function setTrackVolume(engine: AudioEngine, trackIndex: number, volume: number): void {
@@ -445,11 +385,12 @@ function applyMutesSolos(engine: AudioEngine): void {
 
 export function getCurrentTime(engine: AudioEngine): number {
   if (!engine.isPlaying) return engine.pauseOffset;
-  const songPos = engine.ctx.currentTime - engine.startTime;
+  const rate = getSourceRate(engine);
+  const songPos = (engine.ctx.currentTime - engine.startTime) * rate;
   if (engine.looping && engine.duration > 0) {
     return songPos % engine.duration;
   }
-  return Math.min(songPos, engine.duration);
+  return Math.min(Math.max(0, songPos), engine.duration);
 }
 
 export function destroyEngine(engine: AudioEngine): void {
@@ -466,7 +407,9 @@ export function destroyEngine(engine: AudioEngine): void {
   engine.drumBus.disconnect();
   engine.drumDelay.disconnect();
   if (engine.stNode) {
-    engine.stNode.disconnect();
+    try {
+      (engine.stNode as AudioNode).disconnect();
+    } catch {}
     engine.stNode = null;
   }
   engine.scrubFilter.disconnect();

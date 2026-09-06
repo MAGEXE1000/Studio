@@ -47,7 +47,8 @@
     "release:e2e": "node apps/studio-android/scripts/releaseE2E/index.mjs",
     "test:release-e2e": "node apps/studio-android/scripts/__tests__/release-e2e.test.mjs",
     "release:parity": "node apps/studio-android/scripts/releaseParity/index.mjs",
-    "test:release-parity": "node apps/studio-android/scripts/__tests__/release-parity.test.mjs"
+    "test:release-parity": "node apps/studio-android/scripts/__tests__/release-parity.test.mjs",
+    "test:groovex-transposition": "node scripts/test-groovex-transposition.mjs"
   },
   "private": true,
   "devDependencies": {

@@ -4,12 +4,23 @@ export type MetronomeTimeSignature = '4/4' | '3/4' | '6/8' | '2/4' | '5/4' | '7/
 export type MetronomeSubdivision = '1/4' | '1/8' | '1/16' | '1/32' | '3let' | '6let';
 export type MetronomeSoundId = 'woodblock' | 'click' | 'digital' | 'cowbell' | 'rimshot' | 'soft';
 
+export interface MetronomeTempoRampConfig {
+  enabled: boolean;
+  startBpm: number; // 40 - 280
+  targetBpm: number; // 40 - 280
+  startDelaySec: number; // Delay in seconds before ramp begins (e.g. 0 to 600s, default 30s)
+  durationSec: number; // Duration of ramp in seconds (e.g. 5 to 1200s, default 120s)
+  holdFinalBpm?: boolean; // Whether target BPM persists after ramp completion (default true)
+}
+
 export interface MetronomeBeatEvent {
   beatIndex: number;
   subdivisionIndex: number;
   isAccent: boolean;
   isCountIn: boolean;
   time: number;
+  effectiveBpm: number;
+  rampProgress?: number; // 0 to 1 if ramp is active, undefined otherwise
 }
 
 export interface MetronomeAudioConfig {
@@ -22,6 +33,7 @@ export interface MetronomeAudioConfig {
   isMuted: boolean;
   countInEnabled: boolean;
   countInBars: number;
+  tempoRamp?: MetronomeTempoRampConfig;
 }
 
 const LOOKAHEAD_TIME = 0.12; // 120ms lookahead
@@ -84,6 +96,8 @@ export class MetronomeAudioEngine {
   private _isMuted: boolean = false;
   private _countInEnabled: boolean = true;
   private _countInBars: number = 1;
+  private _tempoRamp: MetronomeTempoRampConfig | null = null;
+  private _mainStartTime: number = 0;
 
   // Playback state
   private _isPlaying: boolean = false;
@@ -271,6 +285,61 @@ export class MetronomeAudioEngine {
     return 60 / this._bpm;
   }
 
+  /**
+   * Computes the exact instantaneous BPM at audio context timestamp `time`.
+   * Follows the authoritative mathematical model:
+   * 1. If no ramp or ramp disabled: returns `this._bpm`
+   * 2. If in count-in: returns `this._tempoRamp.startBpm`
+   * 3. If elapsed < startDelaySec: returns `this._tempoRamp.startBpm`
+   * 4. If startDelaySec <= elapsed <= startDelaySec + durationSec:
+   *    linearly interpolates between startBpm and targetBpm
+   * 5. If elapsed > startDelaySec + durationSec: returns targetBpm
+   */
+  public computeEffectiveBpm(time: number): number {
+    if (!this._tempoRamp || !this._tempoRamp.enabled) {
+      return this._bpm;
+    }
+
+    if (this._inCountIn || this._mainStartTime <= 0) {
+      return this._tempoRamp.startBpm;
+    }
+
+    const elapsed = Math.max(0, time - this._mainStartTime);
+    const delay = Math.max(0, this._tempoRamp.startDelaySec);
+    const duration = Math.max(1, this._tempoRamp.durationSec);
+
+    if (elapsed < delay) {
+      return this._tempoRamp.startBpm;
+    }
+
+    const rampElapsed = elapsed - delay;
+    if (rampElapsed >= duration) {
+      return this._tempoRamp.targetBpm;
+    }
+
+    const progress = rampElapsed / duration;
+    const interpolated =
+      this._tempoRamp.startBpm + progress * (this._tempoRamp.targetBpm - this._tempoRamp.startBpm);
+    return Math.max(40, Math.min(280, interpolated));
+  }
+
+  public computeRampProgress(time: number): number | undefined {
+    if (
+      !this._tempoRamp ||
+      !this._tempoRamp.enabled ||
+      this._inCountIn ||
+      this._mainStartTime <= 0
+    ) {
+      return undefined;
+    }
+    const elapsed = Math.max(0, time - this._mainStartTime);
+    const delay = Math.max(0, this._tempoRamp.startDelaySec);
+    const duration = Math.max(1, this._tempoRamp.durationSec);
+    if (elapsed < delay) return 0;
+    if (elapsed >= delay + duration) return 1;
+    return (elapsed - delay) / duration;
+  }
+
   // ── Playback Controls ────────────────────────────────────────────────────
 
   public start() {
@@ -286,9 +355,11 @@ export class MetronomeAudioEngine {
     if (this._countInEnabled) {
       this._inCountIn = true;
       this._countInBeatsRemaining = beatsPerBar * Math.max(1, this._countInBars);
+      this._mainStartTime = 0;
     } else {
       this._inCountIn = false;
       this._countInBeatsRemaining = 0;
+      this._mainStartTime = this._ctx.currentTime + 0.05;
     }
 
     // Lead-time: 50ms into the future for rock-solid start
@@ -337,15 +408,18 @@ export class MetronomeAudioEngine {
 
     const currentTime = this._ctx.currentTime;
     const windowEnd = currentTime + LOOKAHEAD_TIME;
-    const beatInterval = this.getBeatInterval();
     const beatsPerMeasure = this.getBeatsPerMeasure();
     const subsPerBeat = this.getSubdivisionsPerBeat();
-    const subInterval = beatInterval / subsPerBeat;
 
     while (this._nextBeatTime < windowEnd) {
       const beatTime = this._nextBeatTime;
       const isCountIn = this._inCountIn;
       const isAccent = this._currentMeasureBeat === this._accentBeat;
+
+      const currentBpm = this.computeEffectiveBpm(beatTime);
+      const beatInterval = 60 / currentBpm;
+      const subInterval = beatInterval / subsPerBeat;
+      const rampProgress = this.computeRampProgress(beatTime);
 
       // 1. Schedule the main beat
       this.scheduleAudioPulse(beatTime, isAccent, false, isCountIn, this._currentMeasureBeat === 0);
@@ -357,6 +431,8 @@ export class MetronomeAudioEngine {
         isAccent,
         isCountIn,
         time: beatTime,
+        effectiveBpm: Math.round(currentBpm),
+        rampProgress,
       });
 
       // 2. Schedule intermediate subdivisions (if not in count-in)
@@ -370,6 +446,8 @@ export class MetronomeAudioEngine {
             isAccent: false,
             isCountIn: false,
             time: subTime,
+            effectiveBpm: Math.round(currentBpm),
+            rampProgress,
           });
         }
       }
@@ -378,8 +456,8 @@ export class MetronomeAudioEngine {
       this._beatIndexTotal++;
       this._currentMeasureBeat = (this._currentMeasureBeat + 1) % beatsPerMeasure;
 
-      // Calculate next beat time analytically: t0 + (k * beatInterval) prevents cumulative drift!
-      this._nextBeatTime = this._t0 + this._beatIndexTotal * beatInterval;
+      // When tempo is variable, each beat advances by its instantaneous beat interval
+      this._nextBeatTime = beatTime + beatInterval;
 
       // Handle count-in countdown
       if (this._inCountIn) {
@@ -390,6 +468,7 @@ export class MetronomeAudioEngine {
           this._currentMeasureBeat = 0;
           this._t0 = this._nextBeatTime;
           this._beatIndexTotal = 0;
+          this._mainStartTime = this._nextBeatTime;
         }
       }
     }
@@ -537,6 +616,56 @@ export class MetronomeAudioEngine {
   public setCountIn(enabled: boolean, bars: number = 1) {
     this._countInEnabled = enabled;
     this._countInBars = Math.max(1, bars);
+  }
+
+  public setTempoRamp(config: MetronomeTempoRampConfig | null) {
+    if (!config || !config.enabled) {
+      if (this._tempoRamp?.enabled && this._isPlaying && this._ctx) {
+        // Disabling an active ramp mid-flight!
+        // Preserve current playback, return control to normal BPM behavior, avoid restarting audio engine
+        const now = this._ctx.currentTime;
+        const currentBpm = Math.round(this.computeEffectiveBpm(now));
+        this._bpm = currentBpm;
+        this._t0 = Math.max(this._nextBeatTime, now + 0.01);
+        this._beatIndexTotal = 0;
+        this._nextBeatTime = this._t0;
+      }
+      this._tempoRamp = config ? { ...config, enabled: false } : null;
+      return;
+    }
+
+    const clampedConfig: MetronomeTempoRampConfig = {
+      enabled: true,
+      startBpm: Math.max(40, Math.min(280, Math.round(config.startBpm))),
+      targetBpm: Math.max(40, Math.min(280, Math.round(config.targetBpm))),
+      startDelaySec: Math.max(0, Math.min(600, Math.round(config.startDelaySec))),
+      durationSec: Math.max(5, Math.min(1200, Math.round(config.durationSec))),
+      holdFinalBpm: config.holdFinalBpm ?? true,
+    };
+
+    this._tempoRamp = clampedConfig;
+
+    if (this._isPlaying && this._ctx) {
+      const now = this._ctx.currentTime;
+      this._mainStartTime = now;
+      this._t0 = Math.max(this._nextBeatTime, now + 0.01);
+      this._beatIndexTotal = 0;
+      this._nextBeatTime = this._t0;
+    } else {
+      this._bpm = clampedConfig.startBpm;
+    }
+  }
+
+  public get tempoRamp(): MetronomeTempoRampConfig | null {
+    return this._tempoRamp;
+  }
+
+  public getEffectiveBpm(time?: number): number {
+    if (time !== undefined) {
+      return Math.round(this.computeEffectiveBpm(time));
+    }
+    if (!this._ctx) return this._tempoRamp?.enabled ? this._tempoRamp.startBpm : this._bpm;
+    return Math.round(this.computeEffectiveBpm(this._ctx.currentTime));
   }
 
   // ── Cleanup & Teardown ───────────────────────────────────────────────────

@@ -562,4 +562,229 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
       expect(metronomeAudioEngine.accentBeat).toBeLessThanOrEqual(2);
     });
   });
+
+  describe('Production Metronome Presets and Incremental Tempo Systems', () => {
+    beforeEach(() => {
+      // Clear localStorage
+      for (const key in mockLocalStorageStore) {
+        delete mockLocalStorageStore[key];
+      }
+      useMetronomeStore.setState({
+        userPresets: [],
+        presets: [],
+        activePresetId: null,
+        bpm: 120,
+        timeSignature: '4/4',
+        subdivision: '1/16',
+        sound: 'woodblock',
+        volume: 85,
+        countInEnabled: true,
+        accentBeat: 0,
+        isPlaying: false,
+        tempoRamp: {
+          enabled: false,
+          startBpm: 100,
+          targetBpm: 140,
+          startDelaySec: 30,
+          durationSec: 120,
+          holdFinalBpm: true,
+        },
+        effectiveBpm: 120,
+        rampProgress: undefined,
+      });
+      metronomeAudioEngine.setTempoRamp({
+        enabled: false,
+        startBpm: 100,
+        targetBpm: 140,
+        startDelaySec: 30,
+        durationSec: 120,
+        holdFinalBpm: true,
+      });
+    });
+
+    it('Preset Library starts completely empty with 0 saved presets and null activePresetId', () => {
+      const state = useMetronomeStore.getState();
+      expect(state.userPresets).toEqual([]);
+      expect(state.presets).toEqual([]);
+      expect(state.activePresetId).toBeNull();
+      // Factory presets remain architecturally separate
+      expect(state.factoryPresets.length).toBeGreaterThan(0);
+      expect(state.factoryPresets.every((f) => f.isFactory === true)).toBe(true);
+    });
+
+    it('Creates new user presets with custom properties and stores them in state and storage', () => {
+      const store = useMetronomeStore.getState();
+      const newId = store.saveNewPreset({
+        name: 'Speed Chops Workout',
+        bpm: 160,
+        timeSignature: '4/4',
+        subdivision: '1/16',
+        sound: 'digital',
+        volume: 90,
+        countInEnabled: false,
+        accentBeat: 1,
+      });
+
+      const updated = useMetronomeStore.getState();
+      expect(updated.userPresets).toHaveLength(1);
+      expect(updated.activePresetId).toBe(newId);
+      expect(updated.userPresets[0].name).toBe('Speed Chops Workout');
+      expect(updated.userPresets[0].bpm).toBe(160);
+      expect(updated.userPresets[0].sound).toBe('digital');
+      expect(updated.userPresets[0].isFactory).toBe(false);
+    });
+
+    it('Updates user preset in place without creating duplicates and immediately syncs if active', () => {
+      const store = useMetronomeStore.getState();
+      const id = store.saveNewPreset({
+        name: 'Initial Preset',
+        bpm: 100,
+        timeSignature: '4/4',
+        subdivision: '1/4',
+        sound: 'click',
+      });
+
+      expect(useMetronomeStore.getState().userPresets).toHaveLength(1);
+
+      // Update preset in place
+      store.updatePreset(id, {
+        name: 'Renamed Preset',
+        bpm: 135,
+        subdivision: '3let',
+      });
+
+      const updated = useMetronomeStore.getState();
+      expect(updated.userPresets).toHaveLength(1); // No duplicates!
+      expect(updated.userPresets[0].name).toBe('Renamed Preset');
+      expect(updated.userPresets[0].bpm).toBe(135);
+      expect(updated.userPresets[0].subdivision).toBe('3let');
+      // Active preset was updated, so store BPM synced
+      expect(updated.bpm).toBe(135);
+      expect(updated.subdivision).toBe('3let');
+    });
+
+    it('Duplicates user presets with independent unique IDs and (Copy) suffix', () => {
+      const store = useMetronomeStore.getState();
+      const origId = store.saveNewPreset({
+        name: 'Funk Groove',
+        bpm: 110,
+        timeSignature: '4/4',
+        subdivision: '1/16',
+        sound: 'cowbell',
+      });
+
+      store.duplicatePreset(origId);
+
+      const state = useMetronomeStore.getState();
+      expect(state.userPresets).toHaveLength(2);
+      const duplicate = state.userPresets[0];
+      const original = state.userPresets[1];
+
+      expect(duplicate.id).not.toBe(original.id);
+      expect(duplicate.name).toBe('Funk Groove (Copy)');
+      expect(duplicate.bpm).toBe(110);
+      expect(duplicate.sound).toBe('cowbell');
+
+      // Modifying duplicate does not affect original
+      store.updatePreset(duplicate.id, { bpm: 125 });
+      const afterMod = useMetronomeStore.getState();
+      const origAfter = afterMod.userPresets.find((p) => p.id === origId);
+      expect(origAfter?.bpm).toBe(110);
+    });
+
+    it('Deleting active preset safely selects remaining preset or falls back to null', () => {
+      const store = useMetronomeStore.getState();
+      const id1 = store.saveNewPreset({ name: 'Preset 1', bpm: 100 });
+      const id2 = store.saveNewPreset({ name: 'Preset 2', bpm: 120 });
+
+      expect(useMetronomeStore.getState().userPresets).toHaveLength(2);
+      expect(useMetronomeStore.getState().activePresetId).toBe(id2);
+
+      // Delete active preset (id2) -> should safely select remaining preset (id1)
+      store.deletePreset(id2);
+      expect(useMetronomeStore.getState().userPresets).toHaveLength(1);
+      expect(useMetronomeStore.getState().activePresetId).toBe(id1);
+
+      // Delete remaining active preset (id1) -> should fall back to null
+      store.deletePreset(id1);
+      expect(useMetronomeStore.getState().userPresets).toHaveLength(0);
+      expect(useMetronomeStore.getState().activePresetId).toBeNull();
+    });
+
+    it('Calculates authoritative Web Audio DAC tempo progression (acceleration and deceleration)', () => {
+      const engine = new MetronomeAudioEngine();
+
+      // Configure upward ramp: 100 -> 140 BPM, 10s delay, 30s duration
+      engine.setTempoRamp({
+        enabled: true,
+        startBpm: 100,
+        targetBpm: 140,
+        startDelaySec: 10,
+        durationSec: 30,
+        holdFinalBpm: true,
+      });
+
+      // Internal start timeline simulation at mainStartTime = 100
+      (engine as any)._mainStartTime = 100;
+
+      // 1. Prior to delay (tau = 5s): remains at startBpm (100)
+      expect(engine.getEffectiveBpm(105)).toBe(100);
+
+      // 2. Exactly at delay end (tau = 10s): 100 BPM
+      expect(engine.getEffectiveBpm(110)).toBe(100);
+
+      // 3. Halfway through duration (tau = 25s, 15s into 30s): 120 BPM
+      expect(engine.getEffectiveBpm(125)).toBe(120);
+
+      // 4. At ramp completion (tau = 40s): 140 BPM
+      expect(engine.getEffectiveBpm(140)).toBe(140);
+
+      // 5. Past duration with holdFinalBpm = true (tau = 60s): 140 BPM
+      expect(engine.getEffectiveBpm(160)).toBe(140);
+
+      // Deceleration test: 160 -> 100 BPM, 0s delay, 20s duration
+      engine.setTempoRamp({
+        enabled: true,
+        startBpm: 160,
+        targetBpm: 100,
+        startDelaySec: 0,
+        durationSec: 20,
+        holdFinalBpm: true,
+      });
+      (engine as any)._mainStartTime = 200;
+
+      // Halfway through (tau = 10s): 130 BPM
+      expect(engine.getEffectiveBpm(210)).toBe(130);
+
+      // Finished (tau = 20s): 100 BPM
+      expect(engine.getEffectiveBpm(220)).toBe(100);
+    });
+
+    it('Disabling tempo progression mid-flight cleanly resets ramp and preserves effective tempo without engine restart', () => {
+      const engine = new MetronomeAudioEngine();
+      (engine as any)._ctx = { currentTime: 1010 };
+      (engine as any)._isPlaying = true;
+
+      engine.setTempoRamp({
+        enabled: true,
+        startBpm: 100,
+        targetBpm: 140,
+        startDelaySec: 0,
+        durationSec: 20,
+        holdFinalBpm: true,
+      });
+      (engine as any)._mainStartTime = 1000;
+
+      // At tau = 10s (halfway): 120 BPM
+      expect(engine.getEffectiveBpm(1010)).toBe(120);
+
+      // Disable ramp mid-flight at tau = 10s
+      engine.setTempoRamp({ enabled: false });
+
+      expect(engine.tempoRamp?.enabled).toBe(false);
+      // Effective BPM is now the steady BPM
+      expect(engine.getEffectiveBpm()).toBe(120);
+      expect(engine.bpm).toBe(120);
+    });
+  });
 });

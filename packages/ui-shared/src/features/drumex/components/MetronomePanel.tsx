@@ -10,7 +10,7 @@ import {
   type MetronomePreset,
 } from '@workspace/studio-core';
 import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
-import { TimeSignatureModal, SubdivisionModal } from './MetronomeModals';
+import { TimeSignatureModal, SubdivisionModal, TempoRampModal } from './MetronomeModals';
 
 interface MetronomePanelProps {
   onBack?: () => void;
@@ -27,6 +27,9 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     volume,
     isMuted,
     countInEnabled,
+    tempoRamp,
+    effectiveBpm,
+    rampProgress,
     isPlaying,
     activeBeat,
     activeSubdivision,
@@ -51,8 +54,11 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     loadPreset,
     saveNewPreset,
     updateCurrentPreset,
+    updatePreset,
     duplicatePreset,
     deletePreset,
+    setTempoRamp,
+    toggleTempoRamp,
     togglePracticeTimer,
   } = useMetronomeStore();
 
@@ -60,24 +66,50 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
   const [showTimeSigModal, setShowTimeSigModal] = useState(false);
   const [showSubdivisionModal, setShowSubdivisionModal] = useState(false);
+  const [showTempoRampModal, setShowTempoRampModal] = useState(false);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
   const [presetSearch, setPresetSearch] = useState('');
-  const [showNewPresetForm, setShowNewPresetForm] = useState(false);
-  const [newPresetName, setNewPresetName] = useState('');
   const [showSoundMenu, setShowSoundMenu] = useState(false);
   const [activePresetMenuId, setActivePresetMenuId] = useState<string | null>(null);
 
-  const newPresetInputRef = useRef<HTMLInputElement>(null);
+  // In-modal Create/Edit Preset Form state transformation
+  const [presetFormMode, setPresetFormMode] = useState<'create' | 'edit' | null>(null);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [presetFormData, setPresetFormData] = useState<{
+    name: string;
+    bpm: number;
+    timeSignature: MetronomeTimeSignature;
+    subdivision: MetronomeSubdivision;
+    sound: MetronomeSoundId;
+    volume: number;
+    countInEnabled: boolean;
+    accentBeat: number;
+  }>({
+    name: '',
+    bpm: 120,
+    timeSignature: '4/4',
+    subdivision: '1/16',
+    sound: 'woodblock',
+    volume: 85,
+    countInEnabled: true,
+    accentBeat: 0,
+  });
+
+  const presetNameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (showNewPresetForm && newPresetInputRef.current) {
-      newPresetInputRef.current.focus();
+    if (presetFormMode && presetNameInputRef.current) {
+      presetNameInputRef.current.focus();
     }
-  }, [showNewPresetForm]);
+  }, [presetFormMode]);
 
   useBackHandler(
     'overlay',
     () => {
+      if (showTempoRampModal) {
+        setShowTempoRampModal(false);
+        return true;
+      }
       if (showTimeSigModal) {
         setShowTimeSigModal(false);
         return true;
@@ -90,6 +122,11 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
         setShowVolumePopover(false);
         return true;
       }
+      if (presetFormMode !== null) {
+        setPresetFormMode(null);
+        setEditingPresetId(null);
+        return true;
+      }
       if (isPresetsOpen) {
         setIsPresetsOpen(false);
         return true;
@@ -100,7 +137,15 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
       }
       return false;
     },
-    [showTimeSigModal, showSubdivisionModal, showVolumePopover, isPresetsOpen, showSoundMenu]
+    [
+      showTempoRampModal,
+      showTimeSigModal,
+      showSubdivisionModal,
+      showVolumePopover,
+      presetFormMode,
+      isPresetsOpen,
+      showSoundMenu,
+    ]
   );
 
   // Tempo descriptor
@@ -184,11 +229,60 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     };
   }, [userPresets, factoryPresets, presetSearch]);
 
-  const handleCreatePreset = () => {
-    const name = newPresetName.trim() || 'My Custom Groove';
-    saveNewPreset(name);
-    setNewPresetName('');
-    setShowNewPresetForm(false);
+  const handleOpenCreateForm = () => {
+    setPresetFormData({
+      name: '',
+      bpm,
+      timeSignature,
+      subdivision,
+      sound,
+      volume,
+      countInEnabled,
+      accentBeat,
+    });
+    setEditingPresetId(null);
+    setPresetFormMode('create');
+  };
+
+  const handleOpenEditForm = (preset: MetronomePreset) => {
+    setPresetFormData({
+      name: preset.name,
+      bpm: preset.bpm,
+      timeSignature: preset.timeSignature,
+      subdivision: preset.subdivision,
+      sound: preset.sound,
+      volume: preset.volume,
+      countInEnabled: preset.countInEnabled ?? true,
+      accentBeat: preset.accentBeat ?? 0,
+    });
+    setEditingPresetId(preset.id);
+    setPresetFormMode('edit');
+    setActivePresetMenuId(null);
+  };
+
+  const handleCancelForm = () => {
+    setPresetFormMode(null);
+    setEditingPresetId(null);
+  };
+
+  const handleSaveForm = () => {
+    const defaultName = presetFormMode === 'create' ? 'My Custom Groove' : 'Preset';
+    const finalName = presetFormData.name.trim() || defaultName;
+
+    if (presetFormMode === 'create') {
+      saveNewPreset({
+        ...presetFormData,
+        name: finalName,
+      });
+    } else if (presetFormMode === 'edit' && editingPresetId) {
+      updatePreset(editingPresetId, {
+        ...presetFormData,
+        name: finalName,
+      });
+    }
+
+    setPresetFormMode(null);
+    setEditingPresetId(null);
   };
 
   const formatTimerTime = (seconds: number) => {
@@ -412,7 +506,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
             <div className="flex flex-col items-center cursor-pointer select-none">
               <span className="text-7xl sm:text-8xl font-black font-manrope tracking-tighter text-[#0e0e0e] dark:text-zinc-100 leading-none font-tabular-nums">
-                {bpm}
+                {isPlaying && tempoRamp.enabled ? effectiveBpm : bpm}
               </span>
               <span className="text-[11px] font-extrabold tracking-widest text-[#007aff] uppercase font-manrope mt-1">
                 BPM
@@ -455,6 +549,25 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
               <span>280 PRESTO</span>
             </div>
           </div>
+
+          {/* Active Tempo Progression Badge */}
+          {tempoRamp.enabled && (
+            <button
+              type="button"
+              onClick={() => setShowTempoRampModal(true)}
+              className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200/80 dark:border-blue-900/60 text-[#007aff] text-[11px] font-bold font-manrope hover:bg-blue-100 dark:hover:bg-blue-900/80 transition cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[15px]">trending_up</span>
+              <span>
+                {isPlaying
+                  ? `Progression: ${effectiveBpm} BPM${rampProgress !== undefined ? ` · ${Math.round(rampProgress * 100)}%` : ''}`
+                  : `Progression: ${tempoRamp.startBpm} → ${tempoRamp.targetBpm} BPM`}
+              </span>
+              {isPlaying && (
+                <span className="w-1.5 h-1.5 rounded-full bg-[#007aff] animate-pulse" />
+              )}
+            </button>
+          )}
 
           {/* Tap Tempo Button */}
           <div className="w-full mt-4 pt-3 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-center gap-3">
@@ -762,6 +875,28 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
             )}
           </button>
 
+          {/* Incremental Tempo Trigger */}
+          <button
+            aria-label="Incremental Tempo"
+            onClick={() => setShowTempoRampModal(true)}
+            className={`w-[38px] h-[38px] rounded-full flex items-center justify-center transition tap-press focus:outline-none cursor-pointer relative ${
+              tempoRamp.enabled
+                ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff]'
+                : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200'
+            }`}
+            title={
+              tempoRamp.enabled
+                ? `Progression: ${tempoRamp.startBpm} → ${tempoRamp.targetBpm} BPM`
+                : 'Incremental Tempo'
+            }
+            type="button"
+          >
+            <span className="material-symbols-outlined text-[19px]">trending_up</span>
+            {tempoRamp.enabled && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#007aff] ring-2 ring-white dark:ring-zinc-900" />
+            )}
+          </button>
+
           {/* Presets Bottom Sheet Trigger */}
           <button
             aria-label="Presets"
@@ -824,361 +959,590 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-extrabold font-manrope text-slate-900 dark:text-zinc-100 tracking-tight leading-tight">
-                  Metronome Presets
+                  {presetFormMode === 'create'
+                    ? 'Create Preset'
+                    : presetFormMode === 'edit'
+                      ? 'Edit Preset'
+                      : 'Metronome Presets'}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border border-blue-100 dark:border-blue-900">
-                  {userPresets.length} saved
-                </span>
+                {presetFormMode === null && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border border-blue-100 dark:border-blue-900">
+                    {userPresets.length} saved
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium mt-0.5">
-                Quickly recall tempo, signature &amp; sound
+                {presetFormMode === 'create'
+                  ? 'Configure new preset settings'
+                  : presetFormMode === 'edit'
+                    ? 'Update preset parameters'
+                    : 'Quickly recall tempo, signature & sound'}
               </p>
             </div>
             <div className="flex items-center gap-1.5">
-              {/* New Preset Button */}
-              <button
-                onClick={() => setShowNewPresetForm(!showNewPresetForm)}
-                className="h-8 px-3 rounded-full bg-[#007aff] hover:bg-blue-600 text-white text-xs font-extrabold font-manrope flex items-center gap-1 shadow-sm shadow-blue-500/20 tap-press focus:outline-none cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[16px] leading-none">add</span>
-                <span>New</span>
-              </button>
-              {/* Close Button */}
-              <button
-                aria-label="Close presets"
-                onClick={() => setIsPresetsOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 flex items-center justify-center transition tap-press focus:outline-none cursor-pointer"
-                type="button"
-              >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
+              {presetFormMode === null ? (
+                <>
+                  {/* New Preset Button */}
+                  <button
+                    onClick={handleOpenCreateForm}
+                    className="h-8 px-3 rounded-full bg-[#007aff] hover:bg-blue-600 text-white text-xs font-extrabold font-manrope flex items-center gap-1 shadow-sm shadow-blue-500/20 tap-press focus:outline-none cursor-pointer"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[16px] leading-none">add</span>
+                    <span>New</span>
+                  </button>
+                  {/* Close Button */}
+                  <button
+                    aria-label="Close presets"
+                    onClick={() => setIsPresetsOpen(false)}
+                    className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 flex items-center justify-center transition tap-press focus:outline-none cursor-pointer"
+                    type="button"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  aria-label="Cancel preset editing"
+                  onClick={handleCancelForm}
+                  className="w-8 h-8 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-zinc-300 flex items-center justify-center transition tap-press focus:outline-none cursor-pointer"
+                  type="button"
+                >
+                  <span className="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Collapsible New Preset Box */}
-          {showNewPresetForm && (
-            <div className="bg-slate-50/90 dark:bg-zinc-800/80 border-b border-slate-200/80 dark:border-zinc-700 px-5 py-3.5 flex flex-col gap-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold font-manrope uppercase tracking-wider text-slate-700 dark:text-zinc-300">
-                  Save Current Settings
-                </span>
+          {presetFormMode !== null ? (
+            /* ── IN-MODAL CREATE / EDIT PRESET FORM VIEW ── */
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-4 no-scrollbar">
+                {/* Preset Name */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                    Preset Name
+                  </label>
+                  <input
+                    ref={presetNameInputRef}
+                    value={presetFormData.name}
+                    onChange={(e) => setPresetFormData({ ...presetFormData, name: e.target.value })}
+                    placeholder="e.g., Fast Paradiddle Drill"
+                    className="w-full px-3.5 py-2.5 text-xs bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200/60 focus:bg-white dark:focus:bg-zinc-900 border border-slate-200/80 dark:border-zinc-700 rounded-xl font-medium text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 transition focus:outline-none focus:border-[#007aff]"
+                    type="text"
+                  />
+                </div>
+
+                {/* BPM Stepper & Slider */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                      Tempo
+                    </label>
+                    <span className="font-mono font-black text-sm text-[#007aff]">
+                      {presetFormData.bpm} BPM
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPresetFormData({
+                          ...presetFormData,
+                          bpm: Math.max(40, presetFormData.bpm - 5),
+                        })
+                      }
+                      className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold text-xs flex items-center justify-center border border-slate-200/70 dark:border-zinc-700 cursor-pointer"
+                    >
+                      -5
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPresetFormData({
+                          ...presetFormData,
+                          bpm: Math.max(40, presetFormData.bpm - 1),
+                        })
+                      }
+                      className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold text-xs flex items-center justify-center border border-slate-200/70 dark:border-zinc-700 cursor-pointer"
+                    >
+                      -1
+                    </button>
+                    <input
+                      type="range"
+                      min={40}
+                      max={280}
+                      value={presetFormData.bpm}
+                      onChange={(e) =>
+                        setPresetFormData({ ...presetFormData, bpm: Number(e.target.value) })
+                      }
+                      className="metronome-range flex-1 h-2 rounded-lg appearance-none cursor-pointer"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPresetFormData({
+                          ...presetFormData,
+                          bpm: Math.min(280, presetFormData.bpm + 1),
+                        })
+                      }
+                      className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold text-xs flex items-center justify-center border border-slate-200/70 dark:border-zinc-700 cursor-pointer"
+                    >
+                      +1
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPresetFormData({
+                          ...presetFormData,
+                          bpm: Math.min(280, presetFormData.bpm + 5),
+                        })
+                      }
+                      className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold text-xs flex items-center justify-center border border-slate-200/70 dark:border-zinc-700 cursor-pointer"
+                    >
+                      +5
+                    </button>
+                  </div>
+                </div>
+
+                {/* Time Signature Grid */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                    Time Signature
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {(
+                      [
+                        '2/4',
+                        '3/4',
+                        '4/4',
+                        '5/4',
+                        '6/8',
+                        '7/8',
+                        '9/8',
+                        '12/8',
+                      ] as MetronomeTimeSignature[]
+                    ).map((sig) => (
+                      <button
+                        key={sig}
+                        type="button"
+                        onClick={() => setPresetFormData({ ...presetFormData, timeSignature: sig })}
+                        className={`py-2 rounded-xl text-xs font-manrope font-bold border transition cursor-pointer ${
+                          presetFormData.timeSignature === sig
+                            ? 'bg-blue-50 dark:bg-blue-950/40 border-[#007aff] text-[#007aff]'
+                            : 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200/80 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        {sig}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Subdivision Grid */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                    Subdivision
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(['1/4', '1/8', '1/16', '1/32', '3let', '6let'] as MetronomeSubdivision[]).map(
+                      (sub) => (
+                        <button
+                          key={sub}
+                          type="button"
+                          onClick={() => setPresetFormData({ ...presetFormData, subdivision: sub })}
+                          className={`py-2 rounded-xl text-xs font-manrope font-bold border transition cursor-pointer ${
+                            presetFormData.subdivision === sub
+                              ? 'bg-blue-50 dark:bg-blue-950/40 border-[#007aff] text-[#007aff]'
+                              : 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200/80 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                          }`}
+                        >
+                          {sub}
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Sound Grid */}
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                    Sound
+                  </label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {(
+                      [
+                        'woodblock',
+                        'click',
+                        'digital',
+                        'cowbell',
+                        'rimshot',
+                        'soft',
+                      ] as MetronomeSoundId[]
+                    ).map((snd) => (
+                      <button
+                        key={snd}
+                        type="button"
+                        onClick={() => setPresetFormData({ ...presetFormData, sound: snd })}
+                        className={`py-2 px-3 rounded-xl text-xs font-medium text-left border transition cursor-pointer truncate ${
+                          presetFormData.sound === snd
+                            ? 'bg-blue-50 dark:bg-blue-950/40 border-[#007aff] text-[#007aff] font-bold'
+                            : 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200/80 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        {SOUND_LABELS[snd]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Count-In Toggle */}
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-bold font-manrope text-slate-900 dark:text-zinc-100">
+                      Count-In (1 Bar)
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-zinc-400">
+                      Play lead-in beat sequence before starting
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={presetFormData.countInEnabled}
+                    onClick={() =>
+                      setPresetFormData({
+                        ...presetFormData,
+                        countInEnabled: !presetFormData.countInEnabled,
+                      })
+                    }
+                    className={`w-10 h-6 rounded-full transition-colors relative cursor-pointer flex items-center px-0.5 ${
+                      presetFormData.countInEnabled
+                        ? 'bg-[#007aff]'
+                        : 'bg-slate-300 dark:bg-zinc-700'
+                    }`}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-full bg-white shadow-sm transform transition-transform ${
+                        presetFormData.countInEnabled ? 'translate-x-4' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Actions Footer */}
+              <div className="px-5 py-3 border-t border-slate-100 dark:border-zinc-800 flex gap-2">
                 <button
-                  onClick={() => setShowNewPresetForm(false)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 text-xs font-semibold cursor-pointer"
                   type="button"
+                  onClick={handleCancelForm}
+                  className="flex-1 py-3 rounded-2xl bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-300 font-manrope font-bold text-xs tracking-tight transition cursor-pointer"
                 >
                   Cancel
                 </button>
+                <button
+                  type="button"
+                  onClick={handleSaveForm}
+                  className="flex-1 py-3 rounded-2xl bg-[#007aff] hover:bg-blue-600 text-white font-manrope font-bold text-xs tracking-tight shadow-md transition cursor-pointer"
+                >
+                  {presetFormMode === 'create' ? 'Save Preset' : 'Update Preset'}
+                </button>
               </div>
-              <input
-                ref={newPresetInputRef}
-                value={newPresetName}
-                onChange={(e) => setNewPresetName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleCreatePreset();
-                }}
-                placeholder="e.g., Fast Paradiddle Drill"
-                className="w-full px-3 py-2 text-xs bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 rounded-xl font-medium text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 focus:outline-none focus:border-[#007aff]"
-                type="text"
-              />
-              <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-900 px-2.5 py-1.5 rounded-lg border border-slate-200/70 dark:border-zinc-700 font-mono">
-                <span>
-                  Tempo: <b className="text-[#007aff]">{bpm} BPM</b>
-                </span>
-                <span>
-                  Sig: <b className="text-slate-700 dark:text-zinc-200">{timeSignature}</b>
-                </span>
-                <span>
-                  Sub: <b className="text-slate-700 dark:text-zinc-200">{subdivision}</b>
-                </span>
-              </div>
-              <button
-                onClick={handleCreatePreset}
-                className="w-full py-2 bg-[#007aff] text-white font-manrope font-bold text-xs rounded-xl shadow-xs tap-press hover:bg-blue-600 transition cursor-pointer"
-                type="button"
-              >
-                Save Preset
-              </button>
             </div>
+          ) : (
+            <>
+              {/* Search / Filter bar */}
+              <div className="px-5 pt-3 pb-1">
+                <div className="relative flex items-center">
+                  <span className="material-symbols-outlined text-[18px] text-slate-400 absolute left-3 pointer-events-none">
+                    search
+                  </span>
+                  <input
+                    value={presetSearch}
+                    onChange={(e) => setPresetSearch(e.target.value)}
+                    placeholder="Search presets..."
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200/60 focus:bg-white dark:focus:bg-zinc-900 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 transition focus:outline-none focus:border-[#007aff]"
+                    type="text"
+                  />
+                </div>
+              </div>
+
+              {/* Presets List */}
+              <div className="flex-1 overflow-y-auto px-5 py-2.5 flex flex-col gap-4 no-scrollbar pb-8">
+                {/* 1. SAVED USER PRESETS SECTION */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                      My Saved Presets ({filteredUserPresets.length})
+                    </span>
+                  </div>
+
+                  {filteredUserPresets.length === 0 ? (
+                    <div className="py-6 px-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-dashed border-slate-200 dark:border-zinc-800 text-center flex flex-col items-center justify-center gap-1.5">
+                      <span className="material-symbols-outlined text-[24px] text-slate-400 dark:text-zinc-500">
+                        bookmark_border
+                      </span>
+                      <p className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                        No saved presets yet
+                      </p>
+                      <p className="text-[11px] text-slate-400 dark:text-zinc-500 max-w-xs">
+                        Save current tempo and rhythmic settings with &quot;+ New&quot; to build
+                        your library.
+                      </p>
+                    </div>
+                  ) : (
+                    filteredUserPresets.map((p) => {
+                      const isCurrent = activePresetId === p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => {
+                            loadPreset(p.id);
+                            setTimeout(() => setIsPresetsOpen(false), 220);
+                          }}
+                          className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
+                            isCurrent
+                              ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
+                              : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
+                                isCurrent
+                                  ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
+                                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[20px]">
+                                {p.icon || 'bookmark'}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
+                                  {p.name}
+                                </h3>
+                                {isCurrent && (
+                                  <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                                <span className="font-bold text-slate-700 dark:text-zinc-200">
+                                  {p.timeSignature}
+                                </span>
+                                <span>•</span>
+                                <span>{p.subdivision} Note</span>
+                                <span>•</span>
+                                <span className="truncate max-w-[90px]">
+                                  {SOUND_LABELS[p.sound]}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-1 rounded-lg font-manrope text-xs ${
+                                isCurrent
+                                  ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
+                                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
+                              }`}
+                            >
+                              {p.bpm} <span className="text-[9px]">BPM</span>
+                            </span>
+                            <div className="relative">
+                              <button
+                                aria-label="Preset options"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
+                                }}
+                                className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
+                                type="button"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  more_vert
+                                </span>
+                              </button>
+
+                              {/* Options menu popover */}
+                              {activePresetMenuId === p.id && (
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
+                                >
+                                  <button
+                                    onClick={() => handleOpenEditForm(p)}
+                                    className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      updateCurrentPreset();
+                                      setActivePresetMenuId(null);
+                                    }}
+                                    className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                                  >
+                                    Update with current
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      duplicatePreset(p.id);
+                                      setActivePresetMenuId(null);
+                                    }}
+                                    className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                                  >
+                                    Duplicate
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      deletePreset(p.id);
+                                      setActivePresetMenuId(null);
+                                    }}
+                                    className="px-3 py-1.5 text-left text-xs font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* 2. FACTORY PRESETS SECTION */}
+                {filteredFactoryPresets.length > 0 && (
+                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+                    <div className="flex items-center justify-between px-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                        Factory Presets ({filteredFactoryPresets.length})
+                      </span>
+                    </div>
+
+                    {filteredFactoryPresets.map((p) => {
+                      const isCurrent = activePresetId === p.id;
+                      return (
+                        <div
+                          key={p.id}
+                          onClick={() => {
+                            loadPreset(p.id);
+                            setTimeout(() => setIsPresetsOpen(false), 220);
+                          }}
+                          className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
+                            isCurrent
+                              ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
+                              : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
+                                isCurrent
+                                  ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
+                                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
+                              }`}
+                            >
+                              <span className="material-symbols-outlined text-[20px]">
+                                {p.icon || 'bookmark'}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
+                                  {p.name}
+                                </h3>
+                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 text-[9px] font-bold uppercase tracking-wide">
+                                  Factory
+                                </span>
+                                {isCurrent && (
+                                  <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                                <span className="font-bold text-slate-700 dark:text-zinc-200">
+                                  {p.timeSignature}
+                                </span>
+                                <span>•</span>
+                                <span>{p.subdivision} Note</span>
+                                <span>•</span>
+                                <span className="truncate max-w-[90px]">
+                                  {SOUND_LABELS[p.sound]}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`px-2 py-1 rounded-lg font-manrope text-xs ${
+                                isCurrent
+                                  ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
+                                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
+                              }`}
+                            >
+                              {p.bpm} <span className="text-[9px]">BPM</span>
+                            </span>
+                            <div className="relative">
+                              <button
+                                aria-label="Preset options"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
+                                }}
+                                className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
+                                type="button"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">
+                                  more_vert
+                                </span>
+                              </button>
+
+                              {/* Options menu popover for factory presets */}
+                              {activePresetMenuId === p.id && (
+                                <div
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
+                                >
+                                  <button
+                                    onClick={() => {
+                                      loadPreset(p.id);
+                                      setActivePresetMenuId(null);
+                                      setIsPresetsOpen(false);
+                                    }}
+                                    className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                                  >
+                                    Load
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      duplicatePreset(p.id);
+                                      setActivePresetMenuId(null);
+                                    }}
+                                    className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                                  >
+                                    Duplicate to saved
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </>
           )}
-
-          {/* Search / Filter bar */}
-          <div className="px-5 pt-3 pb-1">
-            <div className="relative flex items-center">
-              <span className="material-symbols-outlined text-[18px] text-slate-400 absolute left-3 pointer-events-none">
-                search
-              </span>
-              <input
-                value={presetSearch}
-                onChange={(e) => setPresetSearch(e.target.value)}
-                placeholder="Search presets..."
-                className="w-full pl-9 pr-3 py-2 text-xs bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200/60 focus:bg-white dark:focus:bg-zinc-900 border border-slate-200/80 dark:border-zinc-700 rounded-xl text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 transition focus:outline-none focus:border-[#007aff]"
-                type="text"
-              />
-            </div>
-          </div>
-
-          {/* Presets List */}
-          <div className="flex-1 overflow-y-auto px-5 py-2.5 flex flex-col gap-4 no-scrollbar pb-8">
-            {/* 1. SAVED USER PRESETS SECTION */}
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
-                  My Saved Presets ({filteredUserPresets.length})
-                </span>
-              </div>
-
-              {filteredUserPresets.length === 0 ? (
-                <div className="py-6 px-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-dashed border-slate-200 dark:border-zinc-800 text-center flex flex-col items-center justify-center gap-1.5">
-                  <span className="material-symbols-outlined text-[24px] text-slate-400 dark:text-zinc-500">
-                    bookmark_border
-                  </span>
-                  <p className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-                    No saved presets yet
-                  </p>
-                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 max-w-xs">
-                    Save current tempo and rhythmic settings with &quot;+ New&quot; to build your
-                    library.
-                  </p>
-                </div>
-              ) : (
-                filteredUserPresets.map((p) => {
-                  const isCurrent = activePresetId === p.id;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => {
-                        loadPreset(p.id);
-                        setTimeout(() => setIsPresetsOpen(false), 220);
-                      }}
-                      className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
-                        isCurrent
-                          ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
-                          : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
-                            isCurrent
-                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
-                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[20px]">
-                            {p.icon || 'bookmark'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
-                              {p.name}
-                            </h3>
-                            {isCurrent && (
-                              <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
-                                Current
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                            <span className="font-bold text-slate-700 dark:text-zinc-200">
-                              {p.timeSignature}
-                            </span>
-                            <span>•</span>
-                            <span>{p.subdivision} Note</span>
-                            <span>•</span>
-                            <span className="truncate max-w-[90px]">{SOUND_LABELS[p.sound]}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-1 rounded-lg font-manrope text-xs ${
-                            isCurrent
-                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
-                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
-                          }`}
-                        >
-                          {p.bpm} <span className="text-[9px]">BPM</span>
-                        </span>
-                        <div className="relative">
-                          <button
-                            aria-label="Preset options"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
-                            }}
-                            className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
-                            type="button"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">more_vert</span>
-                          </button>
-
-                          {/* Options menu popover */}
-                          {activePresetMenuId === p.id && (
-                            <div
-                              onClick={(e) => e.stopPropagation()}
-                              className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
-                            >
-                              <button
-                                onClick={() => {
-                                  updateCurrentPreset();
-                                  setActivePresetMenuId(null);
-                                }}
-                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
-                              >
-                                Update with current
-                              </button>
-                              <button
-                                onClick={() => {
-                                  duplicatePreset(p.id);
-                                  setActivePresetMenuId(null);
-                                }}
-                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
-                              >
-                                Duplicate
-                              </button>
-                              <button
-                                onClick={() => {
-                                  deletePreset(p.id);
-                                  setActivePresetMenuId(null);
-                                }}
-                                className="px-3 py-1.5 text-left text-xs font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-
-            {/* 2. FACTORY PRESETS SECTION */}
-            {filteredFactoryPresets.length > 0 && (
-              <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
-                <div className="flex items-center justify-between px-1">
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
-                    Factory Presets ({filteredFactoryPresets.length})
-                  </span>
-                </div>
-
-                {filteredFactoryPresets.map((p) => {
-                  const isCurrent = activePresetId === p.id;
-                  return (
-                    <div
-                      key={p.id}
-                      onClick={() => {
-                        loadPreset(p.id);
-                        setTimeout(() => setIsPresetsOpen(false), 220);
-                      }}
-                      className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
-                        isCurrent
-                          ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
-                          : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
-                            isCurrent
-                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
-                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
-                          }`}
-                        >
-                          <span className="material-symbols-outlined text-[20px]">
-                            {p.icon || 'bookmark'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
-                              {p.name}
-                            </h3>
-                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 text-[9px] font-bold uppercase tracking-wide">
-                              Factory
-                            </span>
-                            {isCurrent && (
-                              <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
-                                Current
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                            <span className="font-bold text-slate-700 dark:text-zinc-200">
-                              {p.timeSignature}
-                            </span>
-                            <span>•</span>
-                            <span>{p.subdivision} Note</span>
-                            <span>•</span>
-                            <span className="truncate max-w-[90px]">{SOUND_LABELS[p.sound]}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-1 rounded-lg font-manrope text-xs ${
-                            isCurrent
-                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
-                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
-                          }`}
-                        >
-                          {p.bpm} <span className="text-[9px]">BPM</span>
-                        </span>
-                        <div className="relative">
-                          <button
-                            aria-label="Preset options"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
-                            }}
-                            className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
-                            type="button"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">more_vert</span>
-                          </button>
-
-                          {/* Options menu popover for factory presets */}
-                          {activePresetMenuId === p.id && (
-                            <div
-                              onClick={(e) => e.stopPropagation()}
-                              className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
-                            >
-                              <button
-                                onClick={() => {
-                                  loadPreset(p.id);
-                                  setActivePresetMenuId(null);
-                                  setIsPresetsOpen(false);
-                                }}
-                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
-                              >
-                                Load
-                              </button>
-                              <button
-                                onClick={() => {
-                                  duplicatePreset(p.id);
-                                  setActivePresetMenuId(null);
-                                }}
-                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
-                              >
-                                Duplicate to saved
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
         </div>
       </div>
 
@@ -1195,6 +1559,15 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
         value={subdivision}
         onSelect={(sub) => setSubdivision(sub)}
         onClose={() => setShowSubdivisionModal(false)}
+      />
+
+      {/* Centered Modern Modal for Incremental Tempo Progression */}
+      <TempoRampModal
+        isOpen={showTempoRampModal}
+        config={tempoRamp}
+        currentBpm={bpm}
+        onSave={(cfg) => setTempoRamp(cfg)}
+        onClose={() => setShowTempoRampModal(false)}
       />
     </div>
   );

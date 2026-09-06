@@ -4,6 +4,7 @@ import {
   type MetronomeTimeSignature,
   type MetronomeSubdivision,
   type MetronomeSoundId,
+  type MetronomeTempoRampConfig,
 } from '../lib/audio/metronomeAudio';
 import { mediaSessionCoordinator } from '../lib/audio/mediaSessionCoordinator';
 
@@ -17,10 +18,20 @@ export interface MetronomePreset {
   volume: number;
   countInEnabled: boolean;
   accentBeat?: number; // 0-indexed measure beat (0 = Beat 1)
+  tempoRamp?: MetronomeTempoRampConfig; // Optional integrated tempo ramp configuration
   isFactory?: boolean; // Immutable factory preset flag
   icon?: string;
   createdAt: number;
 }
+
+export const DEFAULT_TEMPO_RAMP: MetronomeTempoRampConfig = {
+  enabled: false,
+  startBpm: 100,
+  targetBpm: 140,
+  startDelaySec: 30,
+  durationSec: 120,
+  holdFinalBpm: true,
+};
 
 export const SOUND_LABELS: Record<MetronomeSoundId, string> = {
   woodblock: 'Acoustic Woodblock',
@@ -219,6 +230,11 @@ export interface MetronomeState {
   countInEnabled: boolean;
   countInBars: number;
 
+  // Incremental Tempo Ramp
+  tempoRamp: MetronomeTempoRampConfig;
+  effectiveBpm: number;
+  rampProgress?: number;
+
   // Active playhead
   isPlaying: boolean;
   activeBeat: number; // 0 to N-1, or -1
@@ -254,11 +270,16 @@ export interface MetronomeState {
 
   // Presets CRUD
   loadPreset: (id: string) => void;
-  saveNewPreset: (name: string) => string;
+  saveNewPreset: (nameOrData: string | Partial<MetronomePreset>) => string;
   updateCurrentPreset: () => void;
+  updatePreset: (id: string, updates: Partial<MetronomePreset>) => void;
   duplicatePreset: (id: string) => void;
   deletePreset: (id: string) => void;
   renamePreset: (id: string, name: string) => void;
+
+  // Incremental Tempo Actions
+  setTempoRamp: (config: Partial<MetronomeTempoRampConfig>) => void;
+  toggleTempoRamp: () => void;
 
   // Practice Timer Actions
   setPracticeTimerMinutes: (minutes: number) => void;
@@ -296,6 +317,8 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       activeSubdivision: event.subdivisionIndex,
       isAccent: event.isAccent,
       isCountIn: event.isCountIn,
+      effectiveBpm: event.effectiveBpm,
+      rampProgress: event.rampProgress,
     });
   };
 
@@ -306,6 +329,12 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       activeSubdivision: 0,
       isAccent: false,
       isCountIn: false,
+      effectiveBpm: playing
+        ? get().tempoRamp.enabled
+          ? get().tempoRamp.startBpm
+          : get().bpm
+        : get().bpm,
+      rampProgress: playing && get().tempoRamp.enabled ? 0 : undefined,
     });
 
     if (playing) {
@@ -449,13 +478,18 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     countInEnabled: initialCountIn,
     countInBars: 1,
 
+    // Incremental Tempo Ramp
+    tempoRamp: DEFAULT_TEMPO_RAMP,
+    effectiveBpm: initialBpm,
+    rampProgress: undefined,
+
     isPlaying: false,
     activeBeat: -1,
     activeSubdivision: 0,
     isAccent: false,
     isCountIn: false,
 
-    activePresetId: initialUserPresets[0]?.id ?? FACTORY_PRESETS[0]?.id ?? null,
+    activePresetId: initialUserPresets[0]?.id ?? null,
     userPresets: initialUserPresets,
     factoryPresets: FACTORY_PRESETS,
     presets: initialUserPresets,
@@ -479,7 +513,10 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     setBpm: (val: number) => {
       const clamped = Math.max(40, Math.min(280, Math.round(val)));
       metronomeAudioEngine.setBpm(clamped);
-      set({ bpm: clamped });
+      set({
+        bpm: clamped,
+        effectiveBpm: get().tempoRamp.enabled ? get().effectiveBpm : clamped,
+      });
       persistSettings();
       syncMediaSession(get().isPlaying);
     },
@@ -488,7 +525,10 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       const current = get().bpm;
       const next = Math.max(40, Math.min(280, current + delta));
       metronomeAudioEngine.setBpm(next);
-      set({ bpm: next });
+      set({
+        bpm: next,
+        effectiveBpm: get().tempoRamp.enabled ? get().effectiveBpm : next,
+      });
       persistSettings();
       syncMediaSession(get().isPlaying);
     },
@@ -584,26 +624,45 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         metronomeAudioEngine.setCountIn(preset.countInEnabled, 1);
         set({ countInEnabled: preset.countInEnabled });
       }
+      if (preset.tempoRamp) {
+        get().setTempoRamp(preset.tempoRamp);
+      } else {
+        get().setTempoRamp({ enabled: false });
+      }
 
       set({ activePresetId: id });
       syncMediaSession(get().isPlaying);
     },
 
-    saveNewPreset: (name: string) => {
+    saveNewPreset: (nameOrData: string | Partial<MetronomePreset>) => {
       const s = get();
       const newId = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      const isObject = typeof nameOrData === 'object' && nameOrData !== null;
+      const name = (isObject ? nameOrData.name : nameOrData) || 'Custom Groove';
+
       const newPreset: MetronomePreset = {
         id: newId,
-        name: name.trim() || 'Custom Groove',
-        bpm: s.bpm,
-        timeSignature: s.timeSignature,
-        subdivision: s.subdivision,
-        sound: s.sound,
-        volume: s.volume,
-        accentBeat: s.accentBeat,
-        countInEnabled: s.countInEnabled,
+        name: (name || 'Custom Groove').trim(),
+        bpm: isObject && nameOrData.bpm !== undefined ? nameOrData.bpm : s.bpm,
+        timeSignature:
+          isObject && nameOrData.timeSignature ? nameOrData.timeSignature : s.timeSignature,
+        subdivision: isObject && nameOrData.subdivision ? nameOrData.subdivision : s.subdivision,
+        sound: isObject && nameOrData.sound ? nameOrData.sound : s.sound,
+        volume: isObject && nameOrData.volume !== undefined ? nameOrData.volume : s.volume,
+        accentBeat:
+          isObject && nameOrData.accentBeat !== undefined ? nameOrData.accentBeat : s.accentBeat,
+        countInEnabled:
+          isObject && nameOrData.countInEnabled !== undefined
+            ? nameOrData.countInEnabled
+            : s.countInEnabled,
+        tempoRamp:
+          isObject && nameOrData.tempoRamp
+            ? { ...nameOrData.tempoRamp }
+            : s.tempoRamp.enabled
+              ? { ...s.tempoRamp }
+              : undefined,
         isFactory: false,
-        icon: 'bookmark',
+        icon: isObject && nameOrData.icon ? nameOrData.icon : 'bookmark',
         createdAt: Date.now(),
       };
 
@@ -630,6 +689,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
               volume: s.volume,
               accentBeat: s.accentBeat,
               countInEnabled: s.countInEnabled,
+              tempoRamp: s.tempoRamp.enabled ? { ...s.tempoRamp } : undefined,
             };
           }
           return p;
@@ -644,6 +704,37 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       }
     },
 
+    updatePreset: (id: string, updates: Partial<MetronomePreset>) => {
+      const s = get();
+      let updatedPreset: MetronomePreset | null = null;
+      const updated = s.userPresets.map((p) => {
+        if (p.id === id) {
+          updatedPreset = { ...p, ...updates };
+          return updatedPreset;
+        }
+        return p;
+      });
+
+      saveStoredPresets(updated);
+      set({ userPresets: updated, presets: updated });
+
+      if (s.activePresetId === id && updatedPreset) {
+        if (updates.bpm !== undefined) get().setBpm(updates.bpm);
+        if (updates.timeSignature !== undefined) get().setTimeSignature(updates.timeSignature);
+        if (updates.subdivision !== undefined) get().setSubdivision(updates.subdivision);
+        if (updates.sound !== undefined) get().setSound(updates.sound);
+        if (updates.volume !== undefined) get().setVolume(updates.volume);
+        if (updates.accentBeat !== undefined) get().setAccentBeat(updates.accentBeat);
+        if (updates.countInEnabled !== undefined) {
+          metronomeAudioEngine.setCountIn(updates.countInEnabled, 1);
+          set({ countInEnabled: updates.countInEnabled });
+        }
+        if (updates.tempoRamp !== undefined) {
+          get().setTempoRamp(updates.tempoRamp);
+        }
+      }
+    },
+
     duplicatePreset: (id: string) => {
       const s = get();
       const target = [...s.userPresets, ...FACTORY_PRESETS].find((p) => p.id === id);
@@ -653,6 +744,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         ...target,
         id: `preset-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: `${target.name} (Copy)`,
+        tempoRamp: target.tempoRamp ? { ...target.tempoRamp } : undefined,
         isFactory: false,
         createdAt: Date.now(),
       };
@@ -666,11 +758,19 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       const s = get();
       const updated = s.userPresets.filter((p) => p.id !== id);
       saveStoredPresets(updated);
+      const nextActiveId = s.activePresetId === id ? (updated[0]?.id ?? null) : s.activePresetId;
       set({
         userPresets: updated,
         presets: updated,
-        activePresetId: s.activePresetId === id ? (updated[0]?.id ?? null) : s.activePresetId,
+        activePresetId: nextActiveId,
       });
+      if (s.activePresetId === id) {
+        if (nextActiveId) {
+          get().loadPreset(nextActiveId);
+        } else {
+          syncMediaSession(s.isPlaying);
+        }
+      }
     },
 
     renamePreset: (id: string, name: string) => {
@@ -678,6 +778,28 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       const updated = s.userPresets.map((p) => (p.id === id ? { ...p, name: name.trim() } : p));
       saveStoredPresets(updated);
       set({ userPresets: updated, presets: updated });
+    },
+
+    setTempoRamp: (config: Partial<MetronomeTempoRampConfig>) => {
+      const nextConfig: MetronomeTempoRampConfig = {
+        ...get().tempoRamp,
+        ...config,
+      };
+      metronomeAudioEngine.setTempoRamp(nextConfig);
+      set({
+        tempoRamp: nextConfig,
+        effectiveBpm: nextConfig.enabled ? nextConfig.startBpm : get().bpm,
+        rampProgress: nextConfig.enabled ? 0 : undefined,
+      });
+    },
+
+    toggleTempoRamp: () => {
+      const current = get().tempoRamp;
+      const nextEnabled = !current.enabled;
+      get().setTempoRamp({
+        enabled: nextEnabled,
+        startBpm: current.startBpm || get().bpm,
+      });
     },
 
     setPracticeTimerMinutes: (minutes: number) => {

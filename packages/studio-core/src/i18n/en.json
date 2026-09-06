@@ -6,6 +6,7 @@
     "chords": "Chords",
     "settings": "Preferences",
     "preferences": "Preferences",
+    "drumMetronome": "Metronome",
     "drumBeats": "Beats",
     "drumPatterns": "Patterns",
     "drumPreferences": "Preferences",
@@ -702,6 +703,7 @@
     }
   },
   "drum": {
+    "metronome": "Metronome",
     "songs": "Songs",
     "patterns": "Library",
     "preferences": "Preferences",

@@ -47,6 +47,7 @@ function getNormalizedIconName(key: string): string {
   // Drumex
   if (['drum', 'drums', 'beats', 'drumbeats', 'drumsongs', 'drumex'].includes(norm)) return 'drum';
   if (['blocks', 'patterns', 'drumpatterns'].includes(norm)) return 'blocks';
+  if (['metronome', 'drummetronome', 'timer', 'clock'].includes(norm)) return 'clock';
 
   // StageX
   if (
@@ -90,6 +91,7 @@ const MATCHED_NAMES = new Set([
   'bug',
   'clap',
   'clapperboard',
+  'clock',
   'cog',
   'disc',
   'drum',

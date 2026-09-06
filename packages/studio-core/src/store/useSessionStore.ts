@@ -7,7 +7,7 @@ export interface SessionState {
     app?: AppKey;
     vocalexTab?: 'coach' | 'recorder' | 'takes' | 'preferences';
     stagexView?: string;
-    drumexTab?: 'songs' | 'patterns' | 'prefs';
+    drumexTab?: 'metronome' | 'songs' | 'patterns' | 'prefs';
     groovexView?: 'library' | 'player' | 'preferences';
   };
 }

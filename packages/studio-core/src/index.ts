@@ -2,6 +2,7 @@
 export { useShallow } from 'zustand/react/shallow';
 export * from './store/useChordStore';
 export * from './store/useDrumStore';
+export * from './store/useMetronomeStore';
 export * from './store/useSessionStore';
 export * from './hooks/useIsWebDesktop';
 export * from './hooks/useStudioPreferences';
@@ -21,6 +22,7 @@ export * from './lib/backStack';
 export * from './lib/chordAssistant';
 export * from './lib/chordDetect';
 export * from './lib/drumAudio';
+export * from './lib/audio/metronomeAudio';
 export * from './lib/drumLibrary';
 export * from './lib/drumPlugins';
 export * from './lib/firebase';

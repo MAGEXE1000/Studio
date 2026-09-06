@@ -101,6 +101,7 @@ export function BottomNavigationController() {
       if (key === 'settings') return nav.settings || 'Preferences';
       if (key === 'preferences') return nav.preferences || 'Preferences';
       if (key === 'chords') return nav.chords || 'Chords';
+      if (key === 'drumMetronome' || key === 'metronome') return nav.drumMetronome || 'Metronome';
       if (key === 'drumSongs' || key === 'drumBeats') return nav.drumBeats || 'Beats';
       if (key === 'drumPatterns') return nav.drumPatterns || 'Patterns';
       if (key === 'drumPreferences') return nav.drumPreferences || 'Preferences';
@@ -407,6 +408,12 @@ export function BottomNavigationController() {
       let isActive = activeTab === sec.id || activePage === sec.id;
       if (currentApp === 'stagex' && sec.id === 'Editor') {
         isActive = activeTab === 'Editor' || activePage === 'Editor' || activePage === 'Export';
+      }
+      if (currentApp === 'drumex') {
+        if (sec.id === 'beats' && (activeTab === 'songs' || activePage === 'songs'))
+          isActive = true;
+        if (sec.id === 'songs' && (activeTab === 'beats' || activePage === 'beats'))
+          isActive = true;
       }
       return {
         key: sec.id,

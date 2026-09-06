@@ -20,6 +20,7 @@ import {
   NavigationDispatcher,
   useSettingsStore,
   useSessionStore,
+  useMetronomeStore,
 } from '@workspace/studio-core';
 import { useShallow } from 'zustand/react/shallow';
 import { DrumTransportBar } from '../components/DrumTransportBar';
@@ -106,6 +107,7 @@ import { InstrumentRow } from '../components/InstrumentRow';
 import DrumPaperPreview, { type DrumExportConfig } from '../components/DrumPaperPreview';
 import DrumExportModal from '../components/DrumExportModal';
 import DrumImportModal from '../components/DrumImportModal';
+import { MetronomePanel } from '../components/MetronomePanel';
 import { DrumBeatsPanel } from '../components/DrumBeatsPanel';
 import { DrumPatternsPanel } from '../components/DrumPatternsPanel';
 import {
@@ -322,10 +324,10 @@ const KIT_CATEGORIES: { id: string; kits: KitType[] }[] = [
 ];
 
 // ── Tabs ───────────────────────────────────────────────────────────────────
-type DrumTab = 'songs' | 'patterns' | 'prefs';
-const TAB_ORDER: DrumTab[] = ['songs', 'patterns', 'prefs'];
+type DrumTab = 'metronome' | 'songs' | 'patterns' | 'prefs';
+const TAB_ORDER: DrumTab[] = ['metronome', 'songs', 'patterns', 'prefs'];
 
-const DRUM_VIEWS = ['songs-list', 'songs-editor', 'patterns', 'prefs'] as const;
+const DRUM_VIEWS = ['metronome', 'songs-list', 'songs-editor', 'patterns', 'prefs'] as const;
 type DrumView = (typeof DRUM_VIEWS)[number];
 
 // ── SVG note heads (memoized — rendered hundreds of times in the grid) ─────
@@ -516,10 +518,34 @@ function IconPrefs({ active }: { active: boolean }) {
   );
 }
 
-// ── Bottom nav (Songs / Patterns / Prefs) ──────────────────────────────────
+// ── Bottom nav (Metronome / Songs / Patterns / Prefs) ──────────────────────
+function IconMetronome({ active }: { active: boolean }) {
+  const sw = active ? 2 : 1.6;
+  const ao = active ? 0.13 : 0;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={22}
+      height={22}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={sw}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ display: 'block' }}
+    >
+      <path d="M12 2L5 21h14L12 2z" fill="currentColor" fillOpacity={ao} />
+      <path d="M12 7v10" strokeWidth="1.5" opacity="0.5" />
+      <path d="M12 17L15 8" strokeWidth="2" />
+      <circle cx="15" cy="8" r="1.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 function useDrumNavTabs(): { id: DrumTab; label: string; Icon: React.FC<{ active: boolean }> }[] {
   const t = useT();
   return [
+    { id: 'metronome', label: (t.drum as any)?.metronome || 'Metronome', Icon: IconMetronome },
     { id: 'songs', label: t.drum.songs, Icon: IconDrumSongs },
     { id: 'patterns', label: t.drum.patterns, Icon: IconPatterns },
     { id: 'prefs', label: t.drum.preferences, Icon: IconPrefs },
@@ -813,15 +839,20 @@ export default function DrumEditor() {
     const lastRoute = s.history[s.history.length - 1];
     if (lastRoute?.app === 'drumex' && lastRoute.page) {
       const page = lastRoute.page;
-      if (page === 'songs' || page === 'patterns' || page === 'prefs') return page as DrumTab;
+      if (page === 'metronome') return 'metronome';
+      if (page === 'songs' || page === 'beats') return 'songs';
+      if (page === 'patterns' || page === 'prefs') return page as DrumTab;
     }
     const st = useSettingsStore.getState();
     if (st.settings.restoreLastSession) {
       const last = useSessionStore.getState().lastSession?.drumexTab;
-      if (last === 'songs' || last === 'patterns' || last === 'prefs') return last;
+      if (last === 'metronome' || last === 'songs' || last === 'patterns' || last === 'prefs')
+        return last;
     }
     const dt = st.settings.defaultDrumTab;
-    return (dt === 'songs' || dt === 'patterns' || dt === 'prefs' ? dt : 'songs') as DrumTab;
+    return (
+      dt === 'metronome' || dt === 'songs' || dt === 'patterns' || dt === 'prefs' ? dt : 'songs'
+    ) as DrumTab;
   });
 
   const inEditor = useNavigationStore((s) => {
@@ -1051,13 +1082,15 @@ export default function DrumEditor() {
   });
 
   const currentView: DrumView =
-    activeTab === 'patterns'
-      ? 'patterns'
-      : activeTab === 'prefs'
-        ? 'prefs'
-        : inEditor
-          ? 'songs-editor'
-          : 'songs-list';
+    activeTab === 'metronome'
+      ? 'metronome'
+      : activeTab === 'patterns'
+        ? 'patterns'
+        : activeTab === 'prefs'
+          ? 'prefs'
+          : inEditor
+            ? 'songs-editor'
+            : 'songs-list';
 
   const filteredSongs = useMemo(() => {
     let list = [...drumSongs];
@@ -1105,10 +1138,16 @@ export default function DrumEditor() {
     'humanize-groove-feel': true,
   });
   const handleSetTab = (newTab: DrumTab) => {
-    NavigationDispatcher.push({ app: 'drumex', page: newTab });
+    NavigationDispatcher.push({ app: 'drumex', page: newTab === 'songs' ? 'beats' : newTab });
     setNavCollapsed(false);
     drumNavLastY.current = 0;
   };
+
+  useEffect(() => {
+    if (activeTab !== 'metronome') {
+      useMetronomeStore.getState().stop();
+    }
+  }, [activeTab]);
   const [humanizeFeedback, setHumanizeFeedback] = useState(false);
 
   // ── Row visibility (persisted to localStorage) ───────────────────────────
@@ -4097,8 +4136,10 @@ export default function DrumEditor() {
         {isWebDesktop && (
           <WebAppSectionDock
             app="drumex"
-            activeSection={activeTab}
-            onChangeSection={handleSetTab}
+            activeSection={activeTab === 'songs' ? 'beats' : activeTab}
+            onChangeSection={(sec: string) =>
+              handleSetTab(sec === 'beats' ? 'songs' : (sec as any))
+            }
           />
         )}
         <div
@@ -4131,11 +4172,13 @@ export default function DrumEditor() {
                 <span
                   className={`text-[9.5px] font-extrabold uppercase tracking-widest ${isLight ? 'text-zinc-500' : 'text-zinc-450'}`}
                 >
-                  {activeTab === 'songs'
-                    ? 'BEATS'
-                    : activeTab === 'patterns'
-                      ? 'GROOVE LIBRARY'
-                      : 'PREFERENCES'}
+                  {activeTab === 'metronome'
+                    ? 'METRONOME'
+                    : activeTab === 'songs'
+                      ? 'BEATS'
+                      : activeTab === 'patterns'
+                        ? 'GROOVE LIBRARY'
+                        : 'PREFERENCES'}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
@@ -4186,6 +4229,13 @@ export default function DrumEditor() {
             <SharedNavigationContainer activeView={currentView} viewOrder={DRUM_VIEWS}>
               {(viewId) => {
                 switch (viewId) {
+                  case 'metronome':
+                    return (
+                      <MetronomePanel
+                        onScroll={drumScrollHide}
+                        onBack={() => handleSetTab('songs')}
+                      />
+                    );
                   case 'songs-list':
                     if (!isWebDesktop) {
                       return (

@@ -48,7 +48,7 @@ export interface AppSettings {
   language: Language;
   preferFlats: boolean;
   defaultTab: ActivePanel;
-  defaultDrumTab: 'songs' | 'beats' | 'patterns' | 'prefs';
+  defaultDrumTab: 'metronome' | 'songs' | 'beats' | 'patterns' | 'prefs';
   defaultStageView: 'Editor' | 'Setup' | 'Preferences';
   defaultVocalexTab?: 'coach' | 'recorder' | 'takes' | 'preferences';
   defaultGroovexView?: 'library' | 'preferences';

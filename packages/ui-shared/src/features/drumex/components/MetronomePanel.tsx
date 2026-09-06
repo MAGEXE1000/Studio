@@ -3,11 +3,14 @@ import {
   useMetronomeStore,
   SOUND_LABELS,
   useBackHandler,
+  getBeatsPerMeasure,
   type MetronomeTimeSignature,
   type MetronomeSubdivision,
   type MetronomeSoundId,
   type MetronomePreset,
 } from '@workspace/studio-core';
+import { SharedFloatingHeader } from '../../../shared/layout/StudioLayoutSystem';
+import { TimeSignatureModal, SubdivisionModal } from './MetronomeModals';
 
 interface MetronomePanelProps {
   onBack?: () => void;
@@ -55,6 +58,9 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
   // Local UI state
   const [isPresetsOpen, setIsPresetsOpen] = useState(false);
+  const [showTimeSigModal, setShowTimeSigModal] = useState(false);
+  const [showSubdivisionModal, setShowSubdivisionModal] = useState(false);
+  const [showVolumePopover, setShowVolumePopover] = useState(false);
   const [presetSearch, setPresetSearch] = useState('');
   const [showNewPresetForm, setShowNewPresetForm] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
@@ -72,6 +78,18 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
   useBackHandler(
     'overlay',
     () => {
+      if (showTimeSigModal) {
+        setShowTimeSigModal(false);
+        return true;
+      }
+      if (showSubdivisionModal) {
+        setShowSubdivisionModal(false);
+        return true;
+      }
+      if (showVolumePopover) {
+        setShowVolumePopover(false);
+        return true;
+      }
       if (isPresetsOpen) {
         setIsPresetsOpen(false);
         return true;
@@ -82,7 +100,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
       }
       return false;
     },
-    [isPresetsOpen, showSoundMenu]
+    [showTimeSigModal, showSubdivisionModal, showVolumePopover, isPresetsOpen, showSoundMenu]
   );
 
   // Tempo descriptor
@@ -104,18 +122,51 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
   // Number of beats for the tracker strip
   const beatsCount = useMemo(() => {
-    switch (timeSignature) {
-      case '3/4':
-        return 3;
-      case '6/8':
-        return 6;
-      case '2/4':
-        return 2;
-      case '4/4':
-      default:
-        return 4;
-    }
+    return getBeatsPerMeasure(timeSignature);
   }, [timeSignature]);
+
+  // Dynamic grid class based on meter beats
+  const beatGridColsClass = useMemo(() => {
+    switch (beatsCount) {
+      case 2:
+        return 'grid-cols-2';
+      case 3:
+        return 'grid-cols-3';
+      case 4:
+        return 'grid-cols-4';
+      case 5:
+        return 'grid-cols-5';
+      case 6:
+        return 'grid-cols-6';
+      case 7:
+        return 'grid-cols-7';
+      case 9:
+        return 'grid-cols-3 sm:grid-cols-9';
+      case 12:
+        return 'grid-cols-6 sm:grid-cols-12';
+      default:
+        return 'grid-cols-4';
+    }
+  }, [beatsCount]);
+
+  // Dynamic pulses and label for subdivision tracker
+  const { pulsesCount, subdivisionLabel } = useMemo(() => {
+    switch (subdivision) {
+      case '1/32':
+        return { pulsesCount: 8, subdivisionLabel: '1/32 note pulses' };
+      case '6let':
+        return { pulsesCount: 6, subdivisionLabel: '1 trip let 2 trip let' };
+      case '1/16':
+        return { pulsesCount: 4, subdivisionLabel: '1 e & a' };
+      case '3let':
+        return { pulsesCount: 3, subdivisionLabel: '1 trip let' };
+      case '1/8':
+        return { pulsesCount: 2, subdivisionLabel: '1 &' };
+      case '1/4':
+      default:
+        return { pulsesCount: 1, subdivisionLabel: '1' };
+    }
+  }, [subdivision]);
 
   // Filtered presets separated by user and factory
   const { filteredUserPresets, filteredFactoryPresets } = useMemo(() => {
@@ -204,40 +255,20 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
         }
       `}</style>
 
-      {/* ── Top Navigation Header ────────────────────────────────────────── */}
-      <header
-        className="px-4 pb-2 flex-shrink-0"
-        style={{
-          paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
-        }}
-      >
-        <div className="w-full bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-full px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between relative">
-          <button
-            aria-label="Go back"
-            onClick={onBack}
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 transition tap-press focus:outline-none z-10 cursor-pointer"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-          </button>
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
-            <span className="text-xs font-extrabold uppercase tracking-wider text-slate-900 dark:text-zinc-100 font-manrope leading-none">
-              METRONOME
-            </span>
-            <p className="text-xs text-slate-500 dark:text-zinc-400 font-medium tracking-tight mt-0.5 leading-none">
-              {activePreset ? activePreset.name : SOUND_LABELS[sound]} • {timeSignature}
-            </p>
-          </div>
-          <div aria-hidden="true" className="w-8 h-8 pointer-events-none" />
-        </div>
-      </header>
+      {/* ── Top Navigation Header (Canonical SharedFloatingHeader) ────────── */}
+      <SharedFloatingHeader
+        title="METRONOME"
+        subtitle={activePreset ? activePreset.name : `${SOUND_LABELS[sound]} • ${timeSignature}`}
+        onBack={onBack}
+      />
 
       {/* ── Main Live Performance Scroll Area ────────────────────────────── */}
       <main
         onScroll={onScroll}
-        className="flex-1 px-4 flex flex-col gap-3.5 pt-1 overflow-y-auto no-scrollbar"
+        className="flex-1 px-4 flex flex-col gap-3.5 overflow-y-auto no-scrollbar"
         style={{
-          paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom, 16px)) + 68px)',
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 78px)',
+          paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom, 16px)) + 84px)',
         }}
       >
         {/* 1. BEAT TRACKER STRIP */}
@@ -255,20 +286,11 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
           </div>
 
           {/* Visual Pulsing Cells */}
-          <div
-            className={`grid gap-2 py-1 ${
-              beatsCount === 6
-                ? 'grid-cols-6'
-                : beatsCount === 3
-                  ? 'grid-cols-3'
-                  : beatsCount === 2
-                    ? 'grid-cols-2'
-                    : 'grid-cols-4'
-            }`}
-          >
+          <div className={`grid gap-2 py-1 ${beatGridColsClass}`}>
             {Array.from({ length: beatsCount }).map((_, idx) => {
               const isCurrent = isPlaying && activeBeat === idx;
               const isAccentBeat = accentBeat === idx;
+              const isCompact = beatsCount > 6;
 
               if (isCurrent) {
                 return (
@@ -276,13 +298,15 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                     key={idx}
                     type="button"
                     onClick={() => setAccentBeat(idx)}
-                    className={`h-12 rounded-xl flex flex-col items-center justify-center font-manrope font-extrabold relative overflow-hidden pulse-active cursor-pointer ${
+                    className={`${isCompact ? 'h-10' : 'h-12'} rounded-xl flex flex-col items-center justify-center font-manrope font-extrabold relative overflow-hidden pulse-active cursor-pointer ${
                       isAccentBeat
                         ? 'bg-[#007aff] text-white shadow-[0_4px_14px_rgba(0,122,255,0.35)]'
                         : 'bg-blue-500 text-white shadow-[0_4px_14px_rgba(0,122,255,0.25)]'
                     }`}
                   >
-                    <span className="text-lg leading-none">{idx + 1}</span>
+                    <span className={`${isCompact ? 'text-base' : 'text-lg'} leading-none`}>
+                      {idx + 1}
+                    </span>
                     <span className="text-[8px] font-bold tracking-widest uppercase opacity-90">
                       {isAccentBeat ? 'ACCENT' : 'NORMAL'}
                     </span>
@@ -298,13 +322,15 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   key={idx}
                   type="button"
                   onClick={() => setAccentBeat(idx)}
-                  className={`h-12 rounded-xl border flex flex-col items-center justify-center font-manrope font-bold transition cursor-pointer relative ${
+                  className={`${isCompact ? 'h-10' : 'h-12'} rounded-xl border flex flex-col items-center justify-center font-manrope font-bold transition cursor-pointer relative ${
                     isAccentBeat
                       ? 'bg-blue-50/70 dark:bg-blue-950/30 text-[#007aff] border-[#007aff]/60 hover:bg-blue-100/80 dark:hover:bg-blue-900/40'
                       : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <span className="text-lg leading-none">{idx + 1}</span>
+                  <span className={`${isCompact ? 'text-base' : 'text-lg'} leading-none`}>
+                    {idx + 1}
+                  </span>
                   <span
                     className={`text-[8px] ${
                       isAccentBeat
@@ -328,99 +354,25 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
               Subdivisions
             </span>
             <div className="flex items-center gap-1.5">
-              {subdivision === '1/16' ? (
-                <>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: pulsesCount }).map((_, i) => (
                   <span
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 0
+                    key={i}
+                    className={`rounded-full transition-colors ${
+                      pulsesCount > 4 ? 'w-1.5 h-1.5' : 'w-2 h-2'
+                    } ${
+                      isPlaying && activeSubdivision === i
                         ? 'bg-[#007aff]'
-                        : 'bg-slate-300 dark:bg-zinc-700'
+                        : i === 0
+                          ? 'bg-slate-400 dark:bg-zinc-600'
+                          : 'bg-slate-200 dark:bg-zinc-800'
                     }`}
                   />
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 1
-                        ? 'bg-blue-400'
-                        : 'bg-slate-200 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 2
-                        ? 'bg-blue-400'
-                        : 'bg-slate-200 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 3
-                        ? 'bg-blue-400'
-                        : 'bg-slate-200 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span className="text-[9px] font-mono font-semibold text-slate-500 dark:text-zinc-400 ml-1">
-                    1 e &amp; a
-                  </span>
-                </>
-              ) : subdivision === '3let' ? (
-                <>
-                  <span
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 0
-                        ? 'bg-[#007aff]'
-                        : 'bg-slate-300 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 1
-                        ? 'bg-blue-400'
-                        : 'bg-slate-200 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 2
-                        ? 'bg-blue-400'
-                        : 'bg-slate-200 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span className="text-[9px] font-mono font-semibold text-slate-500 dark:text-zinc-400 ml-1">
-                    1 trip let
-                  </span>
-                </>
-              ) : subdivision === '1/8' ? (
-                <>
-                  <span
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 0
-                        ? 'bg-[#007aff]'
-                        : 'bg-slate-300 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      isPlaying && activeSubdivision === 1
-                        ? 'bg-blue-400'
-                        : 'bg-slate-200 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span className="text-[9px] font-mono font-semibold text-slate-500 dark:text-zinc-400 ml-1">
-                    1 &amp;
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      isPlaying ? 'bg-[#007aff]' : 'bg-slate-300 dark:bg-zinc-700'
-                    }`}
-                  />
-                  <span className="text-[9px] font-mono font-semibold text-slate-500 dark:text-zinc-400 ml-1">
-                    1
-                  </span>
-                </>
-              )}
+                ))}
+              </div>
+              <span className="text-[9px] font-mono font-semibold text-slate-500 dark:text-zinc-400 ml-1">
+                {subdivisionLabel}
+              </span>
             </div>
           </div>
         </section>
@@ -439,7 +391,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
           {/* Steppers & Giant BPM */}
           <div className="w-full flex items-center justify-between my-2 px-1">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <button
                 aria-label="Decrease BPM by 5"
                 onClick={() => adjustBpm(-5)}
@@ -459,7 +411,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
             </div>
 
             <div className="flex flex-col items-center cursor-pointer select-none">
-              <span className="text-6xl sm:text-7xl font-extrabold font-manrope tracking-tighter text-[#0e0e0e] dark:text-zinc-100 leading-none">
+              <span className="text-7xl sm:text-8xl font-black font-manrope tracking-tighter text-[#0e0e0e] dark:text-zinc-100 leading-none font-tabular-nums">
                 {bpm}
               </span>
               <span className="text-[11px] font-extrabold tracking-widest text-[#007aff] uppercase font-manrope mt-1">
@@ -467,7 +419,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <button
                 aria-label="Increase BPM by 1"
                 onClick={() => adjustBpm(1)}
@@ -523,7 +475,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
           </div>
         </section>
 
-        {/* 3. RHYTHM METRICS (Segmented Pills) */}
+        {/* 3. RHYTHM METRICS (Segmented Pills & Modals) */}
         <section className="grid grid-cols-2 gap-2.5">
           {/* Time Signature */}
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-3 border border-slate-200/80 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
@@ -531,18 +483,25 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
               <span className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope tracking-wider">
                 TIME SIGNATURE
               </span>
-              <span className="material-symbols-outlined text-[16px] text-slate-400 dark:text-zinc-500">
-                straighten
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowTimeSigModal(true)}
+                className="text-slate-400 dark:text-zinc-500 hover:text-[#007aff] transition cursor-pointer"
+                title="All Time Signatures"
+                aria-label="All Time Signatures"
+              >
+                <span className="material-symbols-outlined text-[16px]">tune</span>
+              </button>
             </div>
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-5 gap-1">
               {(['4/4', '3/4', '6/8', '2/4'] as MetronomeTimeSignature[]).map((sig) => {
                 const isSelected = timeSignature === sig;
                 return (
                   <button
                     key={sig}
+                    type="button"
                     onClick={() => setTimeSignature(sig)}
-                    className={`py-1.5 rounded-lg text-xs font-extrabold font-manrope tap-press cursor-pointer transition-all ${
+                    className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
                       isSelected
                         ? 'bg-[#007aff] text-white shadow-xs'
                         : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
@@ -552,6 +511,27 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setShowTimeSigModal(true)}
+                className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
+                  !['4/4', '3/4', '6/8', '2/4'].includes(timeSignature)
+                    ? 'bg-[#007aff] text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                }`}
+                title={
+                  !['4/4', '3/4', '6/8', '2/4'].includes(timeSignature)
+                    ? `Selected: ${timeSignature}`
+                    : 'More time signatures'
+                }
+                aria-label="More time signatures"
+              >
+                {!['4/4', '3/4', '6/8', '2/4'].includes(timeSignature) ? (
+                  <span className="truncate px-0.5">{timeSignature}</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                )}
+              </button>
             </div>
           </div>
 
@@ -561,18 +541,25 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
               <span className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope tracking-wider">
                 SUBDIVISION
               </span>
-              <span className="material-symbols-outlined text-[16px] text-slate-400 dark:text-zinc-500">
-                music_note
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowSubdivisionModal(true)}
+                className="text-slate-400 dark:text-zinc-500 hover:text-[#007aff] transition cursor-pointer"
+                title="All Subdivisions"
+                aria-label="All Subdivisions"
+              >
+                <span className="material-symbols-outlined text-[16px]">tune</span>
+              </button>
             </div>
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-5 gap-1">
               {(['1/4', '1/8', '1/16', '3let'] as MetronomeSubdivision[]).map((sub) => {
                 const isSelected = subdivision === sub;
                 return (
                   <button
                     key={sub}
+                    type="button"
                     onClick={() => setSubdivision(sub)}
-                    className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all ${
+                    className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
                       isSelected
                         ? 'bg-[#007aff] text-white shadow-xs'
                         : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
@@ -582,95 +569,136 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   </button>
                 );
               })}
+              <button
+                type="button"
+                onClick={() => setShowSubdivisionModal(true)}
+                className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
+                  !['1/4', '1/8', '1/16', '3let'].includes(subdivision)
+                    ? 'bg-[#007aff] text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                }`}
+                title={
+                  !['1/4', '1/8', '1/16', '3let'].includes(subdivision)
+                    ? `Selected: ${subdivision}`
+                    : 'More subdivisions'
+                }
+                aria-label="More subdivisions"
+              >
+                {!['1/4', '1/8', '1/16', '3let'].includes(subdivision) ? (
+                  <span className="truncate px-0.5">{subdivision}</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                )}
+              </button>
             </div>
           </div>
         </section>
 
         {/* 4. AUDIO CONTROLS & COUNT-IN ROW */}
-        <section className="bg-white dark:bg-zinc-900 rounded-2xl p-3.5 border border-slate-200/80 dark:border-zinc-800 shadow-xs flex flex-col gap-3 relative">
-          <div className="flex items-center justify-between">
-            {/* Click Sound Selector */}
-            <div className="flex items-center gap-2 relative">
-              <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/40 text-[#007aff] flex items-center justify-center">
-                <span className="material-symbols-outlined text-[16px]">graphic_eq</span>
-              </div>
-              <div className="cursor-pointer" onClick={() => setShowSoundMenu(!showSoundMenu)}>
-                <div className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope">
-                  CLICK SOUND
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
-                    {SOUND_LABELS[sound]}
-                  </span>
-                  <span className="material-symbols-outlined text-[14px] text-slate-400">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-
-              {/* Sound Dropdown Popover */}
-              {showSoundMenu && (
-                <div className="absolute top-10 left-0 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg p-1 min-w-[170px] flex flex-col gap-0.5">
-                  {(Object.keys(SOUND_LABELS) as MetronomeSoundId[]).map((sId) => (
-                    <button
-                      key={sId}
-                      onClick={() => {
-                        setSound(sId);
-                        setShowSoundMenu(false);
-                      }}
-                      className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between ${
-                        sound === sId
-                          ? 'bg-[#007aff] text-white'
-                          : 'text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700'
-                      }`}
-                    >
-                      <span>{SOUND_LABELS[sId]}</span>
-                      {sound === sId && <span className="text-[10px]">✓</span>}
-                    </button>
-                  ))}
-                </div>
-              )}
+        <section className="bg-white dark:bg-zinc-900 rounded-2xl p-3.5 border border-slate-200/80 dark:border-zinc-800 shadow-xs flex items-center justify-between relative">
+          {/* Click Sound Selector */}
+          <div className="flex items-center gap-2 relative">
+            <div className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/40 text-[#007aff] flex items-center justify-center">
+              <span className="material-symbols-outlined text-[16px]">graphic_eq</span>
             </div>
-
-            {/* Count-in Toggle & Bars */}
-            <div
-              onClick={toggleCountIn}
-              className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200/80 dark:border-zinc-700 rounded-xl px-2.5 py-1 cursor-pointer tap-press"
-            >
-              <span className="material-symbols-outlined text-[16px] text-slate-500 dark:text-zinc-400">
-                timelapse
-              </span>
-              <div className="flex flex-col">
-                <span className="text-[9px] font-bold text-slate-400 dark:text-zinc-500 leading-none uppercase">
-                  Count-In
+            <div className="cursor-pointer" onClick={() => setShowSoundMenu(!showSoundMenu)}>
+              <div className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope">
+                CLICK SOUND
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-bold text-slate-800 dark:text-zinc-200">
+                  {SOUND_LABELS[sound]}
                 </span>
-                <span className="text-[11px] font-extrabold text-[#007aff] leading-none mt-0.5">
-                  1 Bar (4 beats)
+                <span className="material-symbols-outlined text-[14px] text-slate-400">
+                  expand_more
                 </span>
               </div>
-              <button
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ml-0.5 transition-colors ${
-                  countInEnabled
-                    ? 'bg-[#007aff] text-white'
-                    : 'bg-slate-200 dark:bg-zinc-700 text-transparent'
-                }`}
-                type="button"
-              >
-                ✓
-              </button>
             </div>
+
+            {/* Sound Dropdown Popover */}
+            {showSoundMenu && (
+              <div className="absolute top-10 left-0 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg p-1 min-w-[170px] flex flex-col gap-0.5">
+                {(Object.keys(SOUND_LABELS) as MetronomeSoundId[]).map((sId) => (
+                  <button
+                    key={sId}
+                    onClick={() => {
+                      setSound(sId);
+                      setShowSoundMenu(false);
+                    }}
+                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between ${
+                      sound === sId
+                        ? 'bg-[#007aff] text-white'
+                        : 'text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700'
+                    }`}
+                  >
+                    <span>{SOUND_LABELS[sId]}</span>
+                    {sound === sId && <span className="text-[10px]">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Volume Slider & Mute */}
-          <div className="flex items-center gap-2.5 pt-2 border-t border-slate-100 dark:border-zinc-800/80">
+          {/* Count-in Toggle & Bars */}
+          <div
+            onClick={toggleCountIn}
+            className="flex items-center gap-2 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200/80 dark:border-zinc-700 rounded-xl px-2.5 py-1.5 cursor-pointer tap-press"
+          >
+            <span className="material-symbols-outlined text-[16px] text-slate-500 dark:text-zinc-400">
+              timelapse
+            </span>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-bold text-slate-400 dark:text-zinc-500 leading-none uppercase">
+                Count-In
+              </span>
+              <span className="text-[11px] font-extrabold text-[#007aff] leading-none mt-0.5">
+                1 Bar (4 beats)
+              </span>
+            </div>
             <button
-              onClick={toggleMute}
-              className="text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition cursor-pointer"
-              title="Mute/Unmute"
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ml-0.5 transition-colors ${
+                countInEnabled
+                  ? 'bg-[#007aff] text-white'
+                  : 'bg-slate-200 dark:bg-zinc-700 text-transparent'
+              }`}
               type="button"
             >
+              ✓
+            </button>
+          </div>
+        </section>
+      </main>
+
+      {/* Floating Volume Backdrop (click away) */}
+      {showVolumePopover && (
+        <div
+          className="fixed inset-0 z-30 pointer-events-auto"
+          onClick={() => setShowVolumePopover(false)}
+        />
+      )}
+
+      {/* ── COMPACT FLOATING QUICK CONTROLS DOCK ──────────────────────────── */}
+      <div
+        className="fixed inset-x-0 flex flex-col justify-center items-center pointer-events-none z-40"
+        style={{
+          bottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+        }}
+      >
+        {/* Floating Volume Slider Popover */}
+        {showVolumePopover && (
+          <div className="pointer-events-auto mb-2.5 w-[280px] sm:w-[320px] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-2xl px-4 py-2.5 shadow-xl border border-slate-200/90 dark:border-zinc-800 flex items-center gap-3 animate-in fade-in zoom-in-95 duration-150 z-40">
+            <button
+              type="button"
+              aria-label="Toggle mute"
+              onClick={toggleMute}
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition cursor-pointer shrink-0 ${
+                isMuted
+                  ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-500'
+                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-200 hover:bg-slate-200 dark:hover:bg-zinc-700'
+              }`}
+            >
               <span className="material-symbols-outlined text-[18px]">
-                {isMuted ? 'volume_off' : 'volume_up'}
+                {isMuted ? 'volume_off' : volume === 0 ? 'volume_mute' : 'volume_up'}
               </span>
             </button>
             <input
@@ -679,36 +707,30 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
               max={100}
               value={isMuted ? 0 : volume}
               onChange={(e) => setVolume(Number(e.target.value))}
-              className="metronome-range w-full h-1.5 rounded-lg appearance-none cursor-pointer"
+              className="metronome-range flex-1 h-2 rounded-lg appearance-none cursor-pointer"
             />
-            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-zinc-400 w-8 text-right">
+            <span className="text-xs font-mono font-bold text-slate-700 dark:text-zinc-300 w-9 text-right shrink-0">
               {isMuted ? 0 : volume}%
             </span>
           </div>
-        </section>
-      </main>
+        )}
 
-      {/* ── COMPACT FLOATING QUICK CONTROLS DOCK ──────────────────────────── */}
-      <div
-        className="fixed inset-x-0 flex justify-center items-center pointer-events-none z-40"
-        style={{
-          bottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
-        }}
-      >
         <aside
           aria-label="Metronome quick controls"
           className="pointer-events-auto bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-200/80 dark:border-zinc-800 flex items-center gap-2"
         >
-          {/* Mute Toggle */}
+          {/* Volume Trigger Button */}
           <button
-            aria-label="Mute or Sound Toggle"
-            onClick={toggleMute}
-            className={`w-[38px] h-[38px] rounded-full flex items-center justify-center transition tap-press focus:outline-none cursor-pointer ${
+            aria-label="Volume & Sound"
+            onClick={() => setShowVolumePopover(!showVolumePopover)}
+            className={`w-[38px] h-[38px] rounded-full flex items-center justify-center transition tap-press focus:outline-none cursor-pointer relative ${
               isMuted
                 ? 'bg-rose-50 dark:bg-rose-950/40 text-rose-500'
-                : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200'
+                : showVolumePopover
+                  ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff]'
+                  : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200'
             }`}
-            title="Sound"
+            title={`Volume: ${isMuted ? 'Muted' : `${volume}%`}`}
             type="button"
           >
             <span className="material-symbols-outlined text-[19px]">
@@ -773,7 +795,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
       {/* ── PRESETS BOTTOM SHEET MODAL ────────────────────────────────────── */}
       <div
-        className={`fixed inset-0 z-50 transition-opacity duration-300 ease-out ${
+        className={`fixed inset-0 z-[120] transition-opacity duration-300 ease-out ${
           isPresetsOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       >
@@ -1159,6 +1181,21 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
           </div>
         </div>
       </div>
+
+      {/* Centered Modern Modals for Extended Meters & Subdivisions */}
+      <TimeSignatureModal
+        isOpen={showTimeSigModal}
+        value={timeSignature}
+        onSelect={(sig) => setTimeSignature(sig)}
+        onClose={() => setShowTimeSigModal(false)}
+      />
+
+      <SubdivisionModal
+        isOpen={showSubdivisionModal}
+        value={subdivision}
+        onSelect={(sub) => setSubdivision(sub)}
+        onClose={() => setShowSubdivisionModal(false)}
+      />
     </div>
   );
 }

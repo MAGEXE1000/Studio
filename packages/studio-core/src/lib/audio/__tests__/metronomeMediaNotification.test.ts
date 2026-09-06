@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { MetronomeAudioEngine, metronomeAudioEngine } from '../metronomeAudio';
+import {
+  MetronomeAudioEngine,
+  metronomeAudioEngine,
+  getBeatsPerMeasure,
+  getSubdivisionsPerBeat,
+} from '../metronomeAudio';
 import { mediaSessionCoordinator } from '../mediaSessionCoordinator';
 import {
   useMetronomeStore,
@@ -510,6 +515,51 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
       // Factory preset in list remains unmodified at original BPM
       const factoryAfter = FACTORY_PRESETS.find((p) => p.id === factory.id);
       expect(factoryAfter?.bpm).toBe(factory.bpm);
+    });
+
+    it('Test K: Extended time signatures (5/4, 7/8, 9/8, 12/8) and getBeatsPerMeasure calculate correct metrics', () => {
+      const store = useMetronomeStore.getState();
+
+      store.setTimeSignature('5/4');
+      expect(metronomeAudioEngine.getBeatsPerMeasure()).toBe(5);
+      expect(getBeatsPerMeasure('5/4')).toBe(5);
+
+      store.setTimeSignature('7/8');
+      expect(metronomeAudioEngine.getBeatsPerMeasure()).toBe(7);
+      expect(getBeatsPerMeasure('7/8')).toBe(7);
+
+      store.setTimeSignature('9/8');
+      expect(metronomeAudioEngine.getBeatsPerMeasure()).toBe(9);
+      expect(getBeatsPerMeasure('9/8')).toBe(9);
+
+      store.setTimeSignature('12/8');
+      expect(metronomeAudioEngine.getBeatsPerMeasure()).toBe(12);
+      expect(getBeatsPerMeasure('12/8')).toBe(12);
+    });
+
+    it('Test L: Extended subdivisions (1/32, 6let) and getSubdivisionsPerBeat calculate correct pulses', () => {
+      const store = useMetronomeStore.getState();
+
+      store.setSubdivision('1/32');
+      expect(metronomeAudioEngine.getSubdivisionsPerBeat()).toBe(8);
+      expect(getSubdivisionsPerBeat('1/32')).toBe(8);
+
+      store.setSubdivision('6let');
+      expect(metronomeAudioEngine.getSubdivisionsPerBeat()).toBe(6);
+      expect(getSubdivisionsPerBeat('6let')).toBe(6);
+    });
+
+    it('Test M: Accent Beat clamps safely when time signature changes to fewer beats', () => {
+      const store = useMetronomeStore.getState();
+
+      store.setTimeSignature('5/4');
+      store.setAccentBeat(4); // 5th beat (index 4)
+      expect(useMetronomeStore.getState().accentBeat).toBe(4);
+
+      // Change to 3/4 -> accentBeat must clamp to index 2 (Beat 3)
+      store.setTimeSignature('3/4');
+      expect(useMetronomeStore.getState().accentBeat).toBeLessThanOrEqual(2);
+      expect(metronomeAudioEngine.accentBeat).toBeLessThanOrEqual(2);
     });
   });
 });

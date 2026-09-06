@@ -1,7 +1,7 @@
 import { createAudioContext } from './audioContextOptions';
 
-export type MetronomeTimeSignature = '4/4' | '3/4' | '6/8' | '2/4';
-export type MetronomeSubdivision = '1/4' | '1/8' | '1/16' | '3let';
+export type MetronomeTimeSignature = '4/4' | '3/4' | '6/8' | '2/4' | '5/4' | '7/8' | '9/8' | '12/8';
+export type MetronomeSubdivision = '1/4' | '1/8' | '1/16' | '1/32' | '3let' | '6let';
 export type MetronomeSoundId = 'woodblock' | 'click' | 'digital' | 'cowbell' | 'rimshot' | 'soft';
 
 export interface MetronomeBeatEvent {
@@ -26,6 +26,47 @@ export interface MetronomeAudioConfig {
 
 const LOOKAHEAD_TIME = 0.12; // 120ms lookahead
 const SCHEDULER_TICK_MS = 25; // 25ms timer pump
+
+export function getBeatsPerMeasure(signature: MetronomeTimeSignature): number {
+  switch (signature) {
+    case '2/4':
+      return 2;
+    case '3/4':
+      return 3;
+    case '4/4':
+      return 4;
+    case '5/4':
+      return 5;
+    case '6/8':
+      return 6;
+    case '7/8':
+      return 7;
+    case '9/8':
+      return 9;
+    case '12/8':
+      return 12;
+    default:
+      return 4;
+  }
+}
+
+export function getSubdivisionsPerBeat(subdivision: MetronomeSubdivision): number {
+  switch (subdivision) {
+    case '1/8':
+      return 2;
+    case '1/16':
+      return 4;
+    case '1/32':
+      return 8;
+    case '3let':
+      return 3;
+    case '6let':
+      return 6;
+    case '1/4':
+    default:
+      return 1;
+  }
+}
 
 export class MetronomeAudioEngine {
   private _ctx: AudioContext | null = null;
@@ -219,31 +260,11 @@ export class MetronomeAudioEngine {
   // ── Metrics Calculation ──────────────────────────────────────────────────
 
   public getBeatsPerMeasure(): number {
-    switch (this._timeSignature) {
-      case '3/4':
-        return 3;
-      case '6/8':
-        return 6;
-      case '2/4':
-        return 2;
-      case '4/4':
-      default:
-        return 4;
-    }
+    return getBeatsPerMeasure(this._timeSignature);
   }
 
   public getSubdivisionsPerBeat(): number {
-    switch (this._subdivision) {
-      case '1/8':
-        return 2;
-      case '1/16':
-        return 4;
-      case '3let':
-        return 3;
-      case '1/4':
-      default:
-        return 1;
-    }
+    return getSubdivisionsPerBeat(this._subdivision);
   }
 
   public getBeatInterval(): number {

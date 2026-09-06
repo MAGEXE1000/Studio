@@ -108,6 +108,35 @@ const mockLocalStorageStore: Record<string, string> = {};
 
 (globalThis as any).window = globalThis;
 
+const mockCanvasContext = {
+  fillStyle: '',
+  strokeStyle: '',
+  lineWidth: 0,
+  font: '',
+  textAlign: '',
+  textBaseline: '',
+  fillRect: vi.fn(),
+  beginPath: vi.fn(),
+  roundRect: vi.fn(),
+  stroke: vi.fn(),
+  fillText: vi.fn(),
+};
+
+(globalThis as any).document = {
+  createElement: (tag: string) => {
+    if (tag === 'canvas') {
+      return {
+        width: 512,
+        height: 512,
+        getContext: () => mockCanvasContext,
+        toDataURL: () =>
+          'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAgAElEQVR4nOy9',
+      };
+    }
+    return {};
+  },
+};
+
 describe('Drumex Metronome: Audio Engine & Media Notification State Architecture', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -237,9 +266,9 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
   });
 
   describe('useMetronomeStore & Android Media Notification Integration', () => {
-    it('Test A: Start metronome at 120 BPM -> Notification title is "120 BPM", artist is "Drumex Metronome"', () => {
+    it('Test A: Start metronome -> Primary title is preset name, artist is "Drumex Metronome", album has BPM, and artwork is set', () => {
       const store = useMetronomeStore.getState();
-      store.setBpm(120);
+      store.loadPreset('preset-rock-4-4');
       store.start();
 
       expect(useMetronomeStore.getState().isPlaying).toBe(true);
@@ -247,34 +276,43 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
 
       const metadata = mockMediaSession.metadata;
       expect(metadata).not.toBeNull();
-      // Primary title MUST always be the BPM
-      expect(metadata.title).toBe('120 BPM');
-      // Subtitle MUST be "Drumex Metronome"
+      // Primary title is the preset name per user request
+      expect(metadata.title).toBe('Rock 4/4 Groove');
+      // Subtitle is "Drumex Metronome"
       expect(metadata.artist).toBe('Drumex Metronome');
-      // Album contains time signature and sound label
+      // Album contains BPM and time signature
+      expect(metadata.album).toContain('120 BPM');
       expect(metadata.album).toContain('4/4');
       expect(metadata.album).toContain('Acoustic Woodblock');
+      // Artwork displays the big white BPM on black background
+      expect(metadata.artwork).toBeDefined();
+      expect(metadata.artwork.length).toBeGreaterThan(0);
+      expect(metadata.artwork[0].src).toContain('data:image/png;base64,');
       // Playback state is playing
       expect(mockMediaSession.playbackState).toBe('playing');
     });
 
-    it('Test B: Dynamic BPM change -> Notification title updates immediately to new BPM', () => {
+    it('Test B: Dynamic BPM change -> Album updates immediately with new BPM and title remains preset name', () => {
       const store = useMetronomeStore.getState();
+      store.loadPreset('preset-rock-4-4');
       store.start();
-      expect(mockMediaSession.metadata?.title).toBe('120 BPM');
+      expect(mockMediaSession.metadata?.title).toBe('Rock 4/4 Groove');
+      expect(mockMediaSession.metadata?.album).toContain('120 BPM');
 
       // Adjust BPM via slider/stepper to 155 BPM
       store.setBpm(155);
-      expect(mockMediaSession.metadata?.title).toBe('155 BPM');
+      expect(mockMediaSession.metadata?.title).toBe('Rock 4/4 Groove');
+      expect(mockMediaSession.metadata?.album).toContain('155 BPM');
       expect(mockMediaSession.metadata?.artist).toBe('Drumex Metronome');
 
       // Adjust BPM via relative adjustBpm(+5) to 160 BPM
       store.adjustBpm(5);
-      expect(mockMediaSession.metadata?.title).toBe('160 BPM');
+      expect(mockMediaSession.metadata?.album).toContain('160 BPM');
     });
 
     it('Test C: Dynamic BPM change while playing / backgrounded re-anchors without stopping', () => {
       const store = useMetronomeStore.getState();
+      store.loadPreset('preset-rock-4-4');
       store.start();
       expect(useMetronomeStore.getState().isPlaying).toBe(true);
 
@@ -286,10 +324,10 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
       store.adjustBpm(-20);
       expect(useMetronomeStore.getState().isPlaying).toBe(true);
       expect(metronomeAudioEngine.bpm).toBe(160);
-      expect(mockMediaSession.metadata?.title).toBe('160 BPM');
+      expect(mockMediaSession.metadata?.album).toContain('160 BPM');
     });
 
-    it('Test D & E: Reinterpreted previous/next actions navigate saved user presets in circular order', () => {
+    it('Test D & E: Reinterpreted previous/next actions navigate saved user presets in circular order and update title to preset name', () => {
       const store = useMetronomeStore.getState();
       store.start();
 
@@ -314,19 +352,23 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
       mediaSessionCoordinator.handleAction('next');
       const activeState1 = useMetronomeStore.getState();
       expect([id1, id2]).toContain(activeState1.activePresetId);
-      expect(mockMediaSession.metadata?.title).toBe(`${activeState1.bpm} BPM`);
+      const activePreset1 = userPresets.find((p) => p.id === activeState1.activePresetId);
+      expect(mockMediaSession.metadata?.title).toBe(activePreset1?.name);
+      expect(mockMediaSession.metadata?.album).toContain(`${activeState1.bpm} BPM`);
 
       // Trigger "next" again -> cycles circularly
       mediaSessionCoordinator.handleAction('next');
       const activeState2 = useMetronomeStore.getState();
       expect(activeState2.activePresetId).not.toBe(activeState1.activePresetId);
-      expect(mockMediaSession.metadata?.title).toBe(`${activeState2.bpm} BPM`);
+      const activePreset2 = userPresets.find((p) => p.id === activeState2.activePresetId);
+      expect(mockMediaSession.metadata?.title).toBe(activePreset2?.name);
+      expect(mockMediaSession.metadata?.album).toContain(`${activeState2.bpm} BPM`);
 
       // Trigger "previous" -> returns to activeState1
       mediaSessionCoordinator.handleAction('previous');
       const activeState3 = useMetronomeStore.getState();
       expect(activeState3.activePresetId).toBe(activeState1.activePresetId);
-      expect(mockMediaSession.metadata?.title).toBe(`${activeState1.bpm} BPM`);
+      expect(mockMediaSession.metadata?.title).toBe(activePreset1?.name);
     });
 
     it('Test F: Loaded preset synchronizes BPM, signature, subdivision, sound, accent beat, volume', () => {
@@ -368,8 +410,9 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
       expect(metronomeAudioEngine.accentBeat).toBe(2);
     });
 
-    it('Test G: Metadata updates even when paused so notification shade displays current BPM', () => {
+    it('Test G: Metadata updates even when paused so notification shade displays current BPM in album and artwork', () => {
       const store = useMetronomeStore.getState();
+      store.loadPreset('preset-rock-4-4');
       // Start then pause
       store.start();
       store.stop();
@@ -378,12 +421,13 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
 
       // Adjust BPM while paused
       store.setBpm(138);
-      expect(mockMediaSession.metadata?.title).toBe('138 BPM');
+      expect(mockMediaSession.metadata?.title).toBe('Rock 4/4 Groove');
+      expect(mockMediaSession.metadata?.album).toContain('138 BPM');
       expect(mockMediaSession.metadata?.artist).toBe('Drumex Metronome');
     });
 
     it('Test H: Zero saved user presets -> next/previous safely no-op without errors or crashing', () => {
-      // Ensure 0 user presets
+      // Ensure 0 user presets and no active preset
       useMetronomeStore.setState({
         userPresets: [],
         presets: [],
@@ -401,9 +445,10 @@ describe('Drumex Metronome: Audio Engine & Media Notification State Architecture
         mediaSessionCoordinator.handleAction('previous');
       }).not.toThrow();
 
-      // State remains safe and consistent
+      // State remains safe and consistent with fallback title
       expect(useMetronomeStore.getState().bpm).toBe(120);
-      expect(mockMediaSession.metadata?.title).toBe('120 BPM');
+      expect(mockMediaSession.metadata?.title).toBe('Drumex Metronome');
+      expect(mockMediaSession.metadata?.album).toContain('120 BPM');
     });
 
     it('Test I: Repeated start/pause/stop lifecycle does not leak duplicate providers', () => {

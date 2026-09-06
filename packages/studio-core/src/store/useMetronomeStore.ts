@@ -120,6 +120,52 @@ export const FACTORY_PRESETS: MetronomePreset[] = [
 
 export const DEFAULT_PRESETS: MetronomePreset[] = FACTORY_PRESETS;
 
+/**
+ * Generates an elegant high-contrast 512x512 artwork for Android MediaNotification & MediaSession.
+ * Features a sleek black background (#09090b) with a bold white BPM number.
+ */
+export function generateMetronomeBpmArtwork(bpm: number, signature?: string): string {
+  if (typeof document === 'undefined') return '';
+  try {
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    // 1. Sleek deep black background
+    ctx.fillStyle = '#09090b';
+    ctx.fillRect(0, 0, size, size);
+
+    // 2. Subtle modern border accent (rounded rectangle)
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.roundRect(20, 20, size - 40, size - 40, 44);
+    ctx.stroke();
+
+    // 3. Big bold white BPM number
+    ctx.fillStyle = '#ffffff';
+    ctx.font =
+      '900 180px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${bpm}`, size / 2, size / 2 - 25);
+
+    // 4. Clean "BPM" badge label
+    ctx.fillStyle = '#a1a1aa';
+    ctx.font =
+      '700 38px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    const subtext = signature ? `BPM  ·  ${signature}` : 'BPM';
+    ctx.fillText(subtext, size / 2, size / 2 + 95);
+
+    return canvas.toDataURL('image/png');
+  } catch {
+    return '';
+  }
+}
+
 const PRESETS_STORAGE_KEY = 'studio-metronome-presets';
 const SETTINGS_STORAGE_KEY = 'studio-metronome-settings';
 
@@ -292,10 +338,11 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     const isCurrentlyPlaying = playing !== undefined ? playing : s.isPlaying;
     const allPresets = [...s.userPresets, ...FACTORY_PRESETS];
     const preset = allPresets.find((p) => p.id === s.activePresetId);
-    // PRIMARY TITLE is ALWAYS the current BPM!
-    const title = `${s.bpm} BPM`;
+    // PRIMARY TITLE is the active preset name (or 'Drumex Metronome' if no preset)
+    const title = preset ? preset.name : 'Drumex Metronome';
     const artist = 'Drumex Metronome';
-    const album = `${s.timeSignature} · ${SOUND_LABELS[s.sound] || 'Metronome'}${preset ? ` · ${preset.name}` : ''}`;
+    const album = `${s.bpm} BPM · ${s.timeSignature} · ${SOUND_LABELS[s.sound] || 'Metronome'}`;
+    const artworkUrl = generateMetronomeBpmArtwork(s.bpm, s.timeSignature);
 
     if (isCurrentlyPlaying) {
       mediaSessionCoordinator.registerProvider({
@@ -306,9 +353,10 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
             (pr) => pr.id === state.activePresetId
           );
           return {
-            title: `${state.bpm} BPM`,
+            title: p ? p.name : 'Drumex Metronome',
             artist: 'Drumex Metronome',
-            album: `${state.timeSignature} · ${SOUND_LABELS[state.sound] || 'Metronome'}${p ? ` · ${p.name}` : ''}`,
+            album: `${state.bpm} BPM · ${state.timeSignature} · ${SOUND_LABELS[state.sound] || 'Metronome'}`,
+            artworkUrl: generateMetronomeBpmArtwork(state.bpm, state.timeSignature),
           };
         },
         getPlaybackState: () => ({
@@ -353,6 +401,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         title,
         artist,
         album,
+        artworkUrl,
       });
 
       mediaSessionCoordinator.updatePlaybackState('drumex-metronome', {
@@ -370,6 +419,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
           title,
           artist,
           album,
+          artworkUrl,
         });
       }
     }
@@ -405,7 +455,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     isAccent: false,
     isCountIn: false,
 
-    activePresetId: initialUserPresets[0]?.id ?? null,
+    activePresetId: initialUserPresets[0]?.id ?? FACTORY_PRESETS[0]?.id ?? null,
     userPresets: initialUserPresets,
     factoryPresets: FACTORY_PRESETS,
     presets: initialUserPresets,

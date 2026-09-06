@@ -10,12 +10,17 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Typeface
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Base64
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -204,16 +209,34 @@ class MediaNotificationService : Service() {
         currentAlbum = album
         currentDurationMs = durationMs
 
+        if (!artworkUrl.isNullOrEmpty() && artworkUrl != lastArtworkUrl) {
+            lastArtworkUrl = artworkUrl
+            if (artworkUrl.startsWith("data:image/")) {
+                try {
+                    val base64Data = artworkUrl.substringAfter("base64,")
+                    val decodedBytes = Base64.decode(base64Data, Base64.DEFAULT)
+                    val bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                    if (bitmap != null) {
+                        currentArtworkBitmap = bitmap
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to decode base64 artwork: ${e.message}")
+                }
+            } else {
+                loadArtwork(artworkUrl)
+            }
+        } else if (artworkUrl.isNullOrEmpty() && (currentArtist == "Drumex Metronome" || currentTitle.contains("Metronome") || currentAlbum.contains("BPM"))) {
+            val bpmMatch = Regex("""(\d+)\s*BPM""", RegexOption.IGNORE_CASE).find(currentAlbum)
+                ?: Regex("""(\d+)\s*BPM""", RegexOption.IGNORE_CASE).find(currentTitle)
+            val bpmStr = bpmMatch?.groupValues?.get(1) ?: "120"
+            currentArtworkBitmap = generateBpmArtwork(bpmStr)
+        }
+
         applyMetadataToSession()
 
         val notification = buildNotification()
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, notification)
-
-        if (!artworkUrl.isNullOrEmpty() && artworkUrl != lastArtworkUrl) {
-            lastArtworkUrl = artworkUrl
-            loadArtwork(artworkUrl)
-        }
     }
 
     private fun applyMetadataToSession() {
@@ -277,16 +300,23 @@ class MediaNotificationService : Service() {
     private fun loadArtwork(urlStr: String) {
         imageExecutor.execute {
             try {
-                val url = URL(urlStr)
-                val conn = url.openConnection() as HttpURLConnection
-                conn.connectTimeout = 5000
-                conn.readTimeout = 5000
-                conn.doInput = true
-                conn.connect()
-                val inputStream: InputStream = conn.inputStream
-                val bitmap = BitmapFactory.decodeStream(inputStream)
-                inputStream.close()
-                conn.disconnect()
+                val bitmap: Bitmap? = if (urlStr.startsWith("data:image/")) {
+                    val base64Data = urlStr.substringAfter("base64,")
+                    val decodedBytes = Base64.decode(base64Data, Base64.DEFAULT)
+                    BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+                } else {
+                    val url = URL(urlStr)
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+                    conn.doInput = true
+                    conn.connect()
+                    val inputStream: InputStream = conn.inputStream
+                    val bmp = BitmapFactory.decodeStream(inputStream)
+                    inputStream.close()
+                    conn.disconnect()
+                    bmp
+                }
 
                 if (bitmap != null) {
                     currentArtworkBitmap = bitmap
@@ -299,6 +329,52 @@ class MediaNotificationService : Service() {
                 Log.w(TAG, "Failed to load artwork from $urlStr: ${e.message}")
             }
         }
+    }
+
+    private fun generateBpmArtwork(bpm: String, subtext: String = "BPM"): Bitmap {
+        val size = 512
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // 1. Sleek deep black background
+        val bgPaint = Paint().apply {
+            color = Color.parseColor("#09090B")
+            isAntiAlias = true
+        }
+        canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+
+        // 2. Subtle modern border accent (rounded rect)
+        val ringPaint = Paint().apply {
+            color = Color.parseColor("#27272A")
+            style = Paint.Style.STROKE
+            strokeWidth = 6f
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(20f, 20f, (size - 20).toFloat(), (size - 20).toFloat(), 44f, 44f, ringPaint)
+
+        // 3. Big bold white BPM number
+        val numPaint = Paint().apply {
+            color = Color.WHITE
+            textSize = 180f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            isAntiAlias = true
+        }
+        val yPosNum = (size / 2f) - ((numPaint.descent() + numPaint.ascent()) / 2f) - 25f
+        canvas.drawText(bpm, size / 2f, yPosNum, numPaint)
+
+        // 4. "BPM" badge label in clean slate/light gray
+        val labelPaint = Paint().apply {
+            color = Color.parseColor("#A1A1AA")
+            textSize = 38f
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+            letterSpacing = 0.12f
+            isAntiAlias = true
+        }
+        canvas.drawText(subtext, size / 2f, yPosNum + 95f, labelPaint)
+
+        return bitmap
     }
 
     private fun buildNotification(): Notification {

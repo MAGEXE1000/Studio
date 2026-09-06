@@ -33,8 +33,9 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     isPlaying,
     activeBeat,
     activeSubdivision,
+    isCountIn,
+    countInNumber,
     userPresets,
-    factoryPresets,
     presets,
     activePresetId,
     practiceTimerActive,
@@ -162,8 +163,8 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
   // Active preset
   const activePreset = useMemo(() => {
-    return [...userPresets, ...factoryPresets].find((p) => p.id === activePresetId) ?? null;
-  }, [userPresets, factoryPresets, activePresetId]);
+    return userPresets.find((p) => p.id === activePresetId) ?? null;
+  }, [userPresets, activePresetId]);
 
   // Number of beats for the tracker strip
   const beatsCount = useMemo(() => {
@@ -213,21 +214,19 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     }
   }, [subdivision]);
 
-  // Filtered presets separated by user and factory
-  const { filteredUserPresets, filteredFactoryPresets } = useMemo(() => {
+  // Filtered user presets
+  const filteredUserPresets = useMemo(() => {
     if (!presetSearch.trim()) {
-      return { filteredUserPresets: userPresets, filteredFactoryPresets: factoryPresets };
+      return userPresets;
     }
     const q = presetSearch.toLowerCase();
-    const filterFn = (p: any) =>
-      p.name.toLowerCase().includes(q) ||
-      p.timeSignature.includes(q) ||
-      SOUND_LABELS[p.sound]?.toLowerCase().includes(q);
-    return {
-      filteredUserPresets: userPresets.filter(filterFn),
-      filteredFactoryPresets: factoryPresets.filter(filterFn),
-    };
-  }, [userPresets, factoryPresets, presetSearch]);
+    return userPresets.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.timeSignature.includes(q) ||
+        SOUND_LABELS[p.sound]?.toLowerCase().includes(q)
+    );
+  }, [userPresets, presetSearch]);
 
   const handleOpenCreateForm = () => {
     setPresetFormData({
@@ -373,9 +372,9 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
             </span>
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] font-semibold text-slate-500 dark:text-zinc-400">
-                Accent Beat {accentBeat + 1}
+                {accentBeat >= 0 ? `Accent Beat ${accentBeat + 1}` : 'No Accent'}
               </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#007aff]" />
+              {accentBeat >= 0 && <span className="w-1.5 h-1.5 rounded-full bg-[#007aff]" />}
             </div>
           </div>
 
@@ -391,7 +390,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   <button
                     key={idx}
                     type="button"
-                    onClick={() => setAccentBeat(idx)}
+                    onClick={() => setAccentBeat(accentBeat === idx ? -1 : idx)}
                     className={`${isCompact ? 'h-10' : 'h-12'} rounded-xl flex flex-col items-center justify-center font-manrope font-extrabold relative overflow-hidden pulse-active cursor-pointer ${
                       isAccentBeat
                         ? 'bg-[#007aff] text-white shadow-[0_4px_14px_rgba(0,122,255,0.35)]'
@@ -415,7 +414,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => setAccentBeat(idx)}
+                  onClick={() => setAccentBeat(accentBeat === idx ? -1 : idx)}
                   className={`${isCompact ? 'h-10' : 'h-12'} rounded-xl border flex flex-col items-center justify-center font-manrope font-bold transition cursor-pointer relative ${
                     isAccentBeat
                       ? 'bg-blue-50/70 dark:bg-blue-950/30 text-[#007aff] border-[#007aff]/60 hover:bg-blue-100/80 dark:hover:bg-blue-900/40'
@@ -593,20 +592,27 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
           {/* Time Signature */}
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-3 border border-slate-200/80 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope tracking-wider">
-                TIME SIGNATURE
-              </span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope tracking-wider truncate">
+                  TIME SIGNATURE
+                </span>
+                {!['4/4', '3/4', '6/8', '2/4'].includes(timeSignature) && (
+                  <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-[#007aff] text-[9px] font-extrabold shrink-0">
+                    {timeSignature}
+                  </span>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setShowTimeSigModal(true)}
-                className="text-slate-400 dark:text-zinc-500 hover:text-[#007aff] transition cursor-pointer"
+                className="text-slate-400 dark:text-zinc-500 hover:text-[#007aff] transition cursor-pointer shrink-0 ml-1"
                 title="All Time Signatures"
                 aria-label="All Time Signatures"
               >
                 <span className="material-symbols-outlined text-[16px]">tune</span>
               </button>
             </div>
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-4 gap-1.5">
               {(['4/4', '3/4', '6/8', '2/4'] as MetronomeTimeSignature[]).map((sig) => {
                 const isSelected = timeSignature === sig;
                 return (
@@ -614,7 +620,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                     key={sig}
                     type="button"
                     onClick={() => setTimeSignature(sig)}
-                    className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
+                    className={`py-2 rounded-xl text-xs font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
                       isSelected
                         ? 'bg-[#007aff] text-white shadow-xs'
                         : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
@@ -624,47 +630,33 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   </button>
                 );
               })}
-              <button
-                type="button"
-                onClick={() => setShowTimeSigModal(true)}
-                className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
-                  !['4/4', '3/4', '6/8', '2/4'].includes(timeSignature)
-                    ? 'bg-[#007aff] text-white shadow-xs'
-                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
-                }`}
-                title={
-                  !['4/4', '3/4', '6/8', '2/4'].includes(timeSignature)
-                    ? `Selected: ${timeSignature}`
-                    : 'More time signatures'
-                }
-                aria-label="More time signatures"
-              >
-                {!['4/4', '3/4', '6/8', '2/4'].includes(timeSignature) ? (
-                  <span className="truncate px-0.5">{timeSignature}</span>
-                ) : (
-                  <span className="material-symbols-outlined text-[16px]">add</span>
-                )}
-              </button>
             </div>
           </div>
 
           {/* Subdivision */}
           <div className="bg-white dark:bg-zinc-900 rounded-2xl p-3 border border-slate-200/80 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope tracking-wider">
-                SUBDIVISION
-              </span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[10px] font-extrabold text-slate-400 dark:text-zinc-500 uppercase font-manrope tracking-wider truncate">
+                  SUBDIVISION
+                </span>
+                {!['1/4', '1/8', '1/16', '3let'].includes(subdivision) && (
+                  <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-[#007aff] text-[9px] font-extrabold shrink-0">
+                    {subdivision}
+                  </span>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setShowSubdivisionModal(true)}
-                className="text-slate-400 dark:text-zinc-500 hover:text-[#007aff] transition cursor-pointer"
+                className="text-slate-400 dark:text-zinc-500 hover:text-[#007aff] transition cursor-pointer shrink-0 ml-1"
                 title="All Subdivisions"
                 aria-label="All Subdivisions"
               >
                 <span className="material-symbols-outlined text-[16px]">tune</span>
               </button>
             </div>
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-4 gap-1.5">
               {(['1/4', '1/8', '1/16', '3let'] as MetronomeSubdivision[]).map((sub) => {
                 const isSelected = subdivision === sub;
                 return (
@@ -672,7 +664,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                     key={sub}
                     type="button"
                     onClick={() => setSubdivision(sub)}
-                    className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
+                    className={`py-2 rounded-xl text-xs font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
                       isSelected
                         ? 'bg-[#007aff] text-white shadow-xs'
                         : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
@@ -682,27 +674,6 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   </button>
                 );
               })}
-              <button
-                type="button"
-                onClick={() => setShowSubdivisionModal(true)}
-                className={`py-1.5 rounded-lg text-[11px] font-extrabold font-manrope tap-press cursor-pointer transition-all flex items-center justify-center ${
-                  !['1/4', '1/8', '1/16', '3let'].includes(subdivision)
-                    ? 'bg-[#007aff] text-white shadow-xs'
-                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-zinc-700'
-                }`}
-                title={
-                  !['1/4', '1/8', '1/16', '3let'].includes(subdivision)
-                    ? `Selected: ${subdivision}`
-                    : 'More subdivisions'
-                }
-                aria-label="More subdivisions"
-              >
-                {!['1/4', '1/8', '1/16', '3let'].includes(subdivision) ? (
-                  <span className="truncate px-0.5">{subdivision}</span>
-                ) : (
-                  <span className="material-symbols-outlined text-[16px]">add</span>
-                )}
-              </button>
             </div>
           </div>
         </section>
@@ -731,23 +702,25 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
             {/* Sound Dropdown Popover */}
             {showSoundMenu && (
               <div className="absolute top-10 left-0 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg p-1 min-w-[170px] flex flex-col gap-0.5">
-                {(Object.keys(SOUND_LABELS) as MetronomeSoundId[]).map((sId) => (
-                  <button
-                    key={sId}
-                    onClick={() => {
-                      setSound(sId);
-                      setShowSoundMenu(false);
-                    }}
-                    className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between ${
-                      sound === sId
-                        ? 'bg-[#007aff] text-white'
-                        : 'text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700'
-                    }`}
-                  >
-                    <span>{SOUND_LABELS[sId]}</span>
-                    {sound === sId && <span className="text-[10px]">✓</span>}
-                  </button>
-                ))}
+                {(['woodblock', 'click', 'sidestick', 'digital', 'soft'] as MetronomeSoundId[]).map(
+                  (sId) => (
+                    <button
+                      key={sId}
+                      onClick={() => {
+                        setSound(sId);
+                        setShowSoundMenu(false);
+                      }}
+                      className={`w-full text-left px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between ${
+                        sound === sId
+                          ? 'bg-[#007aff] text-white'
+                          : 'text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700'
+                      }`}
+                    >
+                      <span>{SOUND_LABELS[sId]}</span>
+                      {sound === sId && <span className="text-[10px]">✓</span>}
+                    </button>
+                  )
+                )}
               </div>
             )}
           </div>
@@ -1164,21 +1137,57 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   </div>
                 </div>
 
-                {/* Sound Grid */}
+                {/* Accent Beat */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                      Accent
+                    </label>
+                    <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+                      {presetFormData.accentBeat === -1
+                        ? 'None'
+                        : `Beat ${presetFormData.accentBeat + 1}`}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setPresetFormData({ ...presetFormData, accentBeat: -1 })}
+                      className={`py-2 px-3 rounded-xl text-xs font-manrope font-bold border transition cursor-pointer ${
+                        presetFormData.accentBeat === -1
+                          ? 'bg-blue-50 dark:bg-blue-950/40 border-[#007aff] text-[#007aff]'
+                          : 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200/80 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                      }`}
+                    >
+                      None
+                    </button>
+                    {Array.from({
+                      length: getBeatsPerMeasure(presetFormData.timeSignature),
+                    }).map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setPresetFormData({ ...presetFormData, accentBeat: idx })}
+                        className={`py-2 px-3 rounded-xl text-xs font-manrope font-bold border transition cursor-pointer ${
+                          presetFormData.accentBeat === idx
+                            ? 'bg-blue-50 dark:bg-blue-950/40 border-[#007aff] text-[#007aff]'
+                            : 'bg-slate-50 dark:bg-zinc-800/60 border-slate-200/80 dark:border-zinc-700 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        Beat {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Click Sound Grid */}
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
-                    Sound
+                    Click Sound
                   </label>
                   <div className="grid grid-cols-2 gap-1.5">
                     {(
-                      [
-                        'woodblock',
-                        'click',
-                        'digital',
-                        'cowbell',
-                        'rimshot',
-                        'soft',
-                      ] as MetronomeSoundId[]
+                      ['woodblock', 'click', 'sidestick', 'digital', 'soft'] as MetronomeSoundId[]
                     ).map((snd) => (
                       <button
                         key={snd}
@@ -1269,26 +1278,38 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
               {/* Presets List */}
               <div className="flex-1 overflow-y-auto px-5 py-2.5 flex flex-col gap-4 no-scrollbar pb-8">
-                {/* 1. SAVED USER PRESETS SECTION */}
+                {/* SAVED USER PRESETS SECTION */}
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between px-1">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
-                      My Saved Presets ({filteredUserPresets.length})
+                      MY PRESETS ({filteredUserPresets.length})
                     </span>
                   </div>
 
                   {filteredUserPresets.length === 0 ? (
-                    <div className="py-6 px-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-dashed border-slate-200 dark:border-zinc-800 text-center flex flex-col items-center justify-center gap-1.5">
-                      <span className="material-symbols-outlined text-[24px] text-slate-400 dark:text-zinc-500">
-                        bookmark_border
-                      </span>
-                      <p className="text-xs font-bold text-slate-700 dark:text-zinc-300">
-                        No saved presets yet
-                      </p>
-                      <p className="text-[11px] text-slate-400 dark:text-zinc-500 max-w-xs">
-                        Save current tempo and rhythmic settings with &quot;+ New&quot; to build
-                        your library.
-                      </p>
+                    <div className="py-8 px-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-dashed border-slate-200 dark:border-zinc-800 text-center flex flex-col items-center justify-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-[#007aff] flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[28px]">
+                          bookmark_border
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1 max-w-xs">
+                        <p className="text-sm font-bold text-slate-800 dark:text-zinc-200 font-manrope">
+                          You haven&apos;t created any presets yet
+                        </p>
+                        <p className="text-xs text-slate-400 dark:text-zinc-500">
+                          Create your first preset to quickly recall your favorite metronome
+                          settings.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOpenCreateForm}
+                        className="mt-1 px-4 py-2.5 rounded-xl bg-[#007aff] hover:bg-blue-600 text-white font-manrope font-bold text-xs tracking-tight shadow-md flex items-center gap-1.5 cursor-pointer tap-press"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        <span>Create Preset</span>
+                      </button>
                     </div>
                   ) : (
                     filteredUserPresets.map((p) => {
@@ -1416,130 +1437,6 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                     })
                   )}
                 </div>
-
-                {/* 2. FACTORY PRESETS SECTION */}
-                {filteredFactoryPresets.length > 0 && (
-                  <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
-                    <div className="flex items-center justify-between px-1">
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
-                        Factory Presets ({filteredFactoryPresets.length})
-                      </span>
-                    </div>
-
-                    {filteredFactoryPresets.map((p) => {
-                      const isCurrent = activePresetId === p.id;
-                      return (
-                        <div
-                          key={p.id}
-                          onClick={() => {
-                            loadPreset(p.id);
-                            setTimeout(() => setIsPresetsOpen(false), 220);
-                          }}
-                          className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
-                            isCurrent
-                              ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
-                              : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
-                                isCurrent
-                                  ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
-                                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
-                              }`}
-                            >
-                              <span className="material-symbols-outlined text-[20px]">
-                                {p.icon || 'bookmark'}
-                              </span>
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
-                                  {p.name}
-                                </h3>
-                                <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 text-[9px] font-bold uppercase tracking-wide">
-                                  Factory
-                                </span>
-                                {isCurrent && (
-                                  <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
-                                    Current
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                                <span className="font-bold text-slate-700 dark:text-zinc-200">
-                                  {p.timeSignature}
-                                </span>
-                                <span>•</span>
-                                <span>{p.subdivision} Note</span>
-                                <span>•</span>
-                                <span className="truncate max-w-[90px]">
-                                  {SOUND_LABELS[p.sound]}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`px-2 py-1 rounded-lg font-manrope text-xs ${
-                                isCurrent
-                                  ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
-                                  : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
-                              }`}
-                            >
-                              {p.bpm} <span className="text-[9px]">BPM</span>
-                            </span>
-                            <div className="relative">
-                              <button
-                                aria-label="Preset options"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
-                                }}
-                                className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
-                                type="button"
-                              >
-                                <span className="material-symbols-outlined text-[16px]">
-                                  more_vert
-                                </span>
-                              </button>
-
-                              {/* Options menu popover for factory presets */}
-                              {activePresetMenuId === p.id && (
-                                <div
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
-                                >
-                                  <button
-                                    onClick={() => {
-                                      loadPreset(p.id);
-                                      setActivePresetMenuId(null);
-                                      setIsPresetsOpen(false);
-                                    }}
-                                    className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
-                                  >
-                                    Load
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      duplicatePreset(p.id);
-                                      setActivePresetMenuId(null);
-                                    }}
-                                    className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
-                                  >
-                                    Duplicate to saved
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
               </div>
             </>
           )}
@@ -1569,6 +1466,26 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
         onSave={(cfg) => setTempoRamp(cfg)}
         onClose={() => setShowTempoRampModal(false)}
       />
+
+      {/* Synchronized Visual Count-In Countdown Overlay */}
+      {isPlaying && isCountIn && (
+        <div className="fixed inset-0 z-[100] pointer-events-none flex flex-col items-center justify-center bg-black/30 backdrop-blur-[2px] animate-in fade-in duration-100">
+          <div className="flex flex-col items-center justify-center p-8 rounded-3xl bg-white/95 dark:bg-zinc-900/95 shadow-2xl border border-slate-200/80 dark:border-zinc-800">
+            <span className="text-[11px] font-extrabold tracking-widest text-[#007aff] uppercase font-manrope mb-1">
+              COUNT-IN
+            </span>
+            <span
+              key={countInNumber}
+              className="text-8xl sm:text-9xl font-black font-manrope text-slate-900 dark:text-white tabular-nums animate-in zoom-in-75 duration-75 leading-none"
+            >
+              {countInNumber ?? beatsCount - activeBeat}
+            </span>
+            <span className="text-xs font-semibold text-slate-400 dark:text-zinc-500 mt-2 font-manrope">
+              Get ready...
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

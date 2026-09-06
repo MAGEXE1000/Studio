@@ -374,20 +374,35 @@ export function TempoRampModal({
   onClose,
 }: TempoRampModalProps) {
   const [enabled, setEnabled] = React.useState(config.enabled);
+  const [mode, setMode] = React.useState<'bars' | 'time'>(config.mode || 'bars');
   const [startBpm, setStartBpm] = React.useState(config.startBpm || currentBpm);
   const [targetBpm, setTargetBpm] = React.useState(
     config.targetBpm || Math.min(280, currentBpm + 20)
   );
+  const [stepBpm, setStepBpm] = React.useState(config.stepBpm ?? 5);
+
+  // Bars mode parameters
+  const [startDelayBars, setStartDelayBars] = React.useState(config.startDelayBars ?? 0);
+  const [intervalBars, setIntervalBars] = React.useState(config.intervalBars ?? 8);
+
+  // Time mode parameters
   const [startDelaySec, setStartDelaySec] = React.useState(config.startDelaySec ?? 0);
+  const [intervalSec, setIntervalSec] = React.useState(config.intervalSec ?? 30);
   const [durationSec, setDurationSec] = React.useState(config.durationSec ?? 120);
+
   const [holdFinalBpm, setHoldFinalBpm] = React.useState(config.holdFinalBpm ?? true);
 
   React.useEffect(() => {
     if (isOpen) {
       setEnabled(config.enabled);
+      setMode(config.mode || 'bars');
       setStartBpm(config.startBpm || currentBpm);
       setTargetBpm(config.targetBpm || Math.min(280, currentBpm + 20));
+      setStepBpm(config.stepBpm ?? 5);
+      setStartDelayBars(config.startDelayBars ?? 0);
+      setIntervalBars(config.intervalBars ?? 8);
       setStartDelaySec(config.startDelaySec ?? 0);
+      setIntervalSec(config.intervalSec ?? 30);
       setDurationSec(config.durationSec ?? 120);
       setHoldFinalBpm(config.holdFinalBpm ?? true);
     }
@@ -398,24 +413,31 @@ export function TempoRampModal({
   const handleSave = () => {
     onSave({
       enabled,
+      mode,
       startBpm: Math.max(40, Math.min(280, Math.round(startBpm))),
       targetBpm: Math.max(40, Math.min(280, Math.round(targetBpm))),
+      stepBpm: Math.max(1, Math.min(50, Math.round(stepBpm))),
+      startDelayBars: Math.max(0, Math.round(startDelayBars)),
+      intervalBars: Math.max(1, Math.round(intervalBars)),
       startDelaySec: Math.max(0, Math.round(startDelaySec)),
+      intervalSec: Math.max(1, Math.round(intervalSec)),
       durationSec: Math.max(5, Math.round(durationSec)),
       holdFinalBpm,
     });
     onClose();
   };
 
-  const DELAY_PRESETS = [0, 15, 30, 60, 120];
-  const DURATION_PRESETS = [30, 60, 120, 180, 300];
+  const BAR_DELAY_PRESETS = [0, 4, 8, 16, 32];
+  const BAR_INTERVAL_PRESETS = [2, 4, 8, 16, 32];
+  const STEP_PRESETS = [1, 2, 3, 5, 10];
+  const TIME_DELAY_PRESETS = [0, 15, 30, 60, 120];
+  const TIME_INTERVAL_PRESETS = [15, 30, 60, 120, 180];
 
-  const tempoDirectionText =
-    startBpm < targetBpm
-      ? 'Accelerates'
-      : startBpm > targetBpm
-        ? 'Decelerates'
-        : 'Maintains tempo at';
+  const direction = startBpm <= targetBpm ? 'increases' : 'decreases';
+  const liveSummaryText =
+    mode === 'bars'
+      ? `Starts at ${startBpm} BPM and ${direction} by ${stepBpm} BPM every ${intervalBars} bars until ${targetBpm} BPM${startDelayBars > 0 ? ` (after ${startDelayBars} bars delay)` : ''}.`
+      : `Starts at ${startBpm} BPM and ${direction} by ${stepBpm} BPM every ${formatDurationLabel(intervalSec)} until ${targetBpm} BPM${startDelaySec > 0 ? ` (after ${formatDurationLabel(startDelaySec)} delay)` : ''}.`;
 
   return (
     <AnimatePresence>
@@ -452,7 +474,7 @@ export function TempoRampModal({
                 Incremental Tempo
               </h3>
               <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">
-                Ramp tempo over practice time
+                Automated tempo progression during practice
               </p>
             </div>
             <button
@@ -492,6 +514,39 @@ export function TempoRampModal({
                   className="w-6 h-6 rounded-full bg-white shadow-sm"
                 />
               </button>
+            </div>
+
+            {/* Progression Mode Selector: BY BARS vs BY TIME */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                Progression Mode
+              </label>
+              <div className="grid grid-cols-2 p-1 bg-slate-100 dark:bg-zinc-800/80 rounded-2xl border border-slate-200/80 dark:border-zinc-700">
+                <button
+                  type="button"
+                  onClick={() => setMode('bars')}
+                  className={`py-2 rounded-xl text-xs font-bold font-manrope transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    mode === 'bars'
+                      ? 'bg-white dark:bg-zinc-900 text-[#007aff] shadow-xs'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">grid_view</span>
+                  <span>By Bars</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('time')}
+                  className={`py-2 rounded-xl text-xs font-bold font-manrope transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                    mode === 'time'
+                      ? 'bg-white dark:bg-zinc-900 text-[#007aff] shadow-xs'
+                      : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">schedule</span>
+                  <span>By Time</span>
+                </button>
+              </div>
             </div>
 
             {/* Start & Target BPM */}
@@ -563,61 +618,152 @@ export function TempoRampModal({
               </div>
             </div>
 
-            {/* Start Delay */}
+            {/* BPM Increment Amount */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center px-1">
                 <span className="text-xs font-bold font-manrope text-slate-700 dark:text-zinc-300">
-                  Start Delay
+                  BPM Increment
                 </span>
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
-                  {formatDurationLabel(startDelaySec)}
-                </span>
+                <span className="text-xs font-mono font-bold text-[#007aff]">+{stepBpm} BPM</span>
               </div>
               <div className="flex gap-1.5">
-                {DELAY_PRESETS.map((sec) => (
+                {STEP_PRESETS.map((step) => (
                   <button
-                    key={sec}
+                    key={step}
                     type="button"
-                    onClick={() => setStartDelaySec(sec)}
+                    onClick={() => setStepBpm(step)}
                     className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      startDelaySec === sec
+                      stepBpm === step
                         ? 'bg-[#007aff] text-white shadow-xs'
                         : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
                     }`}
                   >
-                    {sec === 0 ? '0s' : formatDurationLabel(sec)}
+                    +{step}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Duration */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center px-1">
-                <span className="text-xs font-bold font-manrope text-slate-700 dark:text-zinc-300">
-                  Ramp Duration
-                </span>
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
-                  {formatDurationLabel(durationSec)}
-                </span>
-              </div>
-              <div className="flex gap-1.5">
-                {DURATION_PRESETS.map((sec) => (
-                  <button
-                    key={sec}
-                    type="button"
-                    onClick={() => setDurationSec(sec)}
-                    className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      durationSec === sec
-                        ? 'bg-[#007aff] text-white shadow-xs'
-                        : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
-                    }`}
-                  >
-                    {formatDurationLabel(sec)}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Mode-specific controls */}
+            {mode === 'bars' ? (
+              <>
+                {/* Interval in Bars */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-xs font-bold font-manrope text-slate-700 dark:text-zinc-300">
+                      Bars Between Increments
+                    </span>
+                    <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
+                      Every {intervalBars} {intervalBars === 1 ? 'bar' : 'bars'}
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {BAR_INTERVAL_PRESETS.map((bars) => (
+                      <button
+                        key={bars}
+                        type="button"
+                        onClick={() => setIntervalBars(bars)}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          intervalBars === bars
+                            ? 'bg-[#007aff] text-white shadow-xs'
+                            : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        {bars}b
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Start Delay in Bars */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-xs font-bold font-manrope text-slate-700 dark:text-zinc-300">
+                      Initial Bars Before Progression
+                    </span>
+                    <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
+                      {startDelayBars === 0 ? 'None (immediate)' : `${startDelayBars} bars`}
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {BAR_DELAY_PRESETS.map((bars) => (
+                      <button
+                        key={bars}
+                        type="button"
+                        onClick={() => setStartDelayBars(bars)}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          startDelayBars === bars
+                            ? 'bg-[#007aff] text-white shadow-xs'
+                            : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        {bars === 0 ? '0' : `${bars}b`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Interval in Time */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-xs font-bold font-manrope text-slate-700 dark:text-zinc-300">
+                      Time Between Increments
+                    </span>
+                    <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
+                      Every {formatDurationLabel(intervalSec)}
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {TIME_INTERVAL_PRESETS.map((sec) => (
+                      <button
+                        key={sec}
+                        type="button"
+                        onClick={() => setIntervalSec(sec)}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          intervalSec === sec
+                            ? 'bg-[#007aff] text-white shadow-xs'
+                            : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        {formatDurationLabel(sec)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Start Delay in Time */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center px-1">
+                    <span className="text-xs font-bold font-manrope text-slate-700 dark:text-zinc-300">
+                      Start Delay
+                    </span>
+                    <span className="text-xs font-mono font-bold text-slate-500 dark:text-zinc-400">
+                      {startDelaySec === 0
+                        ? 'None (immediate)'
+                        : formatDurationLabel(startDelaySec)}
+                    </span>
+                  </div>
+                  <div className="flex gap-1.5">
+                    {TIME_DELAY_PRESETS.map((sec) => (
+                      <button
+                        key={sec}
+                        type="button"
+                        onClick={() => setStartDelaySec(sec)}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                          startDelaySec === sec
+                            ? 'bg-[#007aff] text-white shadow-xs'
+                            : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                        }`}
+                      >
+                        {sec === 0 ? '0s' : formatDurationLabel(sec)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Hold Final BPM Toggle */}
             <div className="p-3 rounded-2xl bg-slate-50/70 dark:bg-zinc-800/40 border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between">
@@ -646,17 +792,12 @@ export function TempoRampModal({
               </button>
             </div>
 
-            {/* Summary Box */}
-            <div className="p-3 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-xs text-blue-950 dark:text-blue-200 flex items-start gap-2.5">
+            {/* Dynamic Live Summary Box */}
+            <div className="p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-900/40 text-xs text-blue-950 dark:text-blue-200 flex items-start gap-2.5">
               <span className="material-symbols-outlined text-[18px] text-[#007aff] shrink-0 mt-0.5">
                 info
               </span>
-              <div className="text-[11px] leading-relaxed">
-                {tempoDirectionText} <span className="font-bold font-mono">{startBpm}</span> to{' '}
-                <span className="font-bold font-mono">{targetBpm} BPM</span> over{' '}
-                <span className="font-bold">{formatDurationLabel(durationSec)}</span>
-                {startDelaySec > 0 ? ` (after ${formatDurationLabel(startDelaySec)} delay)` : ''}.
-              </div>
+              <div className="text-xs leading-relaxed font-medium">{liveSummaryText}</div>
             </div>
           </div>
 

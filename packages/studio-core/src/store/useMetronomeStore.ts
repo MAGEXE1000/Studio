@@ -26,9 +26,14 @@ export interface MetronomePreset {
 
 export const DEFAULT_TEMPO_RAMP: MetronomeTempoRampConfig = {
   enabled: false,
+  mode: 'bars',
   startBpm: 100,
   targetBpm: 140,
-  startDelaySec: 30,
+  stepBpm: 5,
+  startDelayBars: 0,
+  intervalBars: 8,
+  startDelaySec: 0,
+  intervalSec: 30,
   durationSec: 120,
   holdFinalBpm: true,
 };
@@ -36,104 +41,21 @@ export const DEFAULT_TEMPO_RAMP: MetronomeTempoRampConfig = {
 export const SOUND_LABELS: Record<MetronomeSoundId, string> = {
   woodblock: 'Acoustic Woodblock',
   click: 'Acoustic Click',
+  sidestick: 'Studio Sidestick',
   digital: 'Digital Beep',
-  cowbell: 'Cowbell',
-  rimshot: 'Rimshot',
   soft: 'Soft Click',
+  cowbell: 'Acoustic Woodblock',
+  rimshot: 'Studio Sidestick',
 };
 
-export const FACTORY_PRESETS: MetronomePreset[] = [
-  {
-    id: 'preset-rock-4-4',
-    name: 'Rock 4/4 Groove',
-    bpm: 120,
-    timeSignature: '4/4',
-    subdivision: '1/16',
-    sound: 'woodblock',
-    volume: 85,
-    countInEnabled: true,
-    accentBeat: 0,
-    isFactory: true,
-    icon: 'music_note',
-    createdAt: 1,
-  },
-  {
-    id: 'preset-warm-up',
-    name: 'Warm Up',
-    bpm: 90,
-    timeSignature: '4/4',
-    subdivision: '1/4',
-    sound: 'click',
-    volume: 85,
-    countInEnabled: true,
-    accentBeat: 0,
-    isFactory: true,
-    icon: 'directions_run',
-    createdAt: 2,
-  },
-  {
-    id: 'preset-speed-chops',
-    name: 'Speed & Chops Drill',
-    bpm: 155,
-    timeSignature: '4/4',
-    subdivision: '3let',
-    sound: 'digital',
-    volume: 85,
-    countInEnabled: true,
-    accentBeat: 0,
-    isFactory: true,
-    icon: 'bolt',
-    createdAt: 3,
-  },
-  {
-    id: 'preset-blues-shuffle',
-    name: 'Blues Shuffle',
-    bpm: 108,
-    timeSignature: '6/8',
-    subdivision: '3let',
-    sound: 'cowbell',
-    volume: 85,
-    countInEnabled: true,
-    accentBeat: 0,
-    isFactory: true,
-    icon: 'queue_music',
-    createdAt: 4,
-  },
-  {
-    id: 'preset-odd-meter',
-    name: 'Odd Meter 7/8',
-    bpm: 144,
-    timeSignature: '2/4',
-    subdivision: '1/8',
-    sound: 'rimshot',
-    volume: 85,
-    countInEnabled: true,
-    accentBeat: 0,
-    isFactory: true,
-    icon: 'timelapse',
-    createdAt: 5,
-  },
-  {
-    id: 'preset-ballad',
-    name: 'Ballad Tempo',
-    bpm: 68,
-    timeSignature: '3/4',
-    subdivision: '1/8',
-    sound: 'soft',
-    volume: 85,
-    countInEnabled: true,
-    accentBeat: 0,
-    isFactory: true,
-    icon: 'nightlife',
-    createdAt: 6,
-  },
-];
+export const FACTORY_PRESETS: MetronomePreset[] = [];
 
-export const DEFAULT_PRESETS: MetronomePreset[] = FACTORY_PRESETS;
+export const DEFAULT_PRESETS: MetronomePreset[] = [];
 
 /**
  * Generates an elegant high-contrast 512x512 artwork for Android MediaNotification & MediaSession.
- * Features a sleek black background (#09090b) with a bold white BPM number.
+ * Composed with generous breathing room (centered badge with ~100px text and margins)
+ * ensuring that circular or rounded Android media cards never clip numbers or obscure metadata.
  */
 export function generateMetronomeBpmArtwork(bpm: number, signature?: string): string {
   if (typeof document === 'undefined') return '';
@@ -149,27 +71,34 @@ export function generateMetronomeBpmArtwork(bpm: number, signature?: string): st
     ctx.fillStyle = '#09090b';
     ctx.fillRect(0, 0, size, size);
 
-    // 2. Subtle modern border accent (rounded rectangle)
-    ctx.strokeStyle = '#27272a';
-    ctx.lineWidth = 6;
+    // 2. Centered inner card / badge with generous 64px padding on all sides (384x384)
+    const inset = 64;
+    const innerSize = size - inset * 2;
+    ctx.fillStyle = '#18181b';
     ctx.beginPath();
-    ctx.roundRect(20, 20, size - 40, size - 40, 44);
+    ctx.roundRect(inset, inset, innerSize, innerSize, 40);
+    ctx.fill();
+
+    ctx.strokeStyle = '#27272a';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(inset, inset, innerSize, innerSize, 40);
     ctx.stroke();
 
-    // 3. Big bold white BPM number
+    // 3. Crisp modern BPM number centered with breathing room
     ctx.fillStyle = '#ffffff';
     ctx.font =
-      '900 180px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      '900 100px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(`${bpm}`, size / 2, size / 2 - 25);
+    ctx.fillText(`${bpm}`, size / 2, size / 2 - 22);
 
-    // 4. Clean "BPM" badge label
+    // 4. Clean "BPM" badge label with signature
     ctx.fillStyle = '#a1a1aa';
     ctx.font =
-      '700 38px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      '700 26px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     const subtext = signature ? `BPM  ·  ${signature}` : 'BPM';
-    ctx.fillText(subtext, size / 2, size / 2 + 95);
+    ctx.fillText(subtext, size / 2, size / 2 + 58);
 
     return canvas.toDataURL('image/png');
   } catch {
@@ -186,8 +115,16 @@ function loadStoredPresets(): MetronomePreset[] {
     const raw = localStorage.getItem(PRESETS_STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
+    const legacyFactoryIds = [
+      'preset-rock-4-4',
+      'preset-warm-up',
+      'preset-speed-chops',
+      'preset-blues-shuffle',
+      'preset-odd-meter',
+      'preset-ballad',
+    ];
     return Array.isArray(parsed)
-      ? parsed.filter((p: any) => !p.isFactory && !FACTORY_PRESETS.some((f) => f.id === p.id))
+      ? parsed.filter((p: any) => !p.isFactory && !legacyFactoryIds.includes(p.id))
       : [];
   } catch {
     return [];
@@ -241,6 +178,7 @@ export interface MetronomeState {
   activeSubdivision: number; // 0 to sub-1
   isAccent: boolean;
   isCountIn: boolean;
+  countInNumber?: number; // Countdown 4, 3, 2, 1
 
   // Presets
   activePresetId: string | null;
@@ -317,6 +255,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       activeSubdivision: event.subdivisionIndex,
       isAccent: event.isAccent,
       isCountIn: event.isCountIn,
+      countInNumber: event.countInNumber,
       effectiveBpm: event.effectiveBpm,
       rampProgress: event.rampProgress,
     });
@@ -329,6 +268,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       activeSubdivision: 0,
       isAccent: false,
       isCountIn: false,
+      countInNumber: undefined,
       effectiveBpm: playing
         ? get().tempoRamp.enabled
           ? get().tempoRamp.startBpm
@@ -365,12 +305,12 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
   const syncMediaSession = (playing?: boolean) => {
     const s = get();
     const isCurrentlyPlaying = playing !== undefined ? playing : s.isPlaying;
-    const allPresets = [...s.userPresets, ...FACTORY_PRESETS];
-    const preset = allPresets.find((p) => p.id === s.activePresetId);
-    // PRIMARY TITLE is the active preset name (or 'Drumex Metronome' if no preset)
-    const title = preset ? preset.name : 'Drumex Metronome';
+    const preset = s.userPresets.find((p) => p.id === s.activePresetId);
+    // Notification Title is explicitly the BPM value: "${s.bpm} BPM" (e.g. "172 BPM")
+    // Notification Subtitle is explicitly "Drumex Metronome"
+    const title = `${s.bpm} BPM`;
     const artist = 'Drumex Metronome';
-    const album = `${s.bpm} BPM · ${s.timeSignature} · ${SOUND_LABELS[s.sound] || 'Metronome'}`;
+    const album = `${s.timeSignature} · ${SOUND_LABELS[s.sound] || 'Acoustic Woodblock'}${preset ? ` · ${preset.name}` : ''}`;
     const artworkUrl = generateMetronomeBpmArtwork(s.bpm, s.timeSignature);
 
     if (isCurrentlyPlaying) {
@@ -378,13 +318,11 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         id: 'drumex-metronome',
         getMetadata: () => {
           const state = get();
-          const p = [...state.userPresets, ...FACTORY_PRESETS].find(
-            (pr) => pr.id === state.activePresetId
-          );
+          const p = state.userPresets.find((pr) => pr.id === state.activePresetId);
           return {
-            title: p ? p.name : 'Drumex Metronome',
+            title: `${state.bpm} BPM`,
             artist: 'Drumex Metronome',
-            album: `${state.bpm} BPM · ${state.timeSignature} · ${SOUND_LABELS[state.sound] || 'Metronome'}`,
+            album: `${state.timeSignature} · ${SOUND_LABELS[state.sound] || 'Acoustic Woodblock'}${p ? ` · ${p.name}` : ''}`,
             artworkUrl: generateMetronomeBpmArtwork(state.bpm, state.timeSignature),
           };
         },
@@ -561,6 +499,13 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     },
 
     setAccentBeat: (beatIndex: number) => {
+      if (beatIndex < 0) {
+        metronomeAudioEngine.setAccentBeat(-1);
+        set({ accentBeat: -1 });
+        persistSettings();
+        syncMediaSession(get().isPlaying);
+        return;
+      }
       const maxBeat = metronomeAudioEngine.getBeatsPerMeasure() - 1;
       const clamped = Math.max(0, Math.min(maxBeat, Math.round(beatIndex)));
       metronomeAudioEngine.setAccentBeat(clamped);
@@ -610,8 +555,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     },
 
     loadPreset: (id: string) => {
-      const allPresets = [...get().userPresets, ...FACTORY_PRESETS];
-      const preset = allPresets.find((p) => p.id === id);
+      const preset = get().userPresets.find((p) => p.id === id);
       if (!preset) return;
 
       get().setBpm(preset.bpm);
@@ -676,32 +620,25 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       const s = get();
       if (!s.activePresetId) return;
 
-      const isUserPreset = s.userPresets.some((p) => p.id === s.activePresetId);
-      if (isUserPreset) {
-        const updated = s.userPresets.map((p) => {
-          if (p.id === s.activePresetId) {
-            return {
-              ...p,
-              bpm: s.bpm,
-              timeSignature: s.timeSignature,
-              subdivision: s.subdivision,
-              sound: s.sound,
-              volume: s.volume,
-              accentBeat: s.accentBeat,
-              countInEnabled: s.countInEnabled,
-              tempoRamp: s.tempoRamp.enabled ? { ...s.tempoRamp } : undefined,
-            };
-          }
-          return p;
-        });
+      const updated = s.userPresets.map((p) => {
+        if (p.id === s.activePresetId) {
+          return {
+            ...p,
+            bpm: s.bpm,
+            timeSignature: s.timeSignature,
+            subdivision: s.subdivision,
+            sound: s.sound,
+            volume: s.volume,
+            accentBeat: s.accentBeat,
+            countInEnabled: s.countInEnabled,
+            tempoRamp: s.tempoRamp.enabled ? { ...s.tempoRamp } : undefined,
+          };
+        }
+        return p;
+      });
 
-        saveStoredPresets(updated);
-        set({ userPresets: updated, presets: updated });
-      } else {
-        // Current active preset is a factory preset: save a custom user copy
-        const factory = FACTORY_PRESETS.find((p) => p.id === s.activePresetId);
-        get().saveNewPreset(`${factory?.name ?? 'Custom'} (Modified)`);
-      }
+      saveStoredPresets(updated);
+      set({ userPresets: updated, presets: updated });
     },
 
     updatePreset: (id: string, updates: Partial<MetronomePreset>) => {
@@ -737,7 +674,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
 
     duplicatePreset: (id: string) => {
       const s = get();
-      const target = [...s.userPresets, ...FACTORY_PRESETS].find((p) => p.id === id);
+      const target = s.userPresets.find((p) => p.id === id);
       if (!target) return;
 
       const copy: MetronomePreset = {

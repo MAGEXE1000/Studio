@@ -343,36 +343,43 @@ class MediaNotificationService : Service() {
         }
         canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
 
-        // 2. Subtle modern border accent (rounded rect)
+        // 2. Centered inner card / badge with generous 64px padding on all sides (384x384)
+        val inset = 64f
+        val innerCardPaint = Paint().apply {
+            color = Color.parseColor("#18181B")
+            isAntiAlias = true
+        }
+        canvas.drawRoundRect(inset, inset, size - inset, size - inset, 40f, 40f, innerCardPaint)
+
         val ringPaint = Paint().apply {
             color = Color.parseColor("#27272A")
             style = Paint.Style.STROKE
-            strokeWidth = 6f
+            strokeWidth = 4f
             isAntiAlias = true
         }
-        canvas.drawRoundRect(20f, 20f, (size - 20).toFloat(), (size - 20).toFloat(), 44f, 44f, ringPaint)
+        canvas.drawRoundRect(inset, inset, size - inset, size - inset, 40f, 40f, ringPaint)
 
-        // 3. Big bold white BPM number
+        // 3. Crisp modern white BPM number centered with breathing room
         val numPaint = Paint().apply {
             color = Color.WHITE
-            textSize = 180f
+            textSize = 100f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
             isAntiAlias = true
         }
-        val yPosNum = (size / 2f) - ((numPaint.descent() + numPaint.ascent()) / 2f) - 25f
+        val yPosNum = (size / 2f) - ((numPaint.descent() + numPaint.ascent()) / 2f) - 22f
         canvas.drawText(bpm, size / 2f, yPosNum, numPaint)
 
         // 4. "BPM" badge label in clean slate/light gray
         val labelPaint = Paint().apply {
             color = Color.parseColor("#A1A1AA")
-            textSize = 38f
+            textSize = 26f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
             letterSpacing = 0.12f
             isAntiAlias = true
         }
-        canvas.drawText(subtext, size / 2f, yPosNum + 95f, labelPaint)
+        canvas.drawText(subtext, size / 2f, yPosNum + 58f, labelPaint)
 
         return bitmap
     }

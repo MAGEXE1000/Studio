@@ -1,4 +1,5 @@
 import { createAudioContext } from '@workspace/studio-core';
+import SignalsmithStretch, { StretchNode } from 'signalsmith-stretch';
 import { isPercussionStem } from './stemClassifier';
 
 export interface TrackState {
@@ -17,8 +18,6 @@ export interface TrackState {
 }
 
 let audioCtx: AudioContext | null = null;
-const workletRegistered = false;
-const workletRegistering: Promise<void> | null = null;
 
 function getAudioContext(): AudioContext {
   if (!audioCtx) {
@@ -45,7 +44,8 @@ export interface AudioEngine {
   drumDelay: DelayNode;
   scrubFilter: BiquadFilterNode;
   scrubGain: GainNode;
-  stNode: null;
+  stretchNode: StretchNode | null;
+  stretchLatency: number;
   tracks: TrackState[];
   isPlaying: boolean;
   isScrubbing: boolean;
@@ -65,11 +65,11 @@ export function createEngine(): AudioEngine {
   const shifterOutGain = ctx.createGain();
   const masterGain = ctx.createGain();
   const drumBus = ctx.createGain();
-  const drumDelay = ctx.createDelay(0.1);
+  const drumDelay = ctx.createDelay(0.5);
 
-  // Zero-semitone bit-exact master bypass active by default
+  // Zero-semitone bypass active initially until stretchNode completes worklet handshake
   bypassGain.gain.setValueAtTime(1.0, ctx.currentTime);
-  shifterInGain.gain.setValueAtTime(0.0, ctx.currentTime);
+  shifterInGain.gain.setValueAtTime(1.0, ctx.currentTime);
   shifterOutGain.gain.setValueAtTime(0.0, ctx.currentTime);
   masterGain.gain.setValueAtTime(1.0, ctx.currentTime);
   drumBus.gain.setValueAtTime(1.0, ctx.currentTime);
@@ -82,10 +82,13 @@ export function createEngine(): AudioEngine {
   const scrubGain = ctx.createGain();
   scrubGain.gain.setValueAtTime(1.0, ctx.currentTime);
 
-  // Unified zero-latency master bus: Both drumBus and sumBus route directly into masterGain
-  // Drums and non-drums have 100% bit-exact 0.000ms group delay lock
-  sumBus.connect(masterGain);
-  drumBus.connect(masterGain);
+  // Connect initial bypass audio graph:
+  // Melodic stems route to sumBus -> bypassGain -> masterGain
+  // Percussion stems route to drumBus -> drumDelay -> masterGain
+  sumBus.connect(bypassGain);
+  bypassGain.connect(masterGain);
+  drumBus.connect(drumDelay);
+  drumDelay.connect(masterGain);
 
   masterGain.connect(scrubFilter);
   scrubFilter.connect(scrubGain);
@@ -102,7 +105,8 @@ export function createEngine(): AudioEngine {
     drumDelay,
     scrubFilter,
     scrubGain,
-    stNode: null,
+    stretchNode: null,
+    stretchLatency: 0,
     tracks: [],
     isPlaying: false,
     isScrubbing: false,
@@ -119,15 +123,60 @@ export function getPitchRatio(semitones: number): number {
   return Math.pow(2, semitones / 12);
 }
 
-export function getSourceRate(engine: AudioEngine): number {
-  return engine.pitchSemitones !== 0 ? getPitchRatio(engine.pitchSemitones) : 1.0;
+export function getSourceRate(_engine: AudioEngine): number {
+  // Playback rate is always strictly 1.0000x for 100% time and BPM invariance
+  return 1.0;
 }
 
-export async function initSoundTouch(_engine: AudioEngine): Promise<void> {
-  // Transposition uses native zero-CPU playbackRate engine for 100% sample-synchronization
-  // Backward compatibility preservation for existing callers
-  return Promise.resolve();
+export async function initStretchNode(engine: AudioEngine): Promise<void> {
+  if (engine.stretchNode) return;
+
+  try {
+    // Point to the static public script for maximum CSP compatibility in Android APK & Web
+    SignalsmithStretch.moduleUrl = '/signalsmith-stretch.js';
+    const stretchNode = await SignalsmithStretch(engine.ctx, {
+      numberOfInputs: 1,
+      numberOfOutputs: 1,
+      outputChannelCount: [2],
+    });
+
+    const ct = engine.ctx.currentTime;
+    let latencySec = 0.12; // 5292 / 44100 = 120ms
+    try {
+      const reported = await stretchNode.latency();
+      if (typeof reported === 'number' && Number.isFinite(reported) && reported > 0) {
+        latencySec = reported;
+      }
+    } catch {}
+
+    engine.stretchNode = stretchNode;
+    engine.stretchLatency = latencySec;
+
+    // Connect sumBus -> stretchNode -> shifterOutGain -> masterGain
+    engine.sumBus.connect(stretchNode);
+    stretchNode.connect(engine.shifterOutGain);
+    engine.shifterOutGain.connect(engine.masterGain);
+
+    // Apply sample-accurate latency alignment: delay drums by exact stretch latency
+    engine.drumDelay.delayTime.setValueAtTime(latencySec, ct);
+
+    // Smoothly activate worklet output and disable initial bypass
+    engine.shifterOutGain.gain.setValueAtTime(1.0, ct);
+    engine.bypassGain.gain.setValueAtTime(0.0, ct);
+    try {
+      engine.sumBus.disconnect(engine.bypassGain);
+      engine.bypassGain.disconnect(engine.masterGain);
+    } catch {}
+
+    if (engine.pitchSemitones !== 0) {
+      stretchNode.schedule({ semitones: engine.pitchSemitones });
+    }
+  } catch (err) {
+    console.warn('[GrooveX AudioEngine] Signalsmith Stretch initialization error:', err);
+  }
 }
+
+export const initSoundTouch = initStretchNode;
 
 export async function loadAudioFile(file: File): Promise<AudioBuffer> {
   const ctx = getAudioContext();
@@ -148,8 +197,16 @@ export function initTracks(
   engine.tracks = stems.map((s) => {
     const isPercussion = isPercussionStem(s);
     const gainNode = engine.ctx.createGain();
-    // All tracks route into sumBus for unified zero-drift master mix
-    gainNode.connect(engine.sumBus);
+
+    // Stems separation:
+    // Percussion stems route directly to drumBus (100% immune to pitch processing)
+    // Non-percussion melodic stems route into sumBus -> SignalsmithStretch
+    if (isPercussion) {
+      gainNode.connect(engine.drumBus);
+    } else {
+      gainNode.connect(engine.sumBus);
+    }
+
     return {
       name: s.name,
       label: s.label || s.name,
@@ -190,11 +247,14 @@ export function play(engine: AudioEngine): void {
   if (ctx.state === 'suspended') ctx.resume();
 
   const offset = engine.pauseOffset;
-  const baseRate = getSourceRate(engine);
-  engine.startTime = ctx.currentTime - offset / baseRate;
+  engine.startTime = ctx.currentTime - offset;
   engine.isPlaying = true;
 
   startSourcesAtOffset(engine, offset);
+
+  if (engine.stretchNode && typeof engine.stretchNode.schedule === 'function') {
+    engine.stretchNode.schedule({ semitones: engine.pitchSemitones });
+  }
 }
 
 export function pause(engine: AudioEngine): void {
@@ -232,14 +292,14 @@ function stopSources(engine: AudioEngine): void {
 
 function startSourcesAtOffset(engine: AudioEngine, offset: number): void {
   const ctx = engine.ctx;
-  const rate = getSourceRate(engine);
   engine.tracks.forEach((track) => {
     if (!track.buffer || !track.gainNode) return;
     const source = ctx.createBufferSource();
     source.buffer = track.buffer;
     source.loop = engine.looping;
     source.connect(track.gainNode);
-    source.playbackRate.setValueAtTime(rate, ctx.currentTime);
+    // Playback rate is ALWAYS strictly 1.0000x - timeline and tempo are 100% invariant
+    source.playbackRate.setValueAtTime(1.0, ctx.currentTime);
     source.start(0, offset);
     track.source = source;
     if (!engine.looping) {
@@ -268,10 +328,12 @@ export function seek(engine: AudioEngine, time: number): void {
   if (wasPlaying) {
     const ctx = engine.ctx;
     if (ctx.state === 'suspended') ctx.resume();
-    const rate = getSourceRate(engine);
-    engine.startTime = ctx.currentTime - engine.pauseOffset / rate;
+    engine.startTime = ctx.currentTime - engine.pauseOffset;
     engine.isPlaying = true;
     startSourcesAtOffset(engine, engine.pauseOffset);
+    if (engine.stretchNode && typeof engine.stretchNode.schedule === 'function') {
+      engine.stretchNode.schedule({ semitones: engine.pitchSemitones });
+    }
   }
 }
 
@@ -293,11 +355,10 @@ export function scrubSeek(engine: AudioEngine, delta: number): void {
   if (delta > 0.003) mult = 2.5;
   else if (delta < -0.003) mult = 0.2;
   else mult = 0.7;
-  const baseRate = getSourceRate(engine);
   engine.tracks.forEach((track) => {
     if (track.source) {
       try {
-        track.source.playbackRate.setValueAtTime(baseRate * mult, engine.ctx.currentTime);
+        track.source.playbackRate.setValueAtTime(mult, engine.ctx.currentTime);
       } catch {}
     }
   });
@@ -314,35 +375,21 @@ export function endScrub(engine: AudioEngine, targetTime: number): void {
   engine.scrubGain.gain.linearRampToValueAtTime(1.0, ct + 0.15);
   if (engine.isPlaying) {
     const clamped = Math.max(0, Math.min(targetTime, engine.duration));
-    const rate = getSourceRate(engine);
     stopSources(engine);
     engine.pauseOffset = clamped;
-    engine.startTime = ct - clamped / rate;
+    engine.startTime = ct - clamped;
     startSourcesAtOffset(engine, clamped);
   }
 }
 
 export function setPitch(engine: AudioEngine, semitones: number): void {
   if (engine.pitchSemitones === semitones) return;
-
-  const currentPos = getCurrentTime(engine);
   engine.pitchSemitones = semitones;
-  const newRate = getSourceRate(engine);
-  const ct = engine.ctx.currentTime;
 
-  engine.tracks.forEach((track) => {
-    if (track.source) {
-      try {
-        track.source.playbackRate.cancelScheduledValues(ct);
-        track.source.playbackRate.setValueAtTime(newRate, ct);
-      } catch {}
-    }
-  });
-
-  if (engine.isPlaying) {
-    engine.startTime = ct - currentPos / newRate;
+  // Real-time parameter automation in the AudioWorklet thread: zero UI thread overhead
+  if (engine.stretchNode && typeof engine.stretchNode.schedule === 'function') {
+    engine.stretchNode.schedule({ semitones });
   }
-  engine.pauseOffset = currentPos;
 }
 
 export function setTrackVolume(engine: AudioEngine, trackIndex: number, volume: number): void {
@@ -385,8 +432,7 @@ function applyMutesSolos(engine: AudioEngine): void {
 
 export function getCurrentTime(engine: AudioEngine): number {
   if (!engine.isPlaying) return engine.pauseOffset;
-  const rate = getSourceRate(engine);
-  const songPos = (engine.ctx.currentTime - engine.startTime) * rate;
+  const songPos = engine.ctx.currentTime - engine.startTime;
   if (engine.looping && engine.duration > 0) {
     return songPos % engine.duration;
   }
@@ -406,11 +452,11 @@ export function destroyEngine(engine: AudioEngine): void {
   engine.masterGain.disconnect();
   engine.drumBus.disconnect();
   engine.drumDelay.disconnect();
-  if (engine.stNode) {
+  if (engine.stretchNode) {
     try {
-      (engine.stNode as AudioNode).disconnect();
+      engine.stretchNode.disconnect();
     } catch {}
-    engine.stNode = null;
+    engine.stretchNode = null;
   }
   engine.scrubFilter.disconnect();
   engine.scrubGain.disconnect();

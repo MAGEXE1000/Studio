@@ -55,6 +55,194 @@ export interface AudioEngine {
   looping: boolean;
   _rampTimer: ReturnType<typeof setTimeout> | null;
   pitchSemitones: number;
+  turntableBus: GainNode;
+  vinylStopBuffer: AudioBuffer | null;
+  vinylStartBuffer: AudioBuffer | null;
+  turntableSource: AudioBufferSourceNode | null;
+}
+
+/**
+ * Synthesizes realistic vinyl turntable stop (platter brake / needle drag)
+ * and start (needle cue / direct-drive spin-up) AudioBuffers locally.
+ * Guarantees zero network latency, zero disk I/O, and zero dependency on stem playback rates.
+ */
+function createVinylBuffers(ctx: AudioContext): {
+  stopBuffer: AudioBuffer;
+  startBuffer: AudioBuffer;
+} {
+  const sampleRate = ctx.sampleRate || 44100;
+
+  // 1. Turntable Stop / Platter Brake (~520ms)
+  const stopDur = 0.52;
+  const stopLen = Math.floor(sampleRate * stopDur);
+  const stopBuffer = ctx.createBuffer(1, stopLen, sampleRate);
+  const stopData = stopBuffer.getChannelData(0);
+
+  let bp_x1 = 0;
+  let bp_x2 = 0;
+  let bp_y1 = 0;
+  let bp_y2 = 0;
+  const stopStartFreq = 340;
+  const stopMinFreq = 28;
+  const stopDecayRate = 7.2;
+  let stopPhase = 0;
+
+  for (let i = 0; i < stopLen; i++) {
+    const t = i / sampleRate;
+    const norm = t / stopDur;
+
+    // Decelerating instantaneous frequency sweep
+    const f = (stopStartFreq - stopMinFreq) * Math.exp(-stopDecayRate * t) + stopMinFreq;
+    stopPhase += (2 * Math.PI * f) / sampleRate;
+
+    // Harmonic tonal motor/groove drag timbre
+    const tone =
+      Math.sin(stopPhase) * 0.55 +
+      Math.sin(stopPhase * 2) * 0.25 +
+      Math.sin(stopPhase * 3) * 0.12 +
+      Math.sin(stopPhase * 0.5) * 0.18;
+
+    // Vinyl needle surface friction bandpass
+    const whiteNoise = Math.random() * 2 - 1;
+    const centerFreq = Math.max(300, 2200 * Math.exp(-stopDecayRate * t * 0.8));
+    const Q = 1.8;
+    const w0 = (2 * Math.PI * centerFreq) / sampleRate;
+    const alpha = Math.sin(w0) / (2 * Q);
+    const b0 = alpha;
+    const b1 = 0;
+    const b2 = -alpha;
+    const a0 = 1 + alpha;
+    const a1 = -2 * Math.cos(w0);
+    const a2 = 1 - alpha;
+
+    const filteredNoise =
+      (b0 / a0) * whiteNoise +
+      (b1 / a0) * bp_x1 +
+      (b2 / a0) * bp_x2 -
+      (a1 / a0) * bp_y1 -
+      (a2 / a0) * bp_y2;
+    bp_x2 = bp_x1;
+    bp_x1 = whiteNoise;
+    bp_y2 = bp_y1;
+    bp_y1 = filteredNoise;
+
+    // Vinyl micro-crackle
+    let crackle = 0;
+    if (Math.random() < 0.003 * (1 - norm)) {
+      crackle = (Math.random() * 2 - 1) * 0.35;
+    }
+
+    // Brake click transient
+    const brakeTransient =
+      t < 0.008 ? Math.sin(2 * Math.PI * 900 * t) * Math.exp(-t * 600) * 0.35 : 0;
+
+    // Envelope
+    const env = Math.pow(1 - norm, 1.8) * Math.min(1, t / 0.003);
+    stopData[i] = (tone * 0.65 + filteredNoise * 0.45 + crackle + brakeTransient) * env * 0.85;
+  }
+
+  // 2. Turntable Start / Needle Cue Spin-up (~260ms)
+  const startDur = 0.26;
+  const startLen = Math.floor(sampleRate * startDur);
+  const startBuffer = ctx.createBuffer(1, startLen, sampleRate);
+  const startData = startBuffer.getChannelData(0);
+
+  bp_x1 = 0;
+  bp_x2 = 0;
+  bp_y1 = 0;
+  bp_y2 = 0;
+  const startStartFreq = 75;
+  const startEndFreq = 420;
+  let startPhase = 0;
+
+  for (let i = 0; i < startLen; i++) {
+    const t = i / sampleRate;
+    const norm = t / startDur;
+
+    // Accelerating instantaneous frequency sweep
+    const f = startStartFreq + (startEndFreq - startStartFreq) * Math.pow(norm, 1.6);
+    startPhase += (2 * Math.PI * f) / sampleRate;
+
+    // Harmonic tonal motor spin-up
+    const tone =
+      Math.sin(startPhase) * 0.5 +
+      Math.sin(startPhase * 2) * 0.28 +
+      Math.sin(startPhase * 3) * 0.14;
+
+    // Rising vinyl surface friction noise
+    const whiteNoise = Math.random() * 2 - 1;
+    const centerFreq = Math.min(3200, 400 + 2600 * Math.pow(norm, 1.4));
+    const Q = 1.6;
+    const w0 = (2 * Math.PI * centerFreq) / sampleRate;
+    const alpha = Math.sin(w0) / (2 * Q);
+    const b0 = alpha;
+    const b1 = 0;
+    const b2 = -alpha;
+    const a0 = 1 + alpha;
+    const a1 = -2 * Math.cos(w0);
+    const a2 = 1 - alpha;
+
+    const filteredNoise =
+      (b0 / a0) * whiteNoise +
+      (b1 / a0) * bp_x1 +
+      (b2 / a0) * bp_x2 -
+      (a1 / a0) * bp_y1 -
+      (a2 / a0) * bp_y2;
+    bp_x2 = bp_x1;
+    bp_x1 = whiteNoise;
+    bp_y2 = bp_y1;
+    bp_y1 = filteredNoise;
+
+    // Needle landing in groove transient
+    const needleDrop =
+      t < 0.015
+        ? (Math.random() * 2 - 1) * Math.exp(-t * 500) * 0.45 +
+          Math.sin(2 * Math.PI * 1800 * t) * Math.exp(-t * 700) * 0.4
+        : 0;
+
+    let env = 1.0;
+    if (t < 0.005) {
+      env = t / 0.005;
+    } else if (t > 0.18) {
+      env = Math.pow(1 - (t - 0.18) / (startDur - 0.18), 2.0);
+    }
+
+    startData[i] = (tone * 0.55 + filteredNoise * 0.45 + needleDrop) * env * 0.75;
+  }
+
+  return { stopBuffer, startBuffer };
+}
+
+export function playTurntableFeedback(engine: AudioEngine, type: 'stop' | 'start'): void {
+  const ctx = engine.ctx;
+  if (!ctx || ctx.state === 'suspended') return;
+  const buffer = type === 'stop' ? engine.vinylStopBuffer : engine.vinylStartBuffer;
+  if (!buffer) return;
+
+  if (engine.turntableSource) {
+    try {
+      engine.turntableSource.stop();
+    } catch {}
+    try {
+      engine.turntableSource.disconnect();
+    } catch {}
+    engine.turntableSource = null;
+  }
+
+  try {
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(engine.turntableBus);
+    source.start(ctx.currentTime);
+    engine.turntableSource = source;
+    source.onended = () => {
+      if (engine.turntableSource === source) {
+        engine.turntableSource = null;
+      }
+    };
+  } catch (err) {
+    console.warn('[GrooveX AudioEngine] Turntable feedback error:', err);
+  }
 }
 
 export function createEngine(): AudioEngine {
@@ -90,6 +278,20 @@ export function createEngine(): AudioEngine {
   drumBus.connect(drumDelay);
   drumDelay.connect(masterGain);
 
+  const turntableBus = ctx.createGain();
+  turntableBus.gain.setValueAtTime(0.8, ctx.currentTime);
+  turntableBus.connect(masterGain);
+
+  let vinylStopBuffer: AudioBuffer | null = null;
+  let vinylStartBuffer: AudioBuffer | null = null;
+  try {
+    const buffers = createVinylBuffers(ctx);
+    vinylStopBuffer = buffers.stopBuffer;
+    vinylStartBuffer = buffers.startBuffer;
+  } catch (err) {
+    console.warn('[GrooveX AudioEngine] Vinyl buffer synthesis error:', err);
+  }
+
   masterGain.connect(scrubFilter);
   scrubFilter.connect(scrubGain);
   scrubGain.connect(ctx.destination);
@@ -116,6 +318,10 @@ export function createEngine(): AudioEngine {
     looping: false,
     _rampTimer: null,
     pitchSemitones: 0,
+    turntableBus,
+    vinylStopBuffer,
+    vinylStartBuffer,
+    turntableSource: null,
   };
 }
 
@@ -251,6 +457,7 @@ export function play(engine: AudioEngine): void {
   engine.isPlaying = true;
 
   startSourcesAtOffset(engine, offset);
+  playTurntableFeedback(engine, 'start');
 
   if (engine.stretchNode && typeof engine.stretchNode.schedule === 'function') {
     engine.stretchNode.schedule({ active: true, semitones: engine.pitchSemitones });
@@ -266,12 +473,22 @@ export function pause(engine: AudioEngine): void {
   engine.pauseOffset = getCurrentTime(engine);
   stopSources(engine);
   engine.isPlaying = false;
+  playTurntableFeedback(engine, 'stop');
 }
 
 export function stop(engine: AudioEngine): void {
   if (engine._rampTimer) {
     clearTimeout(engine._rampTimer);
     engine._rampTimer = null;
+  }
+  if (engine.turntableSource) {
+    try {
+      engine.turntableSource.stop();
+    } catch {}
+    try {
+      engine.turntableSource.disconnect();
+    } catch {}
+    engine.turntableSource = null;
   }
   stopSources(engine);
   engine.isPlaying = false;
@@ -447,4 +664,7 @@ export function destroyEngine(engine: AudioEngine): void {
   }
   engine.scrubFilter.disconnect();
   engine.scrubGain.disconnect();
+  try {
+    engine.turntableBus.disconnect();
+  } catch {}
 }

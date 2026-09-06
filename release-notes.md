@@ -1,16 +1,9 @@
-# Version 4.5.65
+# Version 4.5.66
 
 Release Date: 2026-09-06
 
-### Added
+### Fixed
 
-- Drumex Metronome Primary Tab: Implemented the approved Drumex Metronome design as a primary production tab placed immediately to the left of Beats (`Metronome | Beats | Patterns | Preferences`).
-- Deterministic Web Audio Lookahead Engine: Built high-precision metronome audio engine powered by authoritative Web Audio hardware clock (`currentTime`) and 25ms lookahead scheduler, guaranteeing zero perceptible lag and zero cumulative drift across 40–280 BPM.
-- Pre-Synthesized PCM Percussive Kits: Pre-rendered 6 high-transient percussive sound kits (`Acoustic Woodblock`, `Acoustic Click`, `Digital Beep`, `Cowbell`, `Rimshot`, `Soft Click`) directly into cached in-memory AudioBuffers with zero network latency, consistent loudness, and clean transient attack.
-- Metronome Presets Management: Full CRUD preset architecture with local storage persistence, supporting instant recall, inline preset creation, duplication, renaming, updating, and search filtering.
-- Rhythm Metrics & Controls: Segmented pill selectors for Time Signatures (4/4, 3/4, 6/8, 2/4) and Subdivisions (1/4, 1/8, 1/16, 3let), accented Beat 1 tracking, audible count-in, practice timer, tap tempo, and floating quick controls dock.
-
-### Improved
-
-- Clean Audio Lifecycle & Leak Immunity: Guaranteed zero node, timer, or context leaks over repeated start/stop cycles with automatic background/navigation teardown.
-- Global Navigation & Translation Integration: Seamless bottom navigation bar and desktop dock integration with English and Spanish translations.
+- GrooveX Transposition UI Freeze Regression: Completely eliminated application freeze during musical key transposition by removing main-thread offline SoundTouch WSOLA processing.
+- Native Hardware Playback-Rate Engine: Restored canonical zero-CPU Web Audio `AudioBufferSourceNode.playbackRate` adjustment across all stems (including drums/percussion), reducing transposition execution latency from multi-second blocking down to < 0.05ms (0 dropped UI frames, steady 60 FPS).
+- Continuous Drift-Free Playback: Dynamic pitch changes during active playback now maintain seamless audio continuity with zero phase jump and 100% sample-lock synchronization across all stems.

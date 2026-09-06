@@ -4233,7 +4233,14 @@ export default function DrumEditor() {
                     return (
                       <MetronomePanel
                         onScroll={drumScrollHide}
-                        onBack={() => handleSetTab('songs')}
+                        onBack={() => {
+                          const history = useNavigationStore.getState().history;
+                          if (history.length > 1 && history[history.length - 2]?.app === 'drumex') {
+                            NavigationDispatcher.pop();
+                          } else {
+                            handleSetTab('songs');
+                          }
+                        }}
                       />
                     );
                   case 'songs-list':
@@ -7706,7 +7713,7 @@ export default function DrumEditor() {
         accent={accent}
         isLight={isLight}
         isAmoled={isAmoled}
-        hidden={isWebDesktop || inEditor}
+        hidden={isWebDesktop || inEditor || activeTab === 'metronome'}
       />
 
       {/* ── Save Groove sheet ────────────────────────────────────────────── */}

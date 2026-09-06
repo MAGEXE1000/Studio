@@ -442,7 +442,19 @@ export function BottomNavigationController() {
   ]);
 
   const isDrumexEditor = currentApp === 'drumex' && (currentRoute as any)?.subView === 'editor';
-  const visible = !isKeyboardFocused && !hasDOMHiddenIndicator && storeVisible && !isDrumexEditor;
+  const isDrumexMetronome =
+    currentApp === 'drumex' &&
+    (activeTab === 'metronome' ||
+      activePage === 'metronome' ||
+      currentRoute?.page === 'metronome' ||
+      (currentRoute as any)?.tab === 'metronome' ||
+      (currentRoute as any)?.subView === 'metronome');
+  const visible =
+    !isKeyboardFocused &&
+    !hasDOMHiddenIndicator &&
+    storeVisible &&
+    !isDrumexEditor &&
+    !isDrumexMetronome;
 
   return (
     <NavigationAnimationProvider activeTab={activeTab} items={computedItems}>

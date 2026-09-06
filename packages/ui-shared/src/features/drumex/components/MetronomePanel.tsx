@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import {
   useMetronomeStore,
   SOUND_LABELS,
+  useBackHandler,
   type MetronomeTimeSignature,
   type MetronomeSubdivision,
   type MetronomeSoundId,
@@ -63,6 +64,22 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
       newPresetInputRef.current.focus();
     }
   }, [showNewPresetForm]);
+
+  useBackHandler(
+    'overlay',
+    () => {
+      if (isPresetsOpen) {
+        setIsPresetsOpen(false);
+        return true;
+      }
+      if (showSoundMenu) {
+        setShowSoundMenu(false);
+        return true;
+      }
+      return false;
+    },
+    [isPresetsOpen, showSoundMenu]
+  );
 
   // Tempo descriptor
   const { tempoDescriptor, tempoTag } = useMemo(() => {
@@ -180,7 +197,12 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
       `}</style>
 
       {/* ── Top Navigation Header ────────────────────────────────────────── */}
-      <header className="pt-4 px-4 pb-2 flex-shrink-0">
+      <header
+        className="px-4 pb-2 flex-shrink-0"
+        style={{
+          paddingTop: 'max(16px, env(safe-area-inset-top, 16px))',
+        }}
+      >
         <div className="w-full bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-full px-3 py-2 shadow-[0_4px_20px_rgba(0,0,0,0.05)] border border-slate-200/80 dark:border-zinc-800 flex items-center justify-between relative">
           <button
             aria-label="Go back"
@@ -205,7 +227,10 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
       {/* ── Main Live Performance Scroll Area ────────────────────────────── */}
       <main
         onScroll={onScroll}
-        className="flex-1 px-4 flex flex-col gap-3.5 pt-1 overflow-y-auto no-scrollbar pb-28"
+        className="flex-1 px-4 flex flex-col gap-3.5 pt-1 overflow-y-auto no-scrollbar"
+        style={{
+          paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom, 16px)) + 68px)',
+        }}
       >
         {/* 1. BEAT TRACKER STRIP */}
         <section className="bg-white dark:bg-zinc-900 rounded-2xl p-3 border border-slate-200/80 dark:border-zinc-800 shadow-[0_4px_16px_rgba(0,0,0,0.03)] flex flex-col gap-2">
@@ -646,7 +671,12 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
       </main>
 
       {/* ── COMPACT FLOATING QUICK CONTROLS DOCK ──────────────────────────── */}
-      <div className="fixed bottom-4 inset-x-0 flex justify-center items-center pointer-events-none z-40">
+      <div
+        className="fixed inset-x-0 flex justify-center items-center pointer-events-none z-40"
+        style={{
+          bottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+        }}
+      >
         <aside
           aria-label="Metronome quick controls"
           className="pointer-events-auto bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)] border border-slate-200/80 dark:border-zinc-800 flex items-center gap-2"
@@ -740,6 +770,9 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
           className={`absolute inset-x-0 bottom-0 max-w-md mx-auto transform transition-transform duration-300 ease-out flex flex-col max-h-[88vh] bg-white dark:bg-zinc-900 rounded-t-[32px] sm:rounded-3xl shadow-[0_-12px_40px_rgba(0,0,0,0.18)] border-t border-x border-slate-200/90 dark:border-zinc-800 overflow-hidden ${
             isPresetsOpen ? 'translate-y-0' : 'translate-y-full'
           }`}
+          style={{
+            paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+          }}
         >
           {/* Drag pill handle */}
           <div className="pt-3 pb-1 flex justify-center items-center cursor-grab">

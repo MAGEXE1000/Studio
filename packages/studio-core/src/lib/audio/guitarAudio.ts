@@ -9,7 +9,7 @@ let audioCtx: AudioContext | null = null;
 const AudioCtxClass =
   typeof AudioContext !== 'undefined'
     ? AudioContext
-    : typeof (window as any).webkitAudioContext !== 'undefined'
+    : typeof window !== 'undefined' && typeof (window as any).webkitAudioContext !== 'undefined'
       ? ((window as any).webkitAudioContext as typeof AudioContext)
       : null;
 

@@ -502,7 +502,7 @@ function registerWorkletProcessor(Module, audioNodeKey) {
 
       this.timeMap = [
         {
-          active: false,
+          active: true,
           input: 0,
           output: 0,
           rate: 1,
@@ -632,6 +632,22 @@ function registerWorkletProcessor(Module, audioNodeKey) {
           this.audioBuffersEnd += length;
           return this.audioBuffersEnd / sampleRate;
         },
+        reset: () => {
+          if (this.wasmModule && typeof this.wasmModule._reset === 'function') {
+            this.wasmModule._reset();
+          }
+          if (this.buffersIn && this.buffersOut && this.bufferLength) {
+            let memory = this.wasmModule.exports
+              ? this.wasmModule.exports.memory.buffer
+              : this.wasmModule.HEAP8.buffer;
+            for (let c = 0; c < this.channels; ++c) {
+              if (this.buffersIn[c])
+                new Float32Array(memory, this.buffersIn[c], this.bufferLength).fill(0);
+              if (this.buffersOut[c])
+                new Float32Array(memory, this.buffersOut[c], this.bufferLength).fill(0);
+            }
+          }
+        },
       };
 
       let pendingMessages = [];
@@ -735,7 +751,7 @@ function registerWorkletProcessor(Module, audioNodeKey) {
       // Check the input/output channel counts
       if (outputList[0].length != this.channels) {
         this.channels = outputList[0]?.length || 0;
-        configure();
+        this.configure();
       }
       let outputBlockSize = outputList[0][0].length;
 

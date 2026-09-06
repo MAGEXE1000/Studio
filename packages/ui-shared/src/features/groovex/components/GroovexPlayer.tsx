@@ -514,6 +514,29 @@ export default function GroovexPlayer() {
     }
   }
 
+  function handlePreviousTrack() {
+    const engine = engineRef.current;
+    if (engine && getCurrentTime(engine) > 3) {
+      handleSeek(0);
+    } else {
+      const curId = song?.id;
+      const idx = SONG_CATALOG.findIndex((s) => s.id === curId);
+      if (idx > 0) {
+        useGroovexStore.getState().setActiveSong(SONG_CATALOG[idx - 1].id);
+      } else {
+        handleSeek(0);
+      }
+    }
+  }
+
+  function handleNextTrack() {
+    const curId = song?.id;
+    const idx = SONG_CATALOG.findIndex((s) => s.id === curId);
+    if (idx >= 0 && idx < SONG_CATALOG.length - 1) {
+      useGroovexStore.getState().setActiveSong(SONG_CATALOG[idx + 1].id);
+    }
+  }
+
   function handleScrubStart() {
     const engine = engineRef.current;
     if (!engine || !isPlaying) return;
@@ -687,6 +710,10 @@ export default function GroovexPlayer() {
   handleSeekRef.current = handleSeek;
   const handleSkipRef = useRef(handleSkip);
   handleSkipRef.current = handleSkip;
+  const handlePreviousTrackRef = useRef(handlePreviousTrack);
+  handlePreviousTrackRef.current = handlePreviousTrack;
+  const handleNextTrackRef = useRef(handleNextTrack);
+  handleNextTrackRef.current = handleNextTrack;
   const songRef = useRef(song);
   songRef.current = song;
   const isPlayingRef = useRef(isPlaying);
@@ -729,18 +756,10 @@ export default function GroovexPlayer() {
         handleSkipRef.current(-sec);
       },
       onNext: () => {
-        const curId = songRef.current?.id;
-        const idx = SONG_CATALOG.findIndex((s) => s.id === curId);
-        if (idx >= 0 && idx < SONG_CATALOG.length - 1) {
-          useGroovexStore.getState().setActiveSong(SONG_CATALOG[idx + 1].id);
-        }
+        handleNextTrackRef.current();
       },
       onPrevious: () => {
-        const curId = songRef.current?.id;
-        const idx = SONG_CATALOG.findIndex((s) => s.id === curId);
-        if (idx > 0) {
-          useGroovexStore.getState().setActiveSong(SONG_CATALOG[idx - 1].id);
-        }
+        handlePreviousTrackRef.current();
       },
       onStop: () => {
         handleStop();
@@ -1702,20 +1721,33 @@ export default function GroovexPlayer() {
                     type="range"
                     className="gx-range-slider"
                     min={0}
-                    max={Math.max(1, Math.round(duration))}
-                    value={Math.round(effectiveTime)}
-                    onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setScrubVisualTime(val);
-                      handleSeek(val);
-                    }}
+                    max={duration > 0 ? duration : 1}
+                    step="0.1"
+                    value={isScrubbing ? scrubVisualTime : currentTime}
                     onPointerDown={() => {
                       setIsScrubbing(true);
-                      handleScrubStart();
+                      setScrubVisualTime(currentTime);
                     }}
-                    onPointerUp={() => {
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setScrubVisualTime(val);
+                    }}
+                    onPointerUp={(e) => {
+                      const val = parseFloat((e.target as HTMLInputElement).value);
                       setIsScrubbing(false);
-                      handleScrubEnd(duration > 0 ? scrubVisualTime / duration : 0);
+                      handleSeek(val);
+                    }}
+                    onPointerCancel={() => {
+                      setIsScrubbing(false);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        handleSkip(-5);
+                      } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        handleSkip(5);
+                      }
                     }}
                     style={{ width: '100%', cursor: 'pointer' }}
                   />
@@ -1762,8 +1794,8 @@ export default function GroovexPlayer() {
                 }}
               >
                 <button
-                  onClick={handleStop}
-                  aria-label="Previous Track / Reset"
+                  onClick={handlePreviousTrack}
+                  aria-label="Previous Track / Restart"
                   style={{
                     width: 44,
                     height: 44,
@@ -1874,7 +1906,7 @@ export default function GroovexPlayer() {
                 </button>
 
                 <button
-                  onClick={() => handleSkip(duration)}
+                  onClick={handleNextTrack}
                   aria-label="Next Track"
                   style={{
                     width: 44,

@@ -168,8 +168,8 @@ export async function initStretchNode(engine: AudioEngine): Promise<void> {
       engine.bypassGain.disconnect(engine.masterGain);
     } catch {}
 
-    if (engine.pitchSemitones !== 0) {
-      stretchNode.schedule({ semitones: engine.pitchSemitones });
+    if (typeof stretchNode.schedule === 'function') {
+      stretchNode.schedule({ active: true, semitones: engine.pitchSemitones });
     }
   } catch (err) {
     console.warn('[GrooveX AudioEngine] Signalsmith Stretch initialization error:', err);
@@ -253,7 +253,7 @@ export function play(engine: AudioEngine): void {
   startSourcesAtOffset(engine, offset);
 
   if (engine.stretchNode && typeof engine.stretchNode.schedule === 'function') {
-    engine.stretchNode.schedule({ semitones: engine.pitchSemitones });
+    engine.stretchNode.schedule({ active: true, semitones: engine.pitchSemitones });
   }
 }
 
@@ -276,6 +276,11 @@ export function stop(engine: AudioEngine): void {
   stopSources(engine);
   engine.isPlaying = false;
   engine.pauseOffset = 0;
+  if (engine.stretchNode && typeof (engine.stretchNode as any).reset === 'function') {
+    try {
+      (engine.stretchNode as any).reset();
+    } catch {}
+  }
 }
 
 function stopSources(engine: AudioEngine): void {
@@ -294,6 +299,8 @@ function startSourcesAtOffset(engine: AudioEngine, offset: number): void {
   const ctx = engine.ctx;
   engine.tracks.forEach((track) => {
     if (!track.buffer || !track.gainNode) return;
+    // Prevent starting sources if offset is past buffer duration
+    if (offset >= track.buffer.duration) return;
     const source = ctx.createBufferSource();
     source.buffer = track.buffer;
     source.loop = engine.looping;
@@ -323,63 +330,43 @@ export function seek(engine: AudioEngine, time: number): void {
     engine._rampTimer = null;
   }
   if (wasPlaying) stopSources(engine);
-  engine.pauseOffset = Math.max(0, Math.min(time, engine.duration));
-  engine.isPlaying = false;
+  const clamped = Math.max(0, Math.min(time, engine.duration));
+  engine.pauseOffset = clamped;
+
+  // Flush and reset DSP worklet buffer state to eliminate stale audio frames
+  if (engine.stretchNode) {
+    if (typeof (engine.stretchNode as any).reset === 'function') {
+      try {
+        (engine.stretchNode as any).reset();
+      } catch {}
+    }
+    if (typeof engine.stretchNode.schedule === 'function') {
+      engine.stretchNode.schedule({ active: true, semitones: engine.pitchSemitones });
+    }
+  }
+
   if (wasPlaying) {
     const ctx = engine.ctx;
     if (ctx.state === 'suspended') ctx.resume();
-    engine.startTime = ctx.currentTime - engine.pauseOffset;
+    engine.startTime = ctx.currentTime - clamped;
     engine.isPlaying = true;
-    startSourcesAtOffset(engine, engine.pauseOffset);
-    if (engine.stretchNode && typeof engine.stretchNode.schedule === 'function') {
-      engine.stretchNode.schedule({ semitones: engine.pitchSemitones });
-    }
+    startSourcesAtOffset(engine, clamped);
+  } else {
+    engine.isPlaying = false;
   }
 }
 
 export function startScrub(engine: AudioEngine): void {
-  if (engine.isScrubbing) return;
   engine.isScrubbing = true;
-  const ct = engine.ctx.currentTime;
-  engine.scrubFilter.frequency.cancelScheduledValues(ct);
-  engine.scrubFilter.frequency.setValueAtTime(engine.scrubFilter.frequency.value, ct);
-  engine.scrubFilter.frequency.exponentialRampToValueAtTime(600, ct + 0.08);
-  engine.scrubGain.gain.cancelScheduledValues(ct);
-  engine.scrubGain.gain.setValueAtTime(engine.scrubGain.gain.value, ct);
-  engine.scrubGain.gain.linearRampToValueAtTime(0.35, ct + 0.08);
 }
 
-export function scrubSeek(engine: AudioEngine, delta: number): void {
-  if (!engine.isPlaying) return;
-  let mult: number;
-  if (delta > 0.003) mult = 2.5;
-  else if (delta < -0.003) mult = 0.2;
-  else mult = 0.7;
-  engine.tracks.forEach((track) => {
-    if (track.source) {
-      try {
-        track.source.playbackRate.setValueAtTime(mult, engine.ctx.currentTime);
-      } catch {}
-    }
-  });
+export function scrubSeek(_engine: AudioEngine, _delta: number): void {
+  // Maintained for API compatibility without altering source playbackRate
 }
 
 export function endScrub(engine: AudioEngine, targetTime: number): void {
   engine.isScrubbing = false;
-  const ct = engine.ctx.currentTime;
-  engine.scrubFilter.frequency.cancelScheduledValues(ct);
-  engine.scrubFilter.frequency.setValueAtTime(engine.scrubFilter.frequency.value, ct);
-  engine.scrubFilter.frequency.exponentialRampToValueAtTime(20000, ct + 0.15);
-  engine.scrubGain.gain.cancelScheduledValues(ct);
-  engine.scrubGain.gain.setValueAtTime(engine.scrubGain.gain.value, ct);
-  engine.scrubGain.gain.linearRampToValueAtTime(1.0, ct + 0.15);
-  if (engine.isPlaying) {
-    const clamped = Math.max(0, Math.min(targetTime, engine.duration));
-    stopSources(engine);
-    engine.pauseOffset = clamped;
-    engine.startTime = ct - clamped;
-    startSourcesAtOffset(engine, clamped);
-  }
+  seek(engine, targetTime);
 }
 
 export function setPitch(engine: AudioEngine, semitones: number): void {
@@ -388,7 +375,7 @@ export function setPitch(engine: AudioEngine, semitones: number): void {
 
   // Real-time parameter automation in the AudioWorklet thread: zero UI thread overhead
   if (engine.stretchNode && typeof engine.stretchNode.schedule === 'function') {
-    engine.stretchNode.schedule({ semitones });
+    engine.stretchNode.schedule({ active: true, semitones });
   }
 }
 

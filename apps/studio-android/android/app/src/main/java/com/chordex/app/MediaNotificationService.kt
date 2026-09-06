@@ -339,7 +339,7 @@ class MediaNotificationService : Service() {
         )
 
         val mediaStyle = MediaStyle()
-            .setShowActionsInCompactView(1, 2, 3) // Rewind, Play/Pause, Fast-forward
+            .setShowActionsInCompactView(0, 2, 4) // Previous (0), Play/Pause (2), Next (4)
             .setCancelButtonIntent(
                 PendingIntent.getService(
                     this,

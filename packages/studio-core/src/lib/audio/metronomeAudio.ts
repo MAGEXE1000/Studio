@@ -17,6 +17,7 @@ export interface MetronomeAudioConfig {
   timeSignature: MetronomeTimeSignature;
   subdivision: MetronomeSubdivision;
   sound: MetronomeSoundId;
+  accentBeat?: number;
   volume: number; // 0 to 1
   isMuted: boolean;
   countInEnabled: boolean;
@@ -37,6 +38,7 @@ export class MetronomeAudioEngine {
   private _timeSignature: MetronomeTimeSignature = '4/4';
   private _subdivision: MetronomeSubdivision = '1/16';
   private _sound: MetronomeSoundId = 'woodblock';
+  private _accentBeat: number = 0;
   private _volume: number = 0.85;
   private _isMuted: boolean = false;
   private _countInEnabled: boolean = true;
@@ -322,9 +324,7 @@ export class MetronomeAudioEngine {
     while (this._nextBeatTime < windowEnd) {
       const beatTime = this._nextBeatTime;
       const isCountIn = this._inCountIn;
-      const isAccent =
-        this._currentMeasureBeat === 0 ||
-        (this._timeSignature === '6/8' && this._currentMeasureBeat === 3);
+      const isAccent = this._currentMeasureBeat === this._accentBeat;
 
       // 1. Schedule the main beat
       this.scheduleAudioPulse(beatTime, isAccent, false, isCountIn, this._currentMeasureBeat === 0);
@@ -464,6 +464,10 @@ export class MetronomeAudioEngine {
   public setTimeSignature(sig: MetronomeTimeSignature) {
     if (this._timeSignature === sig) return;
     this._timeSignature = sig;
+    const maxBeat = this.getBeatsPerMeasure() - 1;
+    if (this._accentBeat > maxBeat) {
+      this._accentBeat = 0;
+    }
     if (this._isPlaying && this._ctx) {
       const now = this._ctx.currentTime;
       this._t0 = Math.max(this._nextBeatTime, now + 0.01);
@@ -471,6 +475,15 @@ export class MetronomeAudioEngine {
       this._currentMeasureBeat = 0;
       this._nextBeatTime = this._t0;
     }
+  }
+
+  public setAccentBeat(beatIndex: number) {
+    const maxBeat = this.getBeatsPerMeasure() - 1;
+    this._accentBeat = Math.max(0, Math.min(maxBeat, Math.round(beatIndex)));
+  }
+
+  public get accentBeat(): number {
+    return this._accentBeat;
   }
 
   public setSubdivision(sub: MetronomeSubdivision) {

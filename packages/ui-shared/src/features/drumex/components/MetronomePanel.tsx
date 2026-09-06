@@ -20,12 +20,15 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     timeSignature,
     subdivision,
     sound,
+    accentBeat,
     volume,
     isMuted,
     countInEnabled,
     isPlaying,
     activeBeat,
     activeSubdivision,
+    userPresets,
+    factoryPresets,
     presets,
     activePresetId,
     practiceTimerActive,
@@ -36,6 +39,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     setTimeSignature,
     setSubdivision,
     setSound,
+    setAccentBeat,
     setVolume,
     toggleMute,
     toggleCountIn,
@@ -95,8 +99,8 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
 
   // Active preset
   const activePreset = useMemo(() => {
-    return presets.find((p) => p.id === activePresetId) ?? null;
-  }, [presets, activePresetId]);
+    return [...userPresets, ...factoryPresets].find((p) => p.id === activePresetId) ?? null;
+  }, [userPresets, factoryPresets, activePresetId]);
 
   // Number of beats for the tracker strip
   const beatsCount = useMemo(() => {
@@ -113,17 +117,21 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
     }
   }, [timeSignature]);
 
-  // Filtered presets
-  const filteredPresets = useMemo(() => {
-    if (!presetSearch.trim()) return presets;
+  // Filtered presets separated by user and factory
+  const { filteredUserPresets, filteredFactoryPresets } = useMemo(() => {
+    if (!presetSearch.trim()) {
+      return { filteredUserPresets: userPresets, filteredFactoryPresets: factoryPresets };
+    }
     const q = presetSearch.toLowerCase();
-    return presets.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.timeSignature.includes(q) ||
-        SOUND_LABELS[p.sound]?.toLowerCase().includes(q)
-    );
-  }, [presets, presetSearch]);
+    const filterFn = (p: any) =>
+      p.name.toLowerCase().includes(q) ||
+      p.timeSignature.includes(q) ||
+      SOUND_LABELS[p.sound]?.toLowerCase().includes(q);
+    return {
+      filteredUserPresets: userPresets.filter(filterFn),
+      filteredFactoryPresets: factoryPresets.filter(filterFn),
+    };
+  }, [userPresets, factoryPresets, presetSearch]);
 
   const handleCreatePreset = () => {
     const name = newPresetName.trim() || 'My Custom Groove';
@@ -240,7 +248,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
             </span>
             <div className="flex items-center gap-1.5">
               <span className="text-[9px] font-semibold text-slate-500 dark:text-zinc-400">
-                Accent Beat 1
+                Accent Beat {accentBeat + 1}
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#007aff]" />
             </div>
@@ -260,12 +268,14 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
           >
             {Array.from({ length: beatsCount }).map((_, idx) => {
               const isCurrent = isPlaying && activeBeat === idx;
-              const isAccentBeat = idx === 0 || (timeSignature === '6/8' && idx === 3);
+              const isAccentBeat = accentBeat === idx;
 
               if (isCurrent) {
                 return (
-                  <div
+                  <button
                     key={idx}
+                    type="button"
+                    onClick={() => setAccentBeat(idx)}
                     className={`h-12 rounded-xl flex flex-col items-center justify-center font-manrope font-extrabold relative overflow-hidden pulse-active cursor-pointer ${
                       isAccentBeat
                         ? 'bg-[#007aff] text-white shadow-[0_4px_14px_rgba(0,122,255,0.35)]'
@@ -279,27 +289,35 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                     {isAccentBeat && (
                       <span className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-white" />
                     )}
-                  </div>
+                  </button>
                 );
               }
 
               return (
-                <div
+                <button
                   key={idx}
+                  type="button"
+                  onClick={() => setAccentBeat(idx)}
                   className={`h-12 rounded-xl border flex flex-col items-center justify-center font-manrope font-bold transition cursor-pointer relative ${
                     isAccentBeat
-                      ? 'bg-slate-100 dark:bg-zinc-800 text-slate-800 dark:text-zinc-200 border-slate-200/80 dark:border-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-700'
+                      ? 'bg-blue-50/70 dark:bg-blue-950/30 text-[#007aff] border-[#007aff]/60 hover:bg-blue-100/80 dark:hover:bg-blue-900/40'
                       : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200/80 dark:border-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-700'
                   }`}
                 >
                   <span className="text-lg leading-none">{idx + 1}</span>
-                  <span className="text-[8px] font-medium text-slate-400 dark:text-zinc-500">
+                  <span
+                    className={`text-[8px] ${
+                      isAccentBeat
+                        ? 'font-bold text-[#007aff]'
+                        : 'font-medium text-slate-400 dark:text-zinc-500'
+                    }`}
+                  >
                     {isAccentBeat ? 'ACCENT' : 'NORMAL'}
                   </span>
                   {isAccentBeat && (
                     <span className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-[#007aff]" />
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -787,7 +805,7 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
                   Metronome Presets
                 </h2>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border border-blue-100 dark:border-blue-900">
-                  {presets.length} saved
+                  {userPresets.length} saved
                 </span>
               </div>
               <p className="text-xs text-slate-400 dark:text-zinc-500 font-medium mt-0.5">
@@ -880,122 +898,264 @@ export function MetronomePanel({ onBack, onScroll }: MetronomePanelProps) {
           </div>
 
           {/* Presets List */}
-          <div className="flex-1 overflow-y-auto px-5 py-2.5 flex flex-col gap-2.5 no-scrollbar pb-8">
-            {filteredPresets.map((p) => {
-              const isCurrent = activePresetId === p.id;
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => {
-                    loadPreset(p.id);
-                    setTimeout(() => setIsPresetsOpen(false), 220);
-                  }}
-                  className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
-                    isCurrent
-                      ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
-                      : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
+          <div className="flex-1 overflow-y-auto px-5 py-2.5 flex flex-col gap-4 no-scrollbar pb-8">
+            {/* 1. SAVED USER PRESETS SECTION */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                  My Saved Presets ({filteredUserPresets.length})
+                </span>
+              </div>
+
+              {filteredUserPresets.length === 0 ? (
+                <div className="py-6 px-4 rounded-2xl bg-slate-50 dark:bg-zinc-800/40 border border-dashed border-slate-200 dark:border-zinc-800 text-center flex flex-col items-center justify-center gap-1.5">
+                  <span className="material-symbols-outlined text-[24px] text-slate-400 dark:text-zinc-500">
+                    bookmark_border
+                  </span>
+                  <p className="text-xs font-bold text-slate-700 dark:text-zinc-300">
+                    No saved presets yet
+                  </p>
+                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 max-w-xs">
+                    Save current tempo and rhythmic settings with &quot;+ New&quot; to build your
+                    library.
+                  </p>
+                </div>
+              ) : (
+                filteredUserPresets.map((p) => {
+                  const isCurrent = activePresetId === p.id;
+                  return (
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
+                      key={p.id}
+                      onClick={() => {
+                        loadPreset(p.id);
+                        setTimeout(() => setIsPresetsOpen(false), 220);
+                      }}
+                      className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
                         isCurrent
-                          ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
-                          : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
+                          ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
+                          : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
                       }`}
                     >
-                      <span className="material-symbols-outlined text-[20px]">
-                        {p.icon || 'bookmark'}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5">
-                        <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
-                          {p.name}
-                        </h3>
-                        {isCurrent && (
-                          <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
-                            Current
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
-                        <span className="font-bold text-slate-700 dark:text-zinc-200">
-                          {p.timeSignature}
-                        </span>
-                        <span>•</span>
-                        <span>{p.subdivision} Note</span>
-                        <span>•</span>
-                        <span className="truncate max-w-[90px]">{SOUND_LABELS[p.sound]}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`px-2 py-1 rounded-lg font-manrope text-xs ${
-                        isCurrent
-                          ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
-                          : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
-                      }`}
-                    >
-                      {p.bpm} <span className="text-[9px]">BPM</span>
-                    </span>
-                    <div className="relative">
-                      <button
-                        aria-label="Preset options"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
-                        }}
-                        className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
-                        type="button"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">more_vert</span>
-                      </button>
-
-                      {/* Options menu popover */}
-                      {activePresetMenuId === p.id && (
+                      <div className="flex items-center gap-3">
                         <div
-                          onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
+                            isCurrent
+                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
+                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
+                          }`}
                         >
+                          <span className="material-symbols-outlined text-[20px]">
+                            {p.icon || 'bookmark'}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
+                              {p.name}
+                            </h3>
+                            {isCurrent && (
+                              <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                            <span className="font-bold text-slate-700 dark:text-zinc-200">
+                              {p.timeSignature}
+                            </span>
+                            <span>•</span>
+                            <span>{p.subdivision} Note</span>
+                            <span>•</span>
+                            <span className="truncate max-w-[90px]">{SOUND_LABELS[p.sound]}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-1 rounded-lg font-manrope text-xs ${
+                            isCurrent
+                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
+                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
+                          }`}
+                        >
+                          {p.bpm} <span className="text-[9px]">BPM</span>
+                        </span>
+                        <div className="relative">
                           <button
-                            onClick={() => {
-                              updateCurrentPreset();
-                              setActivePresetMenuId(null);
+                            aria-label="Preset options"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
                             }}
-                            className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                            className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
+                            type="button"
                           >
-                            Update with current
+                            <span className="material-symbols-outlined text-[16px]">more_vert</span>
                           </button>
-                          <button
-                            onClick={() => {
-                              duplicatePreset(p.id);
-                              setActivePresetMenuId(null);
-                            }}
-                            className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
-                          >
-                            Duplicate
-                          </button>
-                          {presets.length > 1 && (
-                            <button
-                              onClick={() => {
-                                deletePreset(p.id);
-                                setActivePresetMenuId(null);
-                              }}
-                              className="px-3 py-1.5 text-left text-xs font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+
+                          {/* Options menu popover */}
+                          {activePresetMenuId === p.id && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
                             >
-                              Delete
-                            </button>
+                              <button
+                                onClick={() => {
+                                  updateCurrentPreset();
+                                  setActivePresetMenuId(null);
+                                }}
+                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                              >
+                                Update with current
+                              </button>
+                              <button
+                                onClick={() => {
+                                  duplicatePreset(p.id);
+                                  setActivePresetMenuId(null);
+                                }}
+                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                              >
+                                Duplicate
+                              </button>
+                              <button
+                                onClick={() => {
+                                  deletePreset(p.id);
+                                  setActivePresetMenuId(null);
+                                }}
+                                className="px-3 py-1.5 text-left text-xs font-medium text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* 2. FACTORY PRESETS SECTION */}
+            {filteredFactoryPresets.length > 0 && (
+              <div className="flex flex-col gap-2 pt-2 border-t border-slate-100 dark:border-zinc-800">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 font-manrope">
+                    Factory Presets ({filteredFactoryPresets.length})
+                  </span>
                 </div>
-              );
-            })}
+
+                {filteredFactoryPresets.map((p) => {
+                  const isCurrent = activePresetId === p.id;
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => {
+                        loadPreset(p.id);
+                        setTimeout(() => setIsPresetsOpen(false), 220);
+                      }}
+                      className={`relative p-3 rounded-2xl flex items-center justify-between transition tap-press cursor-pointer ${
+                        isCurrent
+                          ? 'bg-white dark:bg-zinc-900 border-2 border-[#007aff] shadow-[0_4px_16px_rgba(0,122,255,0.08)]'
+                          : 'bg-white dark:bg-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs hover:border-slate-300 dark:hover:border-zinc-700'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center font-manrope font-extrabold text-sm border flex-shrink-0 ${
+                            isCurrent
+                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] border-blue-100 dark:border-blue-900'
+                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[20px]">
+                            {p.icon || 'bookmark'}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <h3 className="text-xs font-extrabold font-manrope text-slate-900 dark:text-zinc-100 leading-tight">
+                              {p.name}
+                            </h3>
+                            <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 text-[9px] font-bold uppercase tracking-wide">
+                              Factory
+                            </span>
+                            {isCurrent && (
+                              <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-[#007aff] text-[9px] font-extrabold uppercase tracking-wide">
+                                Current
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">
+                            <span className="font-bold text-slate-700 dark:text-zinc-200">
+                              {p.timeSignature}
+                            </span>
+                            <span>•</span>
+                            <span>{p.subdivision} Note</span>
+                            <span>•</span>
+                            <span className="truncate max-w-[90px]">{SOUND_LABELS[p.sound]}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-1 rounded-lg font-manrope text-xs ${
+                            isCurrent
+                              ? 'bg-blue-50 dark:bg-blue-950/40 text-[#007aff] font-extrabold'
+                              : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold'
+                          }`}
+                        >
+                          {p.bpm} <span className="text-[9px]">BPM</span>
+                        </span>
+                        <div className="relative">
+                          <button
+                            aria-label="Preset options"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActivePresetMenuId(activePresetMenuId === p.id ? null : p.id);
+                            }}
+                            className="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 flex items-center justify-center transition cursor-pointer"
+                            type="button"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">more_vert</span>
+                          </button>
+
+                          {/* Options menu popover for factory presets */}
+                          {activePresetMenuId === p.id && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute right-0 top-8 z-50 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl shadow-lg py-1 min-w-[130px] flex flex-col"
+                            >
+                              <button
+                                onClick={() => {
+                                  loadPreset(p.id);
+                                  setActivePresetMenuId(null);
+                                  setIsPresetsOpen(false);
+                                }}
+                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                              >
+                                Load
+                              </button>
+                              <button
+                                onClick={() => {
+                                  duplicatePreset(p.id);
+                                  setActivePresetMenuId(null);
+                                }}
+                                className="px-3 py-1.5 text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700"
+                              >
+                                Duplicate to saved
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -16,6 +16,8 @@ export interface MetronomePreset {
   sound: MetronomeSoundId;
   volume: number;
   countInEnabled: boolean;
+  accentBeat?: number; // 0-indexed measure beat (0 = Beat 1)
+  isFactory?: boolean; // Immutable factory preset flag
   icon?: string;
   createdAt: number;
 }
@@ -29,7 +31,7 @@ export const SOUND_LABELS: Record<MetronomeSoundId, string> = {
   soft: 'Soft Click',
 };
 
-export const DEFAULT_PRESETS: MetronomePreset[] = [
+export const FACTORY_PRESETS: MetronomePreset[] = [
   {
     id: 'preset-rock-4-4',
     name: 'Rock 4/4 Groove',
@@ -39,6 +41,8 @@ export const DEFAULT_PRESETS: MetronomePreset[] = [
     sound: 'woodblock',
     volume: 85,
     countInEnabled: true,
+    accentBeat: 0,
+    isFactory: true,
     icon: 'music_note',
     createdAt: 1,
   },
@@ -51,6 +55,8 @@ export const DEFAULT_PRESETS: MetronomePreset[] = [
     sound: 'click',
     volume: 85,
     countInEnabled: true,
+    accentBeat: 0,
+    isFactory: true,
     icon: 'directions_run',
     createdAt: 2,
   },
@@ -63,6 +69,8 @@ export const DEFAULT_PRESETS: MetronomePreset[] = [
     sound: 'digital',
     volume: 85,
     countInEnabled: true,
+    accentBeat: 0,
+    isFactory: true,
     icon: 'bolt',
     createdAt: 3,
   },
@@ -75,6 +83,8 @@ export const DEFAULT_PRESETS: MetronomePreset[] = [
     sound: 'cowbell',
     volume: 85,
     countInEnabled: true,
+    accentBeat: 0,
+    isFactory: true,
     icon: 'queue_music',
     createdAt: 4,
   },
@@ -87,6 +97,8 @@ export const DEFAULT_PRESETS: MetronomePreset[] = [
     sound: 'rimshot',
     volume: 85,
     countInEnabled: true,
+    accentBeat: 0,
+    isFactory: true,
     icon: 'timelapse',
     createdAt: 5,
   },
@@ -99,23 +111,29 @@ export const DEFAULT_PRESETS: MetronomePreset[] = [
     sound: 'soft',
     volume: 85,
     countInEnabled: true,
+    accentBeat: 0,
+    isFactory: true,
     icon: 'nightlife',
     createdAt: 6,
   },
 ];
 
+export const DEFAULT_PRESETS: MetronomePreset[] = FACTORY_PRESETS;
+
 const PRESETS_STORAGE_KEY = 'studio-metronome-presets';
 const SETTINGS_STORAGE_KEY = 'studio-metronome-settings';
 
 function loadStoredPresets(): MetronomePreset[] {
-  if (typeof window === 'undefined') return DEFAULT_PRESETS;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(PRESETS_STORAGE_KEY);
-    if (!raw) return DEFAULT_PRESETS;
+    if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_PRESETS;
+    return Array.isArray(parsed)
+      ? parsed.filter((p: any) => !p.isFactory && !FACTORY_PRESETS.some((f) => f.id === p.id))
+      : [];
   } catch {
-    return DEFAULT_PRESETS;
+    return [];
   }
 }
 
@@ -149,6 +167,7 @@ export interface MetronomeState {
   timeSignature: MetronomeTimeSignature;
   subdivision: MetronomeSubdivision;
   sound: MetronomeSoundId;
+  accentBeat: number; // 0 to N-1 (default 0 for Beat 1)
   volume: number; // 0 - 100
   isMuted: boolean;
   countInEnabled: boolean;
@@ -163,7 +182,9 @@ export interface MetronomeState {
 
   // Presets
   activePresetId: string | null;
-  presets: MetronomePreset[];
+  userPresets: MetronomePreset[];
+  factoryPresets: MetronomePreset[];
+  presets: MetronomePreset[]; // Canonical saved presets (userPresets)
 
   // Practice Timer
   practiceTimerActive: boolean;
@@ -179,6 +200,7 @@ export interface MetronomeState {
   setTimeSignature: (sig: MetronomeTimeSignature) => void;
   setSubdivision: (sub: MetronomeSubdivision) => void;
   setSound: (sound: MetronomeSoundId) => void;
+  setAccentBeat: (beatIndex: number) => void;
   setVolume: (volume: number) => void;
   toggleMute: () => void;
   toggleCountIn: () => void;
@@ -202,12 +224,13 @@ let practiceTimerInterval: any = null;
 
 export const useMetronomeStore = create<MetronomeState>((set, get) => {
   const stored = loadStoredSettings();
-  const initialPresets = loadStoredPresets();
+  const initialUserPresets = loadStoredPresets();
 
   const initialBpm = stored?.bpm ?? 120;
   const initialSig = stored?.timeSignature ?? '4/4';
   const initialSub = stored?.subdivision ?? '1/16';
   const initialSound = stored?.sound ?? 'woodblock';
+  const initialAccent = stored?.accentBeat ?? 0;
   const initialVol = stored?.volume ?? 85;
   const initialCountIn = stored?.countInEnabled ?? true;
 
@@ -216,6 +239,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
   metronomeAudioEngine.setTimeSignature(initialSig);
   metronomeAudioEngine.setSubdivision(initialSub);
   metronomeAudioEngine.setSound(initialSound);
+  metronomeAudioEngine.setAccentBeat(initialAccent);
   metronomeAudioEngine.setVolume(initialVol / 100);
   metronomeAudioEngine.setCountIn(initialCountIn, 1);
 
@@ -266,20 +290,25 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
   const syncMediaSession = (playing?: boolean) => {
     const s = get();
     const isCurrentlyPlaying = playing !== undefined ? playing : s.isPlaying;
-    const preset = s.presets.find((p) => p.id === s.activePresetId);
-    const title = preset?.name || `${s.bpm} BPM Metronome`;
-    const album = `${s.bpm} BPM · ${s.timeSignature} · ${SOUND_LABELS[s.sound] || 'Metronome'}`;
+    const allPresets = [...s.userPresets, ...FACTORY_PRESETS];
+    const preset = allPresets.find((p) => p.id === s.activePresetId);
+    // PRIMARY TITLE is ALWAYS the current BPM!
+    const title = `${s.bpm} BPM`;
+    const artist = 'Drumex Metronome';
+    const album = `${s.timeSignature} · ${SOUND_LABELS[s.sound] || 'Metronome'}${preset ? ` · ${preset.name}` : ''}`;
 
     if (isCurrentlyPlaying) {
       mediaSessionCoordinator.registerProvider({
         id: 'drumex-metronome',
         getMetadata: () => {
           const state = get();
-          const p = state.presets.find((pr) => pr.id === state.activePresetId);
+          const p = [...state.userPresets, ...FACTORY_PRESETS].find(
+            (pr) => pr.id === state.activePresetId
+          );
           return {
-            title: p?.name || `${state.bpm} BPM Metronome`,
+            title: `${state.bpm} BPM`,
             artist: 'Drumex Metronome',
-            album: `${state.bpm} BPM · ${state.timeSignature} · ${SOUND_LABELS[state.sound] || 'Metronome'}`,
+            album: `${state.timeSignature} · ${SOUND_LABELS[state.sound] || 'Metronome'}${p ? ` · ${p.name}` : ''}`,
           };
         },
         getPlaybackState: () => ({
@@ -295,22 +324,34 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         onSkipForward: () => get().adjustBpm(5),
         onSkipBackward: () => get().adjustBpm(-5),
         onNext: () => {
-          const list = get().presets;
-          const idx = list.findIndex((p) => p.id === get().activePresetId);
-          const next = list[(idx + 1) % list.length];
+          const list = get().userPresets;
+          if (!list || list.length === 0) {
+            // Zero saved presets: safely do nothing!
+            return;
+          }
+          const currentId = get().activePresetId;
+          const idx = list.findIndex((p) => p.id === currentId);
+          const nextIdx = idx === -1 ? 0 : (idx + 1) % list.length;
+          const next = list[nextIdx];
           if (next) get().loadPreset(next.id);
         },
         onPrevious: () => {
-          const list = get().presets;
-          const idx = list.findIndex((p) => p.id === get().activePresetId);
-          const prev = list[(idx - 1 + list.length) % list.length];
+          const list = get().userPresets;
+          if (!list || list.length === 0) {
+            // Zero saved presets: safely do nothing!
+            return;
+          }
+          const currentId = get().activePresetId;
+          const idx = list.findIndex((p) => p.id === currentId);
+          const prevIdx = idx === -1 ? list.length - 1 : (idx - 1 + list.length) % list.length;
+          const prev = list[prevIdx];
           if (prev) get().loadPreset(prev.id);
         },
       });
 
       mediaSessionCoordinator.updateMetadata('drumex-metronome', {
         title,
-        artist: 'Drumex Metronome',
+        artist,
         album,
       });
 
@@ -323,6 +364,14 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         state: 'paused',
         speed: 1.0,
       });
+      // Synchronize metadata when paused so BPM changes reflect immediately in notification
+      if (mediaSessionCoordinator.getActiveProviderId() === 'drumex-metronome') {
+        mediaSessionCoordinator.updateMetadata('drumex-metronome', {
+          title,
+          artist,
+          album,
+        });
+      }
     }
   };
 
@@ -334,6 +383,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       subdivision: s.subdivision,
       sound: s.sound,
       volume: s.volume,
+      accentBeat: s.accentBeat,
       countInEnabled: s.countInEnabled,
     });
   };
@@ -343,6 +393,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     timeSignature: initialSig,
     subdivision: initialSub,
     sound: initialSound,
+    accentBeat: initialAccent,
     volume: initialVol,
     isMuted: false,
     countInEnabled: initialCountIn,
@@ -354,8 +405,10 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     isAccent: false,
     isCountIn: false,
 
-    activePresetId: initialPresets[0]?.id ?? null,
-    presets: initialPresets,
+    activePresetId: initialUserPresets[0]?.id ?? null,
+    userPresets: initialUserPresets,
+    factoryPresets: FACTORY_PRESETS,
+    presets: initialUserPresets,
 
     practiceTimerActive: false,
     practiceTimerMinutes: 0,
@@ -378,7 +431,7 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       metronomeAudioEngine.setBpm(clamped);
       set({ bpm: clamped });
       persistSettings();
-      if (get().isPlaying) syncMediaSession(true);
+      syncMediaSession(get().isPlaying);
     },
 
     adjustBpm: (delta: number) => {
@@ -387,28 +440,43 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       metronomeAudioEngine.setBpm(next);
       set({ bpm: next });
       persistSettings();
-      if (get().isPlaying) syncMediaSession(true);
+      syncMediaSession(get().isPlaying);
     },
 
     setTimeSignature: (sig: MetronomeTimeSignature) => {
       metronomeAudioEngine.setTimeSignature(sig);
-      set({ timeSignature: sig });
+      const currentAccent = get().accentBeat;
+      const maxBeat = metronomeAudioEngine.getBeatsPerMeasure() - 1;
+      const validAccent = currentAccent > maxBeat ? 0 : currentAccent;
+      if (validAccent !== currentAccent) {
+        metronomeAudioEngine.setAccentBeat(validAccent);
+      }
+      set({ timeSignature: sig, accentBeat: validAccent });
       persistSettings();
-      if (get().isPlaying) syncMediaSession(true);
+      syncMediaSession(get().isPlaying);
     },
 
     setSubdivision: (sub: MetronomeSubdivision) => {
       metronomeAudioEngine.setSubdivision(sub);
       set({ subdivision: sub });
       persistSettings();
-      if (get().isPlaying) syncMediaSession(true);
+      syncMediaSession(get().isPlaying);
     },
 
     setSound: (sound: MetronomeSoundId) => {
       metronomeAudioEngine.setSound(sound);
       set({ sound });
       persistSettings();
-      if (get().isPlaying) syncMediaSession(true);
+      syncMediaSession(get().isPlaying);
+    },
+
+    setAccentBeat: (beatIndex: number) => {
+      const maxBeat = metronomeAudioEngine.getBeatsPerMeasure() - 1;
+      const clamped = Math.max(0, Math.min(maxBeat, Math.round(beatIndex)));
+      metronomeAudioEngine.setAccentBeat(clamped);
+      set({ accentBeat: clamped });
+      persistSettings();
+      syncMediaSession(get().isPlaying);
     },
 
     setVolume: (volume: number) => {
@@ -452,7 +520,8 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
     },
 
     loadPreset: (id: string) => {
-      const preset = get().presets.find((p) => p.id === id);
+      const allPresets = [...get().userPresets, ...FACTORY_PRESETS];
+      const preset = allPresets.find((p) => p.id === id);
       if (!preset) return;
 
       get().setBpm(preset.bpm);
@@ -460,18 +529,19 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       get().setSubdivision(preset.subdivision);
       get().setSound(preset.sound);
       get().setVolume(preset.volume);
+      get().setAccentBeat(preset.accentBeat ?? 0);
       if (preset.countInEnabled !== undefined) {
         metronomeAudioEngine.setCountIn(preset.countInEnabled, 1);
         set({ countInEnabled: preset.countInEnabled });
       }
 
       set({ activePresetId: id });
-      if (get().isPlaying) syncMediaSession(true);
+      syncMediaSession(get().isPlaying);
     },
 
     saveNewPreset: (name: string) => {
       const s = get();
-      const newId = `preset-${Date.now()}`;
+      const newId = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const newPreset: MetronomePreset = {
         id: newId,
         name: name.trim() || 'Custom Groove',
@@ -480,14 +550,16 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
         subdivision: s.subdivision,
         sound: s.sound,
         volume: s.volume,
+        accentBeat: s.accentBeat,
         countInEnabled: s.countInEnabled,
+        isFactory: false,
         icon: 'bookmark',
         createdAt: Date.now(),
       };
 
-      const updated = [newPreset, ...s.presets];
+      const updated = [newPreset, ...s.userPresets];
       saveStoredPresets(updated);
-      set({ presets: updated, activePresetId: newId });
+      set({ userPresets: updated, presets: updated, activePresetId: newId });
       return newId;
     },
 
@@ -495,47 +567,57 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
       const s = get();
       if (!s.activePresetId) return;
 
-      const updated = s.presets.map((p) => {
-        if (p.id === s.activePresetId) {
-          return {
-            ...p,
-            bpm: s.bpm,
-            timeSignature: s.timeSignature,
-            subdivision: s.subdivision,
-            sound: s.sound,
-            volume: s.volume,
-            countInEnabled: s.countInEnabled,
-          };
-        }
-        return p;
-      });
+      const isUserPreset = s.userPresets.some((p) => p.id === s.activePresetId);
+      if (isUserPreset) {
+        const updated = s.userPresets.map((p) => {
+          if (p.id === s.activePresetId) {
+            return {
+              ...p,
+              bpm: s.bpm,
+              timeSignature: s.timeSignature,
+              subdivision: s.subdivision,
+              sound: s.sound,
+              volume: s.volume,
+              accentBeat: s.accentBeat,
+              countInEnabled: s.countInEnabled,
+            };
+          }
+          return p;
+        });
 
-      saveStoredPresets(updated);
-      set({ presets: updated });
+        saveStoredPresets(updated);
+        set({ userPresets: updated, presets: updated });
+      } else {
+        // Current active preset is a factory preset: save a custom user copy
+        const factory = FACTORY_PRESETS.find((p) => p.id === s.activePresetId);
+        get().saveNewPreset(`${factory?.name ?? 'Custom'} (Modified)`);
+      }
     },
 
     duplicatePreset: (id: string) => {
       const s = get();
-      const target = s.presets.find((p) => p.id === id);
+      const target = [...s.userPresets, ...FACTORY_PRESETS].find((p) => p.id === id);
       if (!target) return;
 
       const copy: MetronomePreset = {
         ...target,
-        id: `preset-${Date.now()}`,
+        id: `preset-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         name: `${target.name} (Copy)`,
+        isFactory: false,
         createdAt: Date.now(),
       };
 
-      const updated = [copy, ...s.presets];
+      const updated = [copy, ...s.userPresets];
       saveStoredPresets(updated);
-      set({ presets: updated, activePresetId: copy.id });
+      set({ userPresets: updated, presets: updated, activePresetId: copy.id });
     },
 
     deletePreset: (id: string) => {
       const s = get();
-      const updated = s.presets.filter((p) => p.id !== id);
+      const updated = s.userPresets.filter((p) => p.id !== id);
       saveStoredPresets(updated);
       set({
+        userPresets: updated,
         presets: updated,
         activePresetId: s.activePresetId === id ? (updated[0]?.id ?? null) : s.activePresetId,
       });
@@ -543,9 +625,9 @@ export const useMetronomeStore = create<MetronomeState>((set, get) => {
 
     renamePreset: (id: string, name: string) => {
       const s = get();
-      const updated = s.presets.map((p) => (p.id === id ? { ...p, name: name.trim() } : p));
+      const updated = s.userPresets.map((p) => (p.id === id ? { ...p, name: name.trim() } : p));
       saveStoredPresets(updated);
-      set({ presets: updated });
+      set({ userPresets: updated, presets: updated });
     },
 
     setPracticeTimerMinutes: (minutes: number) => {

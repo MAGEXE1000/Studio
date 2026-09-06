@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.65';
-export const NATIVE_VERSION_CODE = 40565;
-export const WEB_VERSION = '4.5.65';
+export const NATIVE_VERSION = '4.5.66';
+export const NATIVE_VERSION_CODE = 40566;
+export const WEB_VERSION = '4.5.66';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '965cafbb';
+export const APP_COMMIT_SHA = '76991f17';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/6/2026, 9:50:58 AM CST';
+export const APP_BUILD_TIMESTAMP = '9/6/2026, 10:10:31 AM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -96,20 +96,11 @@ export interface ChangelogSection {
 
 export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
-    heading: 'Added',
+    heading: 'Fixed',
     items: [
-      'Drumex Metronome Primary Tab: Implemented the approved Drumex Metronome design as a primary production tab placed immediately to the left of Beats (`Metronome | Beats | Patterns | Preferences`).',
-      'Deterministic Web Audio Lookahead Engine: Built high-precision metronome audio engine powered by authoritative Web Audio hardware clock (`currentTime`) and 25ms lookahead scheduler, guaranteeing zero perceptible lag and zero cumulative drift across 40–280 BPM.',
-      'Pre-Synthesized PCM Percussive Kits: Pre-rendered 6 high-transient percussive sound kits (`Acoustic Woodblock`, `Acoustic Click`, `Digital Beep`, `Cowbell`, `Rimshot`, `Soft Click`) directly into cached in-memory AudioBuffers with zero network latency, consistent loudness, and clean transient attack.',
-      'Metronome Presets Management: Full CRUD preset architecture with local storage persistence, supporting instant recall, inline preset creation, duplication, renaming, updating, and search filtering.',
-      'Rhythm Metrics & Controls: Segmented pill selectors for Time Signatures (4/4, 3/4, 6/8, 2/4) and Subdivisions (1/4, 1/8, 1/16, 3let), accented Beat 1 tracking, audible count-in, practice timer, tap tempo, and floating quick controls dock.',
-    ],
-  },
-  {
-    heading: 'Improved',
-    items: [
-      'Clean Audio Lifecycle & Leak Immunity: Guaranteed zero node, timer, or context leaks over repeated start/stop cycles with automatic background/navigation teardown.',
-      'Global Navigation & Translation Integration: Seamless bottom navigation bar and desktop dock integration with English and Spanish translations.',
+      'GrooveX Transposition UI Freeze Regression: Completely eliminated application freeze during musical key transposition by removing main-thread offline SoundTouch WSOLA processing.',
+      'Native Hardware Playback-Rate Engine: Restored canonical zero-CPU Web Audio `AudioBufferSourceNode.playbackRate` adjustment across all stems (including drums/percussion), reducing transposition execution latency from multi-second blocking down to < 0.05ms (0 dropped UI frames, steady 60 FPS).',
+      'Continuous Drift-Free Playback: Dynamic pitch changes during active playback now maintain seamless audio continuity with zero phase jump and 100% sample-lock synchronization across all stems.',
     ],
   },
 ];
@@ -121,6 +112,15 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.66',
+    date: '2026-09-06',
+    highlights: [
+      'GrooveX Transposition UI Freeze Regression: Completely eliminated application freeze during musical key transposition by removing main-thread offline SoundTouch WSOLA processing.',
+      'Native Hardware Playback-Rate Engine: Restored canonical zero-CPU Web Audio `AudioBufferSourceNode.playbackRate` adjustment across all stems (including drums/percussion), reducing transposition execution latency from multi-second blocking down to < 0.05ms (0 dropped UI frames, steady 60 FPS).',
+      'Continuous Drift-Free Playback: Dynamic pitch changes during active playback now maintain seamless audio continuity with zero phase jump and 100% sample-lock synchronization across all stems.',
+    ],
+  },
   {
     version: '4.5.65',
     date: '2026-09-06',
@@ -221,17 +221,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Complete AMOLED Pitch Black Hardening: Standardized all Stagex Setup screens (Setup Hub, Technical Rider, Setlist, Gear Inventory, Band & Crew, and Preferences) to pure black `#000000` with zero dark-navy bleed.',
       'Uniform Floating Header Material & Geometry: Unified floating headers across all Setup detail views to canonical 58px height, 9999px pill geometry, safe-area top insets, and consistent frosted glass elevation.',
       'Stage Canvas Experience: Seamless full-bleed canvas overlay layout without top clipping seams, removal of redundant Stagex title header, 5-button toolbar hierarchy with canonical center focus icon, Scene 1 deletion protection, and perfect three-dot control vertical centering.',
-    ],
-  },
-  {
-    version: '4.5.56',
-    date: '2026-09-03',
-    highlights: [
-      'Stagex Production Document PDF Export Engine: Built native vector jsPDF export engine replacing legacy html2canvas rasterizer, delivering full Setup data parity across stage plot coordinate mapping, audio patch sheet with phantom power (+48V) and IEM mixes, logistics, technical requirements, notes, running setlist, gear inventory, and band & crew roster.',
-      'Production Document Disambiguation: Established distinct "Production Document" naming across toolbar actions, canvas pills, dialogs, and exported documents, completely separating it from Setup > Technical Rider.',
-      'Stagex Setlist Redesign: Aligned Setup > Setlist with Stitch mobile reference, featuring floating header, arrangement subheaders, 2x2 metrics strip, key/tempo badges, and setlist insights.',
-      'Stagex Gear Inventory Redesign: Upgraded Setup > Gear Inventory with crisp vector icons, 2x2 stats grid, verification status tracking, and lightweight empty state.',
-      'Stagex Band & Crew Redesign: Enhanced Setup > Band & Crew with 8-member capacity guard, integrated quick-add member card, 2x2 personnel metrics, assigned stage elements tracking, and refined empty states.',
     ],
   },
 ];

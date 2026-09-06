@@ -48,9 +48,9 @@ import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { logVersionTransformation } from '../updater/versionLogger';
 
-export const NATIVE_VERSION = '4.5.67';
-export const NATIVE_VERSION_CODE = 40567;
-export const WEB_VERSION = '4.5.67';
+export const NATIVE_VERSION = '4.5.68';
+export const NATIVE_VERSION_CODE = 40568;
+export const WEB_VERSION = '4.5.68';
 const cap =
   (typeof window !== 'undefined' && (window as any).Capacitor) ||
   (typeof globalThis !== 'undefined' && (globalThis as any).Capacitor) ||
@@ -73,13 +73,13 @@ export const APP_VERSION_DATE = '8/12/2026';
  * Git commit hash this build was generated from.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_COMMIT_SHA = '417281c2';
+export const APP_COMMIT_SHA = 'f1e2821d';
 
 /**
  * Unix epoch timestamp this build was generated.
  * Stamped by `scripts/sync-versions.mjs` on build.
  */
-export const APP_BUILD_TIMESTAMP = '9/6/2026, 11:13:20 AM CST';
+export const APP_BUILD_TIMESTAMP = '9/6/2026, 1:15:42 PM CST';
 
 /**
  * Changelog for the CURRENT release — shown to the user the first
@@ -98,18 +98,16 @@ export const APP_CHANGELOG_SECTIONS: ChangelogSection[] = [
   {
     heading: 'Added',
     items: [
-      'Signalsmith Stretch WASM AudioWorklet Integration: Integrated official C++ WebAssembly Signalsmith Stretch DSP engine running entirely within the Web Audio render thread for production multitrack stem transposition.',
-      'Native Android Media Controls: Implemented real native Android MediaSessionCompat and foreground playback service exposing playback controls to the Android notification shade, Quick Settings media carousel, lock screen, and Bluetooth devices across GrooveX, Drumex Beats, and Metronome.',
-      'Drumex Metronome Performance Mode: Automatically hides canonical bottom navigation in the Metronome tab to reclaim the lower viewport for compact performance controls.',
+      'Studio/Livex Android System Updater Redesign: Implemented the new flagship Android updater dialog matching the approved design system specifications with 400px width constraint, rounded-28 perimeter, micro scrollbar, and hardware-accelerated CSS state morphing transitions.',
+      'Tactile Interaction & Visual Indicators: Added tactile button feedback (.livex-tap-press scale down on active touch), continuous scanning beam animations for package verification, and real-time download metrics (transferred MB, speed, ETA).',
     ],
   },
   {
     heading: 'Fixed',
     items: [
-      'Time & Tempo Preserving Transposition: Decoupled musical key transposition from playback speed—all audio sources run at strictly 1.0000x playback rate with 0 duration change and 0 BPM change across -12 to +12 semitones.',
-      'Percussion Stem Transposition Immunity: Percussion and drum stems (kick, snare, toms, hi-hats, cymbals, overheads, percussion) bypass pitch processing, keeping rhythm and transients 100% unaltered.',
-      "Sample-Exact Latency Lock: Calibrated drum delay to match Signalsmith Stretch's deterministic 120.00ms latency, achieving bit-exact phase synchronization (Δt = 0.000 ms) between drums and melodic stems with zero cumulative drift.",
-      'Zero UI Thread Overhead: Replaced synchronous main-thread DSP with AudioWorklet parameter automation (< 0.01ms main-thread execution), eliminating application freezes and dropped frames.',
+      'Full Theme Parity: Engineered pixel-perfect support for Light (#ffffff / #f8fafc), Dark (#0c0d10 / #16171b), and AMOLED (true #000000 / #08080a) themes with canonical surface blur tokens.',
+      'Categorized Release Notes Engine: Release changelogs are dynamically classified into distinct, color-coded badges (NEW in emerald, AUDIO ENGINE in blue, FIXED & IMPROVED in amber) with automatic fallback for single-version manifests.',
+      'End-to-End Pipeline Wiring: Connected real-time download progress events, graceful download cancellation, cryptographic SHA-256 verification, and native Android PackageInstaller handoff.',
     ],
   },
 ];
@@ -121,6 +119,17 @@ export interface ReleaseHistoryItem {
 }
 
 export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
+  {
+    version: '4.5.68',
+    date: '2026-09-06',
+    highlights: [
+      'Studio/Livex Android System Updater Redesign: Implemented the new flagship Android updater dialog matching the approved design system specifications with 400px width constraint, rounded-28 perimeter, micro scrollbar, and hardware-accelerated CSS state morphing transitions.',
+      'Tactile Interaction & Visual Indicators: Added tactile button feedback (.livex-tap-press scale down on active touch), continuous scanning beam animations for package verification, and real-time download metrics (transferred MB, speed, ETA).',
+      'Full Theme Parity: Engineered pixel-perfect support for Light (#ffffff / #f8fafc), Dark (#0c0d10 / #16171b), and AMOLED (true #000000 / #08080a) themes with canonical surface blur tokens.',
+      'Categorized Release Notes Engine: Release changelogs are dynamically classified into distinct, color-coded badges (NEW in emerald, AUDIO ENGINE in blue, FIXED & IMPROVED in amber) with automatic fallback for single-version manifests.',
+      'End-to-End Pipeline Wiring: Connected real-time download progress events, graceful download cancellation, cryptographic SHA-256 verification, and native Android PackageInstaller handoff.',
+    ],
+  },
   {
     version: '4.5.67',
     date: '2026-09-06',
@@ -220,18 +229,6 @@ export const RELEASE_HISTORY: ReleaseHistoryItem[] = [
       'Stagex Production Document Single Long-Page PDF Redesign: Implemented continuous single-page vector jsPDF document export with synchronized preview parity across desktop and mobile, standardized typography, high-DPI rasterization for stage plots, and complete technical rider details.',
       'Stage Canvas Interaction: Unified StageBridgeService history synchronization between React and vanilla canvas engine, ensuring seamless state rollbacks, forward redo, and immediate visual canvas reconciliation.',
       'Export Dialog & Document Layout: Standardized multi-section production document geometry with crisp section headers, channel mapping, logistic notes, gear inventory, and band & crew personnel tables.',
-    ],
-  },
-  {
-    version: '4.5.58',
-    date: '2026-09-04',
-    highlights: [
-      'Comprehensive Bilingual Localization: Complete English and Spanish (en/es) translation coverage across all Studio tools and Stagex screens, with reactive language selector sheet and persistent locale storage.',
-      'Stagex Clean Element Data Defaults: Completely eliminated phantom production data defaults on new stage elements (performer names, microphones, DIs, wireless packs, and boilerplate logistics notes).',
-      'Strict +48V Phantom Power Invariant: Hardened phantom power defaults to false across in-app inspectors, projection adapters, and PDF export sheets, showing canonical em-dash (`—`) when unassigned.',
-      'Stagex Canvas Centering & Menu Anchoring: Fixed canvas vertical positioning, toolbar layout hierarchy, and element menu anchor stability.',
-      'External Link Security Hardening: Enforced `rel="noopener noreferrer"` across all external anchor elements in share dialogs.',
-      'Theme-Governed Canvas Appearance: Deprecated manual canvas background color selection in Preferences in favor of strict system theme alignment (Light, AMOLED pure black, and Dark).',
     ],
   },
 ];

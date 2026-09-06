@@ -2525,6 +2525,7 @@ function UpdateModal({
   return (
     <StudioUpdateScreen
       state={state}
+      progress={updater.progress}
       accentFrom={accentFrom}
       accentTo={accentTo}
       title={title}
@@ -2533,9 +2534,30 @@ function UpdateModal({
       iconColor={iconColor}
       showSpinner={showSpinner}
       actionButtons={actionButtons}
-      changelog={showChangelog ? changelogContent : undefined}
       isRequired={mandatory && state === 'available'}
       onClose={onClose}
+      onLater={onLater}
+      onUpdateNow={handleStartUpdate}
+      onCancelDownload={onLater}
+      onRetry={handleStartUpdate}
+      onDone={async () => {
+        try {
+          endPostInstallSession('user_done_button');
+          clearInstallationJustCompleted();
+          onClose();
+          updater.dismissUpdate();
+          if (Capacitor.isNativePlatform()) {
+            await AppInstaller.clearInstallerLogHistory();
+            const { App: CapApp } = await import('@capacitor/app');
+            await CapApp.exitApp();
+          }
+        } catch (err) {
+          console.error('[UpdateIndicator] Done click failed:', err);
+        }
+      }}
+      apkSizeBytes={updater.apkSizeBytes}
+      error={updater.error || installFailedReason}
+      releaseNotes={updater.releaseNotes || updater.changelog}
       progressComponent={progressComponent}
       isLight={isLight}
       isAmoled={isAmoled}

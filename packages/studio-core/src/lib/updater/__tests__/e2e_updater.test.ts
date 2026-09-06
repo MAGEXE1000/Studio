@@ -17,10 +17,12 @@ vi.mock('../../appVersion', () => ({
     return 0;
   },
   parseSemver: (v: string) => {
-    const parts = v.split('.').map(Number);
+    const clean = v.replace(/^v/i, '');
+    const parts = clean.split('.').map(Number);
     return { major: parts[0] || 0, minor: parts[1] || 0, patch: parts[2] || 0 };
   },
-  parseAndNormalizeVersion: (v: string) => v,
+  parseAndNormalizeVersion: (v: string) => (v ? v.replace(/^v/i, '') : v),
+  sanitizeUTF8String: (s: string) => s,
 }));
 
 // 2. Mock @capacitor/core
@@ -127,6 +129,7 @@ const mockLocalStorage: Record<string, string> = {};
 // Mock fetch
 const mockFetch = vi.fn();
 (global as any).fetch = mockFetch;
+globalThis.fetch = mockFetch;
 
 describe('E2E Updater Flow Validation (v4.3.33 to v4.3.34)', () => {
   beforeEach(() => {
@@ -163,28 +166,34 @@ describe('E2E Updater Flow Validation (v4.3.33 to v4.3.34)', () => {
     const checkState = await checkForUpdate(true); // manual check
     console.log('[DEBUG] checkState =', JSON.stringify(checkState, null, 2));
     console.log('[DEBUG] isAppInstallerAvailable =', isAppInstallerAvailable());
-    console.log('[DEBUG] globalUpdateState.updateState before download =', globalUpdateState.updateState);
+    console.log(
+      '[DEBUG] globalUpdateState.updateState before download =',
+      globalUpdateState.updateState
+    );
     expect(checkState.updateAvailable).toBe(true);
     expect(checkState.remoteVersion).toBe('4.3.34');
     expect(checkState.updateState).toBe('UPDATE_AVAILABLE');
 
     // 3. Trigger download
     await downloadUpdate();
-    console.log('[DEBUG] After downloadUpdate, globalUpdateState =', JSON.stringify(globalUpdateState, null, 2));
+    console.log(
+      '[DEBUG] After downloadUpdate, globalUpdateState =',
+      JSON.stringify(globalUpdateState, null, 2)
+    );
     console.log('[DEBUG] updateDebugLogs =', JSON.stringify(updateDebugLogs, null, 2));
     expect(globalUpdateState.updateState).toBe('WAITING_USER_CONFIRMATION');
 
     // 4. Trigger applyUpdate (launches native package installer intent)
     const applyPromise = applyUpdate();
-    
+
     // Yield to let the async update transition commit
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     // Verify it transitioned state to PACKAGEINSTALLER_VISIBLE
     expect(globalUpdateState.updateState).toBe('PACKAGEINSTALLER_VISIBLE');
 
     // Yield to let the async setup complete and set activeInstallPromiseResolver
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // 5. Simulate system status callbacks
     if (typeof (window as any).triggerOtaInstallStatus === 'function') {

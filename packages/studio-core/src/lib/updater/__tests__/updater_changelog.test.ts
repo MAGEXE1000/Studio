@@ -215,8 +215,8 @@ describe('Updater Changelog Display & Release Notes Parsing', () => {
     // When updater detects v4.5.43, notes must belong to v4.5.43, not v4.5.42
     const notesListC = resolveNotesList(null, v43Changelog, '4.5.43');
     expect(notesListC).toEqual([
-      '• Modal Surface Transparency: Eliminated excessive transparency across modal surfaces.',
-      '• Navigation Icon Mapping: Resolved unmapped icon warnings.',
+      'Modal Surface Transparency: Eliminated excessive transparency across modal surfaces.',
+      'Navigation Icon Mapping: Resolved unmapped icon warnings.',
     ]);
     expect(notesListC).not.toContain(
       '[Fixed] Developer Inspector Usability: Fixed broken refresh behavior.'
